@@ -20,7 +20,7 @@ import { toast } from "sonner";
 import { useLocalStorage, useWindowSize } from "usehooks-ts";
 import { saveChatModelAsCookie } from "@/app/(chat)/actions";
 import { SelectItem } from "@/components/ui/select";
-import { chatModels } from "@/lib/ai/models";
+import { chatModels, supportsAttachments } from "@/lib/ai/models";
 import { myProvider } from "@/lib/ai/providers";
 import type { Attachment, ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
@@ -331,6 +331,7 @@ function PureMultimodalInput({
           ) : (
             <PromptInputSubmit
               className="size-8 rounded-full bg-primary text-primary-foreground transition-colors duration-200 hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground"
+              data-testid="send-button"
               disabled={!input.trim() || uploadQueue.length > 0}
               status={status}
             >
@@ -375,13 +376,13 @@ function PureAttachmentsButton({
   status: UseChatHelpers<ChatMessage>["status"];
   selectedModelId: string;
 }) {
-  const isReasoningModel = selectedModelId === "chat-model-reasoning";
+  const canAttachFiles = supportsAttachments(selectedModelId);
 
   return (
     <Button
       className="aspect-square h-8 rounded-lg p-1 transition-colors hover:bg-accent"
       data-testid="attachments-button"
-      disabled={status !== "ready" || isReasoningModel}
+      disabled={status !== "ready" || !canAttachFiles}
       onClick={(event) => {
         event.preventDefault();
         fileInputRef.current?.click();

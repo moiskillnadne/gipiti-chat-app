@@ -45,14 +45,17 @@ export async function createAuthenticatedContext({
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Sign Up" }).click();
 
-  await expect(page.getByTestId("toast")).toContainText(
-    "Account created successfully!"
-  );
+  const toast = page
+    .getByTestId("toast")
+    .filter({ hasText: "Account created successfully!" })
+    .last();
+
+  await expect(toast).toContainText("Account created successfully!");
 
   const chatPage = new ChatPage(page);
   await chatPage.createNewChat();
   await chatPage.chooseModelFromSelector("chat-model-reasoning");
-  await expect(chatPage.getSelectedModel()).resolves.toEqual("Reasoning model");
+  await expect(chatPage.getSelectedModel()).resolves.toEqual("Grok Reasoning");
 
   await page.waitForTimeout(1000);
   await context.storageState({ path: storageFile });

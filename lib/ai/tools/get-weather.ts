@@ -31,23 +31,49 @@ async function geocodeCity(
 
 export const getWeather = tool({
   description:
-    "Get the current weather at a location. You can provide either coordinates or a city name.",
-  inputSchema: z.union([
-    z.object({
-      latitude: z.number(),
-      longitude: z.number(),
-    }),
-    z.object({
+    "Get the current weather at a location. Provide a city name or both latitude and longitude.",
+  inputSchema: z
+    .object({
+      latitude: z.number().optional(),
+      longitude: z.number().optional(),
       city: z
         .string()
-        .describe("City name (e.g., 'San Francisco', 'New York', 'London')"),
-    }),
-  ]),
+        .describe("City name (e.g., 'San Francisco', 'New York', 'London')")
+        .optional(),
+    })
+    .refine(
+      (input) => {
+        const hasCoordinates =
+          typeof input.latitude === "number" &&
+          typeof input.longitude === "number";
+        const hasCity = typeof input.city === "string" && input.city.length > 0;
+
+        if (hasCoordinates && hasCity) {
+          return false;
+        }
+
+        if (hasCity) {
+          return true;
+        }
+
+        return (
+          hasCoordinates &&
+          Number.isFinite(input.latitude) &&
+          Number.isFinite(input.longitude)
+        );
+      },
+      {
+        message:
+          "Provide either a city name or both latitude and longitude coordinates.",
+      }
+    ),
   execute: async (input) => {
+    const hasCity = typeof input.city === "string" && input.city.length > 0;
+
     let latitude: number;
     let longitude: number;
 
-    if ("city" in input) {
+    if (hasCity && input.city) {
       const coords = await geocodeCity(input.city);
       if (!coords) {
         return {
@@ -57,8 +83,8 @@ export const getWeather = tool({
       latitude = coords.latitude;
       longitude = coords.longitude;
     } else {
-      latitude = input.latitude;
-      longitude = input.longitude;
+      latitude = input.latitude as number;
+      longitude = input.longitude as number;
     }
 
     const response = await fetch(
@@ -67,7 +93,7 @@ export const getWeather = tool({
 
     const weatherData = await response.json();
 
-    if ("city" in input) {
+    if (hasCity && input.city) {
       weatherData.cityName = input.city;
     }
 

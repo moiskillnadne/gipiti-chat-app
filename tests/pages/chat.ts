@@ -220,7 +220,11 @@ export class ChatPage {
   }
 
   async expectToastToContain(text: string) {
-    await expect(this.page.getByTestId("toast")).toContainText(text);
+    const toast = this.page
+      .getByTestId("toast")
+      .filter({ hasText: text })
+      .last();
+    await expect(toast).toContainText(text);
   }
 
   async openSideBar() {
