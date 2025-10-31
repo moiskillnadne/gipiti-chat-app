@@ -32,5 +32,17 @@ export const myProvider = isTestEnvironment
         }),
         "title-model": gateway.languageModel("xai/grok-2-1212"),
         "artifact-model": gateway.languageModel("xai/grok-2-1212"),
+        "gpt-5": gateway.languageModel("openai/gpt-5"),
+        "gpt-5-reasoning": wrapLanguageModel({
+          model: gateway.languageModel("openai/gpt-5"),
+          middleware: extractReasoningMiddleware({ tagName: "think" }),
+        }),
+        "gpt-5-pro": gateway.languageModel("openai/gpt-5-pro"),
+        "gpt-5-pro-reasoning": wrapLanguageModel({
+          model: gateway.languageModel("openai/gpt-5-pro"),
+          middleware: extractReasoningMiddleware({ tagName: "think" }),
+        }),
+        "gpt-5-mini": gateway.languageModel("openai/gpt-5-mini"),
+        "gemini-2.5-pro": gateway.languageModel("google/gemini-2.5-pro"),
       },
     });

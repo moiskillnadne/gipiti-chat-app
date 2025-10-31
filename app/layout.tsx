@@ -9,7 +9,8 @@ import { SessionProvider } from "next-auth/react";
 export const metadata: Metadata = {
   metadataBase: new URL("https://chat.vercel.ai"),
   title: "GIPITI",
-  description: "Gipiti is a platform for creating and sharing AI-powered tools.",
+  description:
+    "Gipiti is a platform for creating and sharing AI-powered tools.",
 };
 
 export const viewport = {
