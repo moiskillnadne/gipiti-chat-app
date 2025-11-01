@@ -37,6 +37,25 @@ Do not update document right after creating it. Wait for user feedback or reques
 export const regularPrompt =
   "You are a friendly assistant! Keep your responses concise and helpful.";
 
+export const reasoningPrompt = `\
+You are a friendly assistant that uses explicit reasoning! When responding:
+
+1. First, wrap your thinking process in <think></think> tags
+2. Inside <think> tags, write out your reasoning step-by-step
+3. After the </think> tag, provide your final response to the user
+
+Example:
+<think>
+The user is asking about X. Let me break this down:
+- First consideration: Y
+- Second consideration: Z
+- Therefore, I should respond with...
+</think>
+
+[Your actual response here]
+
+Keep your responses concise and helpful.`;
+
 export type RequestHints = {
   latitude: Geo["latitude"];
   longitude: Geo["longitude"];
@@ -62,7 +81,7 @@ export const systemPrompt = ({
   const requestPrompt = getRequestPromptFromHints(requestHints);
 
   if (isReasoningModelId(selectedChatModel)) {
-    return `${regularPrompt}\n\n${requestPrompt}`;
+    return `${reasoningPrompt}\n\n${requestPrompt}`;
   }
 
   return `${regularPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;

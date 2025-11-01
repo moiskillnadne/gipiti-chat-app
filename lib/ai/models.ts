@@ -35,19 +35,10 @@ export const chatModels: ChatModel[] = [
     id: "gpt-5",
     name: "GPT-5",
     description:
-      "The latest version of OpenAI's GPT model. Good for daily tasks.",
-    capabilities: {
-      attachments: true,
-    },
-  },
-  {
-    id: "gpt-5-reasoning",
-    name: "GPT-5 Reasoning",
-    description:
       "Uses advanced chain-of-thought reasoning for complex problems.",
     capabilities: {
       reasoning: true,
-      attachments: false,
+      attachments: true,
     },
   },
   {
@@ -56,17 +47,8 @@ export const chatModels: ChatModel[] = [
     description:
       "The smartest version of OpenAI's GPT model. Good for super complex tasks.",
     capabilities: {
-      attachments: true,
-    },
-  },
-  {
-    id: "gpt-5-pro-reasoning",
-    name: "GPT-5 Pro Reasoning",
-    description:
-      "Uses advanced chain-of-thought reasoning for super complex tasks.",
-    capabilities: {
       reasoning: true,
-      attachments: false,
+      attachments: true,
     },
   },
   {
@@ -75,6 +57,7 @@ export const chatModels: ChatModel[] = [
     description:
       "The smallest version of OpenAI's GPT model. Good for quick tasks.",
     capabilities: {
+      reasoning: true,
       attachments: true,
     },
   },
@@ -84,6 +67,17 @@ export const chatModels: ChatModel[] = [
     description:
       "The latest version of Google's Gemini model. Good for daily tasks.",
     capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+  },
+  {
+    id: "opus-4.1",
+    name: "Opus 4.1",
+    description:
+      "The latest version of Anthropic's Opus model. Good for daily tasks.",
+    capabilities: {
+      reasoning: true,
       attachments: true,
     },
   },
