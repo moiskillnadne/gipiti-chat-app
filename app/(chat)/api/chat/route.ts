@@ -29,10 +29,12 @@ import { updateDocument } from "@/lib/ai/tools/update-document";
 import { isProductionEnvironment } from "@/lib/constants";
 import {
   createStreamId,
+  decrementUserTokenBalance,
   deleteChatById,
   getChatById,
   getMessageCountByUserId,
   getMessagesByChatId,
+  getUserById,
   saveChat,
   saveMessages,
   updateChatLastContextById,
@@ -124,6 +126,16 @@ export async function POST(request: Request) {
       return new ChatSDKError("rate_limit:chat").toResponse();
     }
 
+    const dbUser = await getUserById({ id: session.user.id });
+
+    if (!dbUser) {
+      return new ChatSDKError("unauthorized:chat").toResponse();
+    }
+
+    if (dbUser.tokenBalance <= 0) {
+      return new ChatSDKError("payment_required:chat").toResponse();
+    }
+
     const chat = await getChatById({ id });
 
     if (chat) {
@@ -175,6 +187,36 @@ export async function POST(request: Request) {
 
     const stream = createUIMessageStream({
       execute: ({ writer: dataStream }) => {
+        const handleTokenConsumption = async (
+          tokensConsumed?: number | null
+        ) => {
+          if (
+            typeof tokensConsumed === "number" &&
+            Number.isFinite(tokensConsumed) &&
+            tokensConsumed > 0
+          ) {
+            try {
+              const newBalance = await decrementUserTokenBalance({
+                userId: session.user.id,
+                tokens: tokensConsumed,
+              });
+
+              if (typeof newBalance === "number") {
+                dataStream.write({
+                  type: "token-balance",
+                  data: { remaining: newBalance },
+                });
+              }
+            } catch (err) {
+              console.warn(
+                "Unable to update token balance",
+                session.user.id,
+                err
+              );
+            }
+          }
+        };
+
         const result = streamText({
           model: myProvider.languageModel(selectedChatModel),
           system: systemPrompt({ selectedChatModel, requestHints }),
@@ -213,6 +255,7 @@ export async function POST(request: Request) {
                   type: "data-usage",
                   data: finalMergedUsage,
                 });
+                await handleTokenConsumption(usage.totalTokens);
                 return;
               }
 
@@ -222,16 +265,21 @@ export async function POST(request: Request) {
                   type: "data-usage",
                   data: finalMergedUsage,
                 });
+                await handleTokenConsumption(usage.totalTokens);
                 return;
               }
 
               const summary = getUsage({ modelId, usage, providers });
               finalMergedUsage = { ...usage, ...summary, modelId } as AppUsage;
               dataStream.write({ type: "data-usage", data: finalMergedUsage });
+              await handleTokenConsumption(
+                finalMergedUsage.totalTokens ?? usage.totalTokens
+              );
             } catch (err) {
               console.warn("TokenLens enrichment failed", err);
               finalMergedUsage = usage;
               dataStream.write({ type: "data-usage", data: finalMergedUsage });
+              await handleTokenConsumption(usage.totalTokens);
             }
           },
         });

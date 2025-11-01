@@ -41,6 +41,7 @@ export function Chat({
   isReadonly,
   autoResume,
   initialLastContext,
+  initialTokenBalance,
 }: {
   id: string;
   initialMessages: ChatMessage[];
@@ -49,6 +50,7 @@ export function Chat({
   isReadonly: boolean;
   autoResume: boolean;
   initialLastContext?: AppUsage;
+  initialTokenBalance: number;
 }) {
   const { visibilityType } = useChatVisibility({
     chatId: id,
@@ -63,6 +65,8 @@ export function Chat({
   const [showCreditCardAlert, setShowCreditCardAlert] = useState(false);
   const [currentModelId, setCurrentModelId] = useState(initialChatModel);
   const currentModelIdRef = useRef(currentModelId);
+  const [tokenBalance, setTokenBalance] = useState(initialTokenBalance);
+  const isTokenBalanceDepleted = tokenBalance <= 0;
 
   useEffect(() => {
     currentModelIdRef.current = currentModelId;
@@ -100,6 +104,15 @@ export function Chat({
       setDataStream((ds) => (ds ? [...ds, dataPart] : []));
       if (dataPart.type === "data-usage") {
         setUsage(dataPart.data);
+      } else if (dataPart.type === "token-balance") {
+        const remaining =
+          typeof dataPart.data === "number"
+            ? dataPart.data
+            : dataPart.data?.remaining ?? dataPart.data?.balance;
+
+        if (typeof remaining === "number") {
+          setTokenBalance(remaining);
+        }
       }
     },
     onFinish: () => {
@@ -107,6 +120,9 @@ export function Chat({
     },
     onError: (error) => {
       if (error instanceof ChatSDKError) {
+        if (error.type === "payment_required" && error.surface === "chat") {
+          setTokenBalance(0);
+        }
         // Check if it's a credit card error
         if (
           error.message?.includes("AI Gateway requires a valid credit card")
@@ -183,6 +199,7 @@ export function Chat({
               input={input}
               messages={messages}
               onModelChange={setCurrentModelId}
+              remainingTokens={tokenBalance}
               selectedModelId={currentModelId}
               selectedVisibilityType={visibilityType}
               sendMessage={sendMessage}
@@ -192,6 +209,7 @@ export function Chat({
               status={status}
               stop={stop}
               usage={usage}
+              isTokenBalanceDepleted={isTokenBalanceDepleted}
             />
           )}
         </div>
@@ -204,6 +222,7 @@ export function Chat({
         isReadonly={isReadonly}
         messages={messages}
         regenerate={regenerate}
+        remainingTokens={tokenBalance}
         selectedModelId={currentModelId}
         selectedVisibilityType={visibilityType}
         sendMessage={sendMessage}
@@ -212,6 +231,7 @@ export function Chat({
         setMessages={setMessages}
         status={status}
         stop={stop}
+        isTokenBalanceDepleted={isTokenBalanceDepleted}
         votes={votes}
       />
 
