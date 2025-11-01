@@ -81,6 +81,10 @@ function RegisterPage() {
   }, [searchParams]);
 
   useEffect(() => {
+    if (isSuccessful) {
+      return;
+    }
+
     if (state.status === "user_exists") {
       toast({ type: "error", description: "Account already exists!" });
       return;
@@ -109,15 +113,10 @@ function RegisterPage() {
 
     const redirectPath = getRedirectPath();
 
-    void updateSession().finally(() => {
+    updateSession().finally(() => {
       router.replace(redirectPath);
     });
-  }, [
-    getRedirectPath,
-    router,
-    state.status,
-    updateSession,
-  ]);
+  }, [getRedirectPath, router, state.status, updateSession, isSuccessful]);
 
   const handleSubmit = (formData: FormData) => {
     setEmail(formData.get("email") as string);
