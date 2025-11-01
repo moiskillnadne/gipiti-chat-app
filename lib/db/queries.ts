@@ -57,7 +57,11 @@ export async function createUser(email: string, password: string) {
   const hashedPassword = generateHashedPassword(password);
 
   try {
-    return await db.insert(user).values({ email, password: hashedPassword });
+    const [newUser] = await db
+      .insert(user)
+      .values({ email, password: hashedPassword })
+      .returning();
+    return newUser;
   } catch (_error) {
     throw new ChatSDKError("bad_request:database", "Failed to create user");
   }

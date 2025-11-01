@@ -1,13 +1,19 @@
 import type { InferSelectModel } from "drizzle-orm";
 import {
+  bigint,
   boolean,
+  decimal,
   foreignKey,
+  index,
+  integer,
   json,
   jsonb,
+  pgEnum,
   pgTable,
   primaryKey,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
@@ -17,6 +23,9 @@ export const user = pgTable("User", {
   id: uuid("id").primaryKey().notNull().defaultRandom(),
   email: varchar("email", { length: 64 }).notNull(),
   password: varchar("password", { length: 64 }),
+  currentPlan: varchar("current_plan", { length: 32 }).default("tester"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 export type User = InferSelectModel<typeof user>;
@@ -171,3 +180,223 @@ export const stream = pgTable(
 );
 
 export type Stream = InferSelectModel<typeof stream>;
+
+// ============================================================================
+// TOKEN TRACKING & SUBSCRIPTION TABLES
+// ============================================================================
+
+// Billing period enum
+export const billingPeriodEnum = pgEnum("billing_period", [
+  "daily",
+  "weekly",
+  "monthly",
+  "annual",
+]);
+
+// Subscription Plans
+export const subscriptionPlan = pgTable(
+  "SubscriptionPlan",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    name: varchar("name", { length: 64 }).notNull(),
+    displayName: varchar("display_name", { length: 128 }),
+
+    // Billing configuration
+    billingPeriod: billingPeriodEnum("billing_period").notNull().default("monthly"),
+
+    // Token limits (per billing period)
+    tokenQuota: bigint("token_quota", { mode: "number" }).notNull(),
+
+    // Optional: Per-model limits
+    modelLimits: jsonb("model_limits").$type<Record<string, number>>(),
+
+    // Feature flags
+    features: jsonb("features").$type<{
+      maxMessagesPerPeriod?: number;
+      allowedModels: string[];
+      hasReasoningModels: boolean;
+      hasPrioritySupport: boolean;
+      maxFileSize?: number;
+      maxConcurrentChats?: number;
+      hasAPIAccess?: boolean;
+    }>(),
+
+    // Pricing (for display/reference)
+    price: decimal("price", { precision: 10, scale: 2 }),
+
+    // Meta
+    isActive: boolean("is_active").default(true).notNull(),
+    isTesterPlan: boolean("is_tester_plan").default(false).notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    nameIdx: uniqueIndex("subscription_plan_name_idx").on(table.name),
+  })
+);
+
+export type SubscriptionPlan = InferSelectModel<typeof subscriptionPlan>;
+
+// User Subscriptions
+export const userSubscription = pgTable(
+  "UserSubscription",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    planId: uuid("plan_id")
+      .notNull()
+      .references(() => subscriptionPlan.id),
+
+    // Billing period configuration
+    billingPeriod: billingPeriodEnum("billing_period").notNull(),
+
+    // Current billing period
+    currentPeriodStart: timestamp("current_period_start").notNull(),
+    currentPeriodEnd: timestamp("current_period_end").notNull(),
+
+    // Next billing date
+    nextBillingDate: timestamp("next_billing_date").notNull(),
+
+    // Status
+    status: varchar("status", { length: 32 }).notNull().default("active"),
+
+    // Payment integration (for future use)
+    externalSubscriptionId: varchar("external_subscription_id", { length: 128 }),
+    externalCustomerId: varchar("external_customer_id", { length: 128 }),
+
+    // Payment history reference
+    lastPaymentDate: timestamp("last_payment_date"),
+    lastPaymentAmount: decimal("last_payment_amount", { precision: 10, scale: 2 }),
+
+    // Cancellation
+    cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false).notNull(),
+
+    // Meta
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+    cancelledAt: timestamp("cancelled_at"),
+  },
+  (table) => ({
+    userIdIdx: index("user_subscription_user_id_idx").on(table.userId),
+    statusIdx: index("user_subscription_status_idx").on(table.status),
+    nextBillingIdx: index("user_subscription_next_billing_idx").on(table.nextBillingDate),
+  })
+);
+
+export type UserSubscription = InferSelectModel<typeof userSubscription>;
+
+// Token Usage Log
+export const tokenUsageLog = pgTable(
+  "TokenUsageLog",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+
+    // User & subscription
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    subscriptionId: uuid("subscription_id")
+      .references(() => userSubscription.id, { onDelete: "set null" }),
+
+    // Chat context
+    chatId: uuid("chat_id")
+      .references(() => chat.id, { onDelete: "set null" }),
+    messageId: uuid("message_id")
+      .references(() => message.id, { onDelete: "set null" }),
+
+    // Model & usage
+    modelId: varchar("model_id", { length: 128 }).notNull(),
+
+    inputTokens: integer("input_tokens").notNull().default(0),
+    outputTokens: integer("output_tokens").notNull().default(0),
+    totalTokens: integer("total_tokens").notNull().default(0),
+
+    // Cache tokens (for Claude)
+    cacheWriteTokens: integer("cache_write_tokens").default(0),
+    cacheReadTokens: integer("cache_read_tokens").default(0),
+
+    // Pricing (from TokenLens)
+    inputCost: decimal("input_cost", { precision: 12, scale: 8 }),
+    outputCost: decimal("output_cost", { precision: 12, scale: 8 }),
+    totalCost: decimal("total_cost", { precision: 12, scale: 8 }),
+
+    // Billing period this usage belongs to
+    billingPeriodType: billingPeriodEnum("billing_period_type").notNull(),
+    billingPeriodStart: timestamp("billing_period_start").notNull(),
+    billingPeriodEnd: timestamp("billing_period_end").notNull(),
+
+    // Meta
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index("token_usage_log_user_id_idx").on(table.userId),
+    chatIdIdx: index("token_usage_log_chat_id_idx").on(table.chatId),
+    createdAtIdx: index("token_usage_log_created_at_idx").on(table.createdAt),
+    billingPeriodIdx: index("token_usage_log_billing_period_idx").on(
+      table.billingPeriodStart,
+      table.billingPeriodEnd
+    ),
+    userPeriodIdx: index("token_usage_log_user_period_idx").on(
+      table.userId,
+      table.billingPeriodStart,
+      table.billingPeriodEnd
+    ),
+  })
+);
+
+export type TokenUsageLog = InferSelectModel<typeof tokenUsageLog>;
+
+// User Token Usage Aggregate
+export const userTokenUsage = pgTable(
+  "UserTokenUsage",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    subscriptionId: uuid("subscription_id")
+      .notNull()
+      .references(() => userSubscription.id, { onDelete: "cascade" }),
+
+    // Billing period
+    billingPeriodType: billingPeriodEnum("billing_period_type").notNull(),
+    periodStart: timestamp("period_start").notNull(),
+    periodEnd: timestamp("period_end").notNull(),
+
+    // Aggregated totals
+    totalInputTokens: bigint("total_input_tokens", { mode: "number" }).notNull().default(0),
+    totalOutputTokens: bigint("total_output_tokens", { mode: "number" }).notNull().default(0),
+    totalTokens: bigint("total_tokens", { mode: "number" }).notNull().default(0),
+
+    // Per-model breakdowns
+    modelBreakdown: jsonb("model_breakdown").$type<Record<string, {
+      inputTokens: number;
+      outputTokens: number;
+      totalTokens: number;
+      cost: number;
+      requestCount: number;
+    }>>(),
+
+    // Cost totals
+    totalCost: decimal("total_cost", { precision: 12, scale: 4 }),
+
+    // Request count
+    totalRequests: integer("total_requests").notNull().default(0),
+
+    // Meta
+    lastUpdatedAt: timestamp("last_updated_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    userPeriodUnique: uniqueIndex("user_token_usage_user_period_idx").on(
+      table.userId,
+      table.periodStart,
+      table.periodEnd
+    ),
+    subscriptionIdx: index("user_token_usage_subscription_idx").on(table.subscriptionId),
+  })
+);
+
+export type UserTokenUsage = InferSelectModel<typeof userTokenUsage>;
