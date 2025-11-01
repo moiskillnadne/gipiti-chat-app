@@ -10,6 +10,7 @@ import {
   gte,
   inArray,
   lt,
+  sql,
   type SQL,
 } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -53,6 +54,23 @@ export async function getUser(email: string): Promise<User[]> {
   }
 }
 
+export async function getUserById({ id }: { id: string }): Promise<User | null> {
+  try {
+    const [record] = await db
+      .select()
+      .from(user)
+      .where(eq(user.id, id))
+      .limit(1);
+
+    return record ?? null;
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to get user by id"
+    );
+  }
+}
+
 export async function createUser(email: string, password: string) {
   const hashedPassword = generateHashedPassword(password);
 
@@ -60,6 +78,35 @@ export async function createUser(email: string, password: string) {
     return await db.insert(user).values({ email, password: hashedPassword });
   } catch (_error) {
     throw new ChatSDKError("bad_request:database", "Failed to create user");
+  }
+}
+
+export async function decrementUserTokenBalance({
+  userId,
+  tokens,
+}: {
+  userId: string;
+  tokens: number;
+}) {
+  if (tokens <= 0) {
+    return (await getUserById({ id: userId }))?.tokenBalance ?? null;
+  }
+
+  try {
+    const [updatedUser] = await db
+      .update(user)
+      .set({
+        tokenBalance: sql`GREATEST(${user.tokenBalance} - ${tokens}, 0)`,
+      })
+      .where(eq(user.id, userId))
+      .returning({ tokenBalance: user.tokenBalance });
+
+    return updatedUser?.tokenBalance ?? null;
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to update user token balance"
+    );
   }
 }
 

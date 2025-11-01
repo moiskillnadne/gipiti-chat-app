@@ -27,6 +27,7 @@ export default async function Page() {
           initialChatModel={DEFAULT_CHAT_MODEL}
           initialMessages={[]}
           initialVisibilityType="private"
+          initialTokenBalance={session.user.tokenBalance}
           isReadonly={false}
           key={id}
         />
@@ -43,6 +44,7 @@ export default async function Page() {
         initialChatModel={modelIdFromCookie.value}
         initialMessages={[]}
         initialVisibilityType="private"
+        initialTokenBalance={session.user.tokenBalance}
         isReadonly={false}
         key={id}
       />

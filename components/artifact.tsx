@@ -68,6 +68,8 @@ function PureArtifact({
   isReadonly,
   selectedVisibilityType,
   selectedModelId,
+  remainingTokens,
+  isTokenBalanceDepleted,
 }: {
   chatId: string;
   input: string;
@@ -84,6 +86,8 @@ function PureArtifact({
   isReadonly: boolean;
   selectedVisibilityType: VisibilityType;
   selectedModelId: string;
+  remainingTokens: number;
+  isTokenBalanceDepleted: boolean;
 }) {
   const { artifact, setArtifact, metadata, setMetadata } = useArtifact();
 
@@ -337,6 +341,7 @@ function PureArtifact({
                     className="bg-background dark:bg-muted"
                     input={input}
                     messages={messages}
+                    remainingTokens={remainingTokens}
                     selectedModelId={selectedModelId}
                     selectedVisibilityType={selectedVisibilityType}
                     sendMessage={sendMessage}
@@ -345,6 +350,7 @@ function PureArtifact({
                     setMessages={setMessages}
                     status={status}
                     stop={stop}
+                    isTokenBalanceDepleted={isTokenBalanceDepleted}
                   />
                 </div>
               </div>
@@ -522,6 +528,12 @@ export const Artifact = memo(PureArtifact, (prevProps, nextProps) => {
     return false;
   }
   if (prevProps.selectedVisibilityType !== nextProps.selectedVisibilityType) {
+    return false;
+  }
+  if (prevProps.isTokenBalanceDepleted !== nextProps.isTokenBalanceDepleted) {
+    return false;
+  }
+  if (prevProps.remainingTokens !== nextProps.remainingTokens) {
     return false;
   }
 

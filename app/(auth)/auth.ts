@@ -4,7 +4,7 @@ import type { DefaultJWT } from "next-auth/jwt";
 import Credentials from "next-auth/providers/credentials";
 import { getAuthSecret } from "@/lib/auth/secret";
 import { DUMMY_PASSWORD } from "@/lib/constants";
-import { getUser } from "@/lib/db/queries";
+import { getUser, getUserById } from "@/lib/db/queries";
 import { authConfig } from "./auth.config";
 
 export type UserType = "regular";
@@ -14,6 +14,7 @@ declare module "next-auth" {
     user: {
       id: string;
       type: UserType;
+      tokenBalance: number;
     } & DefaultSession["user"];
   }
 
@@ -22,6 +23,7 @@ declare module "next-auth" {
     id?: string;
     email?: string | null;
     type: UserType;
+    tokenBalance: number;
   }
 }
 
@@ -29,6 +31,7 @@ declare module "next-auth/jwt" {
   interface JWT extends DefaultJWT {
     id: string;
     type: UserType;
+    tokenBalance: number;
   }
 }
 
@@ -64,23 +67,35 @@ export const {
           return null;
         }
 
-        return { ...user, type: "regular" };
+        return {
+          ...user,
+          type: "regular",
+          tokenBalance: user.tokenBalance ?? 0,
+        };
       },
     }),
   ],
   callbacks: {
-    jwt({ token, user }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id as string;
         token.type = user.type;
+        token.tokenBalance = user.tokenBalance;
+      } else if (token.id) {
+        const dbUser = await getUserById({ id: token.id });
+
+        if (dbUser) {
+          token.tokenBalance = dbUser.tokenBalance;
+        }
       }
 
       return token;
     },
-    session({ session, token }) {
+    async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id;
         session.user.type = token.type;
+        session.user.tokenBalance = token.tokenBalance ?? 0;
       }
 
       return session;

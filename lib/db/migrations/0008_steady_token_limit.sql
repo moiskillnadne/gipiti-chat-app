@@ -1,0 +1,1 @@
+ALTER TABLE "User" ADD COLUMN "tokenBalance" integer NOT NULL DEFAULT 100000;

@@ -63,6 +63,8 @@ function PureMultimodalInput({
   selectedModelId,
   onModelChange,
   usage,
+  remainingTokens,
+  isTokenBalanceDepleted,
 }: {
   chatId: string;
   input: string;
@@ -79,6 +81,8 @@ function PureMultimodalInput({
   selectedModelId: string;
   onModelChange?: (modelId: string) => void;
   usage?: AppUsage;
+  remainingTokens: number;
+  isTokenBalanceDepleted: boolean;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
@@ -257,7 +261,9 @@ function PureMultimodalInput({
         className="rounded-xl border border-border bg-background p-3 shadow-xs transition-all duration-200 focus-within:border-border hover:border-muted-foreground/50"
         onSubmit={(event) => {
           event.preventDefault();
-          if (status !== "ready") {
+          if (isTokenBalanceDepleted) {
+            toast.error("You have no tokens remaining. Please upgrade your plan.");
+          } else if (status !== "ready") {
             toast.error("Please wait for the model to finish its response!");
           } else {
             submitForm();
@@ -317,6 +323,7 @@ function PureMultimodalInput({
           <PromptInputTools className="gap-0 sm:gap-0.5">
             <AttachmentsButton
               fileInputRef={fileInputRef}
+              isTokenBalanceDepleted={isTokenBalanceDepleted}
               selectedModelId={selectedModelId}
               status={status}
             />
@@ -332,13 +339,26 @@ function PureMultimodalInput({
             <PromptInputSubmit
               className="size-8 rounded-full bg-primary text-primary-foreground transition-colors duration-200 hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground"
               data-testid="send-button"
-              disabled={!input.trim() || uploadQueue.length > 0}
+              disabled={
+                !input.trim() || uploadQueue.length > 0 || isTokenBalanceDepleted
+              }
               status={status}
             >
               <ArrowUpIcon size={14} />
             </PromptInputSubmit>
           )}
         </PromptInputToolbar>
+        <div className="flex items-center justify-between px-2 pb-1 text-xs text-muted-foreground">
+          <span>Token balance</span>
+          <span className={cn(isTokenBalanceDepleted && "text-destructive")}>
+            {remainingTokens.toLocaleString()}
+          </span>
+        </div>
+        {isTokenBalanceDepleted && (
+          <p className="px-2 pb-1 text-xs text-destructive">
+            You have no tokens remaining. Upgrade your plan to keep chatting.
+          </p>
+        )}
       </PromptInput>
     </div>
   );
@@ -362,6 +382,12 @@ export const MultimodalInput = memo(
     if (prevProps.selectedModelId !== nextProps.selectedModelId) {
       return false;
     }
+    if (prevProps.isTokenBalanceDepleted !== nextProps.isTokenBalanceDepleted) {
+      return false;
+    }
+    if (prevProps.remainingTokens !== nextProps.remainingTokens) {
+      return false;
+    }
 
     return true;
   }
@@ -371,10 +397,12 @@ function PureAttachmentsButton({
   fileInputRef,
   status,
   selectedModelId,
+  isTokenBalanceDepleted,
 }: {
   fileInputRef: React.MutableRefObject<HTMLInputElement | null>;
   status: UseChatHelpers<ChatMessage>["status"];
   selectedModelId: string;
+  isTokenBalanceDepleted: boolean;
 }) {
   const canAttachFiles = supportsAttachments(selectedModelId);
 
@@ -382,7 +410,9 @@ function PureAttachmentsButton({
     <Button
       className="aspect-square h-8 rounded-lg p-1 transition-colors hover:bg-accent"
       data-testid="attachments-button"
-      disabled={status !== "ready" || !canAttachFiles}
+      disabled={
+        status !== "ready" || !canAttachFiles || isTokenBalanceDepleted
+      }
       onClick={(event) => {
         event.preventDefault();
         fileInputRef.current?.click();
