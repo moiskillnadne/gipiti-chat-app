@@ -35,32 +35,25 @@ export const generateImage = ({ dataStream }: GenerateImageProps) =>
       }
 
       try {
-        // Using OpenAI-compatible endpoint for Gemini API
+        // Using native Imagen 4.0 API endpoint
         const response = await fetch(
-          "https://generativelanguage.googleapis.com/v1beta/openai/images/generations",
+          "https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict",
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${apiKey}`,
+              "x-goog-api-key": apiKey,
             },
             body: JSON.stringify({
-              model: "imagen-3.0-generate-001",
-              prompt,
-              n: 1,
-              response_format: "b64_json",
-              ...(aspectRatio && {
-                size:
-                  aspectRatio === "1:1"
-                    ? "1024x1024"
-                    : aspectRatio === "16:9"
-                      ? "1792x1024"
-                      : aspectRatio === "9:16"
-                        ? "1024x1792"
-                        : aspectRatio === "4:3"
-                          ? "1536x1152"
-                          : "1152x1536",
-              }),
+              instances: [
+                {
+                  prompt,
+                },
+              ],
+              parameters: {
+                sampleCount: 1,
+                ...(aspectRatio && { aspectRatio }),
+              },
             }),
           }
         );
@@ -75,11 +68,14 @@ export const generateImage = ({ dataStream }: GenerateImageProps) =>
 
         const result = await response.json();
 
-        // Extract base64 image data from the OpenAI-compatible response
-        // Format: { data: [{ b64_json: "..." }] }
-        const base64Image = result.data?.[0]?.b64_json;
+        // Extract base64 image data from the native API response
+        // Format: { predictions: [{ bytesBase64Encoded: "..." }] }
+        const base64Image =
+          result.predictions?.[0]?.bytesBase64Encoded ||
+          result.predictions?.[0]?.image;
 
         if (!base64Image) {
+          console.error("API response:", JSON.stringify(result));
           throw new Error("No image data in API response");
         }
 
