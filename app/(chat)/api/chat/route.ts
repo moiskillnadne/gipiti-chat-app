@@ -24,7 +24,7 @@ import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
 import { myProvider } from "@/lib/ai/providers";
 import { checkTokenQuota, recordTokenUsage } from "@/lib/ai/token-quota";
 import { createDocument } from "@/lib/ai/tools/create-document";
-import { generateImage } from "@/lib/ai/tools/generate-image";
+import { generateImageTool } from "@/lib/ai/tools/generate-image";
 import { getWeather } from "@/lib/ai/tools/get-weather";
 import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
 import { updateDocument } from "@/lib/ai/tools/update-document";
@@ -225,7 +225,7 @@ export async function POST(request: Request) {
               session,
               dataStream,
             }),
-            generateImage: generateImage({ dataStream }),
+            generateImage: generateImageTool({ dataStream }),
           },
           experimental_telemetry: {
             isEnabled: isProductionEnvironment,
