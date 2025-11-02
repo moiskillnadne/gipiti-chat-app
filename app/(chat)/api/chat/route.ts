@@ -22,6 +22,7 @@ import { entitlementsByUserType } from "@/lib/ai/entitlements";
 import { type ChatModel, isReasoningModelId } from "@/lib/ai/models";
 import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
 import { myProvider } from "@/lib/ai/providers";
+import { checkTokenQuota, recordTokenUsage } from "@/lib/ai/token-quota";
 import { createDocument } from "@/lib/ai/tools/create-document";
 import { getWeather } from "@/lib/ai/tools/get-weather";
 import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
@@ -111,6 +112,23 @@ export async function POST(request: Request) {
 
     if (!session?.user) {
       return new ChatSDKError("unauthorized:chat").toResponse();
+    }
+
+    // Check token quota first
+    const quotaCheck = await checkTokenQuota(session.user.id);
+
+    if (!quotaCheck.allowed) {
+      return new Response(
+        JSON.stringify({
+          error: "quota_exceeded",
+          message: quotaCheck.reason,
+          quota: quotaCheck.quotaInfo,
+        }),
+        {
+          status: 429,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
     }
 
     const userType: UserType = session.user.type;
@@ -228,6 +246,18 @@ export async function POST(request: Request) {
               const summary = getUsage({ modelId, usage, providers });
               finalMergedUsage = { ...usage, ...summary, modelId } as AppUsage;
               dataStream.write({ type: "data-usage", data: finalMergedUsage });
+
+              // Record token usage for quota tracking
+              try {
+                await recordTokenUsage({
+                  userId: session.user.id,
+                  chatId: id,
+                  messageId: undefined, // Will be set in outer onFinish
+                  usage: finalMergedUsage,
+                });
+              } catch (err) {
+                console.warn("Failed to record token usage", err);
+              }
             } catch (err) {
               console.warn("TokenLens enrichment failed", err);
               finalMergedUsage = usage;

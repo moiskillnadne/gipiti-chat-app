@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 
+import { assignTesterPlan } from "@/lib/ai/subscription-init";
 import { createUser, getUser } from "@/lib/db/queries";
 
 import { signIn } from "./auth";
@@ -65,12 +66,25 @@ export const register = async (
       password: formData.get("password"),
     });
 
-    const [user] = await getUser(validatedData.email);
+    const [existingUser] = await getUser(validatedData.email);
 
-    if (user) {
+    if (existingUser) {
       return { status: "user_exists" } as RegisterActionState;
     }
-    await createUser(validatedData.email, validatedData.password);
+
+    const newUser = await createUser(
+      validatedData.email,
+      validatedData.password
+    );
+
+    // Assign tester plan to new user
+    try {
+      await assignTesterPlan(newUser.id);
+    } catch (error) {
+      console.error("Failed to assign tester plan:", error);
+      // Continue with registration even if plan assignment fails
+    }
+
     const result = await signIn("credentials", {
       email: validatedData.email,
       password: validatedData.password,

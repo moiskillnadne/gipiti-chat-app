@@ -2,4 +2,12 @@ import type { LanguageModelUsage } from "ai";
 import type { UsageData } from "tokenlens/helpers";
 
 // Server-merged usage: base usage + TokenLens summary + optional modelId
-export type AppUsage = LanguageModelUsage & UsageData & { modelId?: string };
+// Extended with optional cost and cache fields that may come from TokenLens
+export type AppUsage = LanguageModelUsage &
+  UsageData & {
+    modelId?: string;
+    inputCost?: number;
+    outputCost?: number;
+    cacheWriteTokens?: number;
+    cacheReadTokens?: number;
+  };
