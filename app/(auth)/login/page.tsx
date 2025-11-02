@@ -74,6 +74,7 @@ function LoginPage() {
           return `${url.pathname}${url.search}${url.hash}`;
         }
       } catch (error) {
+        console.error("Error parsing callback URL:", error);
         return "/";
       }
     }

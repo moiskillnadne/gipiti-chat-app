@@ -1,8 +1,8 @@
+import { and, desc, eq, gte, lte } from "drizzle-orm";
 import { auth } from "@/app/(auth)/auth";
 import { getUserQuotaInfo } from "@/lib/ai/token-quota";
 import { db } from "@/lib/db/queries";
-import { tokenUsageLog } from "@/lib/db/schema";
-import { eq, and, gte, lte, desc } from "drizzle-orm";
+import { type TokenUsageLog, tokenUsageLog } from "@/lib/db/schema";
 
 export async function GET(request: Request) {
   const session = await auth();
@@ -26,7 +26,7 @@ export async function GET(request: Request) {
   }
 
   // Get detailed usage logs
-  let usageLogs;
+  let usageLogs: TokenUsageLog[];
 
   if (period === "current") {
     usageLogs = await db
@@ -35,7 +35,10 @@ export async function GET(request: Request) {
       .where(
         and(
           eq(tokenUsageLog.userId, session.user.id),
-          gte(tokenUsageLog.createdAt, quotaInfo.subscription.currentPeriodStart),
+          gte(
+            tokenUsageLog.createdAt,
+            quotaInfo.subscription.currentPeriodStart
+          ),
           lte(tokenUsageLog.createdAt, quotaInfo.subscription.currentPeriodEnd)
         )
       )

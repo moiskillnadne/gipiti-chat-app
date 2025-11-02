@@ -202,7 +202,9 @@ export const subscriptionPlan = pgTable(
     displayName: varchar("display_name", { length: 128 }),
 
     // Billing configuration
-    billingPeriod: billingPeriodEnum("billing_period").notNull().default("monthly"),
+    billingPeriod: billingPeriodEnum("billing_period")
+      .notNull()
+      .default("monthly"),
 
     // Token limits (per billing period)
     tokenQuota: bigint("token_quota", { mode: "number" }).notNull(),
@@ -263,12 +265,17 @@ export const userSubscription = pgTable(
     status: varchar("status", { length: 32 }).notNull().default("active"),
 
     // Payment integration (for future use)
-    externalSubscriptionId: varchar("external_subscription_id", { length: 128 }),
+    externalSubscriptionId: varchar("external_subscription_id", {
+      length: 128,
+    }),
     externalCustomerId: varchar("external_customer_id", { length: 128 }),
 
     // Payment history reference
     lastPaymentDate: timestamp("last_payment_date"),
-    lastPaymentAmount: decimal("last_payment_amount", { precision: 10, scale: 2 }),
+    lastPaymentAmount: decimal("last_payment_amount", {
+      precision: 10,
+      scale: 2,
+    }),
 
     // Cancellation
     cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false).notNull(),
@@ -281,7 +288,9 @@ export const userSubscription = pgTable(
   (table) => ({
     userIdIdx: index("user_subscription_user_id_idx").on(table.userId),
     statusIdx: index("user_subscription_status_idx").on(table.status),
-    nextBillingIdx: index("user_subscription_next_billing_idx").on(table.nextBillingDate),
+    nextBillingIdx: index("user_subscription_next_billing_idx").on(
+      table.nextBillingDate
+    ),
   })
 );
 
@@ -297,14 +306,16 @@ export const tokenUsageLog = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
-    subscriptionId: uuid("subscription_id")
-      .references(() => userSubscription.id, { onDelete: "set null" }),
+    subscriptionId: uuid("subscription_id").references(
+      () => userSubscription.id,
+      { onDelete: "set null" }
+    ),
 
     // Chat context
-    chatId: uuid("chat_id")
-      .references(() => chat.id, { onDelete: "set null" }),
-    messageId: uuid("message_id")
-      .references(() => message.id, { onDelete: "set null" }),
+    chatId: uuid("chat_id").references(() => chat.id, { onDelete: "set null" }),
+    messageId: uuid("message_id").references(() => message.id, {
+      onDelete: "set null",
+    }),
 
     // Model & usage
     modelId: varchar("model_id", { length: 128 }).notNull(),
@@ -367,18 +378,30 @@ export const userTokenUsage = pgTable(
     periodEnd: timestamp("period_end").notNull(),
 
     // Aggregated totals
-    totalInputTokens: bigint("total_input_tokens", { mode: "number" }).notNull().default(0),
-    totalOutputTokens: bigint("total_output_tokens", { mode: "number" }).notNull().default(0),
-    totalTokens: bigint("total_tokens", { mode: "number" }).notNull().default(0),
+    totalInputTokens: bigint("total_input_tokens", { mode: "number" })
+      .notNull()
+      .default(0),
+    totalOutputTokens: bigint("total_output_tokens", { mode: "number" })
+      .notNull()
+      .default(0),
+    totalTokens: bigint("total_tokens", { mode: "number" })
+      .notNull()
+      .default(0),
 
     // Per-model breakdowns
-    modelBreakdown: jsonb("model_breakdown").$type<Record<string, {
-      inputTokens: number;
-      outputTokens: number;
-      totalTokens: number;
-      cost: number;
-      requestCount: number;
-    }>>(),
+    modelBreakdown:
+      jsonb("model_breakdown").$type<
+        Record<
+          string,
+          {
+            inputTokens: number;
+            outputTokens: number;
+            totalTokens: number;
+            cost: number;
+            requestCount: number;
+          }
+        >
+      >(),
 
     // Cost totals
     totalCost: decimal("total_cost", { precision: 12, scale: 4 }),
@@ -395,7 +418,9 @@ export const userTokenUsage = pgTable(
       table.periodStart,
       table.periodEnd
     ),
-    subscriptionIdx: index("user_token_usage_subscription_idx").on(table.subscriptionId),
+    subscriptionIdx: index("user_token_usage_subscription_idx").on(
+      table.subscriptionId
+    ),
   })
 );
 

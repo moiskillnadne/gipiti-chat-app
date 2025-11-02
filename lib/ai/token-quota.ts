@@ -1,18 +1,18 @@
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db/queries";
 import {
-  userSubscription,
-  userTokenUsage,
   subscriptionPlan,
   tokenUsageLog,
+  userSubscription,
+  userTokenUsage,
 } from "@/lib/db/schema";
-import { eq, and, gte, lte, desc } from "drizzle-orm";
 import type { AppUsage } from "@/lib/usage";
-import type { BillingPeriod } from "./subscription-tiers";
 import {
-  isPeriodExpired,
-  calculatePeriodEnd,
   calculateNextBillingDate,
+  calculatePeriodEnd,
+  isPeriodExpired,
 } from "./billing-periods";
+import type { BillingPeriod } from "./subscription-tiers";
 
 /**
  * Get user's current subscription and quota information
@@ -175,13 +175,13 @@ export async function recordTokenUsage({
     throw new Error("No active subscription found");
   }
 
-  const { subscription, plan } = quotaInfo;
+  const { subscription } = quotaInfo;
 
   // Calculate totals
   const totalTokens = (usage.inputTokens || 0) + (usage.outputTokens || 0);
-  const totalCost = (
-    (usage.inputCost || 0) + (usage.outputCost || 0)
-  ).toFixed(8);
+  const totalCost = ((usage.inputCost || 0) + (usage.outputCost || 0)).toFixed(
+    8
+  );
 
   // Insert into usage log
   await db.insert(tokenUsageLog).values({
@@ -273,7 +273,7 @@ async function updateUserTokenUsage({
           (record.totalOutputTokens || 0) + (usage.outputTokens || 0),
         totalTokens: (record.totalTokens || 0) + totalTokens,
         totalCost: (
-          parseFloat(record.totalCost || "0") + totalCost
+          Number.parseFloat(record.totalCost || "0") + totalCost
         ).toFixed(4),
         totalRequests: (record.totalRequests || 0) + 1,
         lastUpdatedAt: new Date(),

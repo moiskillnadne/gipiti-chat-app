@@ -4,41 +4,48 @@ import { generateRandomTestUser } from "../helpers";
 import { AuthPage } from "../pages/auth";
 import { ChatPage } from "../pages/chat";
 
-test.describe.serial("Authentication gates", () => {
-  test("Redirect unauthenticated visitors to the login page", async ({ page }) => {
-    const response = await page.goto("/");
+test.describe
+  .serial("Authentication gates", () => {
+    test("Redirect unauthenticated visitors to the login page", async ({
+      page,
+    }) => {
+      const response = await page.goto("/");
 
-    if (!response) {
-      throw new Error("Failed to load page");
-    }
+      if (!response) {
+        throw new Error("Failed to load page");
+      }
 
-    let request = response.request();
+      let request = response.request();
 
-    const chain: string[] = [];
+      const chain: string[] = [];
 
-    while (request) {
-      chain.unshift(request.url());
-      request = request.redirectedFrom();
-    }
+      while (request) {
+        chain.unshift(request.url());
+        request = request.redirectedFrom();
+      }
 
-    expect(chain).toEqual([
-      "http://localhost:3000/",
-      "http://localhost:3000/login?callbackUrl=http%3A%2F%2Flocalhost%3A3000%2F",
-    ]);
+      expect(chain).toEqual([
+        "http://localhost:3000/",
+        "http://localhost:3000/login?callbackUrl=http%3A%2F%2Flocalhost%3A3000%2F",
+      ]);
+    });
+
+    test("Allow navigating to /login when not authenticated", async ({
+      page,
+    }) => {
+      await page.goto("/login");
+      await page.waitForURL("/login");
+      await expect(page).toHaveURL("/login");
+    });
+
+    test("Allow navigating to /register when not authenticated", async ({
+      page,
+    }) => {
+      await page.goto("/register");
+      await page.waitForURL("/register");
+      await expect(page).toHaveURL("/register");
+    });
   });
-
-  test("Allow navigating to /login when not authenticated", async ({ page }) => {
-    await page.goto("/login");
-    await page.waitForURL("/login");
-    await expect(page).toHaveURL("/login");
-  });
-
-  test("Allow navigating to /register when not authenticated", async ({ page }) => {
-    await page.goto("/register");
-    await page.waitForURL("/register");
-    await expect(page).toHaveURL("/register");
-  });
-});
 
 test.describe
   .serial("Login and Registration", () => {
@@ -108,7 +115,9 @@ test.describe
       await expect(page).toHaveURL("/");
     });
 
-    test("Do not navigate to /login for authenticated users", async ({ page }) => {
+    test("Do not navigate to /login for authenticated users", async ({
+      page,
+    }) => {
       await authPage.login(testUser.email, testUser.password);
       await page.waitForURL("/");
 

@@ -1,11 +1,11 @@
+import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db/queries";
-import { user, userSubscription, subscriptionPlan } from "@/lib/db/schema";
-import { eq, and } from "drizzle-orm";
-import { SUBSCRIPTION_TIERS } from "./subscription-tiers";
+import { subscriptionPlan, user, userSubscription } from "@/lib/db/schema";
 import {
-  calculatePeriodEnd,
   calculateNextBillingDate,
+  calculatePeriodEnd,
 } from "./billing-periods";
+import { SUBSCRIPTION_TIERS } from "./subscription-tiers";
 
 /**
  * Assign tester plan to a new user
@@ -14,7 +14,7 @@ export async function assignTesterPlan(userId: string) {
   const testerTier = SUBSCRIPTION_TIERS.tester;
 
   // Get or create tester plan
-  let plans = await db
+  const plans = await db
     .select()
     .from(subscriptionPlan)
     .where(eq(subscriptionPlan.name, "tester"))
@@ -76,7 +76,7 @@ export async function upgradeToPlan(userId: string, planName: string) {
   }
 
   // Get or create plan
-  let plans = await db
+  const plans = await db
     .select()
     .from(subscriptionPlan)
     .where(eq(subscriptionPlan.name, planName))

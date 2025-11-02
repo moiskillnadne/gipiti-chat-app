@@ -1,10 +1,7 @@
 import { auth } from "@/app/(auth)/auth";
-import { getUserQuotaInfo } from "@/lib/ai/token-quota";
 import { upgradeToPlan } from "@/lib/ai/subscription-init";
 import { SUBSCRIPTION_TIERS } from "@/lib/ai/subscription-tiers";
-import { db } from "@/lib/db/queries";
-import { subscriptionPlan } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { getUserQuotaInfo } from "@/lib/ai/token-quota";
 
 /**
  * Create or upgrade subscription
@@ -30,17 +27,14 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("Failed to upgrade plan:", error);
-    return Response.json(
-      { error: "Failed to upgrade plan" },
-      { status: 500 }
-    );
+    return Response.json({ error: "Failed to upgrade plan" }, { status: 500 });
   }
 }
 
 /**
  * Get current subscription
  */
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   const session = await auth();
   if (!session?.user) {
     return new Response("Unauthorized", { status: 401 });

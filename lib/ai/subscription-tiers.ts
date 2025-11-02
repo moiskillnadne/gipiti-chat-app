@@ -1,6 +1,6 @@
 export type BillingPeriod = "daily" | "weekly" | "monthly" | "annual";
 
-export interface SubscriptionTierConfig {
+export type SubscriptionTierConfig = {
   name: string;
   displayName: string;
   billingPeriod: BillingPeriod;
@@ -16,7 +16,7 @@ export interface SubscriptionTierConfig {
   };
   price: number;
   isTesterPlan?: boolean;
-}
+};
 
 export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
   // TESTER PLAN - Daily reset for easy testing (not for production use)
@@ -115,7 +115,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
     billingPeriod: "annual",
     tokenQuota: 120_000_000, // 120M tokens per year (10M/month equivalent)
     features: {
-      maxMessagesPerPeriod: 60000,
+      maxMessagesPerPeriod: 60_000,
       allowedModels: [
         "gpt-5",
         "gpt-5-pro",
@@ -201,7 +201,5 @@ export function getTiersByBillingPeriod(period: BillingPeriod) {
  * Helper to get all production tiers (excluding tester)
  */
 export function getProductionTiers() {
-  return Object.values(SUBSCRIPTION_TIERS).filter(
-    (tier) => !tier.isTesterPlan
-  );
+  return Object.values(SUBSCRIPTION_TIERS).filter((tier) => !tier.isTesterPlan);
 }

@@ -19,7 +19,7 @@ async function main() {
   let created = 0;
   let updated = 0;
 
-  for (const [key, tier] of Object.entries(SUBSCRIPTION_TIERS)) {
+  for (const [_key, tier] of Object.entries(SUBSCRIPTION_TIERS)) {
     try {
       // Check if plan exists
       const existing = await db
