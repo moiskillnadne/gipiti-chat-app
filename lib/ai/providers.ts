@@ -6,6 +6,19 @@ import {
 } from "ai";
 import { isTestEnvironment } from "../constants";
 
+/**
+ * Maps chat model IDs to their corresponding image generation model IDs
+ */
+export function getImageModelId(chatModelId: string): string | null {
+  const imageModelMap: Record<string, string> = {
+    "gpt-5": "gpt-5-image",
+    "gpt-5-pro": "gpt-5-pro-image",
+    "gemini-2.5-pro": "gemini-2.5-pro-image",
+  };
+
+  return imageModelMap[chatModelId] || null;
+}
+
 export const myProvider = isTestEnvironment
   ? (() => {
       const {
@@ -21,6 +34,7 @@ export const myProvider = isTestEnvironment
           "title-model": titleModel,
           "artifact-model": artifactModel,
         },
+        imageModels: {},
       });
     })()
   : customProvider({
@@ -52,5 +66,10 @@ export const myProvider = isTestEnvironment
           model: gateway.languageModel("anthropic/claude-opus-4.1"),
           middleware: extractReasoningMiddleware({ tagName: "think" }),
         }),
+      },
+      imageModels: {
+        "gpt-5-image": gateway.imageModel("openai/dall-e-3"),
+        "gpt-5-pro-image": gateway.imageModel("openai/dall-e-3"),
+        "gemini-2.5-pro-image": gateway.imageModel("google/imagen-3.0-generate-001"),
       },
     });

@@ -19,11 +19,16 @@ import { getUsage } from "tokenlens/helpers";
 import { auth, type UserType } from "@/app/(auth)/auth";
 import type { VisibilityType } from "@/components/visibility-selector";
 import { entitlementsByUserType } from "@/lib/ai/entitlements";
-import { type ChatModel, isReasoningModelId } from "@/lib/ai/models";
+import {
+  type ChatModel,
+  isReasoningModelId,
+  supportsImageGeneration,
+} from "@/lib/ai/models";
 import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
 import { myProvider } from "@/lib/ai/providers";
 import { checkTokenQuota, recordTokenUsage } from "@/lib/ai/token-quota";
 import { createDocument } from "@/lib/ai/tools/create-document";
+import { generateImageTool } from "@/lib/ai/tools/generate-image";
 import { getWeather } from "@/lib/ai/tools/get-weather";
 import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
 import { updateDocument } from "@/lib/ai/tools/update-document";
@@ -193,29 +198,47 @@ export async function POST(request: Request) {
 
     const stream = createUIMessageStream({
       execute: ({ writer: dataStream }) => {
+        // Build active tools list based on model capabilities
+        const activeTools = isReasoningModelId(selectedChatModel)
+          ? []
+          : [
+              "getWeather",
+              "createDocument",
+              "updateDocument",
+              "requestSuggestions",
+              ...(supportsImageGeneration(selectedChatModel)
+                ? ["generateImage"]
+                : []),
+            ];
+
+        // Build tools object
+        const tools: Record<string, any> = {
+          getWeather,
+          createDocument: createDocument({ session, dataStream }),
+          updateDocument: updateDocument({ session, dataStream }),
+          requestSuggestions: requestSuggestions({
+            session,
+            dataStream,
+          }),
+        };
+
+        // Add image generation tool if the model supports it
+        if (supportsImageGeneration(selectedChatModel)) {
+          tools.generateImage = generateImageTool({
+            session,
+            dataStream,
+            selectedChatModel,
+          });
+        }
+
         const result = streamText({
           model: myProvider.languageModel(selectedChatModel),
           system: systemPrompt({ selectedChatModel, requestHints }),
           messages: convertToModelMessages(uiMessages),
           stopWhen: stepCountIs(5),
-          experimental_activeTools: isReasoningModelId(selectedChatModel)
-            ? []
-            : [
-                "getWeather",
-                "createDocument",
-                "updateDocument",
-                "requestSuggestions",
-              ],
+          experimental_activeTools: activeTools,
           experimental_transform: smoothStream({ chunking: "word" }),
-          tools: {
-            getWeather,
-            createDocument: createDocument({ session, dataStream }),
-            updateDocument: updateDocument({ session, dataStream }),
-            requestSuggestions: requestSuggestions({
-              session,
-              dataStream,
-            }),
-          },
+          tools,
           experimental_telemetry: {
             isEnabled: isProductionEnvironment,
             functionId: "stream-text",

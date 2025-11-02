@@ -3,6 +3,7 @@ export const DEFAULT_CHAT_MODEL: string = "chat-model";
 export type ChatModelCapabilities = {
   reasoning?: boolean;
   attachments?: boolean;
+  imageGeneration?: boolean;
 };
 
 export type ChatModel = {
@@ -39,6 +40,7 @@ export const chatModels: ChatModel[] = [
     capabilities: {
       reasoning: true,
       attachments: true,
+      imageGeneration: true,
     },
   },
   {
@@ -49,6 +51,7 @@ export const chatModels: ChatModel[] = [
     capabilities: {
       reasoning: true,
       attachments: true,
+      imageGeneration: true,
     },
   },
   {
@@ -69,6 +72,7 @@ export const chatModels: ChatModel[] = [
     capabilities: {
       reasoning: true,
       attachments: true,
+      imageGeneration: true,
     },
   },
   {
@@ -96,3 +100,12 @@ export const isReasoningModelId = (modelId: string) =>
 
 export const supportsAttachments = (modelId: string) =>
   !reasoningModelIds.has(modelId);
+
+const imageGenerationModelIds = new Set(
+  chatModels
+    .filter((model) => model.capabilities?.imageGeneration)
+    .map((model) => model.id)
+);
+
+export const supportsImageGeneration = (modelId: string) =>
+  imageGenerationModelIds.has(modelId);
