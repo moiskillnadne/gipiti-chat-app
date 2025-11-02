@@ -1,4 +1,4 @@
-import { db } from "@/lib/db";
+import { db } from "@/lib/db/queries";
 import { user, userSubscription, subscriptionPlan } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { SUBSCRIPTION_TIERS } from "./subscription-tiers";

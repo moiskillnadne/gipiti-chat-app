@@ -1,11 +1,11 @@
-import { db } from "@/lib/db";
+import { db } from "@/lib/db/queries";
 import {
   userSubscription,
   userTokenUsage,
   subscriptionPlan,
   tokenUsageLog,
 } from "@/lib/db/schema";
-import { eq, and, gte, lte } from "drizzle-orm";
+import { eq, and, gte, lte, desc } from "drizzle-orm";
 import type { AppUsage } from "@/lib/usage";
 import type { BillingPeriod } from "./subscription-tiers";
 import {
@@ -36,7 +36,7 @@ export async function getUserQuotaInfo(userId: string) {
         eq(userSubscription.status, "active")
       )
     )
-    .orderBy(userSubscription.currentPeriodEnd.desc())
+    .orderBy(desc(userSubscription.currentPeriodEnd))
     .limit(1);
 
   if (subscriptions.length === 0) {
@@ -180,7 +180,7 @@ export async function recordTokenUsage({
   // Calculate totals
   const totalTokens = (usage.inputTokens || 0) + (usage.outputTokens || 0);
   const totalCost = (
-    (usage.inputPrice || 0) + (usage.outputPrice || 0)
+    (usage.inputCost || 0) + (usage.outputCost || 0)
   ).toFixed(8);
 
   // Insert into usage log
@@ -195,8 +195,8 @@ export async function recordTokenUsage({
     totalTokens,
     cacheWriteTokens: usage.cacheWriteTokens || 0,
     cacheReadTokens: usage.cacheReadTokens || 0,
-    inputCost: usage.inputPrice?.toString(),
-    outputCost: usage.outputPrice?.toString(),
+    inputCost: usage.inputCost?.toString(),
+    outputCost: usage.outputCost?.toString(),
     totalCost,
     billingPeriodType: subscription.billingPeriod,
     billingPeriodStart: subscription.currentPeriodStart,
@@ -233,7 +233,7 @@ async function updateUserTokenUsage({
   usage: AppUsage;
 }) {
   const totalTokens = (usage.inputTokens || 0) + (usage.outputTokens || 0);
-  const totalCost = (usage.inputPrice || 0) + (usage.outputPrice || 0);
+  const totalCost = (usage.inputCost || 0) + (usage.outputCost || 0);
 
   // Try to get existing record
   const existing = await db
