@@ -41,3 +41,9 @@ yarn-error.log*
 /playwright-report/
 /blob-report/
 /playwright/*
+
+# TypeScript build cache
+tsconfig.tsbuildinfo
+
+# npm lock file (using pnpm or yarn instead)
+package-lock.json
