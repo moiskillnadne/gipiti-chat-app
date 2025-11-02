@@ -72,6 +72,16 @@ export const chatModels: ChatModel[] = [
     },
   },
   {
+    id: "gemini-2.5-flash",
+    name: "Gemini 2.5 Flash",
+    description:
+      "Fast and efficient version of Google's Gemini model. Good for quick tasks.",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+  },
+  {
     id: "opus-4.1",
     name: "Opus 4.1",
     description:
