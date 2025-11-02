@@ -24,6 +24,7 @@ import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
 import { myProvider } from "@/lib/ai/providers";
 import { checkTokenQuota, recordTokenUsage } from "@/lib/ai/token-quota";
 import { createDocument } from "@/lib/ai/tools/create-document";
+import { generateImage } from "@/lib/ai/tools/generate-image";
 import { getWeather } from "@/lib/ai/tools/get-weather";
 import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
 import { updateDocument } from "@/lib/ai/tools/update-document";
@@ -191,6 +192,22 @@ export async function POST(request: Request) {
 
     let finalMergedUsage: AppUsage | undefined;
 
+    // Determine which tools to enable based on model
+    const isGeminiModel = selectedChatModel.startsWith("gemini-");
+    const baseTools = [
+      "getWeather",
+      "createDocument",
+      "updateDocument",
+      "requestSuggestions",
+    ];
+    const activeTools = isReasoningModelId(selectedChatModel)
+      ? isGeminiModel
+        ? ["generateImage"] // Enable image generation for Gemini
+        : []
+      : isGeminiModel
+        ? [...baseTools, "generateImage"] // Enable all tools including image generation for Gemini
+        : baseTools;
+
     const stream = createUIMessageStream({
       execute: ({ writer: dataStream }) => {
         const result = streamText({
@@ -198,14 +215,7 @@ export async function POST(request: Request) {
           system: systemPrompt({ selectedChatModel, requestHints }),
           messages: convertToModelMessages(uiMessages),
           stopWhen: stepCountIs(5),
-          experimental_activeTools: isReasoningModelId(selectedChatModel)
-            ? []
-            : [
-                "getWeather",
-                "createDocument",
-                "updateDocument",
-                "requestSuggestions",
-              ],
+          experimental_activeTools: activeTools,
           experimental_transform: smoothStream({ chunking: "word" }),
           tools: {
             getWeather,
@@ -215,6 +225,7 @@ export async function POST(request: Request) {
               session,
               dataStream,
             }),
+            generateImage: generateImage({ dataStream }),
           },
           experimental_telemetry: {
             isEnabled: isProductionEnvironment,

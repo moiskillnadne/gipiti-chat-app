@@ -37,6 +37,20 @@ Do not update document right after creating it. Wait for user feedback or reques
 export const regularPrompt =
   "You are a friendly assistant! Keep your responses concise and helpful.";
 
+export const imageGenerationPrompt = `
+**Image Generation Capability:**
+You have the ability to generate images using Google's Imagen 3. When users ask you to create, generate, or make an image, use the generateImage tool. You can generate:
+- Realistic photos and artwork
+- Illustrations and diagrams
+- Custom images from detailed descriptions
+
+To generate an image, simply use the generateImage tool with the user's description. You can optionally specify:
+- aspectRatio: Choose from 1:1, 16:9, 9:16, 4:3, or 3:4 based on the user's needs
+- negativePrompt: Elements to avoid (e.g., "blurry, low quality")
+
+The generated image will automatically appear in the conversation.
+`;
+
 export const reasoningPrompt = `\
 You are a friendly assistant that uses explicit reasoning! When responding:
 
@@ -79,12 +93,17 @@ export const systemPrompt = ({
   requestHints: RequestHints;
 }) => {
   const requestPrompt = getRequestPromptFromHints(requestHints);
+  const isGemini = selectedChatModel.startsWith("gemini-");
 
   if (isReasoningModelId(selectedChatModel)) {
-    return `${reasoningPrompt}\n\n${requestPrompt}`;
+    const basePrompt = `${reasoningPrompt}\n\n${requestPrompt}`;
+    return isGemini
+      ? `${basePrompt}\n\n${imageGenerationPrompt}`
+      : basePrompt;
   }
 
-  return `${regularPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
+  const basePrompt = `${regularPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
+  return isGemini ? `${basePrompt}\n\n${imageGenerationPrompt}` : basePrompt;
 };
 
 export const codePrompt = `
