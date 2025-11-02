@@ -1,8 +1,13 @@
+import { config } from "dotenv";
+import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { subscriptionPlan } from "@/lib/db/schema";
 import { SUBSCRIPTION_TIERS } from "@/lib/ai/subscription-tiers";
-import { eq } from "drizzle-orm";
+import { subscriptionPlan } from "@/lib/db/schema";
+
+config({
+  path: ".env.local",
+});
 
 async function main() {
   console.log("🌱 Seeding subscription plans...");
