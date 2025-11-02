@@ -70,6 +70,8 @@ export const myProvider = isTestEnvironment
       imageModels: {
         "gpt-5-image": gateway.imageModel("openai/dall-e-3"),
         "gpt-5-pro-image": gateway.imageModel("openai/dall-e-3"),
-        "gemini-2.5-pro-image": gateway.imageModel("google/imagen-3.0-generate-001"),
+        "gemini-2.5-pro-image": gateway.imageModel(
+          "google/imagen-3.0-generate-001"
+        ),
       },
     });
