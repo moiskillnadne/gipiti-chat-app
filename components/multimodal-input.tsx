@@ -26,7 +26,6 @@ import type { Attachment, ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
 import { cn } from "@/lib/utils";
 import { Context } from "./elements/context";
-import { UsageHint } from "./elements/usage-hint";
 import {
   PromptInput,
   PromptInputModelSelect,
@@ -36,6 +35,7 @@ import {
   PromptInputToolbar,
   PromptInputTools,
 } from "./elements/prompt-input";
+import { UsageHint } from "./elements/usage-hint";
 import {
   ArrowUpIcon,
   ChevronDownIcon,

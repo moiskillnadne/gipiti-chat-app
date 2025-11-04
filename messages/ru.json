@@ -1,0 +1,194 @@
+{
+  "common": {
+    "buttons": {
+      "save": "Сохранить",
+      "cancel": "Отмена",
+      "delete": "Удалить",
+      "submit": "Отправить",
+      "edit": "Изменить",
+      "new": "Новый",
+      "back": "Назад",
+      "next": "Далее",
+      "confirm": "Подтвердить",
+      "close": "Закрыть",
+      "continue": "Продолжить"
+    },
+    "notifications": {
+      "saveSuccess": "Успешно сохранено",
+      "saveError": "Не удалось сохранить",
+      "deleteSuccess": "Успешно удалено",
+      "deleteError": "Не удалось удалить",
+      "updateSuccess": "Успешно обновлено",
+      "updateError": "Не удалось обновить",
+      "createSuccess": "Успешно создано",
+      "createError": "Не удалось создать",
+      "genericError": "Произошла ошибка. Пожалуйста, попробуйте снова."
+    },
+    "navigation": {
+      "home": "Главная",
+      "settings": "Настройки",
+      "logout": "Выйти",
+      "profile": "Профиль",
+      "chats": "Чаты"
+    },
+    "language": {
+      "switchLanguage": "Сменить язык",
+      "currentLanguage": "Язык"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Вход",
+      "subtitle": "Используйте email и пароль для входа",
+      "email": "Email",
+      "emailPlaceholder": "Введите ваш email",
+      "password": "Пароль",
+      "passwordPlaceholder": "Введите ваш пароль",
+      "signInButton": "Войти",
+      "noAccount": "Нет аккаунта?",
+      "signUpLink": "Зарегистрируйтесь",
+      "signUpLinkSuffix": "бесплатно.",
+      "forgotPassword": "Забыли пароль?",
+      "rememberMe": "Запомнить меня"
+    },
+    "register": {
+      "title": "Регистрация",
+      "subtitle": "Создайте аккаунт для начала работы",
+      "email": "Email",
+      "emailPlaceholder": "Введите ваш email",
+      "password": "Пароль",
+      "passwordPlaceholder": "Создайте пароль",
+      "confirmPassword": "Подтвердите пароль",
+      "confirmPasswordPlaceholder": "Подтвердите ваш пароль",
+      "signUpButton": "Создать аккаунт",
+      "hasAccount": "Уже есть аккаунт?",
+      "signInLink": "Войти"
+    },
+    "validation": {
+      "emailRequired": "Email обязателен",
+      "emailInvalid": "Пожалуйста, введите действительный email адрес",
+      "passwordRequired": "Пароль обязателен",
+      "passwordMinLength": "Пароль должен содержать минимум 8 символов",
+      "passwordMismatch": "Пароли не совпадают",
+      "confirmPasswordRequired": "Пожалуйста, подтвердите ваш пароль"
+    },
+    "errors": {
+      "invalidCredentials": "Неверные учетные данные!",
+      "invalidData": "Ошибка валидации данных!",
+      "userExists": "Пользователь с таким email уже существует",
+      "genericError": "Произошла ошибка. Пожалуйста, попробуйте снова."
+    },
+    "logout": {
+      "confirm": "Вы уверены, что хотите выйти?",
+      "success": "Вы успешно вышли"
+    }
+  },
+  "chat": {
+    "input": {
+      "placeholder": "Отправить сообщение...",
+      "placeholderMultimodal": "Спросите что угодно или прикрепите файлы...",
+      "send": "Отправить",
+      "stop": "Остановить генерацию",
+      "attachFile": "Прикрепить файл",
+      "recording": "Запись..."
+    },
+    "messages": {
+      "thinking": "Думаю...",
+      "generating": "Генерирую...",
+      "streaming": "Отвечаю...",
+      "error": "Не удалось сгенерировать ответ",
+      "retry": "Повторить",
+      "copy": "Копировать",
+      "copied": "Скопировано!",
+      "regenerate": "Перегенерировать",
+      "edit": "Редактировать"
+    },
+    "empty": {
+      "title": "Начните новый разговор",
+      "subtitle": "Спросите меня о чём угодно, и я помогу вам.",
+      "suggestions": {
+        "title": "Попробуйте спросить:",
+        "question1": "Что такое Next.js?",
+        "question2": "Как реализовать аутентификацию?",
+        "question3": "Объясните React Server Components"
+      }
+    },
+    "sidebar": {
+      "newChat": "Новый чат",
+      "history": "История",
+      "today": "Сегодня",
+      "yesterday": "Вчера",
+      "last7Days": "Последние 7 дней",
+      "last30Days": "Последние 30 дней",
+      "older": "Старые",
+      "noChats": "Пока нет чатов",
+      "deleteChat": "Удалить чат",
+      "renameChat": "Переименовать чат",
+      "confirmDelete": "Вы уверены, что хотите удалить этот чат?"
+    },
+    "models": {
+      "selectModel": "Выбрать модель",
+      "currentModel": "Текущая модель"
+    },
+    "visibility": {
+      "private": "Приватный",
+      "public": "Публичный",
+      "changeVisibility": "Изменить видимость"
+    }
+  },
+  "metadata": {
+    "home": {
+      "title": "GIPITI - AI Чат-ассистент",
+      "description": "Gipiti - это платформа для создания и обмена инструментами на основе ИИ."
+    },
+    "login": {
+      "title": "Вход - GIPITI",
+      "description": "Войдите в ваш аккаунт GIPITI"
+    },
+    "register": {
+      "title": "Регистрация - GIPITI",
+      "description": "Создайте новый аккаунт GIPITI"
+    },
+    "chat": {
+      "title": "Чат - GIPITI",
+      "description": "Общайтесь с AI ассистентом"
+    }
+  },
+  "settings": {
+    "title": "Настройки",
+    "language": {
+      "title": "Язык",
+      "description": "Выберите предпочитаемый язык"
+    },
+    "theme": {
+      "title": "Тема",
+      "description": "Выберите предпочитаемую тему",
+      "light": "Светлая",
+      "dark": "Темная",
+      "system": "Системная"
+    },
+    "account": {
+      "title": "Аккаунт",
+      "email": "Email",
+      "password": "Пароль",
+      "changePassword": "Изменить пароль"
+    }
+  },
+  "usage": {
+    "title": "Использование токенов",
+    "currentPeriod": "Текущий период",
+    "tokensUsed": "Использовано токенов",
+    "tokensRemaining": "Осталось токенов",
+    "resetDate": "Сбросится",
+    "plan": "План",
+    "upgrade": "Улучшить план"
+  },
+  "errors": {
+    "pageNotFound": "Страница не найдена",
+    "serverError": "Ошибка сервера",
+    "unauthorized": "Не авторизован",
+    "forbidden": "Доступ запрещён",
+    "goBack": "Назад",
+    "goHome": "На главную"
+  }
+}

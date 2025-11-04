@@ -1,10 +1,14 @@
 "use client";
 
-import { InfoIcon } from "lucide-react";
 import { format, parseISO } from "date-fns";
+import { InfoIcon } from "lucide-react";
 import useSWR from "swr";
 
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import { Progress } from "@/components/ui/progress";
 import type { AppUsage } from "@/lib/usage";
 import { cn, fetcher } from "@/lib/utils";
@@ -25,11 +29,12 @@ interface UsageHintProps {
   usage?: AppUsage;
 }
 
-const percentFromQuota = (
-  usedTokens: number,
-  totalTokens: number,
-) => {
-  if (!Number.isFinite(usedTokens) || !Number.isFinite(totalTokens) || totalTokens <= 0) {
+const percentFromQuota = (usedTokens: number, totalTokens: number) => {
+  if (
+    !Number.isFinite(usedTokens) ||
+    !Number.isFinite(totalTokens) ||
+    totalTokens <= 0
+  ) {
     return 0;
   }
 
@@ -46,18 +51,18 @@ const formatTokens = (tokens: number) => {
 
 const formatReset = (isoDate?: string | null) => {
   if (!isoDate) {
-    return undefined;
+    return;
   }
 
   try {
     const parsed = parseISO(isoDate);
     if (Number.isNaN(parsed.getTime())) {
-      return undefined;
+      return;
     }
 
     return format(parsed, "LLL d, yyyy");
   } catch (error) {
-    return undefined;
+    return;
   }
 };
 
@@ -106,8 +111,8 @@ export const UsageHint = ({ className, usage }: UsageHintProps) => {
       <HoverCardTrigger asChild>
         <div
           className={cn(
-            "group flex cursor-help items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground",
-            className,
+            "group flex cursor-help items-center gap-1.5 text-muted-foreground text-xs transition-colors hover:text-foreground",
+            className
           )}
           tabIndex={0}
         >
@@ -120,7 +125,7 @@ export const UsageHint = ({ className, usage }: UsageHintProps) => {
         </div>
       </HoverCardTrigger>
       <HoverCardContent align="start" className="w-72 space-y-3 p-4">
-        <div className="flex items-center justify-between text-sm font-medium">
+        <div className="flex items-center justify-between font-medium text-sm">
           <span>{`${formatTokens(usedTokens)} / ${formatTokens(totalTokens)} tokens`}</span>
           <span className="text-muted-foreground">{`${roundedPercent}% used`}</span>
         </div>
