@@ -17,5 +17,9 @@ export const emailConfig = {
   from: "noreply@gipiti-app.riabkov.com",
   supportEmail: "support@yourdomain.com", // TODO: Update with your support email
   appName: "GIPITI App",
-  appUrl: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+  appUrl:
+    process.env.NEXT_PUBLIC_APP_URL ||
+    (process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : "http://localhost:3000"),
 };
