@@ -68,6 +68,7 @@ export default async function RootLayout({
     >
       <head>
         <script
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: <This is a script>
           dangerouslySetInnerHTML={{
             __html: THEME_COLOR_SCRIPT,
           }}
