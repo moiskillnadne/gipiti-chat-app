@@ -4,6 +4,7 @@ import { ChevronUp } from "lucide-react";
 import Image from "next/image";
 import type { User } from "next-auth";
 import { signOut, useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import {
   DropdownMenu,
@@ -21,6 +22,8 @@ import { LoaderIcon } from "./icons";
 import { toast } from "./toast";
 
 export function SidebarUserNav({ user }: { user: User }) {
+  const t = useTranslations("common");
+  const tSettings = useTranslations("settings.theme");
   const { status } = useSession();
   const { setTheme, resolvedTheme } = useTheme();
 
@@ -34,7 +37,7 @@ export function SidebarUserNav({ user }: { user: User }) {
                 <div className="flex flex-row gap-2">
                   <div className="size-6 animate-pulse rounded-full bg-zinc-500/30" />
                   <span className="animate-pulse rounded-md bg-zinc-500/30 text-transparent">
-                    Loading auth status
+                    {t("navigation.loadingAuthStatus")}
                   </span>
                 </div>
                 <div className="animate-spin text-zinc-500">
@@ -54,7 +57,7 @@ export function SidebarUserNav({ user }: { user: User }) {
                   width={24}
                 />
                 <span className="truncate" data-testid="user-email">
-                  {user?.email ?? "Account"}
+                  {user?.email ?? t("navigation.account")}
                 </span>
                 <ChevronUp className="ml-auto" />
               </SidebarMenuButton>
@@ -72,7 +75,9 @@ export function SidebarUserNav({ user }: { user: User }) {
                 setTheme(resolvedTheme === "dark" ? "light" : "dark")
               }
             >
-              {`Toggle ${resolvedTheme === "light" ? "dark" : "light"} mode`}
+              {resolvedTheme === "light"
+                ? tSettings("toggleDark")
+                : tSettings("toggleLight")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild data-testid="user-nav-item-auth">
@@ -82,8 +87,7 @@ export function SidebarUserNav({ user }: { user: User }) {
                   if (status === "loading") {
                     toast({
                       type: "error",
-                      description:
-                        "Checking authentication status, please try again!",
+                      description: t("navigation.checkingAuthStatus"),
                     });
 
                     return;
@@ -94,7 +98,7 @@ export function SidebarUserNav({ user }: { user: User }) {
                 }}
                 type="button"
               >
-                Sign out
+                {t("navigation.signOut")}
               </button>
             </DropdownMenuItem>
           </DropdownMenuContent>

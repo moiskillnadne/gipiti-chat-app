@@ -29,7 +29,11 @@
       "settings": "Settings",
       "logout": "Logout",
       "profile": "Profile",
-      "chats": "Chats"
+      "chats": "Chats",
+      "loadingAuthStatus": "Loading auth status",
+      "account": "Account",
+      "checkingAuthStatus": "Checking authentication status, please try again!",
+      "signOut": "Sign out"
     },
     "language": {
       "switchLanguage": "Switch Language",
@@ -124,7 +128,23 @@
       "noChats": "No chats yet",
       "deleteChat": "Delete chat",
       "renameChat": "Rename chat",
-      "confirmDelete": "Are you sure you want to delete this chat?"
+      "confirmDelete": "Are you sure you want to delete this chat?",
+      "deleteAllChats": "Delete All Chats",
+      "deletingAllChats": "Deleting all chats...",
+      "deleteAllSuccess": "All chats deleted successfully",
+      "deleteAllError": "Failed to delete all chats",
+      "deleteAllDialogTitle": "Delete all chats?",
+      "deleteAllDialogDescription": "This action cannot be undone. This will permanently delete all your chats and remove them from our servers.",
+      "deleteAllButton": "Delete All",
+      "deletingChat": "Deleting chat...",
+      "deleteChatSuccess": "Chat deleted successfully",
+      "deleteChatError": "Failed to delete chat",
+      "loginToSaveChats": "Login to save and revisit previous chats!",
+      "emptyChats": "Your conversations will appear here once you start chatting!",
+      "endOfHistory": "You have reached the end of your chat history.",
+      "loadingChats": "Loading Chats...",
+      "deleteChatDialogTitle": "Are you absolutely sure?",
+      "deleteChatDialogDescription": "This action cannot be undone. This will permanently delete your chat and remove it from our servers."
     },
     "models": {
       "selectModel": "Select Model",
@@ -165,7 +185,9 @@
       "description": "Choose your preferred theme",
       "light": "Light",
       "dark": "Dark",
-      "system": "System"
+      "system": "System",
+      "toggleDark": "Toggle dark mode",
+      "toggleLight": "Toggle light mode"
     },
     "account": {
       "title": "Account",

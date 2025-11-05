@@ -13,6 +13,7 @@ import {
 } from "react";
 
 import { AuthForm } from "@/components/auth-form";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { SubmitButton } from "@/components/submit-button";
 import { toast } from "@/components/toast";
 import { type LoginActionState, login } from "../actions";
@@ -146,7 +147,7 @@ function LoginPage() {
             {t("subtitle")}
           </p>
         </div>
-        <AuthForm action={handleSubmit} defaultEmail={email}>
+        <AuthForm action={handleSubmit} defaultEmail={email} mode="login">
           <SubmitButton isSuccessful={isSuccessful}>
             {t("signInButton")}
           </SubmitButton>
@@ -161,6 +162,9 @@ function LoginPage() {
             {t("signUpLinkSuffix")}
           </p>
         </AuthForm>
+      </div>
+      <div className="fixed bottom-4 left-4 z-50">
+        <LanguageSwitcher />
       </div>
     </div>
   );

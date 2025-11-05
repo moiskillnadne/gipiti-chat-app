@@ -10,14 +10,16 @@ export function AuthForm({
   action,
   children,
   defaultEmail = "",
+  mode = "login",
 }: {
   action: NonNullable<
     string | ((formData: FormData) => void | Promise<void>) | undefined
   >;
   children: React.ReactNode;
   defaultEmail?: string;
+  mode?: "login" | "register";
 }) {
-  const t = useTranslations("auth.login");
+  const t = useTranslations(mode === "login" ? "auth.login" : "auth.register");
 
   return (
     <Form action={action} className="flex flex-col gap-4 px-4 sm:px-16">

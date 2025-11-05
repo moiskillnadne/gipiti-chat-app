@@ -29,7 +29,11 @@
       "settings": "Настройки",
       "logout": "Выйти",
       "profile": "Профиль",
-      "chats": "Чаты"
+      "chats": "Чаты",
+      "loadingAuthStatus": "Загрузка статуса авторизации",
+      "account": "Аккаунт",
+      "checkingAuthStatus": "Проверка статуса авторизации, попробуйте снова!",
+      "signOut": "Выйти"
     },
     "language": {
       "switchLanguage": "Сменить язык",
@@ -124,7 +128,23 @@
       "noChats": "Пока нет чатов",
       "deleteChat": "Удалить чат",
       "renameChat": "Переименовать чат",
-      "confirmDelete": "Вы уверены, что хотите удалить этот чат?"
+      "confirmDelete": "Вы уверены, что хотите удалить этот чат?",
+      "deleteAllChats": "Удалить все чаты",
+      "deletingAllChats": "Удаление всех чатов...",
+      "deleteAllSuccess": "Все чаты успешно удалены",
+      "deleteAllError": "Не удалось удалить все чаты",
+      "deleteAllDialogTitle": "Удалить все чаты?",
+      "deleteAllDialogDescription": "Это действие не может быть отменено. Это навсегда удалит все ваши чаты и удалит их с наших серверов.",
+      "deleteAllButton": "Удалить все",
+      "deletingChat": "Удаление чата...",
+      "deleteChatSuccess": "Чат успешно удалён",
+      "deleteChatError": "Не удалось удалить чат",
+      "loginToSaveChats": "Войдите, чтобы сохранять и просматривать предыдущие чаты!",
+      "emptyChats": "Ваши разговоры появятся здесь, когда вы начнёте общаться!",
+      "endOfHistory": "Вы достигли конца истории чатов.",
+      "loadingChats": "Загрузка чатов...",
+      "deleteChatDialogTitle": "Вы абсолютно уверены?",
+      "deleteChatDialogDescription": "Это действие не может быть отменено. Это навсегда удалит ваш чат и удалит его с наших серверов."
     },
     "models": {
       "selectModel": "Выбрать модель",
@@ -165,7 +185,9 @@
       "description": "Выберите предпочитаемую тему",
       "light": "Светлая",
       "dark": "Темная",
-      "system": "Системная"
+      "system": "Системная",
+      "toggleDark": "Включить тёмную тему",
+      "toggleLight": "Включить светлую тему"
     },
     "account": {
       "title": "Аккаунт",
