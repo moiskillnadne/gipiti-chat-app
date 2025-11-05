@@ -1,0 +1,290 @@
+{
+  "common": {
+    "buttons": {
+      "save": "Сохранить",
+      "cancel": "Отмена",
+      "delete": "Удалить",
+      "submit": "Отправить",
+      "edit": "Изменить",
+      "new": "Новый",
+      "back": "Назад",
+      "next": "Далее",
+      "confirm": "Подтвердить",
+      "close": "Закрыть",
+      "continue": "Продолжить"
+    },
+    "notifications": {
+      "saveSuccess": "Успешно сохранено",
+      "saveError": "Не удалось сохранить",
+      "deleteSuccess": "Успешно удалено",
+      "deleteError": "Не удалось удалить",
+      "updateSuccess": "Успешно обновлено",
+      "updateError": "Не удалось обновить",
+      "createSuccess": "Успешно создано",
+      "createError": "Не удалось создать",
+      "genericError": "Произошла ошибка. Пожалуйста, попробуйте снова."
+    },
+    "navigation": {
+      "home": "Главная",
+      "settings": "Настройки",
+      "logout": "Выйти",
+      "profile": "Профиль",
+      "chats": "Чаты",
+      "loadingAuthStatus": "Загрузка статуса авторизации",
+      "account": "Аккаунт",
+      "checkingAuthStatus": "Проверка статуса авторизации, попробуйте снова!",
+      "signOut": "Выйти"
+    },
+    "language": {
+      "switchLanguage": "Сменить язык",
+      "currentLanguage": "Язык"
+    },
+    "toasts": {
+      "uploadFailed": "Не удалось загрузить файл, попробуйте снова!",
+      "waitForResponse": "Пожалуйста, дождитесь завершения ответа модели!",
+      "noTextToCopy": "Нет текста для копирования!",
+      "copiedToClipboard": "Скопировано в буфер обмена!",
+      "actionFailed": "Не удалось выполнить действие",
+      "documentError": "Произошла ошибка с документом",
+      "documentCreateError": "Ошибка создания документа",
+      "documentUpdateError": "Ошибка обновления документа",
+      "sharedChatNotSupported": "Просмотр файлов в общих чатах в настоящее время не поддерживается."
+    },
+    "accessibility": {
+      "scrollToBottom": "Прокрутить вниз",
+      "resizeConsole": "Изменить размер консоли",
+      "toggleSidebar": "Переключить боковую панель",
+      "previous": "Предыдущий",
+      "next": "Следующий",
+      "newChat": "Новый чат",
+      "loading": "Загрузка",
+      "submitForm": "Отправить форму",
+      "enterUrl": "Введите URL..."
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Вход",
+      "subtitle": "Используйте email и пароль для входа",
+      "email": "Email",
+      "emailPlaceholder": "Введите ваш email",
+      "password": "Пароль",
+      "passwordPlaceholder": "Введите ваш пароль",
+      "signInButton": "Войти",
+      "noAccount": "Нет аккаунта?",
+      "signUpLink": "Зарегистрируйтесь",
+      "signUpLinkSuffix": "бесплатно.",
+      "forgotPassword": "Забыли пароль?",
+      "rememberMe": "Запомнить меня"
+    },
+    "register": {
+      "title": "Регистрация",
+      "subtitle": "Создайте аккаунт для начала работы",
+      "email": "Email",
+      "emailPlaceholder": "Введите ваш email",
+      "password": "Пароль",
+      "passwordPlaceholder": "Создайте пароль",
+      "confirmPassword": "Подтвердите пароль",
+      "confirmPasswordPlaceholder": "Подтвердите ваш пароль",
+      "signUpButton": "Создать аккаунт",
+      "hasAccount": "Уже есть аккаунт?",
+      "signInLink": "Войти"
+    },
+    "validation": {
+      "emailRequired": "Email обязателен",
+      "emailInvalid": "Пожалуйста, введите действительный email адрес",
+      "passwordRequired": "Пароль обязателен",
+      "passwordMinLength": "Пароль должен содержать минимум 8 символов",
+      "passwordMismatch": "Пароли не совпадают",
+      "confirmPasswordRequired": "Пожалуйста, подтвердите ваш пароль"
+    },
+    "errors": {
+      "invalidCredentials": "Неверные учетные данные!",
+      "invalidData": "Ошибка валидации данных!",
+      "userExists": "Пользователь с таким email уже существует",
+      "genericError": "Произошла ошибка. Пожалуйста, попробуйте снова."
+    },
+    "logout": {
+      "confirm": "Вы уверены, что хотите выйти?",
+      "success": "Вы успешно вышли"
+    }
+  },
+  "chat": {
+    "greeting": {
+      "helloThere": "Привет!",
+      "howCanIHelpYouToday": "Как я могу помочь вам сегодня?"
+    },
+    "input": {
+      "placeholder": "Отправить сообщение...",
+      "placeholderMultimodal": "Спросите что угодно или прикрепите файлы...",
+      "send": "Отправить",
+      "stop": "Остановить генерацию",
+      "attachFile": "Прикрепить файл",
+      "recording": "Запись..."
+    },
+    "messages": {
+      "thinking": "Думаю...",
+      "generating": "Генерирую...",
+      "streaming": "Отвечаю...",
+      "error": "Не удалось сгенерировать ответ",
+      "retry": "Повторить",
+      "copy": "Копировать",
+      "copied": "Скопировано!",
+      "regenerate": "Перегенерировать",
+      "edit": "Редактировать",
+      "loadingDocument": "Создание документа...",
+      "errorCreatingDocument": "Ошибка создания документа",
+      "errorUpdatingDocument": "Ошибка обновления документа"
+    },
+    "empty": {
+      "title": "Начните новый разговор",
+      "subtitle": "Спросите меня о чём угодно, и я помогу вам.",
+      "suggestions": {
+        "title": "Попробуйте спросить:",
+        "question1": "Что такое Next.js?",
+        "question2": "Расскажи мне рецепт шоколадного торта",
+        "question3": "Напиши мне эссе об Эрмитаже",
+        "question4": "Какая погода в Санкт-Петербурге?"
+      }
+    },
+    "sidebar": {
+      "newChat": "Новый чат",
+      "history": "История",
+      "today": "Сегодня",
+      "yesterday": "Вчера",
+      "last7Days": "Последние 7 дней",
+      "last30Days": "Последние 30 дней",
+      "older": "Старые",
+      "noChats": "Пока нет чатов",
+      "deleteChat": "Удалить чат",
+      "renameChat": "Переименовать чат",
+      "confirmDelete": "Вы уверены, что хотите удалить этот чат?",
+      "deleteAllChats": "Удалить все чаты",
+      "deletingAllChats": "Удаление всех чатов...",
+      "deleteAllSuccess": "Все чаты успешно удалены",
+      "deleteAllError": "Не удалось удалить все чаты",
+      "deleteAllDialogTitle": "Удалить все чаты?",
+      "deleteAllDialogDescription": "Это действие не может быть отменено. Это навсегда удалит все ваши чаты и удалит их с наших серверов.",
+      "deleteAllButton": "Удалить все",
+      "deletingChat": "Удаление чата...",
+      "deleteChatSuccess": "Чат успешно удалён",
+      "deleteChatError": "Не удалось удалить чат",
+      "loginToSaveChats": "Войдите, чтобы сохранять и просматривать предыдущие чаты!",
+      "emptyChats": "Ваши разговоры появятся здесь, когда вы начнёте общаться!",
+      "endOfHistory": "Вы достигли конца истории чатов.",
+      "loadingChats": "Загрузка чатов...",
+      "deleteChatDialogTitle": "Вы абсолютно уверены?",
+      "deleteChatDialogDescription": "Это действие не может быть отменено. Это навсегда удалит ваш чат и удалит его с наших серверов."
+    },
+    "models": {
+      "selectModel": "Выбрать модель",
+      "currentModel": "Текущая модель"
+    },
+    "visibility": {
+      "private": {
+        "label": "Приватный",
+        "description": "Только вы можете получить доступ к этому чату"
+      },
+      "public": {
+        "label": "Публичный",
+        "description": "Любой кто имеет ссылку на этот чат может просматривать его"
+      },
+      "changeVisibility": "Изменить видимость"
+    },
+    "tools": {
+      "error": "Ошибка",
+      "result": "Результат",
+      "output": "Вывод"
+    }
+  },
+  "metadata": {
+    "home": {
+      "title": "GIPITI - ИИ-чат-ассистент",
+      "description": "Gipiti - это платформа для создания и обмена инструментами на основе ИИ."
+    },
+    "login": {
+      "title": "Вход - GIPITI",
+      "description": "Войдите в ваш аккаунт GIPITI"
+    },
+    "register": {
+      "title": "Регистрация - GIPITI",
+      "description": "Создайте новый аккаунт GIPITI"
+    },
+    "chat": {
+      "title": "Чат - GIPITI",
+      "description": "Общайтесь с ИИ-ассистентом"
+    }
+  },
+  "settings": {
+    "title": "Настройки",
+    "language": {
+      "title": "Язык",
+      "description": "Выберите предпочитаемый язык"
+    },
+    "theme": {
+      "title": "Тема",
+      "description": "Выберите предпочитаемую тему",
+      "light": "Светлая",
+      "dark": "Темная",
+      "system": "Системная",
+      "toggleDark": "Включить тёмную тему",
+      "toggleLight": "Включить светлую тему"
+    },
+    "account": {
+      "title": "Аккаунт",
+      "email": "Email",
+      "password": "Пароль",
+      "changePassword": "Изменить пароль"
+    }
+  },
+  "usage": {
+    "title": "Использование токенов",
+    "currentPeriod": "Текущий период",
+    "tokensUsed": "Использовано токенов",
+    "tokensRemaining": "Осталось токенов",
+    "resetDate": "Обновится",
+    "plan": "План",
+    "upgrade": "Улучшить план",
+    "tokens": "токенов",
+    "used": "Использовано",
+    "tooltip": "Вы использовали {percent}% от вашего лимита использования"
+  },
+  "errors": {
+    "pageNotFound": "Страница не найдена",
+    "serverError": "Ошибка сервера",
+    "unauthorized": "Не авторизован",
+    "forbidden": "Доступ запрещён",
+    "goBack": "Назад",
+    "goHome": "На главную"
+  },
+  "modelList": {
+    "grokVision": {
+      "name": "Grok Vision",
+      "description": "Средняя модель с маленьким объемом памяти. Очень быстрая и дешевая."
+    },
+    "grokReasoning": {
+      "name": "Grok Reasoning",
+      "description": "Модель с расширенными возможностями обработки цепочки мыслей для сложных задач."
+    },
+    "gpt5": {
+      "name": "GPT-5",
+      "description": "Последняя версия модели от OpenAI. Идеальная для ежедневных задач."
+    },
+    "gpt5Pro": {
+      "name": "GPT-5 Pro",
+      "description": "Самая умная версия модели от OpenAI. Подходит для супер сложных задач."
+    },
+    "gpt5Mini": {
+      "name": "GPT-5 Mini",
+      "description": "Самая маленькая версия модели от OpenAI. Очень быстрая и дешевая."
+    },
+    "gemini25Pro": {
+      "name": "Gemini 2.5 Pro",
+      "description": "Последняя версия модели Gemini от Google. Хороша для ежедневных задач."
+    },
+    "opus41": {
+      "name": "Opus 4.1",
+      "description": "Последняя версия модели Opus от Anthropic. Хороша для ежедневных задач."
+    }
+  }
+}

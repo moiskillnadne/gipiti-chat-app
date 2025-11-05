@@ -1,4 +1,5 @@
 import equal from "fast-deep-equal";
+import { useTranslations } from "next-intl";
 import { memo } from "react";
 import { toast } from "sonner";
 import { useSWRConfig } from "swr";
@@ -21,6 +22,7 @@ export function PureMessageActions({
   isLoading: boolean;
   setMode?: (mode: "view" | "edit") => void;
 }) {
+  const t = useTranslations("common.toasts");
   const { mutate } = useSWRConfig();
   const [_, copyToClipboard] = useCopyToClipboard();
 
@@ -36,12 +38,12 @@ export function PureMessageActions({
 
   const handleCopy = async () => {
     if (!textFromParts) {
-      toast.error("There's no text to copy!");
+      toast.error(t("noTextToCopy"));
       return;
     }
 
     await copyToClipboard(textFromParts);
-    toast.success("Copied to clipboard!");
+    toast.success(t("copiedToClipboard"));
   };
 
   // User messages get edit (on hover) and copy actions

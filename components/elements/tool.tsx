@@ -9,6 +9,7 @@ import {
   WrenchIcon,
   XCircleIcon,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { ComponentProps, ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -34,12 +35,14 @@ export type ToolHeaderProps = {
   className?: string;
 };
 
-const getStatusBadge = (status: ToolUIPart["state"]) => {
+const StatusBadge = ({ status }: { status: ToolUIPart["state"] }) => {
+  const t = useTranslations("chat.tools");
+
   const labels = {
     "input-streaming": "Pending",
     "input-available": "Running",
     "output-available": "Completed",
-    "output-error": "Error",
+    "output-error": t("error"),
   } as const;
 
   const icons = {
@@ -78,7 +81,7 @@ export const ToolHeader = ({
       <span className="truncate font-medium text-sm">{type}</span>
     </div>
     <div className="flex shrink-0 items-center gap-2">
-      {getStatusBadge(state)}
+      <StatusBadge status={state} />
       <ChevronDownIcon className="size-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
     </div>
   </CollapsibleTrigger>
@@ -122,6 +125,8 @@ export const ToolOutput = ({
   errorText,
   ...props
 }: ToolOutputProps) => {
+  const t = useTranslations("chat.tools");
+
   if (!(output || errorText)) {
     return null;
   }
@@ -129,7 +134,7 @@ export const ToolOutput = ({
   return (
     <div className={cn("space-y-2 p-4", className)} {...props}>
       <h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
-        {errorText ? "Error" : "Result"}
+        {errorText ? t("error") : t("result")}
       </h4>
       <div
         className={cn(

@@ -1,5 +1,5 @@
+import { useTranslations } from "next-intl";
 import type { ComponentProps } from "react";
-
 import { type SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import {
   Tooltip,
@@ -14,6 +14,7 @@ export function SidebarToggle({
   className,
 }: ComponentProps<typeof SidebarTrigger>) {
   const { toggleSidebar } = useSidebar();
+  const t = useTranslations("common.accessibility");
 
   return (
     <Tooltip>
@@ -28,7 +29,7 @@ export function SidebarToggle({
         </Button>
       </TooltipTrigger>
       <TooltipContent align="start" className="hidden md:block">
-        Toggle Sidebar
+        {t("toggleSidebar")}
       </TooltipContent>
     </Tooltip>
   );

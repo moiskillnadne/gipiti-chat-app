@@ -1,7 +1,33 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
+import {
+  defaultLocale,
+  LOCALE_COOKIE_NAME,
+  type Locale,
+  locales,
+} from "./i18n/config";
 import { getAuthSecret } from "./lib/auth/secret";
 import { isDevelopmentEnvironment } from "./lib/constants";
+
+function getLocaleFromRequest(request: NextRequest): Locale {
+  const localeCookie = request.cookies.get(LOCALE_COOKIE_NAME)?.value as
+    | Locale
+    | undefined;
+
+  if (localeCookie && locales.includes(localeCookie)) {
+    return localeCookie;
+  }
+
+  const acceptLanguage = request.headers.get("accept-language");
+  if (acceptLanguage) {
+    const browserLocale = acceptLanguage.split(",")[0]?.split("-")[0] as Locale;
+    if (locales.includes(browserLocale)) {
+      return browserLocale;
+    }
+  }
+
+  return defaultLocale;
+}
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -16,6 +42,18 @@ export async function middleware(request: NextRequest) {
 
   if (pathname.startsWith("/api/auth")) {
     return NextResponse.next();
+  }
+
+  const locale = getLocaleFromRequest(request);
+  const response = NextResponse.next();
+
+  if (!request.cookies.has(LOCALE_COOKIE_NAME)) {
+    response.cookies.set(LOCALE_COOKIE_NAME, locale, {
+      maxAge: 60 * 60 * 24 * 365,
+      path: "/",
+      sameSite: "lax",
+      secure: !isDevelopmentEnvironment,
+    });
   }
 
   const token = await getToken({
@@ -36,7 +74,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {

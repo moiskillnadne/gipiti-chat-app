@@ -24,6 +24,7 @@ export const user = pgTable("User", {
   email: varchar("email", { length: 64 }).notNull(),
   password: varchar("password", { length: 64 }),
   currentPlan: varchar("current_plan", { length: 32 }).default("tester"),
+  preferredLanguage: varchar("preferred_language", { length: 8 }).default("en"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

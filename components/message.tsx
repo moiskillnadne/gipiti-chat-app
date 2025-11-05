@@ -2,6 +2,7 @@
 import type { UseChatHelpers } from "@ai-sdk/react";
 import equal from "fast-deep-equal";
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { memo, useState } from "react";
 import type { Vote } from "@/lib/db/schema";
 import type { ChatMessage } from "@/lib/types";
@@ -44,6 +45,7 @@ const PurePreviewMessage = ({
   isReadonly: boolean;
   requiresScrollPadding: boolean;
 }) => {
+  const t = useTranslations("chat.messages");
   const [mode, setMode] = useState<"view" | "edit">("view");
 
   const attachmentsFromMessage = message.parts.filter(
@@ -202,7 +204,7 @@ const PurePreviewMessage = ({
                     className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-500 dark:bg-red-950/50"
                     key={toolCallId}
                   >
-                    Error creating document: {String(part.output.error)}
+                    {t("errorCreatingDocument")}: {String(part.output.error)}
                   </div>
                 );
               }
@@ -225,7 +227,7 @@ const PurePreviewMessage = ({
                     className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-500 dark:bg-red-950/50"
                     key={toolCallId}
                   >
-                    Error updating document: {String(part.output.error)}
+                    {t("errorUpdatingDocument")}: {String(part.output.error)}
                   </div>
                 );
               }
@@ -317,6 +319,7 @@ export const PreviewMessage = memo(
 );
 
 export const ThinkingMessage = () => {
+  const t = useTranslations("chat.messages");
   const role = "assistant";
 
   return (
@@ -335,7 +338,9 @@ export const ThinkingMessage = () => {
         </div>
 
         <div className="flex w-full flex-col gap-2 md:gap-4">
-          <div className="p-0 text-muted-foreground text-sm">Thinking...</div>
+          <div className="p-0 text-muted-foreground text-sm">
+            {t("thinking")}
+          </div>
         </div>
       </div>
     </motion.div>
