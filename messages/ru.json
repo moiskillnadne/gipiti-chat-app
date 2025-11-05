@@ -38,6 +38,28 @@
     "language": {
       "switchLanguage": "Сменить язык",
       "currentLanguage": "Язык"
+    },
+    "toasts": {
+      "uploadFailed": "Не удалось загрузить файл, попробуйте снова!",
+      "waitForResponse": "Пожалуйста, дождитесь завершения ответа модели!",
+      "noTextToCopy": "Нет текста для копирования!",
+      "copiedToClipboard": "Скопировано в буфер обмена!",
+      "actionFailed": "Не удалось выполнить действие",
+      "documentError": "Произошла ошибка с документом",
+      "documentCreateError": "Ошибка создания документа",
+      "documentUpdateError": "Ошибка обновления документа",
+      "sharedChatNotSupported": "Просмотр файлов в общих чатах в настоящее время не поддерживается."
+    },
+    "accessibility": {
+      "scrollToBottom": "Прокрутить вниз",
+      "resizeConsole": "Изменить размер консоли",
+      "toggleSidebar": "Переключить боковую панель",
+      "previous": "Предыдущий",
+      "next": "Следующий",
+      "newChat": "Новый чат",
+      "loading": "Загрузка",
+      "submitForm": "Отправить форму",
+      "enterUrl": "Введите URL..."
     }
   },
   "auth": {
@@ -88,6 +110,10 @@
     }
   },
   "chat": {
+    "greeting": {
+      "helloThere": "Привет!",
+      "howCanIHelpYouToday": "Как я могу помочь вам сегодня?"
+    },
     "input": {
       "placeholder": "Отправить сообщение...",
       "placeholderMultimodal": "Спросите что угодно или прикрепите файлы...",
@@ -105,7 +131,10 @@
       "copy": "Копировать",
       "copied": "Скопировано!",
       "regenerate": "Перегенерировать",
-      "edit": "Редактировать"
+      "edit": "Редактировать",
+      "loadingDocument": "Создание документа...",
+      "errorCreatingDocument": "Ошибка создания документа",
+      "errorUpdatingDocument": "Ошибка обновления документа"
     },
     "empty": {
       "title": "Начните новый разговор",
@@ -113,8 +142,9 @@
       "suggestions": {
         "title": "Попробуйте спросить:",
         "question1": "Что такое Next.js?",
-        "question2": "Как реализовать аутентификацию?",
-        "question3": "Объясните React Server Components"
+        "question2": "Расскажи мне рецепт шоколадного торта",
+        "question3": "Напиши мне эссе об Эрмитаже",
+        "question4": "Какая погода в Санкт-Петербурге?"
       }
     },
     "sidebar": {
@@ -151,14 +181,25 @@
       "currentModel": "Текущая модель"
     },
     "visibility": {
-      "private": "Приватный",
-      "public": "Публичный",
+      "private": {
+        "label": "Приватный",
+        "description": "Только вы можете получить доступ к этому чату"
+      },
+      "public": {
+        "label": "Публичный",
+        "description": "Любой кто имеет ссылку на этот чат может просматривать его"
+      },
       "changeVisibility": "Изменить видимость"
+    },
+    "tools": {
+      "error": "Ошибка",
+      "result": "Результат",
+      "output": "Вывод"
     }
   },
   "metadata": {
     "home": {
-      "title": "GIPITI - AI Чат-ассистент",
+      "title": "GIPITI - ИИ-чат-ассистент",
       "description": "Gipiti - это платформа для создания и обмена инструментами на основе ИИ."
     },
     "login": {
@@ -171,7 +212,7 @@
     },
     "chat": {
       "title": "Чат - GIPITI",
-      "description": "Общайтесь с AI ассистентом"
+      "description": "Общайтесь с ИИ-ассистентом"
     }
   },
   "settings": {
@@ -201,9 +242,12 @@
     "currentPeriod": "Текущий период",
     "tokensUsed": "Использовано токенов",
     "tokensRemaining": "Осталось токенов",
-    "resetDate": "Сбросится",
+    "resetDate": "Обновится",
     "plan": "План",
-    "upgrade": "Улучшить план"
+    "upgrade": "Улучшить план",
+    "tokens": "токенов",
+    "used": "Использовано",
+    "tooltip": "Вы использовали {percent}% от вашего лимита использования"
   },
   "errors": {
     "pageNotFound": "Страница не найдена",
@@ -212,5 +256,35 @@
     "forbidden": "Доступ запрещён",
     "goBack": "Назад",
     "goHome": "На главную"
+  },
+  "modelList": {
+    "grokVision": {
+      "name": "Grok Vision",
+      "description": "Средняя модель с маленьким объемом памяти. Очень быстрая и дешевая."
+    },
+    "grokReasoning": {
+      "name": "Grok Reasoning",
+      "description": "Модель с расширенными возможностями обработки цепочки мыслей для сложных задач."
+    },
+    "gpt5": {
+      "name": "GPT-5",
+      "description": "Последняя версия модели от OpenAI. Идеальная для ежедневных задач."
+    },
+    "gpt5Pro": {
+      "name": "GPT-5 Pro",
+      "description": "Самая умная версия модели от OpenAI. Подходит для супер сложных задач."
+    },
+    "gpt5Mini": {
+      "name": "GPT-5 Mini",
+      "description": "Самая маленькая версия модели от OpenAI. Очень быстрая и дешевая."
+    },
+    "gemini25Pro": {
+      "name": "Gemini 2.5 Pro",
+      "description": "Последняя версия модели Gemini от Google. Хороша для ежедневных задач."
+    },
+    "opus41": {
+      "name": "Opus 4.1",
+      "description": "Последняя версия модели Opus от Anthropic. Хороша для ежедневных задач."
+    }
   }
 }

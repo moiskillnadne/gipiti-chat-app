@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { type Dispatch, memo, type SetStateAction, useState } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -25,6 +28,7 @@ function PureArtifactActions({
   metadata,
   setMetadata,
 }: ArtifactActionsProps) {
+  const t = useTranslations("common.toasts");
   const [isLoading, setIsLoading] = useState(false);
 
   const artifactDefinition = artifactDefinitions.find(
@@ -68,7 +72,7 @@ function PureArtifactActions({
                 try {
                   await Promise.resolve(action.onClick(actionContext));
                 } catch (_error) {
-                  toast.error("Failed to execute action");
+                  toast.error(t("actionFailed"));
                 } finally {
                   setIsLoading(false);
                 }

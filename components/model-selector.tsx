@@ -1,6 +1,7 @@
 "use client";
 
 import type { Session } from "next-auth";
+import { useTranslations } from "next-intl";
 import { startTransition, useMemo, useOptimistic, useState } from "react";
 import { saveChatModelAsCookie } from "@/app/(chat)/actions";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,8 @@ export function ModelSelector({
   const [optimisticModelId, setOptimisticModelId] =
     useOptimistic(selectedModelId);
 
+  const t = useTranslations();
+
   const userType = session.user.type;
   const { availableChatModelIds } = entitlementsByUserType[userType];
 
@@ -41,6 +44,8 @@ export function ModelSelector({
       ),
     [optimisticModelId, availableChatModels]
   );
+
+  console.log(selectedChatModel?.name);
 
   return (
     <DropdownMenu onOpenChange={setOpen} open={open}>
@@ -65,7 +70,11 @@ export function ModelSelector({
         className="min-w-[280px] max-w-[90vw] sm:min-w-[300px]"
       >
         {availableChatModels.map((chatModel) => {
-          const { id } = chatModel;
+          const { id, name, description } = chatModel;
+
+          console.log(name, description);
+          console.log(t(name));
+          console.log(t(description));
 
           return (
             <DropdownMenuItem
@@ -87,9 +96,9 @@ export function ModelSelector({
                 type="button"
               >
                 <div className="flex flex-col items-start gap-1">
-                  <div className="text-sm sm:text-base">{chatModel.name}</div>
+                  <div className="text-sm sm:text-base">{t(name)}</div>
                   <div className="line-clamp-2 text-muted-foreground text-xs">
-                    {chatModel.description}
+                    {t(description)}
                   </div>
                 </div>
 

@@ -2,8 +2,8 @@
 
 import { format, parseISO } from "date-fns";
 import { InfoIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import useSWR from "swr";
-
 import {
   HoverCard,
   HoverCardContent,
@@ -13,7 +13,7 @@ import { Progress } from "@/components/ui/progress";
 import type { AppUsage } from "@/lib/usage";
 import { cn, fetcher } from "@/lib/utils";
 
-interface UsageApiResponse {
+type UsageApiResponse = {
   subscription?: {
     periodEnd?: string | null;
   };
@@ -22,12 +22,12 @@ interface UsageApiResponse {
     used?: number | null;
     percentUsed?: string | null;
   };
-}
+};
 
-interface UsageHintProps {
+type UsageHintProps = {
   className?: string;
   usage?: AppUsage;
-}
+};
 
 const percentFromQuota = (usedTokens: number, totalTokens: number) => {
   if (
@@ -61,7 +61,7 @@ const formatReset = (isoDate?: string | null) => {
     }
 
     return format(parsed, "LLL d, yyyy");
-  } catch (error) {
+  } catch (_error) {
     return;
   }
 };
@@ -85,6 +85,8 @@ export const UsageHint = ({ className, usage }: UsageHintProps) => {
     revalidateOnReconnect: false,
     shouldRetryOnError: false,
   });
+
+  const t = useTranslations("usage");
 
   const totalTokens = data?.quota?.total ?? undefined;
   const usedTokens = data?.quota?.used ?? usage?.totalTokens ?? undefined;
@@ -114,26 +116,23 @@ export const UsageHint = ({ className, usage }: UsageHintProps) => {
             "group flex cursor-help items-center gap-1.5 text-muted-foreground text-xs transition-colors hover:text-foreground",
             className
           )}
-          tabIndex={0}
         >
           <InfoIcon
             aria-hidden="true"
             className="h-3.5 w-3.5 text-muted-foreground transition-colors group-hover:text-foreground"
             strokeWidth={1.5}
           />
-          <span>{`You've used ${roundedPercent}% of your usage limit`}</span>
+          <span>{t("tooltip", { percent: roundedPercent })}</span>
         </div>
       </HoverCardTrigger>
       <HoverCardContent align="start" className="w-72 space-y-3 p-4">
         <div className="flex items-center justify-between font-medium text-sm">
-          <span>{`${formatTokens(usedTokens)} / ${formatTokens(totalTokens)} tokens`}</span>
-          <span className="text-muted-foreground">{`${roundedPercent}% used`}</span>
+          <span>{`${formatTokens(usedTokens)} / ${formatTokens(totalTokens)} ${t("tokens")}`}</span>
         </div>
         <Progress className="h-2 bg-muted" value={percent} />
         <div className="space-y-1">
-          <InfoRow label="Resets" value={resetDate} />
-          <InfoRow label="Used tokens" value={formatTokens(usedTokens)} />
-          <InfoRow label="Total tokens" value={formatTokens(totalTokens)} />
+          <InfoRow label={t("used")} value={`${roundedPercent}%`} />
+          <InfoRow label={t("resetDate")} value={resetDate} />
         </div>
       </HoverCardContent>
     </HoverCard>

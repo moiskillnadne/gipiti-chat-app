@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { type ReactNode, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,14 +28,14 @@ const visibilities: Array<{
 }> = [
   {
     id: "private",
-    label: "Private",
-    description: "Only you can access this chat",
+    label: "private.label",
+    description: "private.description",
     icon: <LockIcon />,
   },
   {
     id: "public",
-    label: "Public",
-    description: "Anyone with the link can access this chat",
+    label: "public.label",
+    description: "public.description",
     icon: <GlobeIcon />,
   },
 ];
@@ -48,6 +49,7 @@ export function VisibilitySelector({
   selectedVisibilityType: VisibilityType;
 } & React.ComponentProps<typeof Button>) {
   const [open, setOpen] = useState(false);
+  const t = useTranslations("chat.visibility");
 
   const { visibilityType, setVisibilityType } = useChatVisibility({
     chatId,
@@ -92,10 +94,10 @@ export function VisibilitySelector({
             }}
           >
             <div className="flex flex-col items-start gap-1">
-              {visibility.label}
+              {t(visibility.label)}
               {visibility.description && (
                 <div className="text-muted-foreground text-xs">
-                  {visibility.description}
+                  {t(visibility.description)}
                 </div>
               )}
             </div>

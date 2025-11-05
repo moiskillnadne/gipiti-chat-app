@@ -38,6 +38,28 @@
     "language": {
       "switchLanguage": "Switch Language",
       "currentLanguage": "Language"
+    },
+    "toasts": {
+      "uploadFailed": "Failed to upload file, please try again!",
+      "waitForResponse": "Please wait for the model to finish its response!",
+      "noTextToCopy": "There's no text to copy!",
+      "copiedToClipboard": "Copied to clipboard!",
+      "actionFailed": "Failed to execute action",
+      "documentError": "An error occurred with the document",
+      "documentCreateError": "Error creating document",
+      "documentUpdateError": "Error updating document",
+      "sharedChatNotSupported": "Viewing files in shared chats is currently not supported."
+    },
+    "accessibility": {
+      "scrollToBottom": "Scroll to bottom",
+      "resizeConsole": "Resize console",
+      "toggleSidebar": "Toggle Sidebar",
+      "previous": "Previous",
+      "next": "Next",
+      "newChat": "New Chat",
+      "loading": "Loading",
+      "submitForm": "Submit form",
+      "enterUrl": "Enter URL..."
     }
   },
   "auth": {
@@ -88,6 +110,10 @@
     }
   },
   "chat": {
+    "greeting": {
+      "helloThere": "Hello there!",
+      "howCanIHelpYouToday": "How can I help you today?"
+    },
     "input": {
       "placeholder": "Send a message...",
       "placeholderMultimodal": "Ask anything or attach files...",
@@ -105,7 +131,10 @@
       "copy": "Copy",
       "copied": "Copied!",
       "regenerate": "Regenerate",
-      "edit": "Edit"
+      "edit": "Edit",
+      "loadingDocument": "Creating document...",
+      "errorCreatingDocument": "Error creating document",
+      "errorUpdatingDocument": "Error updating document"
     },
     "empty": {
       "title": "Start a new conversation",
@@ -113,8 +142,9 @@
       "suggestions": {
         "title": "Try asking:",
         "question1": "What is Next.js?",
-        "question2": "How do I implement authentication?",
-        "question3": "Explain React Server Components"
+        "question2": "Tell me recipe for chocolate cake",
+        "question3": "Write me essay about Silicon Valley",
+        "question4": "What is the weather in San Francisco?"
       }
     },
     "sidebar": {
@@ -151,9 +181,20 @@
       "currentModel": "Current Model"
     },
     "visibility": {
-      "private": "Private",
-      "public": "Public",
+      "private": {
+        "label": "Private",
+        "description": "Only you can access this chat"
+      },
+      "public": {
+        "label": "Public",
+        "description": "Anyone with the link can access this chat"
+      },
       "changeVisibility": "Change visibility"
+    },
+    "tools": {
+      "error": "Error",
+      "result": "Result",
+      "output": "Output"
     }
   },
   "metadata": {
@@ -203,7 +244,10 @@
     "tokensRemaining": "Tokens Remaining",
     "resetDate": "Resets on",
     "plan": "Plan",
-    "upgrade": "Upgrade Plan"
+    "upgrade": "Upgrade Plan",
+    "tokens": "tokens",
+    "used": "Used",
+    "tooltip": "You've used {percent}% of your usage limit"
   },
   "errors": {
     "pageNotFound": "Page not found",
@@ -212,5 +256,35 @@
     "forbidden": "Forbidden",
     "goBack": "Go back",
     "goHome": "Go home"
+  },
+  "modelList": {
+    "grokVision": {
+      "name": "Grok Vision",
+      "description": "Advanced multimodal model with vision and text capabilities"
+    },
+    "grokReasoning": {
+      "name": "Grok Reasoning",
+      "description": "Uses advanced chain-of-thought reasoning for complex problems"
+    },
+    "gpt5": {
+      "name": "GPT-5",
+      "description": "Uses advanced chain-of-thought reasoning for complex problems."
+    },
+    "gpt5Pro": {
+      "name": "GPT-5 Pro",
+      "description": "The smartest version of OpenAI's GPT model. Good for super complex tasks."
+    },
+    "gpt5Mini": {
+      "name": "GPT-5 Mini",
+      "description": "The smallest version of OpenAI's GPT model. Good for quick tasks."
+    },
+    "gemini25Pro": {
+      "name": "Gemini 2.5 Pro",
+      "description": "The latest version of Google's Gemini model. Good for daily tasks."
+    },
+    "opus41": {
+      "name": "Opus 4.1",
+      "description": "The latest version of Anthropic's Opus model. Good for daily tasks."
+    }
   }
 }

@@ -4,6 +4,7 @@ import type { UseChatHelpers } from "@ai-sdk/react";
 import { Trigger } from "@radix-ui/react-select";
 import type { UIMessage } from "ai";
 import equal from "fast-deep-equal";
+import { useTranslations } from "next-intl";
 import {
   type ChangeEvent,
   type Dispatch,
@@ -81,6 +82,8 @@ function PureMultimodalInput({
   onModelChange?: (modelId: string) => void;
   usage?: AppUsage;
 }) {
+  const t = useTranslations("common.toasts");
+  const tInput = useTranslations("chat.input");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
 
@@ -169,32 +172,35 @@ function PureMultimodalInput({
     resetHeight,
   ]);
 
-  const uploadFile = useCallback(async (file: File) => {
-    const formData = new FormData();
-    formData.append("file", file);
+  const uploadFile = useCallback(
+    async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
 
-    try {
-      const response = await fetch("/api/files/upload", {
-        method: "POST",
-        body: formData,
-      });
+      try {
+        const response = await fetch("/api/files/upload", {
+          method: "POST",
+          body: formData,
+        });
 
-      if (response.ok) {
-        const data = await response.json();
-        const { url, pathname, contentType } = data;
+        if (response.ok) {
+          const data = await response.json();
+          const { url, pathname, contentType } = data;
 
-        return {
-          url,
-          name: pathname,
-          contentType,
-        };
+          return {
+            url,
+            name: pathname,
+            contentType,
+          };
+        }
+        const { error } = await response.json();
+        toast.error(error);
+      } catch (_error) {
+        toast.error(t("uploadFailed"));
       }
-      const { error } = await response.json();
-      toast.error(error);
-    } catch (_error) {
-      toast.error("Failed to upload file, please try again!");
-    }
-  }, []);
+    },
+    [t]
+  );
 
   const _modelResolver = useMemo(() => {
     return myProvider.languageModel(selectedModelId);
@@ -259,7 +265,7 @@ function PureMultimodalInput({
         onSubmit={(event) => {
           event.preventDefault();
           if (status !== "ready") {
-            toast.error("Please wait for the model to finish its response!");
+            toast.error(t("waitForResponse"));
           } else {
             submitForm();
           }
@@ -307,7 +313,7 @@ function PureMultimodalInput({
             maxHeight={200}
             minHeight={44}
             onChange={handleInput}
-            placeholder="Send a message..."
+            placeholder={tInput("placeholder")}
             ref={textareaRef}
             rows={1}
             value={input}
@@ -407,6 +413,8 @@ function PureModelSelectorCompact({
 }) {
   const [optimisticModelId, setOptimisticModelId] = useState(selectedModelId);
 
+  const t = useTranslations("modelList");
+
   useEffect(() => {
     setOptimisticModelId(selectedModelId);
   }, [selectedModelId]);
@@ -427,7 +435,7 @@ function PureModelSelectorCompact({
           });
         }
       }}
-      value={selectedModel?.name}
+      value={t(selectedModel?.name ?? "")}
     >
       <Trigger
         className="flex h-8 items-center gap-2 rounded-lg border-0 bg-background px-2 text-foreground shadow-none transition-colors hover:bg-accent focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
@@ -435,7 +443,7 @@ function PureModelSelectorCompact({
       >
         <CpuIcon size={16} />
         <span className="hidden font-medium text-xs sm:block">
-          {selectedModel?.name}
+          {t(selectedModel?.name ?? "")}
         </span>
         <ChevronDownIcon size={16} />
       </Trigger>
@@ -443,9 +451,11 @@ function PureModelSelectorCompact({
         <div className="flex flex-col gap-px">
           {chatModels.map((model) => (
             <SelectItem key={model.id} value={model.name}>
-              <div className="truncate font-medium text-xs">{model.name}</div>
+              <div className="truncate font-medium text-xs">
+                {t(model.name)}
+              </div>
               <div className="mt-px truncate text-[10px] text-muted-foreground leading-tight">
-                {model.description}
+                {t(model.description)}
               </div>
             </SelectItem>
           ))}

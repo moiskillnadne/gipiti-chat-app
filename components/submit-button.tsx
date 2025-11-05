@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useFormStatus } from "react-dom";
 
 import { LoaderIcon } from "@/components/icons";
@@ -13,6 +14,7 @@ export function SubmitButton({
   children: React.ReactNode;
   isSuccessful: boolean;
 }) {
+  const t = useTranslations("common.accessibility");
   const { pending } = useFormStatus();
 
   return (
@@ -31,7 +33,7 @@ export function SubmitButton({
       )}
 
       <output aria-live="polite" className="sr-only">
-        {pending || isSuccessful ? "Loading" : "Submit form"}
+        {pending || isSuccessful ? t("loading") : t("submitForm")}
       </output>
     </Button>
   );
