@@ -2,7 +2,8 @@
 
 import Form from "next/form";
 import { useTranslations } from "next-intl";
-
+import { useState } from "react";
+import { PasswordInput } from "./password-input";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 
@@ -20,6 +21,7 @@ export function AuthForm({
   mode?: "login" | "register";
 }) {
   const t = useTranslations(mode === "login" ? "auth.login" : "auth.register");
+  const [password, setPassword] = useState("");
 
   return (
     <Form action={action} className="flex flex-col gap-4 px-4 sm:px-16">
@@ -45,21 +47,20 @@ export function AuthForm({
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label
-          className="font-normal text-zinc-600 dark:text-zinc-400"
-          htmlFor="password"
-        >
-          {t("password")}
-        </Label>
-
-        <Input
-          className="bg-muted text-md md:text-sm"
-          id="password"
-          name="password"
+        <PasswordInput
+          autoComplete={mode === "login" ? "current-password" : "new-password"}
+          id="password-display"
+          label={t("password")}
+          name="password-display"
+          onChange={(e) => setPassword(e.target.value)}
           placeholder={t("passwordPlaceholder")}
           required
-          type="password"
+          showRequirements={mode === "register"}
+          value={password}
         />
+
+        {/* Hidden input to submit password with form */}
+        <input name="password" type="hidden" value={password} />
       </div>
 
       {children}

@@ -96,7 +96,19 @@
       "passwordRequired": "Пароль обязателен",
       "passwordMinLength": "Пароль должен содержать минимум 8 символов",
       "passwordMismatch": "Пароли не совпадают",
-      "confirmPasswordRequired": "Пожалуйста, подтвердите ваш пароль"
+      "confirmPasswordRequired": "Пожалуйста, подтвердите ваш пароль",
+      "minLength": "Минимум 8 символов",
+      "uppercase": "Одна заглавная буква",
+      "lowercase": "Одна строчная буква",
+      "number": "Одна цифра",
+      "special": "Один специальный символ (!@#$%...)",
+      "passwordRequirements": "Требования к паролю:",
+      "passwordStrength": "Надёжность пароля:",
+      "strengthWeak": "Слабый",
+      "strengthMedium": "Средний",
+      "strengthStrong": "Надёжный",
+      "showPassword": "Показать пароль",
+      "hidePassword": "Скрыть пароль"
     },
     "errors": {
       "invalidCredentials": "Неверные учетные данные!",
