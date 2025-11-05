@@ -74,8 +74,33 @@
       "noAccount": "Don't have an account?",
       "signUpLink": "Sign up",
       "signUpLinkSuffix": "for free.",
-      "forgotPassword": "Forgot password?",
+      "forgotPasswordLink": "Forgot password?",
       "rememberMe": "Remember me"
+    },
+    "forgotPassword": {
+      "title": "Reset your password",
+      "subtitle": "Enter your email address and we'll send you a reset link",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "Enter your email",
+      "submit": "Send reset link",
+      "success": "Check your email for password reset instructions",
+      "backToLogin": "Back to login"
+    },
+    "resetPassword": {
+      "title": "Create new password",
+      "subtitle": "Enter your new password below",
+      "passwordLabel": "New password",
+      "passwordPlaceholder": "Create a new password",
+      "confirmLabel": "Confirm password",
+      "confirmPlaceholder": "Confirm your new password",
+      "submit": "Reset password",
+      "success": "Password reset successful! Redirecting to login...",
+      "invalidToken": "Invalid or expired reset link",
+      "invalidTokenMessage": "The password reset link is invalid or has expired. Please request a new one.",
+      "requestNewLink": "Request a new reset link",
+      "passwordMismatch": "Passwords don't match",
+      "passwordMatches": "Passwords match",
+      "backToLogin": "Back to login"
     },
     "register": {
       "title": "Sign Up",
@@ -114,7 +139,10 @@
       "invalidCredentials": "Invalid credentials!",
       "invalidData": "Failed validating your submission!",
       "userExists": "User with this email already exists",
-      "genericError": "An error occurred. Please try again."
+      "genericError": "An error occurred. Please try again.",
+      "rateLimitExceeded": "Too many reset requests. Please try again later",
+      "emailSendFailed": "Failed to send reset email. Please try again",
+      "resetFailed": "Failed to reset password. Please try again"
     },
     "logout": {
       "confirm": "Are you sure you want to logout?",

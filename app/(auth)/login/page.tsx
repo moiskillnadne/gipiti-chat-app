@@ -148,6 +148,14 @@ function LoginPage() {
           </p>
         </div>
         <AuthForm action={handleSubmit} defaultEmail={email} mode="login">
+          <div className="flex items-center justify-end">
+            <Link
+              className="text-gray-600 text-sm hover:underline dark:text-zinc-400"
+              href="/forgot-password"
+            >
+              {t("forgotPasswordLink")}
+            </Link>
+          </div>
           <SubmitButton isSuccessful={isSuccessful}>
             {t("signInButton")}
           </SubmitButton>

@@ -19,15 +19,25 @@ import {
 } from "drizzle-orm/pg-core";
 import type { AppUsage } from "../usage";
 
-export const user = pgTable("User", {
-  id: uuid("id").primaryKey().notNull().defaultRandom(),
-  email: varchar("email", { length: 64 }).notNull(),
-  password: varchar("password", { length: 64 }),
-  currentPlan: varchar("current_plan", { length: 32 }).default("tester"),
-  preferredLanguage: varchar("preferred_language", { length: 8 }).default("en"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+export const user = pgTable(
+  "User",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    email: varchar("email", { length: 64 }).notNull(),
+    password: varchar("password", { length: 64 }),
+    currentPlan: varchar("current_plan", { length: 32 }).default("tester"),
+    preferredLanguage: varchar("preferred_language", { length: 8 }).default("en"),
+    resetPasswordToken: varchar("reset_password_token", { length: 255 }),
+    resetPasswordTokenExpiry: timestamp("reset_password_token_expiry"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    resetTokenIdx: index("user_reset_password_token_idx").on(
+      table.resetPasswordToken
+    ),
+  })
+);
 
 export type User = InferSelectModel<typeof user>;
 

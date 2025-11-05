@@ -22,6 +22,8 @@ type PasswordInputProps = {
   required?: boolean;
   showRequirements?: boolean;
   autoComplete?: string;
+  autoFocus?: boolean;
+  disabled?: boolean;
 };
 
 export function PasswordInput({
@@ -34,6 +36,8 @@ export function PasswordInput({
   required = false,
   showRequirements = true,
   autoComplete = "current-password",
+  autoFocus = false,
+  disabled = false,
 }: PasswordInputProps) {
   const t = useTranslations("auth.validation");
   const [showPassword, setShowPassword] = useState(false);
@@ -59,7 +63,9 @@ export function PasswordInput({
             showRequirements ? `${id}-requirements ${id}-strength` : undefined
           }
           autoComplete={autoComplete}
+          autoFocus={autoFocus}
           className="pr-10"
+          disabled={disabled}
           id={id}
           name={name}
           onBlur={() => setIsFocused(false)}

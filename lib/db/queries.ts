@@ -66,6 +66,100 @@ export async function createUser(email: string, password: string) {
   }
 }
 
+export async function setPasswordResetToken({
+  userId,
+  hashedToken,
+  expiresAt,
+}: {
+  userId: string
+  hashedToken: string
+  expiresAt: Date
+}) {
+  try {
+    return await db
+      .update(user)
+      .set({
+        resetPasswordToken: hashedToken,
+        resetPasswordTokenExpiry: expiresAt,
+      })
+      .where(eq(user.id, userId))
+      .returning()
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to set password reset token"
+    )
+  }
+}
+
+export async function getUserByResetToken({
+  hashedToken,
+}: {
+  hashedToken: string
+}): Promise<User | null> {
+  try {
+    const [foundUser] = await db
+      .select()
+      .from(user)
+      .where(
+        and(
+          eq(user.resetPasswordToken, hashedToken),
+          gt(user.resetPasswordTokenExpiry, new Date())
+        )
+      )
+
+    return foundUser || null
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to get user by reset token"
+    )
+  }
+}
+
+export async function clearPasswordResetToken({ userId }: { userId: string }) {
+  try {
+    return await db
+      .update(user)
+      .set({
+        resetPasswordToken: null,
+        resetPasswordTokenExpiry: null,
+      })
+      .where(eq(user.id, userId))
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to clear password reset token"
+    )
+  }
+}
+
+export async function updateUserPassword({
+  userId,
+  hashedPassword,
+}: {
+  userId: string
+  hashedPassword: string
+}) {
+  try {
+    return await db
+      .update(user)
+      .set({
+        password: hashedPassword,
+        resetPasswordToken: null,
+        resetPasswordTokenExpiry: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(user.id, userId))
+      .returning()
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to update user password"
+    )
+  }
+}
+
 export async function saveChat({
   id,
   userId,
