@@ -282,10 +282,6 @@
       "name": "GPT-5",
       "description": "Uses advanced chain-of-thought reasoning for complex problems."
     },
-    "gpt5Pro": {
-      "name": "GPT-5 Pro",
-      "description": "The smartest version of OpenAI's GPT model. Good for super complex tasks."
-    },
     "gpt5Mini": {
       "name": "GPT-5 Mini",
       "description": "The smallest version of OpenAI's GPT model. Good for quick tasks."
