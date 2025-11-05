@@ -93,7 +93,6 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       maxMessagesPerPeriod: 5000,
       allowedModels: [
         "gpt-5",
-        "gpt-5-pro",
         "gpt-5-mini",
         "grok-2-vision-1212",
         "grok-3-mini",
@@ -118,7 +117,6 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       maxMessagesPerPeriod: 60_000,
       allowedModels: [
         "gpt-5",
-        "gpt-5-pro",
         "gpt-5-mini",
         "grok-2-vision-1212",
         "grok-3-mini",
@@ -144,7 +142,6 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       maxMessagesPerPeriod: -1, // Unlimited
       allowedModels: [
         "gpt-5",
-        "gpt-5-pro",
         "gpt-5-mini",
         "grok-2-vision-1212",
         "grok-3-mini",
@@ -169,7 +166,6 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       maxMessagesPerPeriod: -1,
       allowedModels: [
         "gpt-5",
-        "gpt-5-pro",
         "gpt-5-mini",
         "grok-2-vision-1212",
         "grok-3-mini",
