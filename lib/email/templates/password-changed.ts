@@ -1,5 +1,6 @@
+import { emailConfig } from "../client";
+
 type PasswordChangedEmailProps = {
-  email: string;
   locale: string;
   timestamp: Date;
   resetUrl: string;
@@ -48,7 +49,6 @@ export function getPasswordChangedEmailSubject(locale: string): string {
 }
 
 export function getPasswordChangedEmailHtml({
-  email,
   locale,
   timestamp,
   resetUrl,
@@ -134,7 +134,7 @@ export function getPasswordChangedEmailHtml({
                 ${t.supportText}
               </p>
               <p style="margin: 8px 0 0 0; font-size: 12px; line-height: 18px; color: #a0a0a0;">
-                ${email}
+                ${emailConfig.supportEmail}
               </p>
             </td>
           </tr>
@@ -148,7 +148,6 @@ export function getPasswordChangedEmailHtml({
 }
 
 export function getPasswordChangedEmailText({
-  email,
   locale,
   timestamp,
   resetUrl,
@@ -177,6 +176,6 @@ ${t.securityWarning}
 ${t.actionText}: ${resetUrl}
 
 ${t.supportText}
-${email}
+${emailConfig.supportEmail}
   `.trim();
 }

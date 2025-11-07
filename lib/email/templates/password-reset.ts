@@ -1,3 +1,5 @@
+import { emailConfig } from "../client";
+
 type PasswordResetEmailProps = {
   resetUrl: string;
   email: string;
@@ -50,7 +52,6 @@ export function getPasswordResetEmailSubject(locale: string): string {
 
 export function getPasswordResetEmailHtml({
   resetUrl,
-  email,
   locale,
 }: PasswordResetEmailProps): string {
   const t = content[locale] || content.en;
@@ -121,7 +122,7 @@ export function getPasswordResetEmailHtml({
                 ${t.supportText}
               </p>
               <p style="margin: 8px 0 0 0; font-size: 12px; line-height: 18px; color: #a0a0a0;">
-                ${email}
+                ${emailConfig.supportEmail}
               </p>
             </td>
           </tr>

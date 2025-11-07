@@ -10,6 +10,14 @@ if (!resendApiKey) {
   );
 }
 
+const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+
+if (!appUrl) {
+  throw new Error(
+    "NEXT_PUBLIC_APP_URL is not configured. Please add it to your environment variables."
+  );
+}
+
 export const resend = new Resend(resendApiKey);
 
 // Email configuration
@@ -17,9 +25,5 @@ export const emailConfig = {
   from: "noreply@gipiti-app.riabkov.com",
   supportEmail: "vitya.ryabkov@gmail.com",
   appName: "GIPITI App",
-  appUrl:
-    process.env.NEXT_PUBLIC_APP_URL ||
-    (process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3000"),
+  appUrl,
 };
