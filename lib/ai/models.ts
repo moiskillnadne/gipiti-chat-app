@@ -10,6 +10,7 @@ export type ChatModel = {
   name: string;
   description: string;
   capabilities?: ChatModelCapabilities;
+  showInUI?: boolean;
 };
 
 export const chatModels: ChatModel[] = [
@@ -20,6 +21,7 @@ export const chatModels: ChatModel[] = [
     capabilities: {
       attachments: true,
     },
+    showInUI: false,
   },
   {
     id: "chat-model-reasoning",
@@ -29,6 +31,7 @@ export const chatModels: ChatModel[] = [
       reasoning: true,
       attachments: false,
     },
+    showInUI: false,
   },
   {
     id: "gpt-5",
@@ -38,6 +41,7 @@ export const chatModels: ChatModel[] = [
       reasoning: true,
       attachments: true,
     },
+    showInUI: true,
   },
   {
     id: "gpt-5-mini",
@@ -47,6 +51,7 @@ export const chatModels: ChatModel[] = [
       reasoning: true,
       attachments: true,
     },
+    showInUI: true,
   },
   {
     id: "gemini-2.5-pro",
@@ -56,6 +61,7 @@ export const chatModels: ChatModel[] = [
       reasoning: true,
       attachments: true,
     },
+    showInUI: true,
   },
   {
     id: "opus-4.1",
@@ -65,10 +71,15 @@ export const chatModels: ChatModel[] = [
       reasoning: true,
       attachments: true,
     },
+    showInUI: true,
   },
 ];
 
 export const chatModelIds = chatModels.map((model) => model.id);
+
+export const uiVisibleChatModels = chatModels.filter(
+  (model) => model.showInUI !== false
+);
 
 const reasoningModelIds = new Set(
   chatModels
