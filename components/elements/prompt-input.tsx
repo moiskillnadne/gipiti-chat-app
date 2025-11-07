@@ -7,7 +7,7 @@ import type {
   HTMLAttributes,
   KeyboardEventHandler,
 } from "react";
-import { Children, useCallback, useEffect, useRef } from "react";
+import { Children, forwardRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -31,107 +31,106 @@ export const PromptInput = ({ className, ...props }: PromptInputProps) => (
   />
 );
 
-export type PromptInputTextareaProps = ComponentProps<typeof Textarea> & {
+export type PromptInputTextareaProps = Omit<
+  ComponentProps<typeof Textarea>,
+  "ref"
+> & {
   minHeight?: number;
   maxHeight?: number;
   disableAutoResize?: boolean;
   resizeOnNewLinesOnly?: boolean;
 };
 
-export const PromptInputTextarea = ({
-  onChange,
-  className,
-  placeholder = "What would you like to know?",
-  minHeight = 48,
-  maxHeight = 164,
-  disableAutoResize = false,
-  resizeOnNewLinesOnly = false,
-  ...props
-}: PromptInputTextareaProps) => {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  const adjustHeight = useCallback(
-    (textarea: HTMLTextAreaElement) => {
-      if (disableAutoResize) {
-        return;
-      }
-
-      textarea.style.height = `${minHeight}px`;
-      const scrollHeight = textarea.scrollHeight;
-      const newHeight = Math.min(Math.max(scrollHeight, minHeight), maxHeight);
-      textarea.style.height = `${newHeight}px`;
+export const PromptInputTextarea = forwardRef<
+  HTMLTextAreaElement,
+  PromptInputTextareaProps
+>(
+  (
+    {
+      onChange,
+      className,
+      placeholder = "What would you like to know?",
+      minHeight = 48,
+      maxHeight = 164,
+      disableAutoResize = false,
+      resizeOnNewLinesOnly = false,
+      ...props
     },
-    [disableAutoResize, maxHeight, minHeight]
-  );
-
-  useEffect(() => {
-    const textarea = textareaRef.current;
-    if (!textarea) {
-      return;
-    }
-
-    adjustHeight(textarea);
-  }, [adjustHeight]);
-
-  const handleKeyDown: KeyboardEventHandler<HTMLTextAreaElement> = (e) => {
-    if (e.key === "Enter") {
-      // Don't submit if IME composition is in progress
-      if (e.nativeEvent.isComposing) {
-        return;
-      }
-
-      if (e.shiftKey) {
-        // Allow newline
-        return;
-      }
-
-      // Submit on Enter (without Shift)
-      e.preventDefault();
-      const form = e.currentTarget.form;
-      if (form) {
-        form.requestSubmit();
-      }
-    }
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    adjustHeight(e.currentTarget);
-    onChange?.(e);
-  };
-
-  return (
-    <Textarea
-      className={cn(
-        "w-full resize-none rounded-none border-none p-3 shadow-none outline-hidden ring-0",
-        "overflow-y-auto",
-        "bg-transparent dark:bg-transparent",
-        "focus-visible:ring-0",
-        className
-      )}
-      name="message"
-      onChange={handleChange}
-      onKeyDown={handleKeyDown}
-      placeholder={placeholder}
-      ref={(el) => {
-        // Handle both refs
-        textareaRef.current = el;
-        if (typeof props.ref === "function") {
-          props.ref(el);
-        } else if (props.ref) {
-          (
-            props.ref as React.MutableRefObject<HTMLTextAreaElement | null>
-          ).current = el;
+    ref
+  ) => {
+    const adjustHeight = useCallback(
+      (textarea: HTMLTextAreaElement) => {
+        if (disableAutoResize) {
+          return;
         }
-      }}
-      style={{
-        minHeight: `${minHeight}px`,
-        maxHeight: `${maxHeight}px`,
-        height: `${minHeight}px`,
-      }}
-      {...props}
-    />
-  );
-};
+
+        textarea.style.height = `${minHeight}px`;
+        const scrollHeight = textarea.scrollHeight;
+        const newHeight = Math.min(
+          Math.max(scrollHeight, minHeight),
+          maxHeight
+        );
+        textarea.style.height = `${newHeight}px`;
+      },
+      [disableAutoResize, maxHeight, minHeight]
+    );
+
+    useEffect(() => {
+      if (ref && typeof ref === "object" && ref.current) {
+        adjustHeight(ref.current);
+      }
+    }, [adjustHeight, ref]);
+
+    const handleKeyDown: KeyboardEventHandler<HTMLTextAreaElement> = (e) => {
+      if (e.key === "Enter") {
+        // Don't submit if IME composition is in progress
+        if (e.nativeEvent.isComposing) {
+          return;
+        }
+
+        if (e.shiftKey) {
+          // Allow newline
+          return;
+        }
+
+        // Submit on Enter (without Shift)
+        e.preventDefault();
+        const form = e.currentTarget.form;
+        if (form) {
+          form.requestSubmit();
+        }
+      }
+    };
+
+    const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      adjustHeight(e.currentTarget);
+      onChange?.(e);
+    };
+
+    return (
+      <Textarea
+        className={cn(
+          "w-full resize-none rounded-none border-none p-3 shadow-none outline-hidden ring-0",
+          "overflow-y-auto",
+          "bg-transparent dark:bg-transparent",
+          "focus-visible:ring-0",
+          className
+        )}
+        name="message"
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
+        placeholder={placeholder}
+        ref={ref}
+        style={{
+          minHeight: `${minHeight}px`,
+          maxHeight: `${maxHeight}px`,
+          height: `${minHeight}px`,
+        }}
+        {...props}
+      />
+    );
+  }
+);
 
 export type PromptInputToolbarProps = HTMLAttributes<HTMLDivElement>;
 
