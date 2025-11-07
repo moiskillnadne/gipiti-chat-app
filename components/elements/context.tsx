@@ -122,7 +122,8 @@ export const Context = ({ className, usage, ...props }: ContextProps) => {
           <span className="hidden font-medium text-muted-foreground">
             {usedPercent.toFixed(1)}%
           </span>
-          <ContextIcon percent={usedPercent} />
+          {/* Hidden for now because it`s showing extra information that's not needed */}
+          {/* <ContextIcon percent={usedPercent} /> */}
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-fit p-3" side="top">
