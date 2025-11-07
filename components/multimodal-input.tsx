@@ -87,18 +87,6 @@ function PureMultimodalInput({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
 
-  // const adjustHeight = useCallback(() => {
-  //   if (textareaRef.current) {
-  //     textareaRef.current.style.height = "44px";
-  //   }
-  // }, []);
-
-  // useEffect(() => {
-  //   if (textareaRef.current) {
-  //     adjustHeight();
-  //   }
-  // }, [adjustHeight]);
-
   const resetHeight = useCallback(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "44px";
@@ -106,21 +94,30 @@ function PureMultimodalInput({
   }, []);
 
   const [localStorageInput, setLocalStorageInput] = useLocalStorage(
-    "input",
+    `input-${chatId}`,
     ""
   );
 
+  const prevChatIdRef = useRef(chatId);
+  const hasMountedRef = useRef(false);
+
   useEffect(() => {
-    if (textareaRef.current) {
-      const domValue = textareaRef.current.value;
-      // Prefer DOM value over localStorage to handle hydration
-      const finalValue = domValue || localStorageInput || "";
-      setInput(finalValue);
-      // adjustHeight();
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      if (textareaRef.current) {
+        const domValue = textareaRef.current.value;
+        const finalValue = domValue || localStorageInput || "";
+        setInput(finalValue);
+      }
+      return;
     }
-    // Only run once after hydration
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [localStorageInput, setInput]);
+
+    if (prevChatIdRef.current !== chatId) {
+      prevChatIdRef.current = chatId;
+      setInput(localStorageInput);
+      resetHeight();
+    }
+  }, [chatId, localStorageInput, setInput, resetHeight]);
 
   useEffect(() => {
     setLocalStorageInput(input);
