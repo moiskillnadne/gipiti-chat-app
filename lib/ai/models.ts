@@ -79,5 +79,7 @@ const reasoningModelIds = new Set(
 export const isReasoningModelId = (modelId: string) =>
   reasoningModelIds.has(modelId);
 
-export const supportsAttachments = (modelId: string) =>
-  !reasoningModelIds.has(modelId);
+export const supportsAttachments = (modelId: string) => {
+  const model = chatModels.find((m) => m.id === modelId);
+  return model?.capabilities?.attachments ?? false;
+};
