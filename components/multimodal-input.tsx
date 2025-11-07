@@ -444,7 +444,7 @@ function PureModelSelectorCompact({
         </span>
         <ChevronDownIcon size={16} />
       </Trigger>
-      <PromptInputModelSelectContent className="min-w-[260px] p-0">
+      <PromptInputModelSelectContent className="min-w-[260px] max-w-[90vw] p-0">
         <div className="flex flex-col gap-px">
           {chatModels
             .filter((model) => model.showInUI !== false)
