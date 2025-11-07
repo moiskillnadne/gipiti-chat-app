@@ -7,7 +7,7 @@ import type {
   HTMLAttributes,
   KeyboardEventHandler,
 } from "react";
-import { Children } from "react";
+import { Children, useCallback, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -48,6 +48,31 @@ export const PromptInputTextarea = ({
   resizeOnNewLinesOnly = false,
   ...props
 }: PromptInputTextareaProps) => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const adjustHeight = useCallback(
+    (textarea: HTMLTextAreaElement) => {
+      if (disableAutoResize) {
+        return;
+      }
+
+      textarea.style.height = `${minHeight}px`;
+      const scrollHeight = textarea.scrollHeight;
+      const newHeight = Math.min(Math.max(scrollHeight, minHeight), maxHeight);
+      textarea.style.height = `${newHeight}px`;
+    },
+    [disableAutoResize, maxHeight, minHeight]
+  );
+
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) {
+      return;
+    }
+
+    adjustHeight(textarea);
+  }, [adjustHeight]);
+
   const handleKeyDown: KeyboardEventHandler<HTMLTextAreaElement> = (e) => {
     if (e.key === "Enter") {
       // Don't submit if IME composition is in progress
@@ -69,26 +94,40 @@ export const PromptInputTextarea = ({
     }
   };
 
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    adjustHeight(e.currentTarget);
+    onChange?.(e);
+  };
+
   return (
     <Textarea
       className={cn(
         "w-full resize-none rounded-none border-none p-3 shadow-none outline-hidden ring-0",
-        disableAutoResize
-          ? "field-sizing-fixed"
-          : resizeOnNewLinesOnly
-            ? "field-sizing-fixed"
-            : "field-sizing-content max-h-[8lh]",
+        "overflow-y-auto",
         "bg-transparent dark:bg-transparent",
         "focus-visible:ring-0",
-        `min-h-[${minHeight}px]`,
         className
       )}
       name="message"
-      onChange={(e) => {
-        onChange?.(e);
-      }}
+      onChange={handleChange}
       onKeyDown={handleKeyDown}
       placeholder={placeholder}
+      ref={(el) => {
+        // Handle both refs
+        textareaRef.current = el;
+        if (typeof props.ref === "function") {
+          props.ref(el);
+        } else if (props.ref) {
+          (
+            props.ref as React.MutableRefObject<HTMLTextAreaElement | null>
+          ).current = el;
+        }
+      }}
+      style={{
+        minHeight: `${minHeight}px`,
+        maxHeight: `${maxHeight}px`,
+        height: `${minHeight}px`,
+      }}
       {...props}
     />
   );

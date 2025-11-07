@@ -307,7 +307,7 @@ function PureMultimodalInput({
             className="min-w-0 grow resize-none break-all border-0! border-none! bg-transparent p-2 text-sm outline-none ring-0 [-ms-overflow-style:none] [scrollbar-width:none] placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 [&::-webkit-scrollbar]:hidden"
             data-testid="multimodal-input"
             disableAutoResize={false}
-            maxHeight={400}
+            maxHeight={250}
             minHeight={44}
             onChange={handleInput}
             placeholder={tInput("placeholder")}
@@ -446,16 +446,18 @@ function PureModelSelectorCompact({
       </Trigger>
       <PromptInputModelSelectContent className="min-w-[260px] p-0">
         <div className="flex flex-col gap-px">
-          {chatModels.map((model) => (
-            <SelectItem key={model.id} value={model.name}>
-              <div className="truncate font-medium text-xs">
-                {t(model.name)}
-              </div>
-              <div className="mt-px truncate text-[10px] text-muted-foreground leading-tight">
-                {t(model.description)}
-              </div>
-            </SelectItem>
-          ))}
+          {chatModels
+            .filter((model) => model.showInUI !== false)
+            .map((model) => (
+              <SelectItem key={model.id} value={model.name}>
+                <div className="truncate font-medium text-xs">
+                  {t(model.name)}
+                </div>
+                <div className="mt-px truncate text-[10px] text-muted-foreground leading-tight">
+                  {t(model.description)}
+                </div>
+              </SelectItem>
+            ))}
         </div>
       </PromptInputModelSelectContent>
     </PromptInputModelSelect>
