@@ -439,7 +439,7 @@ function PureModelSelectorCompact({
         type="button"
       >
         <CpuIcon size={16} />
-        <span className="hidden font-medium text-xs sm:block">
+        <span className="font-medium text-xs">
           {t(selectedModel?.name ?? "")}
         </span>
         <ChevronDownIcon size={16} />
