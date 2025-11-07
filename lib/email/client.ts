@@ -15,7 +15,7 @@ export const resend = new Resend(resendApiKey);
 // Email configuration
 export const emailConfig = {
   from: "noreply@gipiti-app.riabkov.com",
-  supportEmail: "support@yourdomain.com", // TODO: Update with your support email
+  supportEmail: "vitya.ryabkov@gmail.com",
   appName: "GIPITI App",
   appUrl:
     process.env.NEXT_PUBLIC_APP_URL ||
