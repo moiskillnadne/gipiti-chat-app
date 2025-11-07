@@ -1,12 +1,12 @@
-import { randomBytes, createHash, timingSafeEqual } from "crypto"
+import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 
 /**
  * Generate a cryptographically secure random token
  * @param bytes Number of random bytes (default: 32)
  * @returns Hex-encoded token string
  */
-export function generateResetToken(bytes: number = 32): string {
-  return randomBytes(bytes).toString("hex")
+export function generateResetToken(bytes = 32): string {
+  return randomBytes(bytes).toString("hex");
 }
 
 /**
@@ -16,7 +16,7 @@ export function generateResetToken(bytes: number = 32): string {
  * @returns Hex-encoded hash string
  */
 export function hashToken(token: string): string {
-  return createHash("sha256").update(token).digest("hex")
+  return createHash("sha256").update(token).digest("hex");
 }
 
 /**
@@ -26,18 +26,18 @@ export function hashToken(token: string): string {
  * @returns True if tokens match
  */
 export function verifyToken(token: string, hashedToken: string): boolean {
-  const tokenHash = hashToken(token)
+  const tokenHash = hashToken(token);
 
   // Convert to buffers for timing-safe comparison
-  const tokenBuffer = Buffer.from(tokenHash, "hex")
-  const hashedBuffer = Buffer.from(hashedToken, "hex")
+  const tokenBuffer = Buffer.from(tokenHash, "hex");
+  const hashedBuffer = Buffer.from(hashedToken, "hex");
 
   // Ensure buffers are the same length
   if (tokenBuffer.length !== hashedBuffer.length) {
-    return false
+    return false;
   }
 
-  return timingSafeEqual(tokenBuffer, hashedBuffer)
+  return timingSafeEqual(tokenBuffer, hashedBuffer);
 }
 
 /**
@@ -45,20 +45,20 @@ export function verifyToken(token: string, hashedToken: string): boolean {
  * @param expiryHours Number of hours until token expires (default: 1)
  * @returns Object with plain token, hashed token, and expiry date
  */
-export function createPasswordResetToken(expiryHours: number = 1): {
-  token: string
-  hashedToken: string
-  expiresAt: Date
+export function createPasswordResetToken(expiryHours = 1): {
+  token: string;
+  hashedToken: string;
+  expiresAt: Date;
 } {
-  const token = generateResetToken()
-  const hashedToken = hashToken(token)
-  const expiresAt = new Date(Date.now() + expiryHours * 60 * 60 * 1000)
+  const token = generateResetToken();
+  const hashedToken = hashToken(token);
+  const expiresAt = new Date(Date.now() + expiryHours * 60 * 60 * 1000);
 
   return {
     token, // Send this in the email
     hashedToken, // Store this in the database
     expiresAt,
-  }
+  };
 }
 
 /**
@@ -67,6 +67,8 @@ export function createPasswordResetToken(expiryHours: number = 1): {
  * @returns True if token is expired
  */
 export function isTokenExpired(expiryDate: Date | null): boolean {
-  if (!expiryDate) return true
-  return new Date() > expiryDate
+  if (!expiryDate) {
+    return true;
+  }
+  return new Date() > expiryDate;
 }

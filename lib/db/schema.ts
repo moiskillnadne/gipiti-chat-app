@@ -26,7 +26,9 @@ export const user = pgTable(
     email: varchar("email", { length: 64 }).notNull(),
     password: varchar("password", { length: 64 }),
     currentPlan: varchar("current_plan", { length: 32 }).default("tester"),
-    preferredLanguage: varchar("preferred_language", { length: 8 }).default("en"),
+    preferredLanguage: varchar("preferred_language", { length: 8 }).default(
+      "en"
+    ),
     resetPasswordToken: varchar("reset_password_token", { length: 255 }),
     resetPasswordTokenExpiry: timestamp("reset_password_token_expiry"),
     createdAt: timestamp("created_at").notNull().defaultNow(),

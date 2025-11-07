@@ -97,7 +97,6 @@ export function PasswordInput({
         aria-live="polite"
         className="overflow-hidden transition-all duration-300 ease-in-out"
         id={`${id}-strength`}
-        role="status"
         style={{
           maxHeight: shouldShowStrength ? "60px" : "0px",
           opacity: shouldShowStrength ? 1 : 0,

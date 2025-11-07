@@ -1,20 +1,20 @@
 type PasswordChangedEmailProps = {
-  email: string
-  locale: string
-  timestamp: Date
-  resetUrl: string
-}
+  email: string;
+  locale: string;
+  timestamp: Date;
+  resetUrl: string;
+};
 
 type LocaleContent = {
-  subject: string
-  greeting: string
-  confirmationText: string
-  timestampLabel: string
-  securityWarning: string
-  actionText: string
-  buttonText: string
-  supportText: string
-}
+  subject: string;
+  greeting: string;
+  confirmationText: string;
+  timestampLabel: string;
+  securityWarning: string;
+  actionText: string;
+  buttonText: string;
+  supportText: string;
+};
 
 const content: Record<string, LocaleContent> = {
   en: {
@@ -32,7 +32,8 @@ const content: Record<string, LocaleContent> = {
   ru: {
     subject: "Ваш пароль был изменен",
     greeting: "Здравствуйте,",
-    confirmationText: "Это письмо подтверждает, что ваш пароль был успешно изменен.",
+    confirmationText:
+      "Это письмо подтверждает, что ваш пароль был успешно изменен.",
     timestampLabel: "Изменено:",
     securityWarning:
       "Если вы не вносили это изменение, ваша учетная запись может быть скомпрометирована. Пожалуйста, немедленно сбросьте пароль и свяжитесь с нашей службой поддержки.",
@@ -40,10 +41,10 @@ const content: Record<string, LocaleContent> = {
     buttonText: "Сбросить пароль сейчас",
     supportText: "Есть вопросы? Свяжитесь с нашей службой поддержки.",
   },
-}
+};
 
 export function getPasswordChangedEmailSubject(locale: string): string {
-  return content[locale]?.subject || content.en.subject
+  return content[locale]?.subject || content.en.subject;
 }
 
 export function getPasswordChangedEmailHtml({
@@ -52,12 +53,15 @@ export function getPasswordChangedEmailHtml({
   timestamp,
   resetUrl,
 }: PasswordChangedEmailProps): string {
-  const t = content[locale] || content.en
+  const t = content[locale] || content.en;
 
-  const formattedTimestamp = timestamp.toLocaleString(locale === "ru" ? "ru-RU" : "en-US", {
-    dateStyle: "long",
-    timeStyle: "short",
-  })
+  const formattedTimestamp = timestamp.toLocaleString(
+    locale === "ru" ? "ru-RU" : "en-US",
+    {
+      dateStyle: "long",
+      timeStyle: "short",
+    }
+  );
 
   return `
 <!DOCTYPE html>
@@ -140,7 +144,7 @@ export function getPasswordChangedEmailHtml({
   </table>
 </body>
 </html>
-  `.trim()
+  `.trim();
 }
 
 export function getPasswordChangedEmailText({
@@ -149,12 +153,15 @@ export function getPasswordChangedEmailText({
   timestamp,
   resetUrl,
 }: PasswordChangedEmailProps): string {
-  const t = content[locale] || content.en
+  const t = content[locale] || content.en;
 
-  const formattedTimestamp = timestamp.toLocaleString(locale === "ru" ? "ru-RU" : "en-US", {
-    dateStyle: "long",
-    timeStyle: "short",
-  })
+  const formattedTimestamp = timestamp.toLocaleString(
+    locale === "ru" ? "ru-RU" : "en-US",
+    {
+      dateStyle: "long",
+      timeStyle: "short",
+    }
+  );
 
   return `
 ${t.subject}
@@ -171,5 +178,5 @@ ${t.actionText}: ${resetUrl}
 
 ${t.supportText}
 ${email}
-  `.trim()
+  `.trim();
 }

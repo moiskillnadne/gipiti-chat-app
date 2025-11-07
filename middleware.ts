@@ -62,7 +62,12 @@ export async function middleware(request: NextRequest) {
     secureCookie: !isDevelopmentEnvironment,
   });
 
-  const isAuthRoute = ["/login", "/register", "/forgot-password", "/reset-password"].includes(pathname);
+  const isAuthRoute = [
+    "/login",
+    "/register",
+    "/forgot-password",
+    "/reset-password",
+  ].includes(pathname);
 
   if (!token && !isAuthRoute) {
     const loginUrl = new URL("/login", request.url);

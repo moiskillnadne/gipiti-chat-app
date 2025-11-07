@@ -1,19 +1,19 @@
 type PasswordResetEmailProps = {
-  resetUrl: string
-  email: string
-  locale: string
-}
+  resetUrl: string;
+  email: string;
+  locale: string;
+};
 
 type LocaleContent = {
-  subject: string
-  greeting: string
-  bodyText: string
-  buttonText: string
-  expiryNotice: string
-  securityNotice: string
-  ignoreText: string
-  supportText: string
-}
+  subject: string;
+  greeting: string;
+  bodyText: string;
+  buttonText: string;
+  expiryNotice: string;
+  securityNotice: string;
+  ignoreText: string;
+  supportText: string;
+};
 
 const content: Record<string, LocaleContent> = {
   en: {
@@ -42,10 +42,10 @@ const content: Record<string, LocaleContent> = {
       "Ваш пароль останется без изменений, если вы не нажмете кнопку выше.",
     supportText: "Нужна помощь? Свяжитесь с нашей службой поддержки.",
   },
-}
+};
 
 export function getPasswordResetEmailSubject(locale: string): string {
-  return content[locale]?.subject || content.en.subject
+  return content[locale]?.subject || content.en.subject;
 }
 
 export function getPasswordResetEmailHtml({
@@ -53,7 +53,7 @@ export function getPasswordResetEmailHtml({
   email,
   locale,
 }: PasswordResetEmailProps): string {
-  const t = content[locale] || content.en
+  const t = content[locale] || content.en;
 
   return `
 <!DOCTYPE html>
@@ -131,7 +131,7 @@ export function getPasswordResetEmailHtml({
   </table>
 </body>
 </html>
-  `.trim()
+  `.trim();
 }
 
 export function getPasswordResetEmailText({
@@ -139,7 +139,7 @@ export function getPasswordResetEmailText({
   email,
   locale,
 }: PasswordResetEmailProps): string {
-  const t = content[locale] || content.en
+  const t = content[locale] || content.en;
 
   return `
 ${t.subject}
@@ -157,5 +157,5 @@ ${t.ignoreText}
 
 ${t.supportText}
 ${email}
-  `.trim()
+  `.trim();
 }

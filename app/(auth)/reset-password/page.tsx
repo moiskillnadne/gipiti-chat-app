@@ -51,7 +51,7 @@ function ResetPasswordPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSuccessful, setIsSuccessful] = useState(false);
-  const [passwordMismatch, setPasswordMismatch] = useState(false);
+  const [_passwordMismatch, setPasswordMismatch] = useState(false);
 
   const [state, formAction] = useActionState<
     ResetPasswordActionState,

@@ -3,12 +3,21 @@
 import { z } from "zod";
 
 import { assignTesterPlan } from "@/lib/ai/subscription-init";
-import { createUser, getUser, setPasswordResetToken, getUserByResetToken, updateUserPassword } from "@/lib/db/queries";
 import { createPasswordResetToken, hashToken } from "@/lib/auth/reset-token";
-import { sendPasswordResetEmail } from "@/lib/email/send-password-reset";
-import { sendPasswordChangedEmail } from "@/lib/email/send-password-changed";
-import { checkPasswordResetRateLimit, getRateLimitResetMinutes } from "@/lib/rate-limit";
+import {
+  createUser,
+  getUser,
+  getUserByResetToken,
+  setPasswordResetToken,
+  updateUserPassword,
+} from "@/lib/db/queries";
 import { generateHashedPassword } from "@/lib/db/utils";
+import { sendPasswordChangedEmail } from "@/lib/email/send-password-changed";
+import { sendPasswordResetEmail } from "@/lib/email/send-password-reset";
+import {
+  checkPasswordResetRateLimit,
+  getRateLimitResetMinutes,
+} from "@/lib/rate-limit";
 
 import { signIn } from "./auth";
 
@@ -28,7 +37,7 @@ const registerFormSchema = z.object({
     .regex(/[a-z]/, "Password must contain at least one lowercase letter")
     .regex(/[0-9]/, "Password must contain at least one number")
     .regex(
-      /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/,
+      /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/,
       "Password must contain at least one special character"
     ),
 });
@@ -154,7 +163,9 @@ export const requestPasswordReset = async (
     });
 
     // Check rate limit
-    const rateLimitResult = await checkPasswordResetRateLimit(validatedData.email);
+    const rateLimitResult = await checkPasswordResetRateLimit(
+      validatedData.email
+    );
     if (!rateLimitResult.success) {
       return {
         status: "rate_limited",
@@ -214,7 +225,7 @@ const resetPasswordFormSchema = z.object({
     .regex(/[a-z]/, "Password must contain at least one lowercase letter")
     .regex(/[0-9]/, "Password must contain at least one number")
     .regex(
-      /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/,
+      /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/,
       "Password must contain at least one special character"
     ),
   locale: z.string().optional().default("en"),

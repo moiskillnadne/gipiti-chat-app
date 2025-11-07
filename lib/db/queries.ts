@@ -71,9 +71,9 @@ export async function setPasswordResetToken({
   hashedToken,
   expiresAt,
 }: {
-  userId: string
-  hashedToken: string
-  expiresAt: Date
+  userId: string;
+  hashedToken: string;
+  expiresAt: Date;
 }) {
   try {
     return await db
@@ -83,19 +83,19 @@ export async function setPasswordResetToken({
         resetPasswordTokenExpiry: expiresAt,
       })
       .where(eq(user.id, userId))
-      .returning()
+      .returning();
   } catch (_error) {
     throw new ChatSDKError(
       "bad_request:database",
       "Failed to set password reset token"
-    )
+    );
   }
 }
 
 export async function getUserByResetToken({
   hashedToken,
 }: {
-  hashedToken: string
+  hashedToken: string;
 }): Promise<User | null> {
   try {
     const [foundUser] = await db
@@ -106,14 +106,14 @@ export async function getUserByResetToken({
           eq(user.resetPasswordToken, hashedToken),
           gt(user.resetPasswordTokenExpiry, new Date())
         )
-      )
+      );
 
-    return foundUser || null
+    return foundUser || null;
   } catch (_error) {
     throw new ChatSDKError(
       "bad_request:database",
       "Failed to get user by reset token"
-    )
+    );
   }
 }
 
@@ -125,12 +125,12 @@ export async function clearPasswordResetToken({ userId }: { userId: string }) {
         resetPasswordToken: null,
         resetPasswordTokenExpiry: null,
       })
-      .where(eq(user.id, userId))
+      .where(eq(user.id, userId));
   } catch (_error) {
     throw new ChatSDKError(
       "bad_request:database",
       "Failed to clear password reset token"
-    )
+    );
   }
 }
 
@@ -138,8 +138,8 @@ export async function updateUserPassword({
   userId,
   hashedPassword,
 }: {
-  userId: string
-  hashedPassword: string
+  userId: string;
+  hashedPassword: string;
 }) {
   try {
     return await db
@@ -151,12 +151,12 @@ export async function updateUserPassword({
         updatedAt: new Date(),
       })
       .where(eq(user.id, userId))
-      .returning()
+      .returning();
   } catch (_error) {
     throw new ChatSDKError(
       "bad_request:database",
       "Failed to update user password"
-    )
+    );
   }
 }
 

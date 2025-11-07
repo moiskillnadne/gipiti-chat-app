@@ -1,29 +1,32 @@
-"use client"
+"use client";
 
-import Form from "next/form"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useLocale, useTranslations } from "next-intl"
-import { Suspense, useActionState, useEffect, useState } from "react"
+import Form from "next/form";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
+import { Suspense, useActionState, useEffect, useState } from "react";
 
-import { LanguageSwitcher } from "@/components/language-switcher"
-import { SubmitButton } from "@/components/submit-button"
-import { toast } from "@/components/toast"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { SubmitButton } from "@/components/submit-button";
+import { toast } from "@/components/toast";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
-import { type ForgotPasswordActionState, requestPasswordReset } from "../actions"
+import {
+  type ForgotPasswordActionState,
+  requestPasswordReset,
+} from "../actions";
 
 export default function Page() {
   return (
     <Suspense fallback={<ForgotPasswordPageFallback />}>
       <ForgotPasswordPage />
     </Suspense>
-  )
+  );
 }
 
 function ForgotPasswordPageFallback() {
-  const t = useTranslations("auth.forgotPassword")
+  const t = useTranslations("auth.forgotPassword");
 
   return (
     <div className="flex h-dvh w-screen items-start justify-center bg-background pt-12 md:items-center md:pt-0">
@@ -38,78 +41,78 @@ function ForgotPasswordPageFallback() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function ForgotPasswordPage() {
-  const t = useTranslations("auth.forgotPassword")
-  const tErrors = useTranslations("auth.errors")
-  const router = useRouter()
-  const locale = useLocale()
+  const t = useTranslations("auth.forgotPassword");
+  const tErrors = useTranslations("auth.errors");
+  const router = useRouter();
+  const locale = useLocale();
 
-  const [email, setEmail] = useState("")
-  const [isSuccessful, setIsSuccessful] = useState(false)
+  const [email, setEmail] = useState("");
+  const [isSuccessful, setIsSuccessful] = useState(false);
 
-  const [state, formAction] = useActionState<ForgotPasswordActionState, FormData>(
-    requestPasswordReset,
-    {
-      status: "idle",
-    }
-  )
+  const [state, formAction] = useActionState<
+    ForgotPasswordActionState,
+    FormData
+  >(requestPasswordReset, {
+    status: "idle",
+  });
 
   useEffect(() => {
     if (isSuccessful) {
-      return
+      return;
     }
 
     if (state.status === "failed") {
       toast({
         type: "error",
         description: tErrors("emailSendFailed"),
-      })
-      return
+      });
+      return;
     }
 
     if (state.status === "rate_limited") {
       toast({
         type: "error",
         description: state.resetMinutes
-          ? tErrors("rateLimitExceeded") + ` (${state.resetMinutes}min)`
+          ? `${tErrors("rateLimitExceeded")} (${state.resetMinutes}min)`
           : tErrors("rateLimitExceeded"),
-      })
-      return
+      });
+      return;
     }
 
     if (state.status === "invalid_data") {
       toast({
         type: "error",
         description: tErrors("invalidData"),
-      })
-      return
+      });
+      return;
     }
 
     if (state.status !== "success") {
-      return
+      return;
     }
 
-    setIsSuccessful(true)
+    setIsSuccessful(true);
 
     toast({
       type: "success",
       description: t("success"),
-    })
+    });
 
     // Redirect to login after 3 seconds
     setTimeout(() => {
-      router.push("/login")
-    }, 3000)
-  }, [state.status, state.resetMinutes, router, t, tErrors, isSuccessful])
+      router.push("/login");
+    }, 3000);
+  }, [state.status, state.resetMinutes, router, t, tErrors, isSuccessful]);
 
   const handleSubmit = (formData: FormData) => {
-    setEmail(formData.get("email") as string)
-    formData.append("locale", locale)
-    formAction(formData)
-  }
+    setEmail(formData.get("email") as string);
+    formData.append("locale", locale);
+    formAction(formData);
+  };
 
   return (
     <div className="flex h-dvh w-screen items-start justify-center bg-background pt-12 md:items-center md:pt-0">
@@ -123,7 +126,10 @@ function ForgotPasswordPage() {
           </p>
         </div>
 
-        <Form action={handleSubmit} className="flex flex-col gap-4 px-4 sm:px-16">
+        <Form
+          action={handleSubmit}
+          className="flex flex-col gap-4 px-4 sm:px-16"
+        >
           <div className="flex flex-col gap-2">
             <Label
               className="font-normal text-zinc-600 dark:text-zinc-400"
@@ -137,18 +143,16 @@ function ForgotPasswordPage() {
               autoFocus
               className="bg-muted text-md md:text-sm"
               defaultValue={email}
+              disabled={isSuccessful}
               id="email"
               name="email"
               placeholder={t("emailPlaceholder")}
               required
               type="email"
-              disabled={isSuccessful}
             />
           </div>
 
-          <SubmitButton isSuccessful={isSuccessful}>
-            {t("submit")}
-          </SubmitButton>
+          <SubmitButton isSuccessful={isSuccessful}>{t("submit")}</SubmitButton>
 
           <p className="mt-4 text-center text-gray-600 text-sm dark:text-zinc-400">
             <Link
@@ -165,5 +169,5 @@ function ForgotPasswordPage() {
         <LanguageSwitcher />
       </div>
     </div>
-  )
+  );
 }

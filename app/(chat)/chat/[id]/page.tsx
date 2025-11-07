@@ -45,7 +45,10 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
   // Validate cookie value and fall back to default if invalid
   let validatedModelId = DEFAULT_CHAT_MODEL;
 
-  if (chatModelFromCookie?.value && chatModelIds.includes(chatModelFromCookie.value)) {
+  if (
+    chatModelFromCookie?.value &&
+    chatModelIds.includes(chatModelFromCookie.value)
+  ) {
     validatedModelId = chatModelFromCookie.value;
   }
 
