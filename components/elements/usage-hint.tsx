@@ -5,10 +5,10 @@ import { InfoIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import useSWR from "swr";
 import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Progress } from "@/components/ui/progress";
 import type { AppUsage } from "@/lib/usage";
 import { cn, fetcher } from "@/lib/utils";
@@ -109,13 +109,14 @@ export const UsageHint = ({ className, usage }: UsageHintProps) => {
   const resetDate = formatReset(data?.subscription?.periodEnd);
 
   return (
-    <HoverCard openDelay={100}>
-      <HoverCardTrigger asChild>
-        <div
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
           className={cn(
-            "group flex cursor-help items-center gap-1.5 text-muted-foreground text-xs transition-colors hover:text-foreground",
+            "group flex cursor-pointer items-center gap-1.5 text-muted-foreground text-xs transition-colors hover:text-foreground",
             className
           )}
+          type="button"
         >
           <InfoIcon
             aria-hidden="true"
@@ -123,9 +124,9 @@ export const UsageHint = ({ className, usage }: UsageHintProps) => {
             strokeWidth={1.5}
           />
           <span>{t("tooltip", { percent: roundedPercent })}</span>
-        </div>
-      </HoverCardTrigger>
-      <HoverCardContent align="start" className="w-72 space-y-3 p-4">
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-72 space-y-3 p-4">
         <div className="flex items-center justify-between font-medium text-sm">
           <span>{`${formatTokens(usedTokens)} / ${formatTokens(totalTokens)} ${t("tokens")}`}</span>
         </div>
@@ -134,7 +135,7 @@ export const UsageHint = ({ className, usage }: UsageHintProps) => {
           <InfoRow label={t("used")} value={`${roundedPercent}%`} />
           <InfoRow label={t("resetDate")} value={resetDate} />
         </div>
-      </HoverCardContent>
-    </HoverCard>
+      </PopoverContent>
+    </Popover>
   );
 };
