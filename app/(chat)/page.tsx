@@ -21,7 +21,10 @@ export default async function Page() {
   // Validate cookie value and fall back to default if invalid
   let validatedModelId = DEFAULT_CHAT_MODEL;
 
-  if (modelIdFromCookie?.value && chatModelIds.includes(modelIdFromCookie.value)) {
+  if (
+    modelIdFromCookie?.value &&
+    chatModelIds.includes(modelIdFromCookie.value)
+  ) {
     validatedModelId = modelIdFromCookie.value;
   }
 

@@ -3,7 +3,21 @@
 import { z } from "zod";
 
 import { assignTesterPlan } from "@/lib/ai/subscription-init";
-import { createUser, getUser } from "@/lib/db/queries";
+import { createPasswordResetToken, hashToken } from "@/lib/auth/reset-token";
+import {
+  createUser,
+  getUser,
+  getUserByResetToken,
+  setPasswordResetToken,
+  updateUserPassword,
+} from "@/lib/db/queries";
+import { generateHashedPassword } from "@/lib/db/utils";
+import { sendPasswordChangedEmail } from "@/lib/email/send-password-changed";
+import { sendPasswordResetEmail } from "@/lib/email/send-password-reset";
+import {
+  checkPasswordResetRateLimit,
+  getRateLimitResetMinutes,
+} from "@/lib/rate-limit";
 
 import { signIn } from "./auth";
 
@@ -23,7 +37,7 @@ const registerFormSchema = z.object({
     .regex(/[a-z]/, "Password must contain at least one lowercase letter")
     .regex(/[0-9]/, "Password must contain at least one number")
     .regex(
-      /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/,
+      /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/,
       "Password must contain at least one special character"
     ),
 });
@@ -117,6 +131,159 @@ export const register = async (
       return { status: "invalid_data" };
     }
 
+    return { status: "failed" };
+  }
+};
+
+// Forgot password schema
+const forgotPasswordFormSchema = z.object({
+  email: z.string().email(),
+  locale: z.string().optional().default("en"),
+});
+
+export type ForgotPasswordActionState = {
+  status:
+    | "idle"
+    | "in_progress"
+    | "success"
+    | "failed"
+    | "rate_limited"
+    | "invalid_data";
+  resetMinutes?: number;
+};
+
+export const requestPasswordReset = async (
+  _: ForgotPasswordActionState,
+  formData: FormData
+): Promise<ForgotPasswordActionState> => {
+  try {
+    const validatedData = forgotPasswordFormSchema.parse({
+      email: formData.get("email"),
+      locale: formData.get("locale"),
+    });
+
+    // Check rate limit
+    const rateLimitResult = await checkPasswordResetRateLimit(
+      validatedData.email
+    );
+    if (!rateLimitResult.success) {
+      return {
+        status: "rate_limited",
+        resetMinutes: getRateLimitResetMinutes(rateLimitResult.reset),
+      };
+    }
+
+    // Find user by email
+    const [foundUser] = await getUser(validatedData.email);
+
+    // Always return success to prevent email enumeration
+    // Even if user doesn't exist, we pretend we sent the email
+    if (!foundUser) {
+      return { status: "success" };
+    }
+
+    // Generate reset token
+    const { token, hashedToken, expiresAt } = createPasswordResetToken();
+
+    // Store hashed token in database
+    await setPasswordResetToken({
+      userId: foundUser.id,
+      hashedToken,
+      expiresAt,
+    });
+
+    // Send email with reset link
+    const emailResult = await sendPasswordResetEmail({
+      email: validatedData.email,
+      resetToken: token, // Send plain token in email
+      locale: validatedData.locale,
+    });
+
+    if (!emailResult.success) {
+      console.error("Failed to send password reset email:", emailResult.error);
+      return { status: "failed" };
+    }
+
+    return { status: "success" };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { status: "invalid_data" };
+    }
+
+    console.error("Error in requestPasswordReset:", error);
+    return { status: "failed" };
+  }
+};
+
+// Reset password schema
+const resetPasswordFormSchema = z.object({
+  token: z.string().min(1),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number")
+    .regex(
+      /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/,
+      "Password must contain at least one special character"
+    ),
+  locale: z.string().optional().default("en"),
+});
+
+export type ResetPasswordActionState = {
+  status:
+    | "idle"
+    | "in_progress"
+    | "success"
+    | "failed"
+    | "invalid_token"
+    | "invalid_data";
+};
+
+export const resetPassword = async (
+  _: ResetPasswordActionState,
+  formData: FormData
+): Promise<ResetPasswordActionState> => {
+  try {
+    const validatedData = resetPasswordFormSchema.parse({
+      token: formData.get("token"),
+      password: formData.get("password"),
+      locale: formData.get("locale"),
+    });
+
+    // Hash the token to match database storage
+    const hashedToken = hashToken(validatedData.token);
+
+    // Find user by reset token and check expiry
+    const foundUser = await getUserByResetToken({ hashedToken });
+
+    if (!foundUser) {
+      return { status: "invalid_token" };
+    }
+
+    // Hash new password
+    const hashedPassword = generateHashedPassword(validatedData.password);
+
+    // Update password and clear reset token
+    await updateUserPassword({
+      userId: foundUser.id,
+      hashedPassword,
+    });
+
+    // Send confirmation email
+    await sendPasswordChangedEmail({
+      email: foundUser.email,
+      locale: validatedData.locale,
+    });
+
+    return { status: "success" };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { status: "invalid_data" };
+    }
+
+    console.error("Error in resetPassword:", error);
     return { status: "failed" };
   }
 };

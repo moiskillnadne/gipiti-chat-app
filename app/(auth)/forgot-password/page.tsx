@@ -1,33 +1,32 @@
 "use client";
 
+import Form from "next/form";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { useTranslations } from "next-intl";
-import {
-  Suspense,
-  useActionState,
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
+import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
+import { Suspense, useActionState, useEffect, useState } from "react";
 
-import { AuthForm } from "@/components/auth-form";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { SubmitButton } from "@/components/submit-button";
 import { toast } from "@/components/toast";
-import { type LoginActionState, login } from "../actions";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+import {
+  type ForgotPasswordActionState,
+  requestPasswordReset,
+} from "../actions";
 
 export default function Page() {
   return (
-    <Suspense fallback={<LoginPageFallback />}>
-      <LoginPage />
+    <Suspense fallback={<ForgotPasswordPageFallback />}>
+      <ForgotPasswordPage />
     </Suspense>
   );
 }
 
-function LoginPageFallback() {
-  const t = useTranslations("auth.login");
+function ForgotPasswordPageFallback() {
+  const t = useTranslations("auth.forgotPassword");
 
   return (
     <div className="flex h-dvh w-screen items-start justify-center bg-background pt-12 md:items-center md:pt-0">
@@ -45,50 +44,21 @@ function LoginPageFallback() {
   );
 }
 
-function LoginPage() {
-  const t = useTranslations("auth.login");
+function ForgotPasswordPage() {
+  const t = useTranslations("auth.forgotPassword");
   const tErrors = useTranslations("auth.errors");
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const locale = useLocale();
 
   const [email, setEmail] = useState("");
   const [isSuccessful, setIsSuccessful] = useState(false);
 
-  const [state, formAction] = useActionState<LoginActionState, FormData>(
-    login,
-    {
-      status: "idle",
-    }
-  );
-
-  const { update: updateSession } = useSession();
-
-  const getRedirectPath = useCallback(() => {
-    const callbackUrl = searchParams?.get("callbackUrl");
-
-    if (!callbackUrl) {
-      return "/";
-    }
-
-    if (callbackUrl.startsWith("/")) {
-      return callbackUrl;
-    }
-
-    if (typeof window !== "undefined") {
-      try {
-        const url = new URL(callbackUrl, window.location.origin);
-
-        if (url.origin === window.location.origin) {
-          return `${url.pathname}${url.search}${url.hash}`;
-        }
-      } catch (error) {
-        console.error("Error parsing callback URL:", error);
-        return "/";
-      }
-    }
-
-    return "/";
-  }, [searchParams]);
+  const [state, formAction] = useActionState<
+    ForgotPasswordActionState,
+    FormData
+  >(requestPasswordReset, {
+    status: "idle",
+  });
 
   useEffect(() => {
     if (isSuccessful) {
@@ -98,7 +68,17 @@ function LoginPage() {
     if (state.status === "failed") {
       toast({
         type: "error",
-        description: tErrors("invalidCredentials"),
+        description: tErrors("emailSendFailed"),
+      });
+      return;
+    }
+
+    if (state.status === "rate_limited") {
+      toast({
+        type: "error",
+        description: state.resetMinutes
+          ? `${tErrors("rateLimitExceeded")} (${state.resetMinutes}min)`
+          : tErrors("rateLimitExceeded"),
       });
       return;
     }
@@ -117,22 +97,20 @@ function LoginPage() {
 
     setIsSuccessful(true);
 
-    const redirectPath = getRedirectPath();
-
-    updateSession().finally(() => {
-      router.replace(redirectPath);
+    toast({
+      type: "success",
+      description: t("success"),
     });
-  }, [
-    getRedirectPath,
-    router,
-    state.status,
-    updateSession,
-    isSuccessful,
-    tErrors,
-  ]);
+
+    // Redirect to login after 3 seconds
+    setTimeout(() => {
+      router.push("/login");
+    }, 3000);
+  }, [state.status, state.resetMinutes, router, t, tErrors, isSuccessful]);
 
   const handleSubmit = (formData: FormData) => {
     setEmail(formData.get("email") as string);
+    formData.append("locale", locale);
     formAction(formData);
   };
 
@@ -147,30 +125,46 @@ function LoginPage() {
             {t("subtitle")}
           </p>
         </div>
-        <AuthForm action={handleSubmit} defaultEmail={email} mode="login">
-          <div className="flex items-center justify-end">
-            <Link
-              className="text-gray-600 text-sm hover:underline dark:text-zinc-400"
-              href="/forgot-password"
+
+        <Form
+          action={handleSubmit}
+          className="flex flex-col gap-4 px-4 sm:px-16"
+        >
+          <div className="flex flex-col gap-2">
+            <Label
+              className="font-normal text-zinc-600 dark:text-zinc-400"
+              htmlFor="email"
             >
-              {t("forgotPasswordLink")}
-            </Link>
+              {t("emailLabel")}
+            </Label>
+
+            <Input
+              autoComplete="email"
+              autoFocus
+              className="bg-muted text-md md:text-sm"
+              defaultValue={email}
+              disabled={isSuccessful}
+              id="email"
+              name="email"
+              placeholder={t("emailPlaceholder")}
+              required
+              type="email"
+            />
           </div>
-          <SubmitButton isSuccessful={isSuccessful}>
-            {t("signInButton")}
-          </SubmitButton>
+
+          <SubmitButton isSuccessful={isSuccessful}>{t("submit")}</SubmitButton>
+
           <p className="mt-4 text-center text-gray-600 text-sm dark:text-zinc-400">
-            {t("noAccount")}{" "}
             <Link
               className="font-semibold text-gray-800 hover:underline dark:text-zinc-200"
-              href="/register"
+              href="/login"
             >
-              {t("signUpLink")}
-            </Link>{" "}
-            {t("signUpLinkSuffix")}
+              {t("backToLogin")}
+            </Link>
           </p>
-        </AuthForm>
+        </Form>
       </div>
+
       <div className="fixed bottom-4 left-4 z-50">
         <LanguageSwitcher />
       </div>
