@@ -31,14 +31,12 @@ export async function sendPasswordChangedEmail({
 
     // Generate email HTML and text
     const html = getPasswordChangedEmailHtml({
-      email,
       locale,
       timestamp: new Date(),
       resetUrl,
     });
 
     const text = getPasswordChangedEmailText({
-      email,
       locale,
       timestamp: new Date(),
       resetUrl,
