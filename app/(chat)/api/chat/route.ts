@@ -16,6 +16,7 @@ import {
 import type { ModelCatalog } from "tokenlens/core";
 import { fetchModels } from "tokenlens/fetch";
 import { getUsage } from "tokenlens/helpers";
+import { z } from "zod";
 import { auth, type UserType } from "@/app/(auth)/auth";
 import type { VisibilityType } from "@/components/visibility-selector";
 import { entitlementsByUserType } from "@/lib/ai/entitlements";
@@ -91,7 +92,27 @@ export async function POST(request: Request) {
   try {
     const json = await request.json();
     requestBody = postRequestBodySchema.parse(json);
-  } catch (_) {
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      const textLengthError = error.errors.find(
+        (err) => err.path.includes("text") && err.code === "too_big"
+      );
+
+      if (textLengthError && textLengthError.code === "too_big") {
+        const received =
+          "received" in textLengthError ? textLengthError.received : "unknown";
+        return Response.json(
+          {
+            code: "bad_request:api",
+            message:
+              "Your message is too long. Please reduce it to 3000 characters or less.",
+            cause: `Current length: ${received} characters`,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     return new ChatSDKError("bad_request:api").toResponse();
   }
 

@@ -77,9 +77,10 @@ export const PromptInputTextarea = ({
           ? "field-sizing-fixed"
           : resizeOnNewLinesOnly
             ? "field-sizing-fixed"
-            : "field-sizing-content max-h-[6lh]",
+            : "field-sizing-content max-h-[8lh]",
         "bg-transparent dark:bg-transparent",
         "focus-visible:ring-0",
+        `min-h-[${minHeight}px]`,
         className
       )}
       name="message"

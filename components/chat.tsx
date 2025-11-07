@@ -106,6 +106,7 @@ export function Chat({
       mutate(unstable_serialize(getChatHistoryPaginationKey));
     },
     onError: (error) => {
+      console.error("Error in chat", error);
       if (error instanceof ChatSDKError) {
         // Check if it's a credit card error
         if (
