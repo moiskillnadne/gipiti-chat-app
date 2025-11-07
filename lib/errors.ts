@@ -40,7 +40,7 @@ export class ChatSDKError extends Error {
   surface: Surface;
   statusCode: number;
 
-  constructor(errorCode: ErrorCode, cause?: string) {
+  constructor(errorCode: ErrorCode, cause?: string, customMessage?: string) {
     super();
 
     const [type, surface] = errorCode.split(":");
@@ -48,7 +48,7 @@ export class ChatSDKError extends Error {
     this.type = type as ErrorType;
     this.cause = cause;
     this.surface = surface as Surface;
-    this.message = getMessageByErrorCode(errorCode);
+    this.message = customMessage || getMessageByErrorCode(errorCode);
     this.statusCode = getStatusCodeByType(this.type);
   }
 
