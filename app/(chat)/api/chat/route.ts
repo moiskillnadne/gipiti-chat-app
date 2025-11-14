@@ -223,6 +223,9 @@ export async function POST(request: Request) {
           system: systemPrompt({ selectedChatModel, requestHints }),
           messages: convertToModelMessages(uiMessages),
           stopWhen: stepCountIs(5),
+          ...(isReasoningModelId(selectedChatModel) && {
+            reasoningEffort: "medium",
+          }),
           experimental_activeTools:
             isReasoningModelId(selectedChatModel) &&
             !supportsAttachments(selectedChatModel)

@@ -18,7 +18,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { useLocalStorage, useWindowSize } from "usehooks-ts";
+import { useSessionStorage, useWindowSize } from "usehooks-ts";
 import { saveChatModelAsCookie } from "@/app/(chat)/actions";
 import { SelectItem } from "@/components/ui/select";
 import { chatModels, supportsAttachments } from "@/lib/ai/models";
@@ -93,7 +93,7 @@ function PureMultimodalInput({
     }
   }, []);
 
-  const [localStorageInput, setLocalStorageInput] = useLocalStorage(
+  const [localStorageInput, setLocalStorageInput] = useSessionStorage(
     `input-${chatId}`,
     ""
   );
@@ -249,6 +249,7 @@ function PureMultimodalInput({
         )}
 
       <input
+        accept="image/jpeg,image/png,application/pdf"
         className="-top-4 -left-4 pointer-events-none fixed size-0.5 opacity-0"
         multiple
         onChange={handleFileChange}
@@ -304,7 +305,7 @@ function PureMultimodalInput({
         <div className="flex w-full flex-row items-start gap-1 sm:gap-2">
           <PromptInputTextarea
             autoFocus
-            className="min-w-0 grow resize-none break-all border-0! border-none! bg-transparent p-2 text-sm outline-none ring-0 [-ms-overflow-style:none] [scrollbar-width:none] placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 [&::-webkit-scrollbar]:hidden"
+            className="min-w-0 grow resize-none break-words border-0! border-none! bg-transparent p-2 text-sm outline-none ring-0 [-ms-overflow-style:none] [scrollbar-width:none] placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 [&::-webkit-scrollbar]:hidden"
             data-testid="multimodal-input"
             disableAutoResize={false}
             maxHeight={250}

@@ -98,6 +98,45 @@ test.describe("Chat activity", () => {
     expect(assistantMessage.content).toBe("This painting is by Monet!");
   });
 
+  test("Upload and send PDF attachment with message", async () => {
+    await chatPage.addPdfAttachment();
+
+    await chatPage.isElementVisible("attachments-preview");
+    await chatPage.isElementVisible("input-attachment-loader");
+    await chatPage.isElementNotVisible("input-attachment-loader");
+
+    await chatPage.sendUserMessage("What does this PDF contain?");
+
+    const userMessage = await chatPage.getRecentUserMessage();
+    expect(userMessage.attachments).toHaveLength(1);
+  });
+
+  test("Upload and send text file attachment with message", async () => {
+    await chatPage.addTextAttachment();
+
+    await chatPage.isElementVisible("attachments-preview");
+    await chatPage.isElementVisible("input-attachment-loader");
+    await chatPage.isElementNotVisible("input-attachment-loader");
+
+    await chatPage.sendUserMessage("What does this text file say?");
+
+    const userMessage = await chatPage.getRecentUserMessage();
+    expect(userMessage.attachments).toHaveLength(1);
+  });
+
+  test("Upload and send CSV attachment with message", async () => {
+    await chatPage.addCsvAttachment();
+
+    await chatPage.isElementVisible("attachments-preview");
+    await chatPage.isElementVisible("input-attachment-loader");
+    await chatPage.isElementNotVisible("input-attachment-loader");
+
+    await chatPage.sendUserMessage("Analyze this data");
+
+    const userMessage = await chatPage.getRecentUserMessage();
+    expect(userMessage.attachments).toHaveLength(1);
+  });
+
   test("Call weather tool", async () => {
     await chatPage.sendUserMessage("What's the weather in sf?");
     await chatPage.isGenerationComplete();

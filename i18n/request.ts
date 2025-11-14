@@ -8,7 +8,7 @@ export default getRequestConfig(async () => {
     (cookieStore.get(LOCALE_COOKIE_NAME)?.value as Locale) || defaultLocale;
 
   console.log("locale", locale);
-  console.log("messages", (await import(`../messages/${locale}.json`)).default);
+  console.log("messages loaded");
 
   return {
     locale,

@@ -1,8 +1,38 @@
 import Image from "next/image";
 import type { Attachment } from "@/lib/types";
 import { Loader } from "./elements/loader";
-import { CrossSmallIcon } from "./icons";
+import {
+  CrossSmallIcon,
+  DocIcon,
+  FileIcon,
+  PdfIcon,
+  SpreadsheetIcon,
+  TextIcon,
+} from "./icons";
 import { Button } from "./ui/button";
+
+const getFileIcon = (contentType: string) => {
+  if (contentType === "application/pdf") {
+    return <PdfIcon size={32} />;
+  }
+  if (
+    contentType ===
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  ) {
+    return <DocIcon size={32} />;
+  }
+  if (contentType === "text/plain") {
+    return <TextIcon size={32} />;
+  }
+  if (
+    contentType ===
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+    contentType === "text/csv"
+  ) {
+    return <SpreadsheetIcon size={32} />;
+  }
+  return <FileIcon size={32} />;
+};
 
 export const PreviewAttachment = ({
   attachment,
@@ -29,8 +59,8 @@ export const PreviewAttachment = ({
           width={64}
         />
       ) : (
-        <div className="flex size-full items-center justify-center text-muted-foreground text-xs">
-          File
+        <div className="flex size-full items-center justify-center text-muted-foreground">
+          {getFileIcon(contentType)}
         </div>
       )}
 
