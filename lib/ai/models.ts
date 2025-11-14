@@ -41,6 +41,26 @@ export const chatModels: ChatModel[] = [
       reasoning: true,
       attachments: true,
     },
+    showInUI: false,
+  },
+  {
+    id: "gpt-5.1-instant",
+    name: "gpt51Instant.name",
+    description: "gpt51Instant.description",
+    capabilities: {
+      reasoning: false,
+      attachments: true,
+    },
+    showInUI: true,
+  },
+  {
+    id: "gpt-5.1-thinking",
+    name: "gpt51Thinking.name",
+    description: "gpt51Thinking.description",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
     showInUI: true,
   },
   {
@@ -51,7 +71,7 @@ export const chatModels: ChatModel[] = [
       reasoning: true,
       attachments: true,
     },
-    showInUI: true,
+    showInUI: false,
   },
   {
     id: "gemini-2.5-pro",

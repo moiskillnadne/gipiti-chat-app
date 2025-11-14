@@ -1211,3 +1211,71 @@ export const WarningIcon = ({ size = 16 }: { size?: number }) => {
     </svg>
   );
 };
+
+export const PdfIcon = ({ size = 16 }: { size?: number }) => (
+  <svg
+    height={size}
+    strokeLinejoin="round"
+    style={{ color: "currentcolor" }}
+    viewBox="0 0 16 16"
+    width={size}
+  >
+    <path
+      clipRule="evenodd"
+      d="M3.5 0C2.67157 0 2 0.671573 2 1.5V14.5C2 15.3284 2.67157 16 3.5 16H12.5C13.3284 16 14 15.3284 14 14.5V4.5L10 0.5H3.5ZM3.5 1.5H9.5V5H13V14.5H3.5V1.5ZM5 8.5H6V11H5V8.5ZM7 8.5V11H8C8.55228 11 9 10.5523 9 10V9.5C9 8.94772 8.55228 8.5 8 8.5H7ZM10 8.5H11.5V9.5H10V10.5H11.5V11.5H10V8.5Z"
+      fill="currentColor"
+      fillRule="evenodd"
+    />
+  </svg>
+);
+
+export const DocIcon = ({ size = 16 }: { size?: number }) => (
+  <svg
+    height={size}
+    strokeLinejoin="round"
+    style={{ color: "currentcolor" }}
+    viewBox="0 0 16 16"
+    width={size}
+  >
+    <path
+      clipRule="evenodd"
+      d="M3.5 0C2.67157 0 2 0.671573 2 1.5V14.5C2 15.3284 2.67157 16 3.5 16H12.5C13.3284 16 14 15.3284 14 14.5V4.5L10 0.5H3.5ZM3.5 1.5H9.5V5H13V14.5H3.5V1.5ZM5 7H11V8H5V7ZM5 9H11V10H5V9ZM5 11H9V12H5V11Z"
+      fill="currentColor"
+      fillRule="evenodd"
+    />
+  </svg>
+);
+
+export const TextIcon = ({ size = 16 }: { size?: number }) => (
+  <svg
+    height={size}
+    strokeLinejoin="round"
+    style={{ color: "currentcolor" }}
+    viewBox="0 0 16 16"
+    width={size}
+  >
+    <path
+      clipRule="evenodd"
+      d="M3.5 0C2.67157 0 2 0.671573 2 1.5V14.5C2 15.3284 2.67157 16 3.5 16H12.5C13.3284 16 14 15.3284 14 14.5V4.5L10 0.5H3.5ZM3.5 1.5H9.5V5H13V14.5H3.5V1.5ZM5 6H11V7H5V6ZM5 8H11V9H5V8ZM5 10H11V11H5V10ZM5 12H9V13H5V12Z"
+      fill="currentColor"
+      fillRule="evenodd"
+    />
+  </svg>
+);
+
+export const SpreadsheetIcon = ({ size = 16 }: { size?: number }) => (
+  <svg
+    height={size}
+    strokeLinejoin="round"
+    style={{ color: "currentcolor" }}
+    viewBox="0 0 16 16"
+    width={size}
+  >
+    <path
+      clipRule="evenodd"
+      d="M3.5 0C2.67157 0 2 0.671573 2 1.5V14.5C2 15.3284 2.67157 16 3.5 16H12.5C13.3284 16 14 15.3284 14 14.5V4.5L10 0.5H3.5ZM3.5 1.5H9.5V5H13V14.5H3.5V1.5ZM5 7V9H7V7H5ZM8 7V9H11V7H8ZM5 10V12H7V10H5ZM8 10V12H11V10H8Z"
+      fill="currentColor"
+      fillRule="evenodd"
+    />
+  </svg>
+);
