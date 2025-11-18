@@ -1,3 +1,5 @@
+import type { SearchDepth } from "@/lib/search/search-types";
+
 export type BillingPeriod = "daily" | "weekly" | "monthly" | "annual";
 
 export type SubscriptionTierConfig = {
@@ -13,6 +15,8 @@ export type SubscriptionTierConfig = {
     maxFileSize: number;
     maxConcurrentChats?: number;
     hasAPIAccess?: boolean;
+    searchQuota: number;
+    searchDepthAllowed: SearchDepth;
   };
   price: number;
   isTesterPlan?: boolean;
@@ -33,6 +37,8 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       maxFileSize: 5 * 1024 * 1024, // 5MB
       maxConcurrentChats: 3,
       hasAPIAccess: false,
+      searchQuota: 10, // 10 searches per day
+      searchDepthAllowed: "basic",
     },
     price: 0, // Free for internal testing
     isTesterPlan: true,
@@ -57,6 +63,8 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       maxFileSize: 20 * 1024 * 1024, // 20MB
       maxConcurrentChats: 10,
       hasAPIAccess: false,
+      searchQuota: 50, // 50 searches per week
+      searchDepthAllowed: "basic",
     },
     price: 15,
   },
@@ -79,6 +87,8 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       maxFileSize: 20 * 1024 * 1024,
       maxConcurrentChats: 10,
       hasAPIAccess: false,
+      searchQuota: 200, // 200 searches per month
+      searchDepthAllowed: "basic",
     },
     price: 49,
   },
@@ -104,6 +114,8 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       maxFileSize: 50 * 1024 * 1024, // 50MB
       maxConcurrentChats: 50,
       hasAPIAccess: true,
+      searchQuota: 500, // 500 searches per month
+      searchDepthAllowed: "advanced",
     },
     price: 199,
   },
@@ -128,6 +140,8 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       maxFileSize: 50 * 1024 * 1024,
       maxConcurrentChats: 50,
       hasAPIAccess: true,
+      searchQuota: 6000, // 6000 searches per year (500/month)
+      searchDepthAllowed: "advanced",
     },
     price: 1990, // ~17% discount vs monthly
   },
@@ -153,6 +167,8 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       maxFileSize: 100 * 1024 * 1024, // 100MB
       maxConcurrentChats: -1, // Unlimited
       hasAPIAccess: true,
+      searchQuota: 2000, // 2000 searches per month
+      searchDepthAllowed: "advanced",
     },
     price: 999,
   },
@@ -177,6 +193,8 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       maxFileSize: 100 * 1024 * 1024,
       maxConcurrentChats: -1,
       hasAPIAccess: true,
+      searchQuota: 24_000, // 24000 searches per year (2000/month)
+      searchDepthAllowed: "advanced",
     },
     price: 9990, // ~17% discount
   },

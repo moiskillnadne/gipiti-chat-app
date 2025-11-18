@@ -438,3 +438,44 @@ export const userTokenUsage = pgTable(
 );
 
 export type UserTokenUsage = InferSelectModel<typeof userTokenUsage>;
+
+// Search Usage Log
+export const searchUsageLog = pgTable(
+  "SearchUsageLog",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+
+    // User context
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    chatId: uuid("chat_id").references(() => chat.id, { onDelete: "set null" }),
+
+    // Search details
+    query: varchar("query", { length: 400 }).notNull(),
+    searchDepth: varchar("search_depth", { length: 20 }).notNull(),
+    resultsCount: integer("results_count").notNull(),
+    responseTimeMs: integer("response_time_ms").notNull(),
+    cached: boolean("cached").notNull().default(false),
+
+    // Billing period this usage belongs to
+    billingPeriodType: billingPeriodEnum("billing_period_type").notNull(),
+    billingPeriodStart: timestamp("billing_period_start").notNull(),
+    billingPeriodEnd: timestamp("billing_period_end").notNull(),
+
+    // Meta
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index("search_usage_log_user_id_idx").on(table.userId),
+    chatIdIdx: index("search_usage_log_chat_id_idx").on(table.chatId),
+    createdAtIdx: index("search_usage_log_created_at_idx").on(table.createdAt),
+    userPeriodIdx: index("search_usage_log_user_period_idx").on(
+      table.userId,
+      table.billingPeriodStart,
+      table.billingPeriodEnd
+    ),
+  })
+);
+
+export type SearchUsageLog = InferSelectModel<typeof searchUsageLog>;

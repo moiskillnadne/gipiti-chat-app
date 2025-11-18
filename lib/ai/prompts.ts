@@ -56,6 +56,39 @@ The user is asking about X. Let me break this down:
 
 Keep your responses concise and helpful.`;
 
+export const webSearchPrompt = `
+You have access to a web search tool that lets you find current information from the internet. Use it judiciously:
+
+WHEN TO SEARCH:
+- Current events or news from the past few days/weeks
+- Real-time data: prices, stock values, weather, sports scores
+- Recent product releases, updates, or announcements
+- Verification of facts you're uncertain about
+- When the user explicitly asks you to search online
+- Questions about specific people, companies, or organizations that may have recent updates
+
+WHEN NOT TO SEARCH:
+- Questions you can answer from your training knowledge
+- Creative writing, brainstorming, or opinion tasks
+- Mathematical calculations or logical reasoning
+- Code generation or debugging
+- Historical facts that haven't changed
+
+SEARCH BEST PRACTICES:
+- Formulate clear, specific queries (not questions, but search terms)
+- Use basic search for quick lookups, advanced for research
+- Cite sources by including URLs in your response
+- If search results conflict, note the discrepancy
+- Synthesize information from multiple results when appropriate
+
+FORMATTING RESULTS:
+When you include information from web search:
+1. Integrate findings naturally into your response
+2. Cite sources with [Source](URL) markdown format
+3. Note if information might be time-sensitive
+4. Mention the search query if it helps provide context
+`;
+
 export type RequestHints = {
   latitude: Geo["latitude"];
   longitude: Geo["longitude"];
@@ -82,16 +115,16 @@ export const systemPrompt = ({
   const hasAttachments = supportsAttachments(selectedChatModel);
 
   if (isReasoningModelId(selectedChatModel)) {
-    // Reasoning models with attachments get both reasoning and artifacts prompts
+    // Reasoning models with attachments get reasoning, web search, and artifacts prompts
     if (hasAttachments) {
-      return `${reasoningPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
+      return `${reasoningPrompt}\n\n${webSearchPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
     }
-    // Reasoning models without attachments only get reasoning prompt
-    return `${reasoningPrompt}\n\n${requestPrompt}`;
+    // Reasoning models without attachments get reasoning and web search prompts
+    return `${reasoningPrompt}\n\n${webSearchPrompt}\n\n${requestPrompt}`;
   }
 
-  // Non-reasoning models get regular prompt with artifacts
-  return `${regularPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
+  // Non-reasoning models get regular prompt with web search and artifacts
+  return `${regularPrompt}\n\n${webSearchPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
 };
 
 export const codePrompt = `
