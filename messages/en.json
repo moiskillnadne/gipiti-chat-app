@@ -234,7 +234,16 @@
     "tools": {
       "error": "Error",
       "result": "Result",
-      "output": "Output"
+      "output": "Output",
+      "webSearch": {
+        "title": "Web Search",
+        "searching": "Searching the web...",
+        "noResults": "No results found for \"{query}\"",
+        "cached": "Cached",
+        "published": "Published",
+        "resultsCount": "{count, plural, one {# result} other {# results}}",
+        "sources": "Sources"
+      }
     }
   },
   "metadata": {

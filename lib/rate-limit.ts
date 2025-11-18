@@ -1,51 +1,17 @@
 import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
+import { getUpstashClient } from "@/lib/redis";
 
-// Initialize Redis client
-let redis: Redis | null = null;
+// Initialize rate limiter with Upstash client
 let passwordResetRateLimiter: Ratelimit | null = null;
 
-// Try to initialize Redis with either REST credentials or REDIS_URL
-try {
-  if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
-    // Use explicit REST API credentials (preferred)
-    redis = new Redis({
-      url: process.env.KV_REST_API_URL,
-      token: process.env.KV_REST_API_TOKEN,
-    });
-  } else if (process.env.REDIS_URL) {
-    // Try to parse REDIS_URL as Upstash REST endpoint
-    // Upstash REST URLs look like: https://xxx.upstash.io
-    // If REDIS_URL is a redis:// URL, this won't work but won't crash
-    const redisUrl = process.env.REDIS_URL;
-
-    // Check if it's an HTTP/HTTPS URL (Upstash REST format)
-    if (redisUrl.startsWith("http://") || redisUrl.startsWith("https://")) {
-      // Extract URL and token from connection string if available
-      // Upstash format: https://:token@host
-      const url = new URL(redisUrl);
-      const token = url.password || process.env.REDIS_TOKEN;
-
-      if (token) {
-        redis = new Redis({
-          url: `${url.protocol}//${url.host}`,
-          token,
-        });
-      }
-    }
-  }
-
-  // Create rate limiter if Redis was successfully initialized
-  if (redis) {
-    passwordResetRateLimiter = new Ratelimit({
-      redis,
-      limiter: Ratelimit.slidingWindow(5, "1 h"),
-      analytics: true,
-      prefix: "ratelimit:password-reset",
-    });
-  }
-} catch (error) {
-  console.warn("Failed to initialize Redis for rate limiting:", error);
+const upstashClient = getUpstashClient();
+if (upstashClient) {
+  passwordResetRateLimiter = new Ratelimit({
+    redis: upstashClient,
+    limiter: Ratelimit.slidingWindow(5, "1 h"),
+    analytics: true,
+    prefix: "ratelimit:password-reset",
+  });
 }
 
 /**

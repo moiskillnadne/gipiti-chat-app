@@ -234,7 +234,16 @@
     "tools": {
       "error": "Ошибка",
       "result": "Результат",
-      "output": "Вывод"
+      "output": "Вывод",
+      "webSearch": {
+        "title": "Веб-поиск",
+        "searching": "Поиск в интернете...",
+        "noResults": "Не найдено результатов для \"{query}\"",
+        "cached": "Из кэша",
+        "published": "Опубликовано",
+        "resultsCount": "{count, plural, one {# результат} few {# результата} many {# результатов} other {# результатов}}",
+        "sources": "Источники"
+      }
     }
   },
   "metadata": {

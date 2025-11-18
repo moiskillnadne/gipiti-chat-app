@@ -10,6 +10,7 @@ import {
   gte,
   inArray,
   lt,
+  lte,
   type SQL,
 } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -25,10 +26,13 @@ import {
   document,
   message,
   type Suggestion,
+  searchUsageLog,
   stream,
   suggestion,
   type User,
+  type UserSubscription,
   user,
+  userSubscription,
   vote,
 } from "./schema";
 import { generateHashedPassword } from "./utils";
@@ -49,6 +53,14 @@ export async function getUser(email: string): Promise<User[]> {
       "bad_request:database",
       "Failed to get user by email"
     );
+  }
+}
+
+export async function getUserById(id: string): Promise<User[]> {
+  try {
+    return await db.select().from(user).where(eq(user.id, id));
+  } catch (_error) {
+    throw new ChatSDKError("bad_request:database", "Failed to get user by id");
   }
 }
 
@@ -668,6 +680,136 @@ export async function getStreamIdsByChatId({ chatId }: { chatId: string }) {
     throw new ChatSDKError(
       "bad_request:database",
       "Failed to get stream ids by chat id"
+    );
+  }
+}
+
+export async function getActiveUserSubscription({
+  userId,
+}: {
+  userId: string;
+}): Promise<UserSubscription | null> {
+  try {
+    const [subscription] = await db
+      .select()
+      .from(userSubscription)
+      .where(
+        and(
+          eq(userSubscription.userId, userId),
+          eq(userSubscription.status, "active")
+        )
+      )
+      .limit(1);
+
+    return subscription || null;
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to get active user subscription"
+    );
+  }
+}
+
+export async function getSearchUsageCountByDateRange({
+  userId,
+  startDate,
+  endDate,
+}: {
+  userId: string;
+  startDate: Date;
+  endDate: Date;
+}): Promise<number> {
+  try {
+    const [usageCount] = await db
+      .select({ count: count() })
+      .from(searchUsageLog)
+      .where(
+        and(
+          eq(searchUsageLog.userId, userId),
+          gte(searchUsageLog.createdAt, startDate),
+          lte(searchUsageLog.createdAt, endDate)
+        )
+      );
+
+    return usageCount?.count ?? 0;
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to get search usage count by date range"
+    );
+  }
+}
+
+export async function getSearchUsageCountByBillingPeriod({
+  userId,
+  periodStart,
+  periodEnd,
+}: {
+  userId: string;
+  periodStart: Date;
+  periodEnd: Date;
+}): Promise<number> {
+  try {
+    const [usageCount] = await db
+      .select({ count: count() })
+      .from(searchUsageLog)
+      .where(
+        and(
+          eq(searchUsageLog.userId, userId),
+          gte(searchUsageLog.billingPeriodStart, periodStart),
+          lte(searchUsageLog.billingPeriodEnd, periodEnd)
+        )
+      );
+
+    return usageCount?.count ?? 0;
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to get search usage count by billing period"
+    );
+  }
+}
+
+export async function insertSearchUsageLog({
+  userId,
+  chatId,
+  query,
+  searchDepth,
+  resultsCount,
+  responseTimeMs,
+  cached,
+  billingPeriodType,
+  billingPeriodStart,
+  billingPeriodEnd,
+}: {
+  userId: string;
+  chatId: string | null;
+  query: string;
+  searchDepth: string;
+  resultsCount: number;
+  responseTimeMs: number;
+  cached: boolean;
+  billingPeriodType: "daily" | "weekly" | "monthly" | "annual";
+  billingPeriodStart: Date;
+  billingPeriodEnd: Date;
+}): Promise<void> {
+  try {
+    await db.insert(searchUsageLog).values({
+      userId,
+      chatId,
+      query,
+      searchDepth,
+      resultsCount,
+      responseTimeMs,
+      cached,
+      billingPeriodType,
+      billingPeriodStart,
+      billingPeriodEnd,
+    });
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to insert search usage log"
     );
   }
 }
