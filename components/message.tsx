@@ -36,6 +36,7 @@ const PurePreviewMessage = ({
   regenerate,
   isReadonly,
   requiresScrollPadding,
+  isLastAssistantMessage,
 }: {
   chatId: string;
   message: ChatMessage;
@@ -45,6 +46,7 @@ const PurePreviewMessage = ({
   regenerate: UseChatHelpers<ChatMessage>["regenerate"];
   isReadonly: boolean;
   requiresScrollPadding: boolean;
+  isLastAssistantMessage: boolean;
 }) => {
   const t = useTranslations("chat.messages");
   const [mode, setMode] = useState<"view" | "edit">("view");
@@ -317,9 +319,11 @@ const PurePreviewMessage = ({
           {!isReadonly && (
             <MessageActions
               chatId={chatId}
+              isLastAssistantMessage={isLastAssistantMessage}
               isLoading={isLoading}
               key={`action-${message.id}`}
               message={message}
+              regenerate={regenerate}
               setMode={setMode}
               vote={vote}
             />
@@ -346,6 +350,9 @@ export const PreviewMessage = memo(
       return false;
     }
     if (!equal(prevProps.vote, nextProps.vote)) {
+      return false;
+    }
+    if (prevProps.isLastAssistantMessage !== nextProps.isLastAssistantMessage) {
       return false;
     }
 

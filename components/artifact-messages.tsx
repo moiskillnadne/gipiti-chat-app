@@ -38,6 +38,13 @@ function PureArtifactMessages({
     status,
   });
 
+  // Find the index of the last assistant message
+  const lastAssistantMessageIndex = messages.reduce<number>(
+    (lastIndex, message, index) =>
+      message.role === "assistant" ? index : lastIndex,
+    -1
+  );
+
   return (
     <div
       className="flex h-full flex-col items-center gap-4 overflow-y-scroll px-4 pt-20"
@@ -46,6 +53,7 @@ function PureArtifactMessages({
       {messages.map((message, index) => (
         <PreviewMessage
           chatId={chatId}
+          isLastAssistantMessage={index === lastAssistantMessageIndex}
           isLoading={status === "streaming" && index === messages.length - 1}
           isReadonly={isReadonly}
           key={message.id}
