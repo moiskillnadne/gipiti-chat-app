@@ -22,7 +22,9 @@ import type { VisibilityType } from "@/components/visibility-selector";
 import { entitlementsByUserType } from "@/lib/ai/entitlements";
 import {
   type ChatModel,
+  DEFAULT_CHAT_MODEL,
   isReasoningModelId,
+  isVisibleInUI,
   supportsAttachments,
 } from "@/lib/ai/models";
 import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
@@ -125,7 +127,7 @@ export async function POST(request: Request) {
     const {
       id,
       message,
-      selectedChatModel,
+      selectedChatModel: requestedChatModel,
       selectedVisibilityType,
     }: {
       id: string;
@@ -133,6 +135,11 @@ export async function POST(request: Request) {
       selectedChatModel: ChatModel["id"];
       selectedVisibilityType: VisibilityType;
     } = requestBody;
+
+    // Transform hidden models to default visible model
+    const selectedChatModel = isVisibleInUI(requestedChatModel)
+      ? requestedChatModel
+      : DEFAULT_CHAT_MODEL;
 
     const session = await auth();
 
