@@ -335,6 +335,10 @@
       "name": "Gemini 2.5 Pro",
       "description": "Latest Google Gemini model for daily tasks."
     },
+    "gemini3Pro": {
+      "name": "Gemini 3 Pro",
+      "description": "Latest Google Gemini model with advanced reasoning capabilities."
+    },
     "opus41": {
       "name": "Opus 4.1",
       "description": "Latest Anthropic Opus model for daily tasks."
