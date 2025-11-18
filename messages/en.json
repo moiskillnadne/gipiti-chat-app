@@ -171,6 +171,7 @@
       "copy": "Copy",
       "copied": "Copied!",
       "regenerate": "Regenerate",
+      "tryAgain": "Try again",
       "edit": "Edit",
       "loadingDocument": "Creating document...",
       "errorCreatingDocument": "Error creating document",

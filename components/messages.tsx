@@ -44,6 +44,13 @@ function PureMessages({
 
   useDataStream();
 
+  // Find the index of the last assistant message
+  const lastAssistantMessageIndex = messages.reduce<number>(
+    (lastIndex, message, index) =>
+      message.role === "assistant" ? index : lastIndex,
+    -1
+  );
+
   useEffect(() => {
     if (status === "submitted") {
       requestAnimationFrame(() => {
@@ -71,6 +78,7 @@ function PureMessages({
           {messages.map((message, index) => (
             <PreviewMessage
               chatId={chatId}
+              isLastAssistantMessage={index === lastAssistantMessageIndex}
               isLoading={
                 status === "streaming" && messages.length - 1 === index
               }
@@ -133,6 +141,9 @@ export const Messages = memo(PureMessages, (prevProps, nextProps) => {
     return false;
   }
   if (!equal(prevProps.votes, nextProps.votes)) {
+    return false;
+  }
+  if (prevProps.regenerate !== nextProps.regenerate) {
     return false;
   }
 

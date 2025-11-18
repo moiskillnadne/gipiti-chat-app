@@ -1,4 +1,6 @@
+import type { UseChatHelpers } from "@ai-sdk/react";
 import equal from "fast-deep-equal";
+import { RefreshCw } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { memo } from "react";
 import { toast } from "sonner";
@@ -15,14 +17,19 @@ export function PureMessageActions({
   vote,
   isLoading,
   setMode,
+  regenerate,
+  isLastAssistantMessage,
 }: {
   chatId: string;
   message: ChatMessage;
   vote: Vote | undefined;
   isLoading: boolean;
   setMode?: (mode: "view" | "edit") => void;
+  regenerate?: UseChatHelpers<ChatMessage>["regenerate"];
+  isLastAssistantMessage?: boolean;
 }) {
   const t = useTranslations("common.toasts");
+  const tMessages = useTranslations("chat.messages");
   const { mutate } = useSWRConfig();
   const [_, copyToClipboard] = useCopyToClipboard();
 
@@ -171,6 +178,16 @@ export function PureMessageActions({
       >
         <ThumbDownIcon />
       </Action>
+
+      {isLastAssistantMessage && regenerate && (
+        <Action
+          data-testid="message-regenerate"
+          onClick={() => regenerate()}
+          tooltip={tMessages("tryAgain")}
+        >
+          <RefreshCw size={16} />
+        </Action>
+      )}
     </Actions>
   );
 }
@@ -182,6 +199,9 @@ export const MessageActions = memo(
       return false;
     }
     if (prevProps.isLoading !== nextProps.isLoading) {
+      return false;
+    }
+    if (prevProps.isLastAssistantMessage !== nextProps.isLastAssistantMessage) {
       return false;
     }
 
