@@ -49,6 +49,10 @@ export const myProvider = isTestEnvironment
           model: gateway.languageModel("google/gemini-2.5-pro"),
           middleware: extractReasoningMiddleware({ tagName: "think" }),
         }),
+        "gemini-3-pro": wrapLanguageModel({
+          model: gateway.languageModel("google/gemini-3-pro-preview"),
+          middleware: extractReasoningMiddleware({ tagName: "think" }),
+        }),
         "opus-4.1": wrapLanguageModel({
           model: gateway.languageModel("anthropic/claude-opus-4.1"),
           middleware: extractReasoningMiddleware({ tagName: "think" }),

@@ -81,6 +81,16 @@ export const chatModels: ChatModel[] = [
       reasoning: true,
       attachments: true,
     },
+    showInUI: false,
+  },
+  {
+    id: "gemini-3-pro",
+    name: "gemini3Pro.name",
+    description: "gemini3Pro.description",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
     showInUI: true,
   },
   {
