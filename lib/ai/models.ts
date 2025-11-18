@@ -1,4 +1,4 @@
-export const DEFAULT_CHAT_MODEL: string = "gpt-5-mini";
+export const DEFAULT_CHAT_MODEL: string = "gpt-5.1-instant";
 
 export type ChatModelCapabilities = {
   reasoning?: boolean;
@@ -113,4 +113,9 @@ export const isReasoningModelId = (modelId: string) =>
 export const supportsAttachments = (modelId: string) => {
   const model = chatModels.find((m) => m.id === modelId);
   return model?.capabilities?.attachments ?? false;
+};
+
+export const isVisibleInUI = (modelId: string): boolean => {
+  const model = chatModels.find((m) => m.id === modelId);
+  return model?.showInUI !== false;
 };
