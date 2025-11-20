@@ -22,8 +22,8 @@ export const resend = new Resend(resendApiKey);
 
 // Email configuration
 export const emailConfig = {
-  from: "noreply@gipiti-app.riabkov.com",
+  from: "noreply@gipiti.ru",
   supportEmail: "vitya.ryabkov@gmail.com",
-  appName: "GIPITI App",
+  appName: "GIPITI",
   appUrl,
 };

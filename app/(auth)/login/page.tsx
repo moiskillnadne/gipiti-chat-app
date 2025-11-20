@@ -51,7 +51,6 @@ function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [email, setEmail] = useState("");
   const [isSuccessful, setIsSuccessful] = useState(false);
 
   const [state, formAction] = useActionState<LoginActionState, FormData>(
@@ -131,11 +130,6 @@ function LoginPage() {
     tErrors,
   ]);
 
-  const handleSubmit = (formData: FormData) => {
-    setEmail(formData.get("email") as string);
-    formAction(formData);
-  };
-
   return (
     <div className="flex h-dvh w-screen items-start justify-center bg-background pt-12 md:items-center md:pt-0">
       <div className="flex w-full max-w-md flex-col gap-12 overflow-hidden rounded-2xl">
@@ -147,7 +141,7 @@ function LoginPage() {
             {t("subtitle")}
           </p>
         </div>
-        <AuthForm action={handleSubmit} defaultEmail={email} mode="login">
+        <AuthForm action={formAction} mode="login">
           <div className="flex items-center justify-end">
             <Link
               className="text-gray-600 text-sm hover:underline dark:text-zinc-400"

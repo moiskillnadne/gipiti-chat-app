@@ -22,7 +22,8 @@
       "updateError": "Failed to update",
       "createSuccess": "Successfully created",
       "createError": "Failed to create",
-      "genericError": "An error occurred. Please try again."
+      "genericError": "An error occurred. Please try again.",
+      "verificationSent": "Verification code sent to your email"
     },
     "navigation": {
       "home": "Home",
@@ -115,6 +116,21 @@
       "hasAccount": "Already have an account?",
       "signInLink": "Sign in"
     },
+    "verification": {
+      "title": "Verify Your Email",
+      "subtitle": "Enter the 6-digit code sent to your email",
+      "sentTo": "Code sent to",
+      "verifyButton": "Verify Email",
+      "noCode": "Didn't receive the code?",
+      "resend": "Resend Code",
+      "cooldown": "Resend in {seconds}s",
+      "success": "Email verified successfully! Redirecting to login...",
+      "codeSent": "Verification code sent!",
+      "rateLimited": "Please wait before requesting another code",
+      "noEmail": "No email address provided",
+      "backToRegister": "Back to registration",
+      "backToLogin": "Back to login"
+    },
     "validation": {
       "emailRequired": "Email is required",
       "emailInvalid": "Please enter a valid email address",
@@ -142,7 +158,10 @@
       "genericError": "An error occurred. Please try again.",
       "rateLimitExceeded": "Too many reset requests. Please try again later",
       "emailSendFailed": "Failed to send reset email. Please try again",
-      "resetFailed": "Failed to reset password. Please try again"
+      "resetFailed": "Failed to reset password. Please try again",
+      "invalidCode": "Invalid verification code",
+      "expiredCode": "Verification code has expired",
+      "emailNotVerified": "Please verify your email before signing in"
     },
     "logout": {
       "confirm": "Are you sure you want to logout?",

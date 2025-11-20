@@ -64,13 +64,17 @@ export async function getUserById(id: string): Promise<User[]> {
   }
 }
 
-export async function createUser(email: string, password: string) {
+export async function createUser(
+  email: string,
+  password: string,
+  preferredLanguage = "en"
+) {
   const hashedPassword = generateHashedPassword(password);
 
   try {
     const [newUser] = await db
       .insert(user)
-      .values({ email, password: hashedPassword })
+      .values({ email, password: hashedPassword, preferredLanguage })
       .returning();
     return newUser;
   } catch (_error) {
@@ -168,6 +172,114 @@ export async function updateUserPassword({
     throw new ChatSDKError(
       "bad_request:database",
       "Failed to update user password"
+    );
+  }
+}
+
+export async function setEmailVerificationCode({
+  email,
+  hashedCode,
+  expiresAt,
+}: {
+  email: string;
+  hashedCode: string;
+  expiresAt: Date;
+}) {
+  try {
+    return await db
+      .update(user)
+      .set({
+        emailVerificationCode: hashedCode,
+        emailVerificationCodeExpiry: expiresAt,
+      })
+      .where(eq(user.email, email))
+      .returning();
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to set email verification code"
+    );
+  }
+}
+
+export async function getUserByVerificationCode({
+  hashedCode,
+}: {
+  hashedCode: string;
+}): Promise<User | null> {
+  try {
+    const [foundUser] = await db
+      .select()
+      .from(user)
+      .where(
+        and(
+          eq(user.emailVerificationCode, hashedCode),
+          gt(user.emailVerificationCodeExpiry, new Date())
+        )
+      );
+
+    return foundUser || null;
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to get user by verification code"
+    );
+  }
+}
+
+export async function markEmailAsVerified({ email }: { email: string }) {
+  try {
+    return await db
+      .update(user)
+      .set({
+        emailVerified: true,
+        emailVerificationCode: null,
+        emailVerificationCodeExpiry: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(user.email, email))
+      .returning();
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to mark email as verified"
+    );
+  }
+}
+
+export async function isEmailVerified({
+  email,
+}: {
+  email: string;
+}): Promise<boolean> {
+  try {
+    const [foundUser] = await db
+      .select({ emailVerified: user.emailVerified })
+      .from(user)
+      .where(eq(user.email, email));
+
+    return foundUser?.emailVerified ?? false;
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to check email verification status"
+    );
+  }
+}
+
+export async function clearEmailVerificationCode({ email }: { email: string }) {
+  try {
+    return await db
+      .update(user)
+      .set({
+        emailVerificationCode: null,
+        emailVerificationCodeExpiry: null,
+      })
+      .where(eq(user.email, email));
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to clear email verification code"
     );
   }
 }

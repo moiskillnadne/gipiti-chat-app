@@ -8,15 +8,20 @@ import {
   createUser,
   getUser,
   getUserByResetToken,
+  getUserByVerificationCode,
+  markEmailAsVerified,
   setPasswordResetToken,
   updateUserPassword,
 } from "@/lib/db/queries";
 import { generateHashedPassword } from "@/lib/db/utils";
 import { sendPasswordChangedEmail } from "@/lib/email/send-password-changed";
 import { sendPasswordResetEmail } from "@/lib/email/send-password-reset";
+import { sendVerificationEmail } from "@/lib/email/send-verification-email";
 import {
   checkPasswordResetRateLimit,
+  checkVerificationResendRateLimit,
   getRateLimitResetMinutes,
+  getRateLimitResetSeconds,
 } from "@/lib/rate-limit";
 
 import { signIn } from "./auth";
@@ -84,6 +89,7 @@ export type RegisterActionState = {
     | "failed"
     | "user_exists"
     | "invalid_data";
+  email?: string;
 };
 
 export const register = async (
@@ -96,6 +102,8 @@ export const register = async (
       password: formData.get("password"),
     });
 
+    const locale = (formData.get("locale") as string) || "en";
+
     const [existingUser] = await getUser(validatedData.email);
 
     if (existingUser) {
@@ -104,7 +112,8 @@ export const register = async (
 
     const newUser = await createUser(
       validatedData.email,
-      validatedData.password
+      validatedData.password,
+      locale
     );
 
     // Assign tester plan to new user
@@ -115,13 +124,146 @@ export const register = async (
       // Continue with registration even if plan assignment fails
     }
 
-    const result = await signIn("credentials", {
+    // Send verification email
+    const emailResult = await sendVerificationEmail({
+      email: validatedData.email,
+      locale,
+    });
+
+    if (!emailResult.success) {
+      console.error("Failed to send verification email:", emailResult.error);
+      return { status: "failed" };
+    }
+
+    // Auto sign-in the user (middleware will redirect to verify-email)
+    await signIn("credentials", {
       email: validatedData.email,
       password: validatedData.password,
       redirect: false,
     });
 
-    if (result?.error || result?.ok === false) {
+    return { status: "success" };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { status: "invalid_data" };
+    }
+
+    return { status: "failed" };
+  }
+};
+
+// Verify email schema
+const verifyEmailFormSchema = z.object({
+  email: z.string().email(),
+  code: z.string().length(6, "Code must be 6 digits"),
+});
+
+export type VerifyEmailActionState = {
+  status:
+    | "idle"
+    | "in_progress"
+    | "success"
+    | "failed"
+    | "invalid_code"
+    | "expired_code"
+    | "invalid_data";
+};
+
+export const verifyEmail = async (
+  _: VerifyEmailActionState,
+  formData: FormData
+): Promise<VerifyEmailActionState> => {
+  try {
+    const validatedData = verifyEmailFormSchema.parse({
+      email: formData.get("email"),
+      code: formData.get("code"),
+    });
+
+    // Hash the code to match database storage
+    const hashedCode = hashToken(validatedData.code);
+
+    // Find user by verification code and check expiry
+    const foundUser = await getUserByVerificationCode({ hashedCode });
+
+    if (!foundUser) {
+      console.error("[VerifyEmail]User not found");
+      return { status: "invalid_code" };
+    }
+
+    // Verify the email matches
+    if (foundUser.email !== validatedData.email) {
+      console.error("[VerifyEmail] Email mismatch");
+      return { status: "invalid_code" };
+    }
+
+    // Mark email as verified
+    await markEmailAsVerified({ email: validatedData.email });
+
+    return { status: "success" };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { status: "invalid_data" };
+    }
+
+    console.error("Error in verifyEmail:", error);
+    return { status: "failed" };
+  }
+};
+
+// Resend verification code schema
+const resendVerificationFormSchema = z.object({
+  email: z.string().email(),
+  locale: z.string().optional().default("en"),
+});
+
+export type ResendVerificationActionState = {
+  status:
+    | "idle"
+    | "in_progress"
+    | "success"
+    | "failed"
+    | "rate_limited"
+    | "invalid_data";
+  cooldownSeconds?: number;
+};
+
+export const resendVerificationCode = async (
+  _: ResendVerificationActionState,
+  formData: FormData
+): Promise<ResendVerificationActionState> => {
+  try {
+    const validatedData = resendVerificationFormSchema.parse({
+      email: formData.get("email"),
+      locale: formData.get("locale"),
+    });
+
+    // Check rate limit (60 seconds cooldown)
+    const rateLimitResult = await checkVerificationResendRateLimit(
+      validatedData.email
+    );
+    if (!rateLimitResult.success) {
+      return {
+        status: "rate_limited",
+        cooldownSeconds: getRateLimitResetSeconds(rateLimitResult.reset),
+      };
+    }
+
+    // Check if user exists and is not already verified
+    const [foundUser] = await getUser(validatedData.email);
+
+    // Always return success to prevent email enumeration
+    if (!foundUser || foundUser.emailVerified) {
+      return { status: "success" };
+    }
+
+    // Send new verification email using user's preferred language
+    const emailResult = await sendVerificationEmail({
+      email: validatedData.email,
+      locale: foundUser.preferredLanguage || "en",
+    });
+
+    if (!emailResult.success) {
+      console.error("Failed to resend verification email:", emailResult.error);
       return { status: "failed" };
     }
 
@@ -131,6 +273,7 @@ export const register = async (
       return { status: "invalid_data" };
     }
 
+    console.error("Error in resendVerificationCode:", error);
     return { status: "failed" };
   }
 };

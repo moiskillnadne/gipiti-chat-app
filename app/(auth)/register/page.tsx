@@ -1,16 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useTranslations } from "next-intl";
-import {
-  Suspense,
-  useActionState,
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { Suspense, useActionState, useEffect, useState } from "react";
 import { AuthForm } from "@/components/auth-form";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { SubmitButton } from "@/components/submit-button";
@@ -45,13 +39,12 @@ function RegisterPageFallback() {
 }
 
 function RegisterPage() {
+  const locale = useLocale();
   const t = useTranslations("auth.register");
   const tErrors = useTranslations("auth.errors");
   const tNotifications = useTranslations("common.notifications");
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  const [email, setEmail] = useState("");
   const [isSuccessful, setIsSuccessful] = useState(false);
 
   const [state, formAction] = useActionState<RegisterActionState, FormData>(
@@ -62,33 +55,6 @@ function RegisterPage() {
   );
 
   const { update: updateSession } = useSession();
-
-  const getRedirectPath = useCallback(() => {
-    const callbackUrl = searchParams?.get("callbackUrl");
-
-    if (!callbackUrl) {
-      return "/";
-    }
-
-    if (callbackUrl.startsWith("/")) {
-      return callbackUrl;
-    }
-
-    if (typeof window !== "undefined") {
-      try {
-        const url = new URL(callbackUrl, window.location.origin);
-
-        if (url.origin === window.location.origin) {
-          return `${url.pathname}${url.search}${url.hash}`;
-        }
-      } catch (error) {
-        console.error("Error parsing callback URL:", error);
-        return "/";
-      }
-    }
-
-    return "/";
-  }, [searchParams]);
 
   useEffect(() => {
     if (isSuccessful) {
@@ -117,29 +83,22 @@ function RegisterPage() {
       return;
     }
 
-    toast({ type: "success", description: tNotifications("createSuccess") });
+    toast({ type: "success", description: tNotifications("verificationSent") });
 
     setIsSuccessful(true);
 
-    const redirectPath = getRedirectPath();
-
+    // Update session and redirect to home (middleware will redirect to verify-email)
     updateSession().finally(() => {
-      router.replace(redirectPath);
+      router.replace("/");
     });
   }, [
-    getRedirectPath,
     router,
     state.status,
-    updateSession,
     isSuccessful,
     tErrors,
     tNotifications,
+    updateSession,
   ]);
-
-  const handleSubmit = (formData: FormData) => {
-    setEmail(formData.get("email") as string);
-    formAction(formData);
-  };
 
   return (
     <div className="flex h-dvh w-screen items-start justify-center bg-background pt-12 md:items-center md:pt-0">
@@ -152,7 +111,8 @@ function RegisterPage() {
             {t("subtitle")}
           </p>
         </div>
-        <AuthForm action={handleSubmit} defaultEmail={email} mode="register">
+        <AuthForm action={formAction} mode="register">
+          <input name="locale" type="hidden" value={locale} />
           <SubmitButton isSuccessful={isSuccessful}>
             {t("signUpButton")}
           </SubmitButton>

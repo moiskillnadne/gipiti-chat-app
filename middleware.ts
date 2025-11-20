@@ -69,12 +69,24 @@ export async function middleware(request: NextRequest) {
     "/reset-password",
   ].includes(pathname);
 
+  // Unauthenticated users can only access auth routes
   if (!token && !isAuthRoute) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("callbackUrl", request.url);
     return NextResponse.redirect(loginUrl);
   }
 
+  // Authenticated but unverified users - email verification gate
+  if (token && !token.emailVerified) {
+    // Allow access to verify-email page
+    if (pathname === "/verify-email") {
+      return response;
+    }
+    // Redirect unverified users to verification page
+    return NextResponse.redirect(new URL("/verify-email", request.url));
+  }
+
+  // Authenticated and verified users cannot access auth routes
   if (token && isAuthRoute) {
     return NextResponse.redirect(new URL("/", request.url));
   }
