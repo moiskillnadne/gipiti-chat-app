@@ -94,7 +94,7 @@
       "passwordPlaceholder": "Create a new password",
       "confirmLabel": "Confirm password",
       "confirmPlaceholder": "Confirm your new password",
-      "submit": "Reset password",
+      "submit": "Save new password",
       "success": "Password reset successful! Redirecting to login...",
       "invalidToken": "Invalid or expired reset link",
       "invalidTokenMessage": "The password reset link is invalid or has expired. Please request a new one.",
