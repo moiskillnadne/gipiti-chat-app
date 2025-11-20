@@ -29,6 +29,9 @@ export const user = pgTable(
     preferredLanguage: varchar("preferred_language", { length: 8 }).default(
       "en"
     ),
+    emailVerified: boolean("email_verified").default(false).notNull(),
+    emailVerificationCode: varchar("email_verification_code", { length: 255 }),
+    emailVerificationCodeExpiry: timestamp("email_verification_code_expiry"),
     resetPasswordToken: varchar("reset_password_token", { length: 255 }),
     resetPasswordTokenExpiry: timestamp("reset_password_token_expiry"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -37,6 +40,9 @@ export const user = pgTable(
   (table) => ({
     resetTokenIdx: index("user_reset_password_token_idx").on(
       table.resetPasswordToken
+    ),
+    verificationCodeIdx: index("user_email_verification_code_idx").on(
+      table.emailVerificationCode
     ),
   })
 );
