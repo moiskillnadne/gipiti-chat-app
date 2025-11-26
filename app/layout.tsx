@@ -14,6 +14,10 @@ export const metadata: Metadata = {
   title: "GIPITI",
   description:
     "Gipiti is a platform for creating and sharing AI-powered tools.",
+  icons: {
+    icon: "/icon.png",
+    apple: "/apple-icon.png",
+  },
 };
 
 export const viewport = {
