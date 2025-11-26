@@ -192,7 +192,8 @@
       "subscribeButton": "Subscribe",
       "subscribing": "Processing...",
       "success": "Subscription activated!",
-      "error": "Failed to activate subscription. Please try again."
+      "error": "Failed to activate subscription. Please try again.",
+      "comingSoon": "Payment integration coming soon! Thank you for your patience."
     }
   },
   "chat": {

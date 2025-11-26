@@ -6,7 +6,6 @@ import { signOut, useSession } from "next-auth/react";
 import { useLocale, useTranslations } from "next-intl";
 import {
   Suspense,
-  startTransition,
   useActionState,
   useCallback,
   useEffect,
@@ -84,7 +83,7 @@ function SubscribePage() {
   >("basic_annual");
   const hasHandledSuccess = useRef(false);
 
-  const [state, formAction] = useActionState<SubscribeActionState, FormData>(
+  const [state, _formAction] = useActionState<SubscribeActionState, FormData>(
     subscribe,
     { status: "idle" }
   );
@@ -113,12 +112,8 @@ function SubscribePage() {
   }, [state.status, t, handleSessionUpdate]);
 
   const handleSubscribe = useCallback(() => {
-    const formData = new FormData();
-    formData.set("planName", selectedPlan);
-    startTransition(() => {
-      formAction(formData);
-    });
-  }, [selectedPlan, formAction]);
+    toast({ type: "info", description: t("comingSoon") });
+  }, [t]);
 
   const isLoading = state.status === "in_progress";
 
