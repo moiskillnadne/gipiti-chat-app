@@ -112,7 +112,7 @@ function SubscribePage() {
   }, [state.status, t, handleSessionUpdate]);
 
   const handleSubscribe = useCallback(() => {
-    toast({ type: "info", description: t("comingSoon") });
+    toast({ type: "error", description: t("comingSoon") });
   }, [t]);
 
   const isLoading = state.status === "in_progress";
