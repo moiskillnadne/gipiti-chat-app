@@ -975,7 +975,6 @@ export async function createUserSubscription({
   try {
     const now = new Date();
     let periodEnd: Date;
-    let nextBillingDate: Date;
 
     switch (billingPeriod) {
       case "daily":
@@ -999,7 +998,7 @@ export async function createUserSubscription({
           `Invalid billing period: ${billingPeriod}`
         );
     }
-    nextBillingDate = periodEnd;
+    const nextBillingDate = periodEnd;
 
     const [subscription] = await db
       .insert(userSubscription)

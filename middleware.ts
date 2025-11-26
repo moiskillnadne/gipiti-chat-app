@@ -89,7 +89,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Authenticated and verified but no subscription - subscription gate
-  if (token && token.emailVerified && !token.hasActiveSubscription) {
+  if (token?.emailVerified && !token?.hasActiveSubscription) {
     // Allow access to subscribe page and public routes
     if (pathname === "/subscribe" || isPublicRoute) {
       return response;
@@ -104,7 +104,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Also redirect subscribed users away from subscribe page
-  if (token && token.hasActiveSubscription && pathname === "/subscribe") {
+  if (token?.hasActiveSubscription && pathname === "/subscribe") {
     return NextResponse.redirect(new URL("/", request.url));
   }
 

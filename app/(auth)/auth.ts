@@ -41,7 +41,9 @@ export const {
         }
 
         // Check if user has active subscription
-        const subscription = await getActiveUserSubscription({ userId: user.id });
+        const subscription = await getActiveUserSubscription({
+          userId: user.id,
+        });
 
         return {
           ...user,
@@ -58,8 +60,8 @@ export const {
         token.id = user.id as string;
         token.type = user.type;
         token.emailVerified = (user.emailVerified ?? false) as boolean;
-        token.hasActiveSubscription =
-          (user.hasActiveSubscription ?? false) as boolean;
+        token.hasActiveSubscription = (user.hasActiveSubscription ??
+          false) as boolean;
       }
 
       // Refresh from database on session update
@@ -84,7 +86,8 @@ export const {
           token.emailVerified = session.emailVerified as boolean;
         }
         if (session?.hasActiveSubscription !== undefined) {
-          token.hasActiveSubscription = session.hasActiveSubscription as boolean;
+          token.hasActiveSubscription =
+            session.hasActiveSubscription as boolean;
         }
       }
 
