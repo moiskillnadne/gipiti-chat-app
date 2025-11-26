@@ -66,7 +66,7 @@ function SubscribePageFallback() {
 function SubscribePage() {
   const t = useTranslations("auth.subscription");
   const tNav = useTranslations("common.navigation");
-  const tLegal = useTranslations("legal.requisites");
+  const tLegal = useTranslations("legal");
   const locale = useLocale();
   const router = useRouter();
   const { update: updateSession } = useSession();
@@ -278,13 +278,29 @@ function SubscribePage() {
             {tNav("signOut")}
           </button>
 
-          <Link
-            className="font-medium text-gray-500 text-xs hover:underline dark:text-zinc-500"
-            href="/legal/requisites"
-            target="_blank"
-          >
-            {tLegal("linkText")}
-          </Link>
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+            <Link
+              className="font-medium text-gray-500 text-xs hover:underline dark:text-zinc-500"
+              href="/legal/offer"
+              target="_blank"
+            >
+              {tLegal("offer.linkText")}
+            </Link>
+            <Link
+              className="font-medium text-gray-500 text-xs hover:underline dark:text-zinc-500"
+              href="/legal/privacy"
+              target="_blank"
+            >
+              {tLegal("privacy.linkText")}
+            </Link>
+            <Link
+              className="font-medium text-gray-500 text-xs hover:underline dark:text-zinc-500"
+              href="/legal/requisites"
+              target="_blank"
+            >
+              {tLegal("requisites.linkText")}
+            </Link>
+          </div>
         </div>
       </div>
 

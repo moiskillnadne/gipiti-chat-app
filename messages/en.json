@@ -185,7 +185,7 @@
         "title": "What's included:",
         "tokens": "1M tokens per month",
         "messages": "500 messages per period",
-        "models": "Access to basic models",
+        "models": "Access to all latest models (ChatGPT, Gemini, Opus)",
         "search": "100 web searches per month",
         "fileSize": "10MB file uploads"
       },
@@ -354,6 +354,196 @@
     "goHome": "Go home"
   },
   "legal": {
+    "offer": {
+      "linkText": "Terms of Service",
+      "pageTitle": "Terms of Service - GIPITI",
+      "pageDescription": "Terms of service for GIPITI AI chat service",
+      "title": "Terms of Service",
+      "effectiveDate": "Effective Date: November 26, 2025",
+      "sections": {
+        "general": {
+          "title": "1. General Provisions",
+          "p1": "This document constitutes an official offer (public offer) by Individual Entrepreneur Viktor Alexandrovich Ryabkov (hereinafter referred to as the \"Service Provider\") to enter into an agreement for access to the GIPITI service under the terms set forth in this Offer.",
+          "p2": "In accordance with Article 437 of the Civil Code of the Russian Federation, this document is a public offer addressed to an unlimited number of persons.",
+          "p3": "Acceptance of this Offer is the payment for the Service Provider's services in the manner established by this Offer. Acceptance of the Offer constitutes full and unconditional agreement to its terms."
+        },
+        "definitions": {
+          "title": "2. Terms and Definitions",
+          "service": {
+            "term": "Service",
+            "def": "— the GIPITI web application available at https://gipiti.ru, providing access to artificial intelligence features for text generation, data analysis, and other tasks."
+          },
+          "user": {
+            "term": "User",
+            "def": "— an individual who has reached the age of 18, or a legal entity that has accepted this Offer."
+          },
+          "subscription": {
+            "term": "Subscription",
+            "def": "— paid access to extended Service features for a specified period of time (month or year)."
+          },
+          "executor": {
+            "term": "Service Provider",
+            "def": "— Individual Entrepreneur Viktor Alexandrovich Ryabkov, INN 780448416731, OGRNIP 322784700075522."
+          }
+        },
+        "subject": {
+          "title": "3. Subject of the Offer",
+          "p1": "The Service Provider undertakes to provide the User with access to the Service features in accordance with the selected subscription plan, and the User undertakes to pay for the Service Provider's services.",
+          "p2": "The Service provides the following features:",
+          "features": {
+            "f1": "Access to artificial intelligence models for text generation",
+            "f2": "Token and message limits according to the subscription plan",
+            "f3": "Web search functionality",
+            "f4": "File upload and processing"
+          }
+        },
+        "acceptance": {
+          "title": "4. Acceptance Procedure",
+          "p1": "Acceptance of this Offer is performed by the User through the following actions: registration on the Service and payment for the selected subscription plan.",
+          "p2": "The agreement is considered concluded from the moment funds are received in the Service Provider's account.",
+          "p3": "The User confirms that they have read the terms of this Offer in full before accepting it."
+        },
+        "payment": {
+          "title": "5. Cost and Payment",
+          "p1": "The cost of services is determined in accordance with the rates posted on the Service's subscription page.",
+          "p2": "Payment is made in Russian rubles by bank transfer or other methods available on the Service.",
+          "p3": "The subscription is activated automatically after payment confirmation and is valid for the paid period (month or year).",
+          "p4": "Refunds are possible within 14 days from the date of payment, provided that the Service has not been used or usage was minimal (less than 10% of the limit)."
+        },
+        "rights": {
+          "title": "6. Rights and Obligations",
+          "executor": {
+            "title": "The Service Provider undertakes to:",
+            "r1": "Provide the User with access to the Service in accordance with the selected subscription plan",
+            "r2": "Ensure Service operability (at least 95% uptime)",
+            "r3": "Notify the User of significant changes in the Service operation",
+            "r4": "Ensure the confidentiality of the User's personal data"
+          },
+          "user": {
+            "title": "The User undertakes to:",
+            "r1": "Pay for the Service Provider's services in a timely manner",
+            "r2": "Not use the Service for illegal purposes",
+            "r3": "Not transfer access to their account to third parties",
+            "r4": "Comply with the Service usage rules"
+          }
+        },
+        "liability": {
+          "title": "7. Liability",
+          "p1": "The Service Provider is not responsible for the quality and content of responses generated by artificial intelligence models.",
+          "p2": "The Service Provider is not responsible for interruptions in Service operation caused by technical failures, force majeure circumstances, or actions of third parties.",
+          "p3": "The Service Provider's liability is limited to the amount paid by the User for the current subscription period.",
+          "p4": "The User bears full responsibility for the use of the Service results."
+        },
+        "termination": {
+          "title": "8. Term and Termination",
+          "p1": "The agreement is valid for the paid subscription period.",
+          "p2": "The User has the right to refuse services at any time. Upon refusal after the expiration of the 14-day period, no refund will be made.",
+          "p3": "The Service Provider has the right to terminate the agreement unilaterally in case of violation of the terms of this Offer by the User."
+        },
+        "disputes": {
+          "title": "9. Dispute Resolution",
+          "p1": "All disputes and disagreements are resolved through negotiations. The claim procedure is mandatory. The response time to a claim is 30 days.",
+          "p2": "If it is impossible to resolve the dispute through negotiations, it shall be considered in court at the location of the Service Provider in accordance with the legislation of the Russian Federation."
+        },
+        "final": {
+          "title": "10. Final Provisions",
+          "p1": "The Service Provider has the right to make changes to the terms of the Offer. Changes come into effect 7 days after publication on the Service. Continued use of the Service after the changes come into effect constitutes agreement to the new terms.",
+          "p2": "For all questions, please contact: victor.ryabkov.business@gmail.com"
+        }
+      }
+    },
+    "privacy": {
+      "linkText": "Privacy Policy",
+      "pageTitle": "Privacy Policy - GIPITI",
+      "pageDescription": "Privacy policy for personal data processing by GIPITI service",
+      "title": "Privacy Policy",
+      "effectiveDate": "Effective Date: November 26, 2025",
+      "sections": {
+        "general": {
+          "title": "1. General Provisions",
+          "p1": "This Privacy Policy (hereinafter referred to as the \"Policy\") defines the procedure for processing and protecting personal data of users of the GIPITI service (hereinafter referred to as the \"Service\").",
+          "p2": "The Policy is developed in accordance with Federal Law No. 152-FZ dated July 27, 2006 \"On Personal Data\" and other regulatory legal acts of the Russian Federation.",
+          "p3": "By using the Service, you agree to the terms of this Policy. If you do not agree with the terms of the Policy, please do not use the Service."
+        },
+        "controller": {
+          "title": "2. Data Controller",
+          "name": "Name",
+          "nameValue": "Individual Entrepreneur Viktor Alexandrovich Ryabkov",
+          "inn": "INN (Tax ID)",
+          "innValue": "780448416731",
+          "address": "Address",
+          "addressValue": "195271, St. Petersburg, Bestuzhevskaya str., 33, bldg. 3, apt. 85",
+          "email": "Email",
+          "emailValue": "victor.ryabkov.business@gmail.com"
+        },
+        "dataCollected": {
+          "title": "3. Categories of Data Collected",
+          "intro": "We collect the following categories of personal data:",
+          "d1": "Email address — for registration and authorization",
+          "d2": "Password in encrypted form — to ensure account security",
+          "d3": "Chat history and messages — to provide Service functionality",
+          "d4": "Technical information (IP address, browser type, device) — to ensure Service operability",
+          "d5": "Service usage data — to improve service quality"
+        },
+        "purpose": {
+          "title": "4. Purpose of Data Processing",
+          "intro": "Personal data is processed for the following purposes:",
+          "p1": "User registration and identification in the Service",
+          "p2": "Providing access to Service features",
+          "p3": "Payment processing and subscription management",
+          "p4": "Technical support and user feedback",
+          "p5": "Improving Service quality and developing new features"
+        },
+        "legalBasis": {
+          "title": "5. Legal Basis for Processing",
+          "p1": "Personal data processing is carried out on the following grounds:",
+          "b1": "Consent of the personal data subject (Article 6 of Federal Law No. 152-FZ)",
+          "b2": "Performance of a contract to which the personal data subject is a party",
+          "b3": "Legitimate interests of the operator, subject to respect for the rights and freedoms of the subject"
+        },
+        "thirdParty": {
+          "title": "6. Third Party Disclosure",
+          "p1": "Personal data may be transferred to third parties in the following cases:",
+          "t1": "Payment service providers — for payment processing",
+          "t2": "Cloud service providers — for data storage and processing",
+          "t3": "Government authorities — upon their lawful request",
+          "p2": "We do not sell or transfer personal data to third parties for marketing purposes."
+        },
+        "userRights": {
+          "title": "7. User Rights",
+          "intro": "In accordance with Russian personal data legislation, you have the right to:",
+          "r1": "Obtain information about your personal data processed by the operator",
+          "r2": "Request clarification, blocking, or destruction of personal data",
+          "r3": "Withdraw consent to personal data processing",
+          "r4": "Appeal actions or inaction of the operator to Roskomnadzor",
+          "r5": "Protect your rights in court",
+          "contact": "To exercise your rights, please contact: victor.ryabkov.business@gmail.com"
+        },
+        "security": {
+          "title": "8. Data Security",
+          "p1": "We take necessary organizational and technical measures to protect personal data:",
+          "s1": "Data encryption during transmission (SSL/TLS)",
+          "s2": "Password storage in hashed form",
+          "s3": "Restricted access to personal data",
+          "s4": "Regular security system updates"
+        },
+        "cookies": {
+          "title": "9. Cookies",
+          "p1": "The Service uses cookies to ensure proper operation, user authentication, and saving user preferences.",
+          "p2": "You can disable cookies in your browser settings, however, this may affect Service functionality."
+        },
+        "retention": {
+          "title": "10. Data Retention",
+          "p1": "Personal data is stored for the duration of the user account and for 3 years after its deletion (for accounting purposes).",
+          "p2": "Upon expiration of the retention period, personal data is destroyed or anonymized."
+        },
+        "changes": {
+          "title": "11. Policy Changes",
+          "p1": "We reserve the right to make changes to this Policy. The current version of the Policy is always available on this page.",
+          "p2": "In case of significant changes, we will notify you by email or through a notification in the Service."
+        }
+      }
+    },
     "requisites": {
       "linkText": "Business Details",
       "pageTitle": "Business Details - GIPITI",
