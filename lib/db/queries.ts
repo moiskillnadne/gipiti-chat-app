@@ -25,9 +25,11 @@ import {
   type DBMessage,
   document,
   message,
+  type SubscriptionPlan,
   type Suggestion,
   searchUsageLog,
   stream,
+  subscriptionPlan,
   suggestion,
   type User,
   type UserSubscription,
@@ -922,6 +924,100 @@ export async function insertSearchUsageLog({
     throw new ChatSDKError(
       "bad_request:database",
       "Failed to insert search usage log"
+    );
+  }
+}
+
+export async function getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
+  try {
+    return await db
+      .select()
+      .from(subscriptionPlan)
+      .where(eq(subscriptionPlan.isActive, true));
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to get subscription plans"
+    );
+  }
+}
+
+export async function getSubscriptionPlanByName({
+  name,
+}: {
+  name: string;
+}): Promise<SubscriptionPlan | null> {
+  try {
+    const [plan] = await db
+      .select()
+      .from(subscriptionPlan)
+      .where(eq(subscriptionPlan.name, name))
+      .limit(1);
+
+    return plan || null;
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to get subscription plan by name"
+    );
+  }
+}
+
+export async function createUserSubscription({
+  userId,
+  planId,
+  billingPeriod,
+}: {
+  userId: string;
+  planId: string;
+  billingPeriod: "daily" | "weekly" | "monthly" | "annual";
+}): Promise<UserSubscription> {
+  try {
+    const now = new Date();
+    let periodEnd: Date;
+
+    switch (billingPeriod) {
+      case "daily":
+        periodEnd = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+        break;
+      case "weekly":
+        periodEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+        break;
+      case "monthly":
+        periodEnd = new Date(now);
+        periodEnd.setMonth(periodEnd.getMonth() + 1);
+        break;
+      case "annual":
+        periodEnd = new Date(now);
+        periodEnd.setFullYear(periodEnd.getFullYear() + 1);
+        break;
+
+      default:
+        throw new ChatSDKError(
+          "bad_request:database",
+          `Invalid billing period: ${billingPeriod}`
+        );
+    }
+    const nextBillingDate = periodEnd;
+
+    const [subscription] = await db
+      .insert(userSubscription)
+      .values({
+        userId,
+        planId,
+        billingPeriod,
+        currentPeriodStart: now,
+        currentPeriodEnd: periodEnd,
+        nextBillingDate,
+        status: "active",
+      })
+      .returning();
+
+    return subscription;
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to create user subscription"
     );
   }
 }

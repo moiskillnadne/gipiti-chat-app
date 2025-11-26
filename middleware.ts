@@ -69,8 +69,10 @@ export async function middleware(request: NextRequest) {
     "/reset-password",
   ].includes(pathname);
 
-  // Unauthenticated users can only access auth routes
-  if (!token && !isAuthRoute) {
+  const isPublicRoute = pathname.startsWith("/legal/");
+
+  // Unauthenticated users can only access auth routes and public routes
+  if (!token && !isAuthRoute && !isPublicRoute) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("callbackUrl", request.url);
     return NextResponse.redirect(loginUrl);
@@ -78,16 +80,31 @@ export async function middleware(request: NextRequest) {
 
   // Authenticated but unverified users - email verification gate
   if (token && !token.emailVerified) {
-    // Allow access to verify-email page
-    if (pathname === "/verify-email") {
+    // Allow access to verify-email page and public routes
+    if (pathname === "/verify-email" || isPublicRoute) {
       return response;
     }
     // Redirect unverified users to verification page
     return NextResponse.redirect(new URL("/verify-email", request.url));
   }
 
-  // Authenticated and verified users cannot access auth routes
+  // Authenticated and verified but no subscription - subscription gate
+  if (token?.emailVerified && !token?.hasActiveSubscription) {
+    // Allow access to subscribe page and public routes
+    if (pathname === "/subscribe" || isPublicRoute) {
+      return response;
+    }
+    // Redirect users without subscription to paywall
+    return NextResponse.redirect(new URL("/subscribe", request.url));
+  }
+
+  // Authenticated, verified, and subscribed users cannot access auth routes
   if (token && isAuthRoute) {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
+
+  // Also redirect subscribed users away from subscribe page
+  if (token?.hasActiveSubscription && pathname === "/subscribe") {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
@@ -102,6 +119,8 @@ export const config = {
     "/register",
     "/forgot-password",
     "/reset-password",
+    "/subscribe",
+    "/legal/:path*",
 
     /*
      * Match all request paths except for the ones starting with:
