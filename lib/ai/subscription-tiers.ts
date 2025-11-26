@@ -18,7 +18,10 @@ export type SubscriptionTierConfig = {
     searchQuota: number;
     searchDepthAllowed: SearchDepth;
   };
-  price: number;
+  price: {
+    USD: number;
+    RUB: number;
+  };
   isTesterPlan?: boolean;
 };
 
@@ -28,11 +31,16 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
     name: "tester",
     displayName: "Tester Plan",
     billingPeriod: "daily",
-    tokenQuota: 50_000, // 50K tokens per day
+    tokenQuota: 100_000, // 100K tokens per day
     features: {
       maxMessagesPerPeriod: 50, // 50 messages per day
-      allowedModels: ["gpt-5-mini", "grok-2-vision-1212"],
-      hasReasoningModels: false,
+      allowedModels: [
+        "gpt-5.1-instant",
+        "gpt-5.1-thinking",
+        "gemini-3-pro",
+        "opus-4.1",
+      ],
+      hasReasoningModels: true,
       hasPrioritySupport: false,
       maxFileSize: 5 * 1024 * 1024, // 5MB
       maxConcurrentChats: 3,
@@ -40,163 +48,66 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       searchQuota: 10, // 10 searches per day
       searchDepthAllowed: "basic",
     },
-    price: 0, // Free for internal testing
+    price: {
+      USD: 0,
+      RUB: 0,
+    }, // Free for internal testing
     isTesterPlan: true,
   },
 
-  // STARTER PLAN - Weekly billing
-  starter_weekly: {
-    name: "starter_weekly",
-    displayName: "Starter Weekly",
-    billingPeriod: "weekly",
-    tokenQuota: 500_000, // 500K tokens per week (~71K/day)
+  // BASIC PLAN - Entry-level subscription for paywall
+  basic_monthly: {
+    name: "basic_monthly",
+    displayName: "Monthly",
+    billingPeriod: "monthly",
+    tokenQuota: 1_000_000, // 1M tokens per month
     features: {
-      maxMessagesPerPeriod: 200,
+      maxMessagesPerPeriod: 500,
       allowedModels: [
-        "gpt-5",
-        "gpt-5-mini",
-        "grok-2-vision-1212",
-        "grok-3-mini",
+        "gpt-5.1-instant",
+        "gpt-5.1-thinking",
+        "gemini-3-pro",
+        "opus-4.1",
       ],
-      hasReasoningModels: true,
+      hasReasoningModels: false,
       hasPrioritySupport: false,
-      maxFileSize: 20 * 1024 * 1024, // 20MB
-      maxConcurrentChats: 10,
+      maxFileSize: 10 * 1024 * 1024, // 10MB
+      maxConcurrentChats: 5,
       hasAPIAccess: false,
-      searchQuota: 50, // 50 searches per week
+      searchQuota: 100, // 100 searches per month
       searchDepthAllowed: "basic",
     },
-    price: 15,
+    price: {
+      USD: 19.99,
+      RUB: 1999,
+    },
   },
 
-  starter_monthly: {
-    name: "starter_monthly",
-    displayName: "Starter Monthly",
-    billingPeriod: "monthly",
-    tokenQuota: 2_000_000, // 2M tokens per month
+  basic_annual: {
+    name: "basic_annual",
+    displayName: "Annual",
+    billingPeriod: "annual",
+    tokenQuota: 12_000_000, // 12M tokens per year (1M/month equivalent)
     features: {
-      maxMessagesPerPeriod: 800,
+      maxMessagesPerPeriod: 6000,
       allowedModels: [
-        "gpt-5",
-        "gpt-5-mini",
-        "grok-2-vision-1212",
-        "grok-3-mini",
+        "gpt-5.1-instant",
+        "gpt-5.1-thinking",
+        "gemini-3-pro",
+        "opus-4.1",
       ],
       hasReasoningModels: true,
-      hasPrioritySupport: false,
-      maxFileSize: 20 * 1024 * 1024,
+      hasPrioritySupport: true,
+      maxFileSize: 10 * 1024 * 1024, // 10MB
       maxConcurrentChats: 10,
       hasAPIAccess: false,
-      searchQuota: 200, // 200 searches per month
+      searchQuota: 1200, // 1200 searches per year (100/month)
       searchDepthAllowed: "basic",
     },
-    price: 49,
-  },
-
-  // PRO PLAN - Monthly and Annual options
-  pro_monthly: {
-    name: "pro_monthly",
-    displayName: "Pro Monthly",
-    billingPeriod: "monthly",
-    tokenQuota: 10_000_000, // 10M tokens per month
-    features: {
-      maxMessagesPerPeriod: 5000,
-      allowedModels: [
-        "gpt-5",
-        "gpt-5-mini",
-        "grok-2-vision-1212",
-        "grok-3-mini",
-        "gemini-3-pro",
-        "claude-opus-4.1",
-      ],
-      hasReasoningModels: true,
-      hasPrioritySupport: true,
-      maxFileSize: 50 * 1024 * 1024, // 50MB
-      maxConcurrentChats: 50,
-      hasAPIAccess: true,
-      searchQuota: 500, // 500 searches per month
-      searchDepthAllowed: "advanced",
+    price: {
+      USD: 149.99,
+      RUB: 14_999,
     },
-    price: 199,
-  },
-
-  pro_annual: {
-    name: "pro_annual",
-    displayName: "Pro Annual",
-    billingPeriod: "annual",
-    tokenQuota: 120_000_000, // 120M tokens per year (10M/month equivalent)
-    features: {
-      maxMessagesPerPeriod: 60_000,
-      allowedModels: [
-        "gpt-5",
-        "gpt-5-mini",
-        "grok-2-vision-1212",
-        "grok-3-mini",
-        "gemini-3-pro",
-        "claude-opus-4.1",
-      ],
-      hasReasoningModels: true,
-      hasPrioritySupport: true,
-      maxFileSize: 50 * 1024 * 1024,
-      maxConcurrentChats: 50,
-      hasAPIAccess: true,
-      searchQuota: 6000, // 6000 searches per year (500/month)
-      searchDepthAllowed: "advanced",
-    },
-    price: 1990, // ~17% discount vs monthly
-  },
-
-  // ENTERPRISE PLAN - High volume usage
-  enterprise_monthly: {
-    name: "enterprise_monthly",
-    displayName: "Enterprise Monthly",
-    billingPeriod: "monthly",
-    tokenQuota: 50_000_000, // 50M tokens per month
-    features: {
-      maxMessagesPerPeriod: -1, // Unlimited
-      allowedModels: [
-        "gpt-5",
-        "gpt-5-mini",
-        "grok-2-vision-1212",
-        "grok-3-mini",
-        "gemini-3-pro",
-        "claude-opus-4.1",
-      ],
-      hasReasoningModels: true,
-      hasPrioritySupport: true,
-      maxFileSize: 100 * 1024 * 1024, // 100MB
-      maxConcurrentChats: -1, // Unlimited
-      hasAPIAccess: true,
-      searchQuota: 2000, // 2000 searches per month
-      searchDepthAllowed: "advanced",
-    },
-    price: 999,
-  },
-
-  enterprise_annual: {
-    name: "enterprise_annual",
-    displayName: "Enterprise Annual",
-    billingPeriod: "annual",
-    tokenQuota: 600_000_000, // 600M tokens per year
-    features: {
-      maxMessagesPerPeriod: -1,
-      allowedModels: [
-        "gpt-5",
-        "gpt-5-mini",
-        "grok-2-vision-1212",
-        "grok-3-mini",
-        "gemini-3-pro",
-        "claude-opus-4.1",
-      ],
-      hasReasoningModels: true,
-      hasPrioritySupport: true,
-      maxFileSize: 100 * 1024 * 1024,
-      maxConcurrentChats: -1,
-      hasAPIAccess: true,
-      searchQuota: 24_000, // 24000 searches per year (2000/month)
-      searchDepthAllowed: "advanced",
-    },
-    price: 9990, // ~17% discount
   },
 } as const;
 

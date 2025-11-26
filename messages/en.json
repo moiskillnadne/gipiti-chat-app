@@ -166,6 +166,33 @@
     "logout": {
       "confirm": "Are you sure you want to logout?",
       "success": "Successfully logged out"
+    },
+    "subscription": {
+      "title": "Choose Your Plan",
+      "subtitle": "Get unlimited access to all features",
+      "monthly": {
+        "name": "Monthly",
+        "period": "/month",
+        "description": "Perfect for trying out the service"
+      },
+      "annual": {
+        "name": "Annual",
+        "period": "/year",
+        "description": "Best value - save 2 months!",
+        "badge": "Save 17%"
+      },
+      "features": {
+        "title": "What's included:",
+        "tokens": "1M tokens per month",
+        "messages": "500 messages per period",
+        "models": "Access to basic models",
+        "search": "100 web searches per month",
+        "fileSize": "10MB file uploads"
+      },
+      "subscribeButton": "Subscribe",
+      "subscribing": "Processing...",
+      "success": "Subscription activated!",
+      "error": "Failed to activate subscription. Please try again."
     }
   },
   "chat": {
@@ -325,6 +352,52 @@
     "forbidden": "Forbidden",
     "goBack": "Go back",
     "goHome": "Go home"
+  },
+  "legal": {
+    "requisites": {
+      "linkText": "Business Details",
+      "pageTitle": "Business Details - GIPITI",
+      "pageDescription": "Individual Entrepreneur business details for GIPITI",
+      "title": "Individual Entrepreneur Business Details",
+      "sections": {
+        "businessInfo": "Business Information",
+        "address": "Address",
+        "bankDetails": "Bank Details",
+        "contactInfo": "Contact Information"
+      },
+      "fields": {
+        "entrepreneur": "Individual Entrepreneur",
+        "inn": "INN (Tax ID)",
+        "ogrnip": "OGRNIP (Registration Number)",
+        "registrationDate": "Registration Date",
+        "registrar": "Registrar",
+        "legalAddress": "Legal Address",
+        "postalAddress": "Postal Address",
+        "bank": "Bank",
+        "bik": "BIK (Bank ID)",
+        "accountNumber": "Account Number",
+        "correspondentAccount": "Correspondent Account",
+        "email": "Email",
+        "phone": "Phone",
+        "website": "Website"
+      },
+      "values": {
+        "entrepreneur": "Viktor Alexandrovich Ryabkov",
+        "inn": "780448416731",
+        "ogrnip": "322784700075522",
+        "registrationDate": "05.03.2022",
+        "registrar": "Межрайонная инспекция Федеральной налоговой службы №15 по Санкт-Петербургу",
+        "legalAddress": "195271, РОССИЯ, Г САНКТ-ПЕТЕРБУРГ, УЛ БЕСТУЖЕВСКАЯ, Д 33, КОРП 3, КВ 85",
+        "postalAddress": "195271, РОССИЯ, Г САНКТ-ПЕТЕРБУРГ, УЛ БЕСТУЖЕВСКАЯ, Д 33, КОРП 3, КВ 85",
+        "bank": "АО «ТБанк»",
+        "bik": "044525974",
+        "accountNumber": "40802810600003142397",
+        "correspondentAccount": "30101810145250000974",
+        "email": "victor.ryabkov.business@gmail.com",
+        "phone": "+7-981-731-52-72",
+        "website": "https://gipiti.ru"
+      }
+    }
   },
   "modelList": {
     "grokVision": {

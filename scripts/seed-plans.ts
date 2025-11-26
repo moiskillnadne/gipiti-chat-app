@@ -37,7 +37,7 @@ async function main() {
             billingPeriod: tier.billingPeriod,
             tokenQuota: tier.tokenQuota,
             features: tier.features as any,
-            price: tier.price.toString(),
+            price: tier.price.USD.toString(),
             isTesterPlan: tier.isTesterPlan || false,
             updatedAt: new Date(),
           })
@@ -53,7 +53,7 @@ async function main() {
           billingPeriod: tier.billingPeriod,
           tokenQuota: tier.tokenQuota,
           features: tier.features as any,
-          price: tier.price.toString(),
+          price: tier.price.USD.toString(),
           isTesterPlan: tier.isTesterPlan || false,
         });
 
@@ -65,8 +65,24 @@ async function main() {
     }
   }
 
+  // Deactivate plans not in SUBSCRIPTION_TIERS
+  const tierNames = Object.values(SUBSCRIPTION_TIERS).map((t) => t.name);
+  const allPlans = await db.select().from(subscriptionPlan);
+  let deactivated = 0;
+
+  for (const plan of allPlans) {
+    if (!tierNames.includes(plan.name) && plan.isActive) {
+      await db
+        .update(subscriptionPlan)
+        .set({ isActive: false, updatedAt: new Date() })
+        .where(eq(subscriptionPlan.id, plan.id));
+      console.log(`⚠️ Deactivated plan: ${plan.displayName}`);
+      deactivated++;
+    }
+  }
+
   console.log(
-    `\n🎉 Seeding complete! Created: ${created}, Updated: ${updated}`
+    `\n🎉 Seeding complete! Created: ${created}, Updated: ${updated}, Deactivated: ${deactivated}`
   );
 
   await client.end();
