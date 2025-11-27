@@ -40,7 +40,11 @@ export async function middleware(request: NextRequest) {
     return new Response("pong", { status: 200 });
   }
 
-  if (pathname.startsWith("/api/auth")) {
+  // Allow webhook and auth API routes through without auth
+  if (
+    pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/api/webhooks")
+  ) {
     return NextResponse.next();
   }
 
