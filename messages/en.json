@@ -181,6 +181,11 @@
         "description": "Best value - save 2 months!",
         "badge": "Save 17%"
       },
+      "tester": {
+        "name": "Tester Plan",
+        "period": "/day",
+        "description": "Daily billing for testing purposes"
+      },
       "features": {
         "title": "What's included:",
         "tokens": "1M tokens per month",

@@ -50,6 +50,7 @@ export const {
           type: "regular",
           emailVerified: user.emailVerified,
           hasActiveSubscription: subscription !== null,
+          isTester: user.isTester,
         };
       },
     }),
@@ -62,6 +63,7 @@ export const {
         token.emailVerified = (user.emailVerified ?? false) as boolean;
         token.hasActiveSubscription = (user.hasActiveSubscription ??
           false) as boolean;
+        token.isTester = (user.isTester ?? false) as boolean;
       }
 
       // Refresh from database on session update
@@ -78,6 +80,7 @@ export const {
           const [dbUser] = await getUser(token.email);
           if (dbUser) {
             token.emailVerified = dbUser.emailVerified as boolean;
+            token.isTester = dbUser.isTester as boolean;
           }
         }
 
@@ -100,6 +103,7 @@ export const {
         // @ts-expect-error - emailVerified is boolean in our schema, not Date
         session.user.emailVerified = token.emailVerified;
         session.user.hasActiveSubscription = token.hasActiveSubscription;
+        session.user.isTester = token.isTester;
       }
 
       return session;

@@ -77,6 +77,7 @@ export default async function RootLayout({
             __html: THEME_COLOR_SCRIPT,
           }}
         />
+        <script src="https://widget.cloudpayments.ru/bundles/cloudpayments.js" />
       </head>
       <body className="antialiased" suppressHydrationWarning>
         <SpeedInsights />

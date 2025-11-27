@@ -10,6 +10,7 @@ declare module "next-auth" {
       type: UserType;
       emailVerified: boolean;
       hasActiveSubscription: boolean;
+      isTester: boolean;
     } & DefaultSession["user"];
   }
 
@@ -19,6 +20,7 @@ declare module "next-auth" {
     type: UserType;
     emailVerified: boolean;
     hasActiveSubscription: boolean;
+    isTester: boolean;
   }
 }
 
@@ -28,6 +30,7 @@ declare module "next-auth/jwt" {
     type: UserType;
     emailVerified: boolean;
     hasActiveSubscription: boolean;
+    isTester: boolean;
   }
 }
 

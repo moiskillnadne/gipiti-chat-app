@@ -30,6 +30,7 @@ export const user = pgTable(
       "en"
     ),
     emailVerified: boolean("email_verified").default(false).notNull(),
+    isTester: boolean("is_tester").default(false).notNull(),
     emailVerificationCode: varchar("email_verification_code", { length: 255 }),
     emailVerificationCodeExpiry: timestamp("email_verification_code_expiry"),
     resetPasswordToken: varchar("reset_password_token", { length: 255 }),
@@ -283,11 +284,12 @@ export const userSubscription = pgTable(
     // Status
     status: varchar("status", { length: 32 }).notNull().default("active"),
 
-    // Payment integration (for future use)
+    // Payment integration (CloudPayments)
     externalSubscriptionId: varchar("external_subscription_id", {
       length: 128,
     }),
     externalCustomerId: varchar("external_customer_id", { length: 128 }),
+    cardMask: varchar("card_mask", { length: 32 }),
 
     // Payment history reference
     lastPaymentDate: timestamp("last_payment_date"),
