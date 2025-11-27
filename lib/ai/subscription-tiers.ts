@@ -55,6 +55,35 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
     isTesterPlan: true,
   },
 
+  // PAID TESTER PLAN - Daily recurring subscription for testers
+  tester_paid: {
+    name: "tester_paid",
+    displayName: "Tester Plan",
+    billingPeriod: "daily",
+    tokenQuota: 100_000,
+    features: {
+      maxMessagesPerPeriod: 50,
+      allowedModels: [
+        "gpt-5.1-instant",
+        "gpt-5.1-thinking",
+        "gemini-3-pro",
+        "opus-4.1",
+      ],
+      hasReasoningModels: true,
+      hasPrioritySupport: false,
+      maxFileSize: 5 * 1024 * 1024,
+      maxConcurrentChats: 3,
+      hasAPIAccess: false,
+      searchQuota: 10,
+      searchDepthAllowed: "basic",
+    },
+    price: {
+      USD: 0.05,
+      RUB: 5,
+    },
+    isTesterPlan: true,
+  },
+
   // BASIC PLAN - Entry-level subscription for paywall
   basic_monthly: {
     name: "basic_monthly",

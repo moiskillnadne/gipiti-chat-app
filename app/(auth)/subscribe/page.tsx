@@ -4,19 +4,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { useLocale, useTranslations } from "next-intl";
-import {
-  Suspense,
-  useActionState,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { Suspense, useCallback, useState } from "react";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { toast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
 import { SUBSCRIPTION_TIERS } from "@/lib/ai/subscription-tiers";
-import { type SubscribeActionState, subscribe } from "../actions";
+import type { CloudPaymentsWidget } from "../../../lib/payments/cloudpayments-types";
 
 function CheckIcon({ className }: { className?: string }) {
   return (
@@ -62,15 +55,19 @@ function SubscribePageFallback() {
   );
 }
 
+type PlanType = "basic_monthly" | "basic_annual" | "tester_paid";
+
 function SubscribePage() {
   const t = useTranslations("auth.subscription");
   const tNav = useTranslations("common.navigation");
   const tLegal = useTranslations("legal");
   const locale = useLocale();
   const router = useRouter();
-  const { update: updateSession } = useSession();
+  const { data: session, update: updateSession } = useSession();
 
-  const formatPrice = (plan: "basic_monthly" | "basic_annual") => {
+  const isTester = session?.user?.isTester ?? false;
+
+  const formatPrice = (plan: PlanType) => {
     const tier = SUBSCRIPTION_TIERS[plan];
     if (locale === "ru") {
       return `${tier.price.RUB.toLocaleString("ru-RU")} ₽`;
@@ -78,44 +75,111 @@ function SubscribePage() {
     return `$${tier.price.USD}`;
   };
 
-  const [selectedPlan, setSelectedPlan] = useState<
-    "basic_monthly" | "basic_annual"
-  >("basic_annual");
-  const hasHandledSuccess = useRef(false);
-
-  const [state, _formAction] = useActionState<SubscribeActionState, FormData>(
-    subscribe,
-    { status: "idle" }
+  const getAmount = useCallback(
+    (plan: PlanType) => {
+      const tier = SUBSCRIPTION_TIERS[plan];
+      return locale === "ru" ? tier.price.RUB : tier.price.USD;
+    },
+    [locale]
   );
+
+  const getCurrency = useCallback(() => {
+    return locale === "ru" ? "RUB" : "USD";
+  }, [locale]);
+
+  const [selectedPlan, setSelectedPlan] = useState<PlanType>(
+    isTester ? "tester_paid" : "basic_annual"
+  );
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSessionUpdate = useCallback(async () => {
     await updateSession({ hasActiveSubscription: true });
     router.replace("/");
   }, [updateSession, router]);
 
-  useEffect(() => {
-    if (state.status === "failed") {
-      toast({ type: "error", description: t("error") });
-      return;
-    }
-
-    if (state.status === "invalid_data") {
-      toast({ type: "error", description: t("error") });
-      return;
-    }
-
-    if (state.status === "success" && !hasHandledSuccess.current) {
-      hasHandledSuccess.current = true;
-      toast({ type: "success", description: t("success") });
-      handleSessionUpdate();
-    }
-  }, [state.status, t, handleSessionUpdate]);
-
   const handleSubscribe = useCallback(() => {
-    toast({ type: "error", description: t("comingSoon") });
-  }, [t]);
+    if (!session?.user?.id || !session?.user?.email) {
+      toast({ type: "error", description: t("error") });
+      return;
+    }
 
-  const isLoading = state.status === "in_progress";
+    if (typeof window === "undefined" || !window.cp) {
+      toast({ type: "error", description: t("error") });
+      return;
+    }
+
+    const publicId = process.env.NEXT_PUBLIC_CLOUDPAYMENTS_PUBLIC_ID;
+    if (!publicId) {
+      toast({ type: "error", description: t("error") });
+      return;
+    }
+
+    setIsLoading(true);
+
+    const tier = SUBSCRIPTION_TIERS[selectedPlan];
+    const amount = getAmount(selectedPlan);
+    const currency = getCurrency();
+
+    let recurrentConfig: { interval: "Day" | "Month"; period: number };
+    if (selectedPlan === "tester_paid") {
+      recurrentConfig = { interval: "Day", period: 1 };
+    } else if (selectedPlan === "basic_annual") {
+      recurrentConfig = { interval: "Month", period: 12 };
+    } else {
+      recurrentConfig = { interval: "Month", period: 1 };
+    }
+
+    const widget: CloudPaymentsWidget = new window.cp.CloudPayments();
+
+    widget.pay(
+      "charge",
+      {
+        publicId,
+        description: `${tier.displayName} subscription`,
+        amount,
+        currency,
+        accountId: session.user.id,
+        email: session.user.email,
+        skin: "modern",
+        data: {
+          planName: selectedPlan,
+          CloudPayments: {
+            recurrent: recurrentConfig,
+          },
+        },
+      },
+      {
+        onSuccess: async () => {
+          for (let i = 0; i < 10; i++) {
+            try {
+              const res = await fetch("/api/subscription");
+              const data = await res.json();
+              if (data.subscription?.status === "active") {
+                setIsLoading(false);
+                toast({ type: "success", description: t("success") });
+                handleSessionUpdate();
+                return;
+              }
+            } catch {
+              // Continue polling
+            }
+            await new Promise((resolve) => setTimeout(resolve, 500));
+          }
+          setIsLoading(false);
+          toast({ type: "success", description: t("success") });
+          handleSessionUpdate();
+        },
+        onFail: (reason) => {
+          setIsLoading(false);
+          console.error("[CloudPayments] Payment failed:", reason);
+          toast({ type: "error", description: t("error") });
+        },
+        onComplete: () => {
+          setIsLoading(false);
+        },
+      }
+    );
+  }, [session, selectedPlan, t, handleSessionUpdate, getAmount, getCurrency]);
 
   return (
     <div className="flex min-h-dvh w-screen items-start justify-center bg-background pt-12 md:items-center md:pt-0">
@@ -127,93 +191,120 @@ function SubscribePage() {
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Monthly Plan Card */}
-          <button
-            className={`relative flex cursor-pointer flex-col rounded-2xl border-2 p-6 text-left transition-all ${
-              selectedPlan === "basic_monthly"
-                ? "border-blue-500 bg-blue-50/50 dark:border-blue-400 dark:bg-blue-950/30"
-                : "border-gray-200 hover:border-gray-300 dark:border-zinc-700 dark:hover:border-zinc-600"
-            }`}
-            onClick={() => setSelectedPlan("basic_monthly")}
-            type="button"
-          >
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="font-semibold text-xl dark:text-zinc-50">
-                {t("monthly.name")}
-              </h3>
-              <div
-                className={`flex h-6 w-6 items-center justify-center rounded-full border-2 ${
-                  selectedPlan === "basic_monthly"
-                    ? "border-blue-500 bg-blue-500"
-                    : "border-gray-300 dark:border-zinc-600"
-                }`}
-              >
-                {selectedPlan === "basic_monthly" && (
-                  <CheckIcon className="text-white" />
-                )}
+        {isTester ? (
+          <div className="mx-auto max-w-md">
+            <div className="relative flex flex-col rounded-2xl border-2 border-blue-500 bg-blue-50/50 p-6 text-left dark:border-blue-400 dark:bg-blue-950/30">
+              <span className="-top-3 absolute right-4 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-3 py-1 font-medium text-white text-xs">
+                Tester
+              </span>
+
+              <div className="mb-4">
+                <h3 className="font-semibold text-xl dark:text-zinc-50">
+                  {t("tester.name")}
+                </h3>
               </div>
-            </div>
 
-            <div className="mb-4">
-              <span className="font-bold text-4xl dark:text-zinc-50">
-                {formatPrice("basic_monthly")}
-              </span>
-              <span className="text-gray-500 dark:text-zinc-400">
-                {t("monthly.period")}
-              </span>
-            </div>
-
-            <p className="text-gray-600 text-sm dark:text-zinc-400">
-              {t("monthly.description")}
-            </p>
-          </button>
-
-          {/* Annual Plan Card */}
-          <button
-            className={`relative flex cursor-pointer flex-col rounded-2xl border-2 p-6 text-left transition-all ${
-              selectedPlan === "basic_annual"
-                ? "border-blue-500 bg-blue-50/50 dark:border-blue-400 dark:bg-blue-950/30"
-                : "border-gray-200 hover:border-gray-300 dark:border-zinc-700 dark:hover:border-zinc-600"
-            }`}
-            onClick={() => setSelectedPlan("basic_annual")}
-            type="button"
-          >
-            <span className="-top-3 absolute right-4 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 px-3 py-1 font-medium text-white text-xs">
-              {t("annual.badge")}
-            </span>
-
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="font-semibold text-xl dark:text-zinc-50">
-                {t("annual.name")}
-              </h3>
-              <div
-                className={`flex h-6 w-6 items-center justify-center rounded-full border-2 ${
-                  selectedPlan === "basic_annual"
-                    ? "border-blue-500 bg-blue-500"
-                    : "border-gray-300 dark:border-zinc-600"
-                }`}
-              >
-                {selectedPlan === "basic_annual" && (
-                  <CheckIcon className="text-white" />
-                )}
+              <div className="mb-4">
+                <span className="font-bold text-4xl dark:text-zinc-50">
+                  {formatPrice("tester_paid")}
+                </span>
+                <span className="text-gray-500 dark:text-zinc-400">
+                  {t("tester.period")}
+                </span>
               </div>
-            </div>
 
-            <div className="mb-4">
-              <span className="font-bold text-4xl dark:text-zinc-50">
-                {formatPrice("basic_annual")}
-              </span>
-              <span className="text-gray-500 dark:text-zinc-400">
-                {t("annual.period")}
-              </span>
+              <p className="text-gray-600 text-sm dark:text-zinc-400">
+                {t("tester.description")}
+              </p>
             </div>
+          </div>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2">
+            <button
+              className={`relative flex cursor-pointer flex-col rounded-2xl border-2 p-6 text-left transition-all ${
+                selectedPlan === "basic_monthly"
+                  ? "border-blue-500 bg-blue-50/50 dark:border-blue-400 dark:bg-blue-950/30"
+                  : "border-gray-200 hover:border-gray-300 dark:border-zinc-700 dark:hover:border-zinc-600"
+              }`}
+              onClick={() => setSelectedPlan("basic_monthly")}
+              type="button"
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="font-semibold text-xl dark:text-zinc-50">
+                  {t("monthly.name")}
+                </h3>
+                <div
+                  className={`flex h-6 w-6 items-center justify-center rounded-full border-2 ${
+                    selectedPlan === "basic_monthly"
+                      ? "border-blue-500 bg-blue-500"
+                      : "border-gray-300 dark:border-zinc-600"
+                  }`}
+                >
+                  {selectedPlan === "basic_monthly" && (
+                    <CheckIcon className="text-white" />
+                  )}
+                </div>
+              </div>
 
-            <p className="text-gray-600 text-sm dark:text-zinc-400">
-              {t("annual.description")}
-            </p>
-          </button>
-        </div>
+              <div className="mb-4">
+                <span className="font-bold text-4xl dark:text-zinc-50">
+                  {formatPrice("basic_monthly")}
+                </span>
+                <span className="text-gray-500 dark:text-zinc-400">
+                  {t("monthly.period")}
+                </span>
+              </div>
+
+              <p className="text-gray-600 text-sm dark:text-zinc-400">
+                {t("monthly.description")}
+              </p>
+            </button>
+
+            <button
+              className={`relative flex cursor-pointer flex-col rounded-2xl border-2 p-6 text-left transition-all ${
+                selectedPlan === "basic_annual"
+                  ? "border-blue-500 bg-blue-50/50 dark:border-blue-400 dark:bg-blue-950/30"
+                  : "border-gray-200 hover:border-gray-300 dark:border-zinc-700 dark:hover:border-zinc-600"
+              }`}
+              onClick={() => setSelectedPlan("basic_annual")}
+              type="button"
+            >
+              <span className="-top-3 absolute right-4 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 px-3 py-1 font-medium text-white text-xs">
+                {t("annual.badge")}
+              </span>
+
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="font-semibold text-xl dark:text-zinc-50">
+                  {t("annual.name")}
+                </h3>
+                <div
+                  className={`flex h-6 w-6 items-center justify-center rounded-full border-2 ${
+                    selectedPlan === "basic_annual"
+                      ? "border-blue-500 bg-blue-500"
+                      : "border-gray-300 dark:border-zinc-600"
+                  }`}
+                >
+                  {selectedPlan === "basic_annual" && (
+                    <CheckIcon className="text-white" />
+                  )}
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <span className="font-bold text-4xl dark:text-zinc-50">
+                  {formatPrice("basic_annual")}
+                </span>
+                <span className="text-gray-500 dark:text-zinc-400">
+                  {t("annual.period")}
+                </span>
+              </div>
+
+              <p className="text-gray-600 text-sm dark:text-zinc-400">
+                {t("annual.description")}
+              </p>
+            </button>
+          </div>
+        )}
 
         {/* Features List */}
         <div className="mx-auto max-w-md">
