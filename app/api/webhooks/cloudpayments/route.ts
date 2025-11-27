@@ -53,6 +53,8 @@ async function handleCheckWebhook(
 ): Promise<Response> {
   const { AccountId, Amount, Data, Currency } = payload;
 
+  console.log("[CloudPayments] Check webhook received", payload);
+
   if (!AccountId) {
     console.error("[CloudPayments] Check webhook missing AccountId");
     return Response.json({ code: 10 });
@@ -82,12 +84,18 @@ async function handleCheckWebhook(
   }
 
   const tier = SUBSCRIPTION_TIERS[planName as keyof typeof SUBSCRIPTION_TIERS];
+
+  console.log("[CloudPayments] Check Webhook - Tier:", tier);
   if (!tier || (tier.isTesterPlan && tier.price.RUB === 0)) {
     console.error(`[CloudPayments] Check: invalid plan: ${planName}`);
     return Response.json({ code: 13 });
   }
 
   const expectedAmount = Currency === "RUB" ? tier.price.RUB : tier.price.USD;
+  console.log(
+    "[CloudPayments] Check Webhook - Expected Amount:",
+    expectedAmount
+  );
   if (Amount !== expectedAmount) {
     console.error(
       `[CloudPayments] Check: amount mismatch. Expected ${expectedAmount}, got ${Amount}`
