@@ -153,6 +153,7 @@ export type CloudPaymentsWebhookResponse = {
 };
 
 declare global {
+  // biome-ignore lint/nursery/useConsistentTypeDefinitions: <We have to extend the window object>
   interface Window {
     cp: {
       CloudPayments: new () => CloudPaymentsWidget;
