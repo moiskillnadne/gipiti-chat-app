@@ -132,6 +132,6 @@ export const config = {
      * - _next/image (image optimization files)
      * - icon.png, apple-icon.png, sitemap.xml, robots.txt (metadata files)
      */
-    "/((?!_next/static|_next/image|icon.png|apple-icon.png|sitemap.xml|robots.txt).*)",
+    "/((?!_next/static|_next/image|icon.png|apple-icon.png|sitemap.xml|robots.txt|manifest.webmanifest).*)",
   ],
 };
