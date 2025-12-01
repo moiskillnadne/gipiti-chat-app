@@ -7,12 +7,13 @@ import {
   userTokenUsage,
 } from "@/lib/db/schema";
 import type { AppUsage } from "@/lib/usage";
+import type { BillingPeriod } from "../subscription/subscription-tiers";
 import {
   calculateNextBillingDate,
   calculatePeriodEnd,
+  getPeriodLabel,
   isPeriodExpired,
 } from "./billing-periods";
-import type { BillingPeriod } from "./subscription-tiers";
 
 /**
  * Get user's current subscription and quota information
@@ -97,11 +98,13 @@ async function renewSubscriptionPeriod(
   const newPeriodStart = subscription.currentPeriodEnd;
   const newPeriodEnd = calculatePeriodEnd(
     newPeriodStart,
-    subscription.billingPeriod
+    subscription.billingPeriod,
+    subscription.billingPeriodCount
   );
   const newBillingDate = calculateNextBillingDate(
     newPeriodStart,
-    subscription.billingPeriod
+    subscription.billingPeriod,
+    subscription.billingPeriodCount
   );
 
   const [updated] = await db
@@ -137,11 +140,17 @@ export async function checkTokenQuota(userId: string): Promise<{
   }
 
   if (quotaInfo.isExceeded) {
-    const periodLabel = quotaInfo.plan.billingPeriod;
+    const periodLabel = getPeriodLabel(
+      quotaInfo.subscription.billingPeriod,
+      quotaInfo.subscription.billingPeriodCount
+    );
+    const isDaily =
+      quotaInfo.subscription.billingPeriod === "daily" &&
+      quotaInfo.subscription.billingPeriodCount === 1;
     return {
       allowed: false,
-      reason: `Token quota exceeded for this ${periodLabel} period. Used ${quotaInfo.usage.totalTokens.toLocaleString()} / ${quotaInfo.quota.toLocaleString()} tokens. ${
-        periodLabel === "daily"
+      reason: `Token quota exceeded for this period (${periodLabel}). Used ${quotaInfo.usage.totalTokens.toLocaleString()} / ${quotaInfo.quota.toLocaleString()} tokens. ${
+        isDaily
           ? "Your quota will reset tomorrow."
           : `Your quota will reset on ${quotaInfo.subscription.currentPeriodEnd.toLocaleDateString()}.`
       }`,

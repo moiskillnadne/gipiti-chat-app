@@ -1,31 +1,30 @@
-import type { BillingPeriod } from "./subscription-tiers";
+import type { BillingPeriod } from "../subscription/subscription-tiers";
 
 /**
- * Calculate the next period end date based on billing period type
+ * Calculate the next period end date based on billing period type and count
  */
 export function calculatePeriodEnd(
   startDate: Date,
-  billingPeriod: BillingPeriod
+  billingPeriod: BillingPeriod,
+  billingPeriodCount = 1
 ): Date {
   const endDate = new Date(startDate);
 
   switch (billingPeriod) {
     case "daily":
-      endDate.setDate(endDate.getDate() + 1);
+      endDate.setDate(endDate.getDate() + billingPeriodCount);
       break;
 
     case "weekly":
-      endDate.setDate(endDate.getDate() + 7);
+      endDate.setDate(endDate.getDate() + 7 * billingPeriodCount);
       break;
 
     case "monthly":
-      // Add one calendar month
-      endDate.setMonth(endDate.getMonth() + 1);
+      endDate.setMonth(endDate.getMonth() + billingPeriodCount);
       break;
 
     case "annual":
-      // Add one year
-      endDate.setFullYear(endDate.getFullYear() + 1);
+      endDate.setFullYear(endDate.getFullYear() + billingPeriodCount);
       break;
 
     default:
@@ -40,9 +39,10 @@ export function calculatePeriodEnd(
  */
 export function calculateNextBillingDate(
   currentDate: Date,
-  billingPeriod: BillingPeriod
+  billingPeriod: BillingPeriod,
+  billingPeriodCount = 1
 ): Date {
-  return calculatePeriodEnd(currentDate, billingPeriod);
+  return calculatePeriodEnd(currentDate, billingPeriod, billingPeriodCount);
 }
 
 /**
@@ -55,25 +55,56 @@ export function isPeriodExpired(periodEnd: Date): boolean {
 /**
  * Get period duration in days (approximate for display)
  */
-export function getPeriodDurationDays(billingPeriod: BillingPeriod): number {
+export function getPeriodDurationDays(
+  billingPeriod: BillingPeriod,
+  billingPeriodCount = 1
+): number {
+  let baseDays: number;
   switch (billingPeriod) {
     case "daily":
-      return 1;
+      baseDays = 1;
+      break;
     case "weekly":
-      return 7;
+      baseDays = 7;
+      break;
     case "monthly":
-      return 30;
+      baseDays = 30;
+      break;
     case "annual":
-      return 365;
+      baseDays = 365;
+      break;
     default:
-      return 30;
+      baseDays = 30;
   }
+  return baseDays * billingPeriodCount;
 }
 
 /**
  * Get period label for display
  */
-export function getPeriodLabel(billingPeriod: BillingPeriod): string {
+export function getPeriodLabel(
+  billingPeriod: BillingPeriod,
+  billingPeriodCount = 1
+): string {
+  if (billingPeriod === "monthly" && billingPeriodCount === 3) {
+    return "per quarter";
+  }
+
+  if (billingPeriodCount > 1) {
+    switch (billingPeriod) {
+      case "daily":
+        return `per ${billingPeriodCount} days`;
+      case "weekly":
+        return `per ${billingPeriodCount} weeks`;
+      case "monthly":
+        return `per ${billingPeriodCount} months`;
+      case "annual":
+        return `per ${billingPeriodCount} years`;
+      default:
+        return "per period";
+    }
+  }
+
   switch (billingPeriod) {
     case "daily":
       return "per day";
@@ -93,8 +124,9 @@ export function getPeriodLabel(billingPeriod: BillingPeriod): string {
  */
 export function getDailyAverageQuota(
   totalQuota: number,
-  billingPeriod: BillingPeriod
+  billingPeriod: BillingPeriod,
+  billingPeriodCount = 1
 ): number {
-  const days = getPeriodDurationDays(billingPeriod);
+  const days = getPeriodDurationDays(billingPeriod, billingPeriodCount);
   return Math.floor(totalQuota / days);
 }

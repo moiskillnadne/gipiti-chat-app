@@ -175,6 +175,12 @@
         "period": "/month",
         "description": "Perfect for trying out the service"
       },
+      "quarterly": {
+        "name": "Quarterly",
+        "period": "/quarter",
+        "description": "3-month plan with priority support",
+        "badge": "Popular"
+      },
       "annual": {
         "name": "Annual",
         "period": "/year",

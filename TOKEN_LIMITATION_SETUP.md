@@ -5,10 +5,11 @@ This document describes the token limitation system implementation for your AI c
 ## Overview
 
 The system implements:
-- **Multiple billing periods**: Daily (tester), Weekly, Monthly, and Annual subscriptions
+- **Multiple billing periods**: Daily (tester), Weekly, Monthly, Quarterly, and Annual subscriptions
+- **Billing period count**: Support for multi-period subscriptions (e.g., 3 months for quarterly)
 - **Token-based quota enforcement**: Track and limit AI token usage per user
-- **Flexible subscription tiers**: Tester, Starter, Pro, and Enterprise plans
-- **Automatic period resets**: Daily quota resets for testers, monthly for paid users
+- **Flexible subscription tiers**: Tester, Basic Monthly, Basic Quarterly, Basic Annual plans
+- **Automatic period resets**: Daily quota resets for testers, period-based for paid users
 - **Usage analytics**: Detailed per-model token tracking and cost calculation
 - **Real-time enforcement**: Quota checks before each API call
 
@@ -64,15 +65,13 @@ npx tsx scripts/seed-plans.ts
 
 This creates the following plans:
 
-| Plan | Billing Period | Token Quota | Price | Features |
-|------|---------------|-------------|-------|----------|
-| Tester | Daily | 50,000 | $0 | Limited models, testing only |
-| Starter Weekly | Weekly | 500,000 | $15 | Basic models + reasoning |
-| Starter Monthly | Monthly | 2,000,000 | $49 | Basic models + reasoning |
-| Pro Monthly | Monthly | 10,000,000 | $199 | All models, priority support |
-| Pro Annual | Annual | 120,000,000 | $1,990 | All models, 17% discount |
-| Enterprise Monthly | Monthly | 50,000,000 | $999 | Unlimited messages, all models |
-| Enterprise Annual | Annual | 600,000,000 | $9,990 | Unlimited, 17% discount |
+| Plan | Billing Period | Period Count | Token Quota | Price | Features |
+|------|---------------|--------------|-------------|-------|----------|
+| Tester | Daily | 1 | 100,000 | $0 | Limited models, testing only |
+| Tester Paid | Daily | 1 | 100,000 | $0.05 | Daily paid testing |
+| Basic Monthly | Monthly | 1 | 2,000,000 | $19.99 | Basic models |
+| Basic Quarterly | Monthly | 3 | 6,000,000 | $49.99 | 3-month plan, priority support |
+| Basic Annual | Annual | 1 | 24,000,000 | $179.99 | All models, priority support |
 
 ### 3. Environment Variables
 
@@ -121,27 +120,40 @@ await assignTesterPlan(newUser.id);  // Automatic
 
 ## Subscription Tiers Configuration
 
-Edit `lib/ai/subscription-tiers.ts` to customize plans:
+Edit `lib/subscription/subscription-tiers.ts` to customize plans:
 
 ```typescript
 export const SUBSCRIPTION_TIERS = {
   tester: {
     name: "tester",
-    displayName: "Tester Plan",
+    displayName: { en: "Tester Plan", ru: "Тестовый план" },
     billingPeriod: "daily",
-    tokenQuota: 50_000,  // Adjust quota here
+    billingPeriodCount: 1,  // Number of periods per billing cycle
+    tokenQuota: 100_000,
     features: {
       maxMessagesPerPeriod: 50,
-      allowedModels: ["gpt-5-mini", "grok-2-vision-1212"],
-      hasReasoningModels: false,
+      allowedModels: ["gpt-5.1-instant", "gemini-3-pro"],
+      hasReasoningModels: true,
       // ... more features
     },
-    price: 0,
+    price: { USD: 0, RUB: 0 },
     isTesterPlan: true,
+  },
+  basic_quarter: {
+    name: "basic_quarter",
+    displayName: { en: "Basic Quarterly Plan", ru: "Стандарт в квартал" },
+    billingPeriod: "monthly",
+    billingPeriodCount: 3,  // 3 months = quarterly
+    tokenQuota: 6_000_000,
+    // ...
   },
   // ... other plans
 };
 ```
+
+The `billingPeriodCount` field allows you to create multi-period subscriptions:
+- `billingPeriod: "monthly"` + `billingPeriodCount: 3` = Quarterly subscription
+- `billingPeriod: "daily"` + `billingPeriodCount: 7` = Weekly subscription (alternative)
 
 After modifying tiers, re-run the seed script:
 ```bash
@@ -500,6 +512,7 @@ CREATE TABLE "SubscriptionPlan" (
   name varchar(64) NOT NULL UNIQUE,
   display_name varchar(128),
   billing_period billing_period NOT NULL DEFAULT 'monthly',
+  billing_period_count integer NOT NULL DEFAULT 1,  -- Number of periods per billing cycle
   token_quota bigint NOT NULL,
   features jsonb,
   price numeric(10, 2),
@@ -515,6 +528,7 @@ CREATE TABLE "UserSubscription" (
   user_id uuid NOT NULL REFERENCES "User"(id) ON DELETE CASCADE,
   plan_id uuid NOT NULL REFERENCES "SubscriptionPlan"(id),
   billing_period billing_period NOT NULL,
+  billing_period_count integer NOT NULL DEFAULT 1,  -- Locked at subscription time
   current_period_start timestamp NOT NULL,
   current_period_end timestamp NOT NULL,
   next_billing_date timestamp NOT NULL,

@@ -4,7 +4,7 @@ import { subscriptionPlan, user, userSubscription } from "@/lib/db/schema";
 import {
   calculateNextBillingDate,
   calculatePeriodEnd,
-} from "./billing-periods";
+} from "../ai/billing-periods";
 import { SUBSCRIPTION_TIERS } from "./subscription-tiers";
 
 /**
@@ -30,9 +30,10 @@ export async function assignTesterPlan(userId: string) {
         name: testerTier.name,
         displayName: testerTier.displayName.en,
         billingPeriod: testerTier.billingPeriod,
+        billingPeriodCount: testerTier.billingPeriodCount,
         tokenQuota: testerTier.tokenQuota,
         features: testerTier.features as any,
-        price: testerTier.price.toString(),
+        price: testerTier.price.USD.toString(),
         isTesterPlan: true,
       })
       .returning();
@@ -41,13 +42,22 @@ export async function assignTesterPlan(userId: string) {
 
   // Create subscription
   const now = new Date();
-  const periodEnd = calculatePeriodEnd(now, testerTier.billingPeriod);
-  const nextBilling = calculateNextBillingDate(now, testerTier.billingPeriod);
+  const periodEnd = calculatePeriodEnd(
+    now,
+    testerTier.billingPeriod,
+    testerTier.billingPeriodCount
+  );
+  const nextBilling = calculateNextBillingDate(
+    now,
+    testerTier.billingPeriod,
+    testerTier.billingPeriodCount
+  );
 
   await db.insert(userSubscription).values({
     userId,
     planId: plan.id,
     billingPeriod: testerTier.billingPeriod,
+    billingPeriodCount: testerTier.billingPeriodCount,
     currentPeriodStart: now,
     currentPeriodEnd: periodEnd,
     nextBillingDate: nextBilling,
@@ -91,9 +101,10 @@ export async function upgradeToPlan(userId: string, planName: string) {
         name: tier.name,
         displayName: tier.displayName.en,
         billingPeriod: tier.billingPeriod,
+        billingPeriodCount: tier.billingPeriodCount,
         tokenQuota: tier.tokenQuota,
         features: tier.features as any,
-        price: tier.price.toString(),
+        price: tier.price.USD.toString(),
         isTesterPlan: false,
       })
       .returning();
@@ -116,13 +127,22 @@ export async function upgradeToPlan(userId: string, planName: string) {
 
   // Create new subscription
   const now = new Date();
-  const periodEnd = calculatePeriodEnd(now, tier.billingPeriod);
-  const nextBilling = calculateNextBillingDate(now, tier.billingPeriod);
+  const periodEnd = calculatePeriodEnd(
+    now,
+    tier.billingPeriod,
+    tier.billingPeriodCount
+  );
+  const nextBilling = calculateNextBillingDate(
+    now,
+    tier.billingPeriod,
+    tier.billingPeriodCount
+  );
 
   await db.insert(userSubscription).values({
     userId,
     planId: plan.id,
     billingPeriod: tier.billingPeriod,
+    billingPeriodCount: tier.billingPeriodCount,
     currentPeriodStart: now,
     currentPeriodEnd: periodEnd,
     nextBillingDate: nextBilling,

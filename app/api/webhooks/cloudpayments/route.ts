@@ -4,7 +4,6 @@ import {
   calculateNextBillingDate,
   calculatePeriodEnd,
 } from "@/lib/ai/billing-periods";
-import { SUBSCRIPTION_TIERS } from "@/lib/ai/subscription-tiers";
 import { db } from "@/lib/db/queries";
 import { subscriptionPlan, user, userSubscription } from "@/lib/db/schema";
 import { getCloudPaymentsConfig } from "@/lib/payments/cloudpayments-config";
@@ -15,6 +14,7 @@ import type {
   CloudPaymentsPayWebhook,
   CloudPaymentsRecurrentWebhook,
 } from "@/lib/payments/cloudpayments-types";
+import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 
 type WebhookType = "check" | "pay" | "fail" | "recurrent" | "cancel";
 
@@ -183,6 +183,7 @@ async function handlePayWebhook(
           name: tier.name,
           displayName: tier.displayName.en,
           billingPeriod: tier.billingPeriod,
+          billingPeriodCount: tier.billingPeriodCount,
           tokenQuota: tier.tokenQuota,
           features: {
             maxMessagesPerPeriod: tier.features.maxMessagesPerPeriod,
@@ -214,8 +215,16 @@ async function handlePayWebhook(
       );
 
     const now = new Date();
-    const periodEnd = calculatePeriodEnd(now, tier.billingPeriod);
-    const nextBilling = calculateNextBillingDate(now, tier.billingPeriod);
+    const periodEnd = calculatePeriodEnd(
+      now,
+      tier.billingPeriod,
+      tier.billingPeriodCount
+    );
+    const nextBilling = calculateNextBillingDate(
+      now,
+      tier.billingPeriod,
+      tier.billingPeriodCount
+    );
 
     const cardMask = CardLastFour
       ? `${CardType ?? "Card"} ****${CardLastFour}`
@@ -225,6 +234,7 @@ async function handlePayWebhook(
       userId: AccountId,
       planId: plan.id,
       billingPeriod: tier.billingPeriod,
+      billingPeriodCount: tier.billingPeriodCount,
       currentPeriodStart: now,
       currentPeriodEnd: periodEnd,
       nextBillingDate: nextBilling,
@@ -308,10 +318,15 @@ async function handleRecurrentWebhook(
     if (subscriptions.length > 0) {
       const subscription = subscriptions[0];
       const now = new Date();
-      const periodEnd = calculatePeriodEnd(now, subscription.billingPeriod);
+      const periodEnd = calculatePeriodEnd(
+        now,
+        subscription.billingPeriod,
+        subscription.billingPeriodCount
+      );
       const nextBilling = calculateNextBillingDate(
         now,
-        subscription.billingPeriod
+        subscription.billingPeriod,
+        subscription.billingPeriodCount
       );
 
       await db

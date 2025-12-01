@@ -9,6 +9,7 @@ export type SubscriptionTierConfig = {
     ru: string;
   };
   billingPeriod: BillingPeriod;
+  billingPeriodCount: number;
   tokenQuota: number;
   features: {
     maxMessagesPerPeriod?: number;
@@ -37,6 +38,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       ru: "Тестовый план [Ежедневный, Бесплатный]",
     },
     billingPeriod: "daily",
+    billingPeriodCount: 1,
     tokenQuota: 100_000, // 100K tokens per day
     features: {
       maxMessagesPerPeriod: 50, // 50 messages per day
@@ -69,9 +71,10 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       ru: "Тестовый план [Ежедневный, Платный]",
     },
     billingPeriod: "daily",
+    billingPeriodCount: 1,
     tokenQuota: 100_000,
     features: {
-      maxMessagesPerPeriod: 50,
+      maxMessagesPerPeriod: 10,
       allowedModels: [
         "gpt-5.1-instant",
         "gpt-5.1-thinking",
@@ -80,10 +83,10 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       ],
       hasReasoningModels: true,
       hasPrioritySupport: false,
-      maxFileSize: 5 * 1024 * 1024,
+      maxFileSize: 1 * 1024 * 1024, // 1MB
       maxConcurrentChats: 3,
       hasAPIAccess: false,
-      searchQuota: 10,
+      searchQuota: 2,
       searchDepthAllowed: "basic",
     },
     price: {
@@ -98,10 +101,11 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
     name: "basic_monthly",
     displayName: {
       en: "Basic Monthly Plan",
-      ru: "Базовый месячный план ",
+      ru: "Стандарт в месяц",
     },
     billingPeriod: "monthly",
-    tokenQuota: 1_000_000, // 1M tokens per month
+    billingPeriodCount: 1,
+    tokenQuota: 2_000_000, // 2M tokens per month
     features: {
       maxMessagesPerPeriod: 500,
       allowedModels: [
@@ -124,14 +128,47 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
     },
   },
 
+  basic_quarter: {
+    name: "basic_quarter",
+    displayName: {
+      en: "Basic Quarterly Plan",
+      ru: "Стандарт в квартал",
+    },
+    billingPeriod: "monthly",
+    billingPeriodCount: 3,
+    tokenQuota: 6_000_000, // 6M tokens per quarter (2M/month equivalent)
+    features: {
+      maxMessagesPerPeriod: 1500,
+      allowedModels: [
+        "gpt-5.1-instant",
+        "gpt-5.1-thinking",
+        "gemini-3-pro",
+        "opus-4.1",
+      ],
+      hasReasoningModels: true,
+      hasPrioritySupport: true,
+      maxFileSize: 10 * 1024 * 1024, // 10MB
+      maxConcurrentChats: 10,
+      hasAPIAccess: false,
+      searchQuota: 300, // 300 searches per quarter (100/month)
+      searchDepthAllowed: "basic",
+    },
+    price: {
+      USD: 49.99,
+      RUB: 4999,
+    },
+    isTesterPlan: false,
+  },
+
   basic_annual: {
     name: "basic_annual",
     displayName: {
       en: "Basic Annual Plan",
-      ru: "Базовый годовой план",
+      ru: "Стандарт в год",
     },
     billingPeriod: "annual",
-    tokenQuota: 12_000_000, // 12M tokens per year (1M/month equivalent)
+    billingPeriodCount: 1,
+    tokenQuota: 24_000_000, // 24M tokens per year (2M/month equivalent)
     features: {
       maxMessagesPerPeriod: 6000,
       allowedModels: [
@@ -149,8 +186,8 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       searchDepthAllowed: "basic",
     },
     price: {
-      USD: 149.99,
-      RUB: 14_999,
+      USD: 179.99,
+      RUB: 17_999,
     },
   },
 } as const;

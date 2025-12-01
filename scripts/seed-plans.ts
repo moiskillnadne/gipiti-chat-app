@@ -2,8 +2,8 @@ import { config } from "dotenv";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { SUBSCRIPTION_TIERS } from "@/lib/ai/subscription-tiers";
 import { subscriptionPlan } from "@/lib/db/schema";
+import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 
 config({
   path: ".env.local",
@@ -35,6 +35,7 @@ async function main() {
           .set({
             displayName: tier.displayName.en,
             billingPeriod: tier.billingPeriod,
+            billingPeriodCount: tier.billingPeriodCount,
             tokenQuota: tier.tokenQuota,
             features: tier.features as any,
             price: tier.price.USD.toString(),
@@ -43,7 +44,7 @@ async function main() {
           })
           .where(eq(subscriptionPlan.id, existing[0].id));
 
-        console.log(`✅ Updated plan: ${tier.displayName}`);
+        console.log(`✅ Updated plan: ${tier.displayName.en}`);
         updated++;
       } else {
         // Create new plan
@@ -51,17 +52,18 @@ async function main() {
           name: tier.name,
           displayName: tier.displayName.en,
           billingPeriod: tier.billingPeriod,
+          billingPeriodCount: tier.billingPeriodCount,
           tokenQuota: tier.tokenQuota,
           features: tier.features as any,
           price: tier.price.USD.toString(),
           isTesterPlan: tier.isTesterPlan || false,
         });
 
-        console.log(`✅ Created plan: ${tier.displayName}`);
+        console.log(`✅ Created plan: ${tier.displayName.en}`);
         created++;
       }
     } catch (error) {
-      console.error(`❌ Failed to seed plan ${tier.displayName}:`, error);
+      console.error(`❌ Failed to seed plan ${tier.displayName.en}:`, error);
     }
   }
 

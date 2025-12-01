@@ -69,7 +69,7 @@ middleware.ts          # NextAuth route protection
 
 **User & Auth:**
 - `User`: id, email, password, currentPlan, timestamps
-- `UserSubscription`: userId, planId, billing period, status, external IDs
+- `UserSubscription`: userId, planId, billingPeriod, billingPeriodCount, status, external IDs
 
 **Chat & Messages:**
 - `Chat`: id, userId, title, visibility (public/private), lastContext (usage JSON)
@@ -81,7 +81,7 @@ middleware.ts          # NextAuth route protection
 - `Suggestion`: id, documentId + documentCreatedAt FK, originalText, suggestedText, isResolved
 
 **Token Tracking:**
-- `SubscriptionPlan`: Defines tiers (Starter, Pro, Enterprise) with tokenQuota, modelLimits (JSONB), features
+- `SubscriptionPlan`: Defines tiers with tokenQuota, billingPeriod, billingPeriodCount, modelLimits (JSONB), features
 - `TokenUsageLog`: Per-message token usage with input/output/cache tokens, costs, modelId
 - `UserTokenUsage`: Aggregated usage per user per billing period, modelBreakdown (JSONB)
 
@@ -114,12 +114,14 @@ middleware.ts          # NextAuth route protection
 - Auto-renews billing periods when expired
 - Enforces per-user limits based on subscription tier
 
-**Subscription Tiers** (`lib/ai/subscription-tiers.ts`):
-- **Tester**: 50K tokens/day (free, resets daily for testing)
-- **Starter**: 500K/week or 2M/month
-- **Pro**: 10M/month or 120M/year
-- **Enterprise**: 50M-600M with unlimited messages
-- Each tier defines: tokenQuota, modelLimits (which models allowed), features (max file size, chat limits, API access)
+**Subscription Tiers** (`lib/subscription/subscription-tiers.ts`):
+- **Tester**: 100K tokens/day (free, resets daily for testing)
+- **Tester Paid**: 100K tokens/day (paid daily for testing)
+- **Basic Monthly**: 2M tokens/month
+- **Basic Quarterly**: 6M tokens/quarter (billingPeriod: "monthly", billingPeriodCount: 3)
+- **Basic Annual**: 24M tokens/year
+- Each tier defines: tokenQuota, billingPeriod, billingPeriodCount, features (max file size, chat limits, API access)
+- The `billingPeriodCount` field enables multi-period subscriptions (e.g., 3 months for quarterly)
 
 ### Artifact System
 
