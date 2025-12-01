@@ -28,7 +28,7 @@ export async function assignTesterPlan(userId: string) {
       .insert(subscriptionPlan)
       .values({
         name: testerTier.name,
-        displayName: testerTier.displayName,
+        displayName: testerTier.displayName.en,
         billingPeriod: testerTier.billingPeriod,
         tokenQuota: testerTier.tokenQuota,
         features: testerTier.features as any,
@@ -89,7 +89,7 @@ export async function upgradeToPlan(userId: string, planName: string) {
       .insert(subscriptionPlan)
       .values({
         name: tier.name,
-        displayName: tier.displayName,
+        displayName: tier.displayName.en,
         billingPeriod: tier.billingPeriod,
         tokenQuota: tier.tokenQuota,
         features: tier.features as any,

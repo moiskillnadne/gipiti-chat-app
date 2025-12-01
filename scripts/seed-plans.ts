@@ -33,7 +33,7 @@ async function main() {
         await db
           .update(subscriptionPlan)
           .set({
-            displayName: tier.displayName,
+            displayName: tier.displayName.en,
             billingPeriod: tier.billingPeriod,
             tokenQuota: tier.tokenQuota,
             features: tier.features as any,
@@ -49,7 +49,7 @@ async function main() {
         // Create new plan
         await db.insert(subscriptionPlan).values({
           name: tier.name,
-          displayName: tier.displayName,
+          displayName: tier.displayName.en,
           billingPeriod: tier.billingPeriod,
           tokenQuota: tier.tokenQuota,
           features: tier.features as any,
