@@ -4,7 +4,10 @@ export type BillingPeriod = "daily" | "weekly" | "monthly" | "annual";
 
 export type SubscriptionTierConfig = {
   name: string;
-  displayName: string;
+  displayName: {
+    en: string;
+    ru: string;
+  };
   billingPeriod: BillingPeriod;
   tokenQuota: number;
   features: {
@@ -29,7 +32,10 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
   // TESTER PLAN - Daily reset for easy testing (not for production use)
   tester: {
     name: "tester",
-    displayName: "Tester Plan",
+    displayName: {
+      en: "Tester Plan [Daily, Free]",
+      ru: "Тестовый план [Ежедневный, Бесплатный]",
+    },
     billingPeriod: "daily",
     tokenQuota: 100_000, // 100K tokens per day
     features: {
@@ -58,7 +64,10 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
   // PAID TESTER PLAN - Daily recurring subscription for testers
   tester_paid: {
     name: "tester_paid",
-    displayName: "Tester Plan",
+    displayName: {
+      en: "Tester Plan [Daily, Paid]",
+      ru: "Тестовый план [Ежедневный, Платный]",
+    },
     billingPeriod: "daily",
     tokenQuota: 100_000,
     features: {
@@ -87,7 +96,10 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
   // BASIC PLAN - Entry-level subscription for paywall
   basic_monthly: {
     name: "basic_monthly",
-    displayName: "Monthly",
+    displayName: {
+      en: "Basic Monthly Plan",
+      ru: "Базовый месячный план ",
+    },
     billingPeriod: "monthly",
     tokenQuota: 1_000_000, // 1M tokens per month
     features: {
@@ -114,7 +126,10 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
 
   basic_annual: {
     name: "basic_annual",
-    displayName: "Annual",
+    displayName: {
+      en: "Basic Annual Plan",
+      ru: "Базовый годовой план",
+    },
     billingPeriod: "annual",
     tokenQuota: 12_000_000, // 12M tokens per year (1M/month equivalent)
     features: {

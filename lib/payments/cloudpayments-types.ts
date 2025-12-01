@@ -154,9 +154,22 @@ export type CloudPaymentsWebhookResponse = {
 
 export type CloudPaymentsWidgetOptions = {
   language?: string;
-  disableApplePay?: boolean;
-  disableGooglePay?: boolean;
-  disableSbp?: boolean;
+  email?: string;
+  applePaySupport?: boolean;
+  googlePaySupport?: boolean;
+  yandexPaySupport?: boolean;
+  masterPassSupport?: boolean;
+  tinkoffInstallmentSupport?: boolean;
+  loanSupport?: boolean;
+  tinkoffPaySupport?: boolean;
+  dolyameSupport?: boolean;
+  mirPaySupport?: boolean;
+  speiSupport?: boolean;
+  cashSupport?: boolean;
+  cardInstallmentSupport?: boolean;
+  foreignSupport?: boolean;
+  sbpSupport?: boolean;
+  sberPaySupport?: boolean;
 };
 
 declare global {
