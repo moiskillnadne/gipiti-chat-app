@@ -181,7 +181,7 @@ async function handlePayWebhook(
         .insert(subscriptionPlan)
         .values({
           name: tier.name,
-          displayName: tier.displayName,
+          displayName: tier.displayName.en,
           billingPeriod: tier.billingPeriod,
           tokenQuota: tier.tokenQuota,
           features: {
