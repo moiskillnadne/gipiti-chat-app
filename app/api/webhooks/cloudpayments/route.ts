@@ -96,7 +96,7 @@ async function handleCheckWebhook(
     "[CloudPayments] Check Webhook - Expected Amount:",
     expectedAmount
   );
-  if (Amount !== expectedAmount) {
+  if (Number(Amount) !== expectedAmount) {
     console.error(
       `[CloudPayments] Check: amount mismatch. Expected ${expectedAmount}, got ${Amount}`
     );
