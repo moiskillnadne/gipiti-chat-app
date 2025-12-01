@@ -9,6 +9,8 @@ import { LanguageSwitcher } from "@/components/language-switcher";
 import { toast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
 import { SUBSCRIPTION_TIERS } from "@/lib/ai/subscription-tiers";
+import { Loader } from "../../../components/elements/loader";
+import type { Locale } from "../../../i18n/config";
 import type {
   CloudPaymentsReceipt,
   CloudPaymentsWidget,
@@ -93,9 +95,15 @@ function SubscribePage() {
   const t = useTranslations("auth.subscription");
   const tNav = useTranslations("common.navigation");
   const tLegal = useTranslations("legal");
-  const locale = useLocale();
+  const locale = useLocale() as Locale;
   const router = useRouter();
-  const { data: session, update: updateSession } = useSession();
+  const {
+    data: session,
+    update: updateSession,
+    status: sessionStatus,
+  } = useSession();
+
+  const isSessionLoading = sessionStatus === "loading";
 
   const isTester = session?.user?.isTester ?? false;
 
@@ -107,17 +115,19 @@ function SubscribePage() {
     return `$${tier.price.USD}`;
   };
 
-  const getAmount = useCallback(
-    (plan: PlanType) => {
-      const tier = SUBSCRIPTION_TIERS[plan];
-      return locale === "ru" ? tier.price.RUB : tier.price.USD;
-    },
-    [locale]
-  );
+  const getAmount = useCallback((plan: PlanType, currency: "RUB" | "USD") => {
+    const tier = SUBSCRIPTION_TIERS[plan];
+
+    if (tier.price[currency]) {
+      return tier.price[currency];
+    }
+
+    throw new Error(`Price for ${plan} in ${currency} is not defined`);
+  }, []);
 
   const getCurrency = useCallback(() => {
-    return locale === "ru" ? "RUB" : "USD";
-  }, [locale]);
+    return "RUB";
+  }, []);
 
   const [selectedPlan, setSelectedPlan] = useState<PlanType>(
     isTester ? "tester_paid" : "basic_annual"
@@ -149,8 +159,17 @@ function SubscribePage() {
     setIsLoading(true);
 
     const tier = SUBSCRIPTION_TIERS[selectedPlan];
-    const amount = getAmount(selectedPlan);
+    const displayName = tier.displayName[locale];
     const currency = getCurrency();
+    const amount = getAmount(selectedPlan, currency);
+
+    console.log("amount", amount);
+    console.log("currency", currency);
+    console.log("selectedPlan", selectedPlan);
+    console.log("tier", tier);
+    console.log("session.user.email", session.user.email);
+    console.log("publicId", publicId);
+    console.log("description", `${displayName}`);
 
     let recurrentConfig: { interval: "Day" | "Month"; period: number };
     if (selectedPlan === "tester_paid") {
@@ -161,23 +180,33 @@ function SubscribePage() {
       recurrentConfig = { interval: "Month", period: 1 };
     }
 
-    const receipt = buildReceipt(
-      `${tier.displayName} subscription`,
-      amount,
-      session.user.email
-    );
+    const receipt = buildReceipt(displayName, amount, session.user.email);
 
     const widget: CloudPaymentsWidget = new window.cp.CloudPayments({
-      disableApplePay: true,
-      disableGooglePay: true,
-      disableSbp: true,
+      language: locale,
+      email: session.user.email,
+      applePaySupport: false,
+      googlePaySupport: false,
+      yandexPaySupport: false,
+      masterPassSupport: false,
+      tinkoffInstallmentSupport: false,
+      loanSupport: false,
+      dolyameSupport: false,
+      mirPaySupport: false,
+      speiSupport: false,
+      cashSupport: false,
+      cardInstallmentSupport: false,
+      foreignSupport: false,
+      sbpSupport: false,
+      sberPaySupport: false,
+      tinkoffPaySupport: false,
     });
 
     widget.pay(
       "charge",
       {
         publicId,
-        description: `${tier.displayName} subscription`,
+        description: displayName,
         amount,
         currency,
         accountId: session.user.id,
@@ -225,7 +254,15 @@ function SubscribePage() {
         },
       }
     );
-  }, [session, selectedPlan, t, handleSessionUpdate, getAmount, getCurrency]);
+  }, [
+    session,
+    selectedPlan,
+    t,
+    handleSessionUpdate,
+    getAmount,
+    getCurrency,
+    locale,
+  ]);
 
   return (
     <div className="flex min-h-dvh w-screen items-start justify-center bg-background pt-12 md:items-center md:pt-0">
@@ -237,7 +274,13 @@ function SubscribePage() {
           </p>
         </div>
 
-        {isTester ? (
+        {isSessionLoading && (
+          <div className="flex items-center justify-center">
+            <Loader />
+          </div>
+        )}
+
+        {isTester && !isSessionLoading && (
           <div className="mx-auto max-w-md">
             <div className="relative flex flex-col rounded-2xl border-2 border-blue-500 bg-blue-50/50 p-6 text-left dark:border-blue-400 dark:bg-blue-950/30">
               <span className="-top-3 absolute right-4 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-3 py-1 font-medium text-white text-xs">
@@ -264,7 +307,9 @@ function SubscribePage() {
               </p>
             </div>
           </div>
-        ) : (
+        )}
+
+        {!isTester && !isSessionLoading && (
           <div className="grid gap-6 md:grid-cols-2">
             <button
               className={`relative flex cursor-pointer flex-col rounded-2xl border-2 p-6 text-left transition-all ${
