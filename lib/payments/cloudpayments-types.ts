@@ -152,11 +152,20 @@ export type CloudPaymentsWebhookResponse = {
   code: number;
 };
 
+export type CloudPaymentsWidgetOptions = {
+  language?: string;
+  disableApplePay?: boolean;
+  disableGooglePay?: boolean;
+  disableSbp?: boolean;
+};
+
 declare global {
   // biome-ignore lint/nursery/useConsistentTypeDefinitions: <We have to extend the window object>
   interface Window {
     cp: {
-      CloudPayments: new () => CloudPaymentsWidget;
+      CloudPayments: new (
+        options?: CloudPaymentsWidgetOptions
+      ) => CloudPaymentsWidget;
     };
   }
 }

@@ -9,7 +9,39 @@ import { LanguageSwitcher } from "@/components/language-switcher";
 import { toast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
 import { SUBSCRIPTION_TIERS } from "@/lib/ai/subscription-tiers";
-import type { CloudPaymentsWidget } from "../../../lib/payments/cloudpayments-types";
+import type {
+  CloudPaymentsReceipt,
+  CloudPaymentsWidget,
+} from "../../../lib/payments/cloudpayments-types";
+
+function buildReceipt(
+  label: string,
+  amount: number,
+  email: string
+): CloudPaymentsReceipt {
+  return {
+    Items: [
+      {
+        label,
+        price: amount,
+        quantity: 1.0,
+        amount,
+        vat: 20,
+        method: 4,
+        object: 4,
+      },
+    ],
+    taxationSystem: 0,
+    email,
+    isBso: false,
+    amounts: {
+      electronic: amount,
+      advancePayment: 0,
+      credit: 0,
+      provision: 0,
+    },
+  };
+}
 
 function CheckIcon({ className }: { className?: string }) {
   return (
@@ -129,7 +161,17 @@ function SubscribePage() {
       recurrentConfig = { interval: "Month", period: 1 };
     }
 
-    const widget: CloudPaymentsWidget = new window.cp.CloudPayments();
+    const receipt = buildReceipt(
+      `${tier.displayName} subscription`,
+      amount,
+      session.user.email
+    );
+
+    const widget: CloudPaymentsWidget = new window.cp.CloudPayments({
+      disableApplePay: true,
+      disableGooglePay: true,
+      disableSbp: true,
+    });
 
     widget.pay(
       "charge",
@@ -140,11 +182,15 @@ function SubscribePage() {
         currency,
         accountId: session.user.id,
         email: session.user.email,
-        skin: "modern",
+        skin: "classic",
         data: {
           planName: selectedPlan,
           CloudPayments: {
-            recurrent: recurrentConfig,
+            CustomerReceipt: receipt,
+            recurrent: {
+              ...recurrentConfig,
+              customerReceipt: receipt,
+            },
           },
         },
       },
