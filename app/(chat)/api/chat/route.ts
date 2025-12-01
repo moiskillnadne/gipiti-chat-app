@@ -112,7 +112,7 @@ export async function POST(request: Request) {
           {
             code: "bad_request:api",
             message:
-              "Your message is too long. Please reduce it to 3000 characters or less.",
+              "Your message is too long. Please reduce it to 10000 characters or less.",
             cause: `Current length: ${received} characters`,
           },
           { status: 400 }
@@ -230,11 +230,11 @@ export async function POST(request: Request) {
           model: myProvider.languageModel(selectedChatModel),
           system: systemPrompt({ selectedChatModel, requestHints }),
           messages: convertToModelMessages(uiMessages),
-          stopWhen: stepCountIs(5),
+          stopWhen: stepCountIs(15),
           ...(isReasoningModelId(selectedChatModel) && {
             reasoningEffort: "medium",
           }),
-          experimental_activeTools:
+          activeTools:
             isReasoningModelId(selectedChatModel) &&
             !supportsAttachments(selectedChatModel)
               ? []
