@@ -179,7 +179,10 @@ function SubscribePage() {
     if (tier.billingPeriod === "daily") {
       recurrentConfig = { interval: "Day", period: tier.billingPeriodCount };
     } else if (tier.billingPeriod === "annual") {
-      recurrentConfig = { interval: "Month", period: 12 * tier.billingPeriodCount };
+      recurrentConfig = {
+        interval: "Month",
+        period: 12 * tier.billingPeriodCount,
+      };
     } else {
       recurrentConfig = { interval: "Month", period: tier.billingPeriodCount };
     }

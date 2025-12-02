@@ -977,7 +977,11 @@ export async function createUserSubscription({
 }): Promise<UserSubscription> {
   try {
     const now = new Date();
-    const periodEnd = calculatePeriodEnd(now, billingPeriod, billingPeriodCount);
+    const periodEnd = calculatePeriodEnd(
+      now,
+      billingPeriod,
+      billingPeriodCount
+    );
     const nextBillingDate = periodEnd;
 
     const [subscription] = await db

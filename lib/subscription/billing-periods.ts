@@ -6,7 +6,7 @@ import type { BillingPeriod } from "./subscription-tiers";
 export function calculatePeriodEnd(
   startDate: Date,
   billingPeriod: BillingPeriod,
-  count: number = 1
+  count = 1
 ): Date {
   const endDate = new Date(startDate);
 
@@ -40,7 +40,7 @@ export function calculatePeriodEnd(
 export function calculateNextBillingDate(
   currentDate: Date,
   billingPeriod: BillingPeriod,
-  count: number = 1
+  count = 1
 ): Date {
   return calculatePeriodEnd(currentDate, billingPeriod, count);
 }
@@ -57,7 +57,7 @@ export function isPeriodExpired(periodEnd: Date): boolean {
  */
 export function getPeriodDurationDays(
   billingPeriod: BillingPeriod,
-  count: number = 1
+  count = 1
 ): number {
   let baseDays: number;
   switch (billingPeriod) {
@@ -102,7 +102,7 @@ export function getPeriodLabel(billingPeriod: BillingPeriod): string {
  */
 export function getPeriodLabelWithCount(
   billingPeriod: BillingPeriod,
-  count: number = 1
+  count = 1
 ): string {
   if (count === 1) {
     return getPeriodLabel(billingPeriod);
@@ -125,7 +125,7 @@ export function getPeriodLabelWithCount(
 export function getDailyAverageQuota(
   totalQuota: number,
   billingPeriod: BillingPeriod,
-  count: number = 1
+  count = 1
 ): number {
   const days = getPeriodDurationDays(billingPeriod, count);
   return Math.floor(totalQuota / days);
