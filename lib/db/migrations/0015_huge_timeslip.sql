@@ -1,0 +1,2 @@
+ALTER TABLE "SubscriptionPlan" ADD COLUMN "billing_period_count" integer DEFAULT 1 NOT NULL;--> statement-breakpoint
+ALTER TABLE "UserSubscription" ADD COLUMN "billing_period_count" integer DEFAULT 1 NOT NULL;

@@ -1,10 +1,10 @@
 import { and, eq, lte } from "drizzle-orm";
+import { db } from "@/lib/db/queries";
+import { userSubscription } from "@/lib/db/schema";
 import {
   calculateNextBillingDate,
   calculatePeriodEnd,
-} from "@/lib/ai/billing-periods";
-import { db } from "@/lib/db/queries";
-import { userSubscription } from "@/lib/db/schema";
+} from "@/lib/subscription/billing-periods";
 
 export async function GET(request: Request) {
   // Verify cron secret
@@ -28,13 +28,18 @@ export async function GET(request: Request) {
 
   let renewed = 0;
 
-  // Renew each subscription based on its billing period
+  // Renew each subscription based on its billing period and count
   for (const sub of expiredSubscriptions) {
     const newPeriodStart = sub.currentPeriodEnd;
-    const newPeriodEnd = calculatePeriodEnd(newPeriodStart, sub.billingPeriod);
+    const newPeriodEnd = calculatePeriodEnd(
+      newPeriodStart,
+      sub.billingPeriod,
+      sub.billingPeriodCount
+    );
     const newBillingDate = calculateNextBillingDate(
       newPeriodStart,
-      sub.billingPeriod
+      sub.billingPeriod,
+      sub.billingPeriodCount
     );
 
     await db

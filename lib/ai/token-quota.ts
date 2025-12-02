@@ -11,8 +11,8 @@ import {
   calculateNextBillingDate,
   calculatePeriodEnd,
   isPeriodExpired,
-} from "./billing-periods";
-import type { BillingPeriod } from "./subscription-tiers";
+} from "../subscription/billing-periods";
+import type { BillingPeriod } from "../subscription/subscription-tiers";
 
 /**
  * Get user's current subscription and quota information
@@ -97,11 +97,13 @@ async function renewSubscriptionPeriod(
   const newPeriodStart = subscription.currentPeriodEnd;
   const newPeriodEnd = calculatePeriodEnd(
     newPeriodStart,
-    subscription.billingPeriod
+    subscription.billingPeriod,
+    subscription.billingPeriodCount
   );
   const newBillingDate = calculateNextBillingDate(
     newPeriodStart,
-    subscription.billingPeriod
+    subscription.billingPeriod,
+    subscription.billingPeriodCount
   );
 
   const [updated] = await db

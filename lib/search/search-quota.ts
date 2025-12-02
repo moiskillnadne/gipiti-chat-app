@@ -1,4 +1,3 @@
-import { SUBSCRIPTION_TIERS } from "@/lib/ai/subscription-tiers";
 import {
   getActiveUserSubscription,
   getSearchUsageCountByBillingPeriod,
@@ -6,6 +5,7 @@ import {
   getUserById,
   insertSearchUsageLog,
 } from "@/lib/db/queries";
+import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 import type {
   SearchDepth,
   SearchQuotaInfo,
