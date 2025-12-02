@@ -178,13 +178,14 @@
       "quarterly": {
         "name": "Quarterly",
         "period": "/quarter",
-        "description": "3 months of access with reasoning models"
+        "description": "3 months of access with reasoning models",
+        "badge": "Save 17%"
       },
       "annual": {
         "name": "Annual",
         "period": "/year",
-        "description": "Best value - save 2 months!",
-        "badge": "Save 17%"
+        "description": "Best value - save 3 months!",
+        "badge": "Save 25%"
       },
       "tester": {
         "name": "Tester Plan",
@@ -195,9 +196,9 @@
         "title": "What's included:",
         "tokens": "1M tokens per month",
         "messages": "500 messages per period",
-        "models": "Access to all latest models (ChatGPT, Gemini, Opus)",
-        "search": "100 web searches per month",
-        "fileSize": "10MB file uploads"
+        "models": "Access to all latest reasoning models (ChatGPT, Gemini, Opus)",
+        "search": "Web search using models",
+        "fileSize": "Work with files up to 10MB (Documents, spreadsheets, images)"
       },
       "subscribeButton": "Subscribe",
       "subscribing": "Processing...",

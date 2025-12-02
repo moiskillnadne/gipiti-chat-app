@@ -367,6 +367,10 @@ function SubscribePage() {
               onClick={() => setSelectedPlan("basic_quarterly")}
               type="button"
             >
+              <span className="-top-3 absolute right-4 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 px-3 py-1 font-medium text-white text-xs">
+                {t("quarterly.badge")}
+              </span>
+
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="font-semibold text-xl dark:text-zinc-50">
                   {t("quarterly.name")}
@@ -453,18 +457,6 @@ function SubscribePage() {
             <li className="flex items-center gap-3">
               <CheckIcon className="text-emerald-500" />
               <span className="text-gray-600 text-sm dark:text-zinc-400">
-                {t("features.tokens")}
-              </span>
-            </li>
-            <li className="flex items-center gap-3">
-              <CheckIcon className="text-emerald-500" />
-              <span className="text-gray-600 text-sm dark:text-zinc-400">
-                {t("features.messages")}
-              </span>
-            </li>
-            <li className="flex items-center gap-3">
-              <CheckIcon className="text-emerald-500" />
-              <span className="text-gray-600 text-sm dark:text-zinc-400">
                 {t("features.models")}
               </span>
             </li>
@@ -495,14 +487,14 @@ function SubscribePage() {
           </Button>
 
           <button
-            className="font-medium text-gray-600 text-sm hover:underline dark:text-zinc-400"
+            className="my-2 font-medium text-gray-600 text-sm hover:underline dark:text-zinc-400"
             onClick={() => signOut({ callbackUrl: "/login" })}
             type="button"
           >
             {tNav("signOut")}
           </button>
 
-          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+          <div className="mb-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
             <Link
               className="font-medium text-gray-500 text-xs hover:underline dark:text-zinc-500"
               href="/legal/offer"
