@@ -1,10 +1,5 @@
 import crypto from "node:crypto";
 import { and, eq } from "drizzle-orm";
-import {
-  calculateNextBillingDate,
-  calculatePeriodEnd,
-} from "@/lib/ai/billing-periods";
-import { SUBSCRIPTION_TIERS } from "@/lib/ai/subscription-tiers";
 import { db } from "@/lib/db/queries";
 import { subscriptionPlan, user, userSubscription } from "@/lib/db/schema";
 import { getCloudPaymentsConfig } from "@/lib/payments/cloudpayments-config";
@@ -15,6 +10,11 @@ import type {
   CloudPaymentsPayWebhook,
   CloudPaymentsRecurrentWebhook,
 } from "@/lib/payments/cloudpayments-types";
+import {
+  calculateNextBillingDate,
+  calculatePeriodEnd,
+} from "@/lib/subscription/billing-periods";
+import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 
 type WebhookType = "check" | "pay" | "fail" | "recurrent" | "cancel";
 

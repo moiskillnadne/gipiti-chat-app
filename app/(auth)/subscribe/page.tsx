@@ -8,7 +8,7 @@ import { Suspense, useCallback, useState } from "react";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { toast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
-import { SUBSCRIPTION_TIERS } from "@/lib/ai/subscription-tiers";
+import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 import { Loader } from "../../../components/elements/loader";
 import type { Locale } from "../../../i18n/config";
 import type {

@@ -11,8 +11,8 @@ import {
   calculateNextBillingDate,
   calculatePeriodEnd,
   isPeriodExpired,
-} from "./billing-periods";
-import type { BillingPeriod } from "./subscription-tiers";
+} from "../subscription/billing-periods";
+import type { BillingPeriod } from "../subscription/subscription-tiers";
 
 /**
  * Get user's current subscription and quota information

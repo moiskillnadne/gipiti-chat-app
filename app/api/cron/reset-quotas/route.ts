@@ -1,10 +1,10 @@
 import { and, eq, lte } from "drizzle-orm";
+import { db } from "@/lib/db/queries";
+import { userSubscription } from "@/lib/db/schema";
 import {
   calculateNextBillingDate,
   calculatePeriodEnd,
-} from "@/lib/ai/billing-periods";
-import { db } from "@/lib/db/queries";
-import { userSubscription } from "@/lib/db/schema";
+} from "@/lib/subscription/billing-periods";
 
 export async function GET(request: Request) {
   // Verify cron secret

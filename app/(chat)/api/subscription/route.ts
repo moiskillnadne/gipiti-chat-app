@@ -1,8 +1,8 @@
 import { and, eq } from "drizzle-orm";
 import { auth } from "@/app/(auth)/auth";
-import { upgradeToPlan } from "@/lib/ai/subscription-init";
-import { SUBSCRIPTION_TIERS } from "@/lib/ai/subscription-tiers";
 import { getUserQuotaInfo } from "@/lib/ai/token-quota";
+import { upgradeToPlan } from "@/lib/subscription/subscription-init";
+import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 import { db } from "../../../../lib/db/queries";
 import { user, userSubscription } from "../../../../lib/db/schema";
 import { cancelSubscription } from "../../../../lib/payments/cloudpayments";
