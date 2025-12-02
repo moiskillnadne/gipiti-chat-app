@@ -2,15 +2,23 @@
 
 import { ChevronUp } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import type { User } from "next-auth";
 import { signOut, useSession } from "next-auth/react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
+import { useTransition } from "react";
+import { setUserLocale } from "@/app/actions/locale";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -18,6 +26,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { type Locale, localeFlags, localeNames, locales } from "@/i18n/config";
 import { LoaderIcon } from "./icons";
 import { toast } from "./toast";
 
@@ -26,6 +35,35 @@ export function SidebarUserNav({ user }: { user: User }) {
   const tSettings = useTranslations("settings.theme");
   const { status } = useSession();
   const { setTheme, resolvedTheme } = useTheme();
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const currentLocale = useLocale() as Locale;
+
+  const handleLocaleChange = (newLocale: string) => {
+    const locale = newLocale as Locale;
+
+    startTransition(async () => {
+      try {
+        const result = await setUserLocale(locale);
+
+        if (!result.success) {
+          toast({
+            type: "error",
+            description: result.error || "Failed to change language",
+          });
+          return;
+        }
+
+        router.refresh();
+      } catch (error) {
+        console.error("Failed to change locale:", error);
+        toast({
+          type: "error",
+          description: "Failed to change language",
+        });
+      }
+    });
+  };
 
   return (
     <SidebarMenu>
@@ -68,6 +106,30 @@ export function SidebarUserNav({ user }: { user: User }) {
             data-testid="user-nav-menu"
             side="top"
           >
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger disabled={isPending}>
+                <span className="flex items-center gap-2">
+                  <span>{localeFlags[currentLocale]}</span>
+                  <span>{localeNames[currentLocale]}</span>
+                </span>
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <DropdownMenuRadioGroup
+                  onValueChange={handleLocaleChange}
+                  value={currentLocale}
+                >
+                  {locales.map((locale) => (
+                    <DropdownMenuRadioItem key={locale} value={locale}>
+                      <span className="flex items-center gap-2">
+                        <span>{localeFlags[locale]}</span>
+                        <span>{localeNames[locale]}</span>
+                      </span>
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+            <DropdownMenuSeparator />
             <DropdownMenuItem
               className="cursor-pointer"
               data-testid="user-nav-item-theme"

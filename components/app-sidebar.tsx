@@ -9,7 +9,6 @@ import { toast } from "sonner";
 import { useSWRConfig } from "swr";
 import { unstable_serialize } from "swr/infinite";
 import { PlusIcon, TrashIcon } from "@/components/icons";
-import { LanguageSwitcher } from "@/components/language-switcher";
 import {
   getChatHistoryPaginationKey,
   SidebarHistory,
@@ -20,7 +19,6 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarGroup,
   SidebarHeader,
   SidebarMenu,
   useSidebar,
@@ -124,9 +122,6 @@ export function AppSidebar({ user }: { user: User | undefined }) {
           <SidebarHistory user={user} />
         </SidebarContent>
         <SidebarFooter>
-          <SidebarGroup>
-            <LanguageSwitcher />
-          </SidebarGroup>
           {user && <SidebarUserNav user={user} />}
         </SidebarFooter>
       </Sidebar>
