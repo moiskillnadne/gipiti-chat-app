@@ -175,6 +175,11 @@
         "period": "/month",
         "description": "Perfect for trying out the service"
       },
+      "quarterly": {
+        "name": "Quarterly",
+        "period": "/quarter",
+        "description": "3 months of access with reasoning models"
+      },
       "annual": {
         "name": "Annual",
         "period": "/year",

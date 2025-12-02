@@ -97,11 +97,13 @@ async function renewSubscriptionPeriod(
   const newPeriodStart = subscription.currentPeriodEnd;
   const newPeriodEnd = calculatePeriodEnd(
     newPeriodStart,
-    subscription.billingPeriod
+    subscription.billingPeriod,
+    subscription.billingPeriodCount
   );
   const newBillingDate = calculateNextBillingDate(
     newPeriodStart,
-    subscription.billingPeriod
+    subscription.billingPeriod,
+    subscription.billingPeriodCount
   );
 
   const [updated] = await db

@@ -18,6 +18,7 @@ import postgres from "postgres";
 import type { ArtifactKind } from "@/components/artifact";
 import type { VisibilityType } from "@/components/visibility-selector";
 import { ChatSDKError } from "../errors";
+import { calculatePeriodEnd } from "../subscription/billing-periods";
 import type { AppUsage } from "../usage";
 import {
   type Chat,
@@ -967,37 +968,16 @@ export async function createUserSubscription({
   userId,
   planId,
   billingPeriod,
+  billingPeriodCount = 1,
 }: {
   userId: string;
   planId: string;
   billingPeriod: "daily" | "weekly" | "monthly" | "annual";
+  billingPeriodCount?: number;
 }): Promise<UserSubscription> {
   try {
     const now = new Date();
-    let periodEnd: Date;
-
-    switch (billingPeriod) {
-      case "daily":
-        periodEnd = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-        break;
-      case "weekly":
-        periodEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-        break;
-      case "monthly":
-        periodEnd = new Date(now);
-        periodEnd.setMonth(periodEnd.getMonth() + 1);
-        break;
-      case "annual":
-        periodEnd = new Date(now);
-        periodEnd.setFullYear(periodEnd.getFullYear() + 1);
-        break;
-
-      default:
-        throw new ChatSDKError(
-          "bad_request:database",
-          `Invalid billing period: ${billingPeriod}`
-        );
-    }
+    const periodEnd = calculatePeriodEnd(now, billingPeriod, billingPeriodCount);
     const nextBillingDate = periodEnd;
 
     const [subscription] = await db
@@ -1006,6 +986,7 @@ export async function createUserSubscription({
         userId,
         planId,
         billingPeriod,
+        billingPeriodCount,
         currentPeriodStart: now,
         currentPeriodEnd: periodEnd,
         nextBillingDate,

@@ -89,7 +89,11 @@ function SubscribePageFallback() {
   );
 }
 
-type PlanType = "basic_monthly" | "basic_annual" | "tester_paid";
+type PlanType =
+  | "basic_monthly"
+  | "basic_quarterly"
+  | "basic_annual"
+  | "tester_paid";
 
 function SubscribePage() {
   const t = useTranslations("auth.subscription");
@@ -172,12 +176,12 @@ function SubscribePage() {
     console.log("description", `${displayName}`);
 
     let recurrentConfig: { interval: "Day" | "Month"; period: number };
-    if (selectedPlan === "tester_paid") {
-      recurrentConfig = { interval: "Day", period: 1 };
-    } else if (selectedPlan === "basic_annual") {
-      recurrentConfig = { interval: "Month", period: 12 };
+    if (tier.billingPeriod === "daily") {
+      recurrentConfig = { interval: "Day", period: tier.billingPeriodCount };
+    } else if (tier.billingPeriod === "annual") {
+      recurrentConfig = { interval: "Month", period: 12 * tier.billingPeriodCount };
     } else {
-      recurrentConfig = { interval: "Month", period: 1 };
+      recurrentConfig = { interval: "Month", period: tier.billingPeriodCount };
     }
 
     const receipt = buildReceipt(displayName, amount, session.user.email);
@@ -310,7 +314,7 @@ function SubscribePage() {
         )}
 
         {!isTester && !isSessionLoading && (
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 md:grid-cols-3">
             <button
               className={`relative flex cursor-pointer flex-col rounded-2xl border-2 p-6 text-left transition-all ${
                 selectedPlan === "basic_monthly"
@@ -348,6 +352,46 @@ function SubscribePage() {
 
               <p className="text-gray-600 text-sm dark:text-zinc-400">
                 {t("monthly.description")}
+              </p>
+            </button>
+
+            <button
+              className={`relative flex cursor-pointer flex-col rounded-2xl border-2 p-6 text-left transition-all ${
+                selectedPlan === "basic_quarterly"
+                  ? "border-blue-500 bg-blue-50/50 dark:border-blue-400 dark:bg-blue-950/30"
+                  : "border-gray-200 hover:border-gray-300 dark:border-zinc-700 dark:hover:border-zinc-600"
+              }`}
+              onClick={() => setSelectedPlan("basic_quarterly")}
+              type="button"
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="font-semibold text-xl dark:text-zinc-50">
+                  {t("quarterly.name")}
+                </h3>
+                <div
+                  className={`flex h-6 w-6 items-center justify-center rounded-full border-2 ${
+                    selectedPlan === "basic_quarterly"
+                      ? "border-blue-500 bg-blue-500"
+                      : "border-gray-300 dark:border-zinc-600"
+                  }`}
+                >
+                  {selectedPlan === "basic_quarterly" && (
+                    <CheckIcon className="text-white" />
+                  )}
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <span className="font-bold text-4xl dark:text-zinc-50">
+                  {formatPrice("basic_quarterly")}
+                </span>
+                <span className="text-gray-500 dark:text-zinc-400">
+                  {t("quarterly.period")}
+                </span>
+              </div>
+
+              <p className="text-gray-600 text-sm dark:text-zinc-400">
+                {t("quarterly.description")}
               </p>
             </button>
 

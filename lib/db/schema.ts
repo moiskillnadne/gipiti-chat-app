@@ -225,6 +225,7 @@ export const subscriptionPlan = pgTable(
     billingPeriod: billingPeriodEnum("billing_period")
       .notNull()
       .default("monthly"),
+    billingPeriodCount: integer("billing_period_count").notNull().default(1),
 
     // Token limits (per billing period)
     tokenQuota: bigint("token_quota", { mode: "number" }).notNull(),
@@ -273,6 +274,7 @@ export const userSubscription = pgTable(
 
     // Billing period configuration
     billingPeriod: billingPeriodEnum("billing_period").notNull(),
+    billingPeriodCount: integer("billing_period_count").notNull().default(1),
 
     // Current billing period
     currentPeriodStart: timestamp("current_period_start").notNull(),

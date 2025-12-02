@@ -28,13 +28,18 @@ export async function GET(request: Request) {
 
   let renewed = 0;
 
-  // Renew each subscription based on its billing period
+  // Renew each subscription based on its billing period and count
   for (const sub of expiredSubscriptions) {
     const newPeriodStart = sub.currentPeriodEnd;
-    const newPeriodEnd = calculatePeriodEnd(newPeriodStart, sub.billingPeriod);
+    const newPeriodEnd = calculatePeriodEnd(
+      newPeriodStart,
+      sub.billingPeriod,
+      sub.billingPeriodCount
+    );
     const newBillingDate = calculateNextBillingDate(
       newPeriodStart,
-      sub.billingPeriod
+      sub.billingPeriod,
+      sub.billingPeriodCount
     );
 
     await db

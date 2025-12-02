@@ -9,6 +9,7 @@ export type SubscriptionTierConfig = {
     ru: string;
   };
   billingPeriod: BillingPeriod;
+  billingPeriodCount: number;
   tokenQuota: number;
   features: {
     maxMessagesPerPeriod?: number;
@@ -37,6 +38,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       ru: "Тестовый план [Ежедневный, Бесплатный]",
     },
     billingPeriod: "daily",
+    billingPeriodCount: 1,
     tokenQuota: 100_000, // 100K tokens per day
     features: {
       maxMessagesPerPeriod: 50, // 50 messages per day
@@ -69,6 +71,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       ru: "Тестовый план [Ежедневный, Платный]",
     },
     billingPeriod: "daily",
+    billingPeriodCount: 1,
     tokenQuota: 100_000,
     features: {
       maxMessagesPerPeriod: 50,
@@ -101,6 +104,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       ru: "Базовый месячный план ",
     },
     billingPeriod: "monthly",
+    billingPeriodCount: 1,
     tokenQuota: 1_000_000, // 1M tokens per month
     features: {
       maxMessagesPerPeriod: 500,
@@ -124,6 +128,38 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
     },
   },
 
+  // QUARTERLY PLAN - 3-month subscription
+  basic_quarterly: {
+    name: "basic_quarterly",
+    displayName: {
+      en: "Basic Quarterly Plan",
+      ru: "Базовый квартальный план",
+    },
+    billingPeriod: "monthly",
+    billingPeriodCount: 3,
+    tokenQuota: 3_000_000, // 3M tokens per quarter (1M/month equivalent)
+    features: {
+      maxMessagesPerPeriod: 1500,
+      allowedModels: [
+        "gpt-5.1-instant",
+        "gpt-5.1-thinking",
+        "gemini-3-pro",
+        "opus-4.1",
+      ],
+      hasReasoningModels: true,
+      hasPrioritySupport: false,
+      maxFileSize: 10 * 1024 * 1024, // 10MB
+      maxConcurrentChats: 5,
+      hasAPIAccess: false,
+      searchQuota: 300, // 300 searches per quarter (100/month)
+      searchDepthAllowed: "basic",
+    },
+    price: {
+      USD: 49.99,
+      RUB: 4999,
+    },
+  },
+
   basic_annual: {
     name: "basic_annual",
     displayName: {
@@ -131,6 +167,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       ru: "Базовый годовой план",
     },
     billingPeriod: "annual",
+    billingPeriodCount: 1,
     tokenQuota: 12_000_000, // 12M tokens per year (1M/month equivalent)
     features: {
       maxMessagesPerPeriod: 6000,
