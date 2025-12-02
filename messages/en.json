@@ -279,17 +279,6 @@
       "selectModel": "Select Model",
       "currentModel": "Current Model"
     },
-    "visibility": {
-      "private": {
-        "label": "Private",
-        "description": "Only you can access this chat"
-      },
-      "public": {
-        "label": "Public",
-        "description": "Anyone with the link can access this chat"
-      },
-      "changeVisibility": "Change visibility"
-    },
     "tools": {
       "error": "Error",
       "result": "Result",

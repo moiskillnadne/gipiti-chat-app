@@ -27,14 +27,12 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
     redirect("/login");
   }
 
-  if (chat.visibility === "private") {
-    if (!session.user) {
-      return notFound();
-    }
+  if (!session.user) {
+    return notFound();
+  }
 
-    if (session.user.id !== chat.userId) {
-      return notFound();
-    }
+  if (session.user.id !== chat.userId) {
+    return notFound();
   }
 
   const messagesFromDb = await getMessagesByChatId({
@@ -70,7 +68,6 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
         initialChatModel={validatedModelId}
         initialLastContext={chat.lastContext ?? undefined}
         initialMessages={uiMessages}
-        initialVisibilityType={chat.visibility}
         isReadonly={session?.user?.id !== chat.userId}
       />
       <DataStreamHandler />
