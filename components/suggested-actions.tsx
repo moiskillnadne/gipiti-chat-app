@@ -6,12 +6,9 @@ import { useTranslations } from "next-intl";
 import { memo } from "react";
 import type { ChatMessage } from "@/lib/types";
 import { Suggestion } from "./elements/suggestion";
-import type { VisibilityType } from "./visibility-selector";
-
 type SuggestedActionsProps = {
   chatId: string;
   sendMessage: UseChatHelpers<ChatMessage>["sendMessage"];
-  selectedVisibilityType: VisibilityType;
 };
 
 function PureSuggestedActions({ chatId, sendMessage }: SuggestedActionsProps) {
@@ -59,9 +56,6 @@ export const SuggestedActions = memo(
   PureSuggestedActions,
   (prevProps, nextProps) => {
     if (prevProps.chatId !== nextProps.chatId) {
-      return false;
-    }
-    if (prevProps.selectedVisibilityType !== nextProps.selectedVisibilityType) {
       return false;
     }
 

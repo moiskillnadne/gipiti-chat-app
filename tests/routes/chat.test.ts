@@ -47,7 +47,6 @@ test.describe
           id: chatId,
           message: TEST_PROMPTS.SKY.MESSAGE,
           selectedChatModel: "chat-model",
-          selectedVisibilityType: "private",
         },
       });
       expect(response.status()).toBe(200);
@@ -76,7 +75,6 @@ test.describe
           id: chatId,
           message: TEST_PROMPTS.GRASS.MESSAGE,
           selectedChatModel: "chat-model",
-          selectedVisibilityType: "private",
         },
       });
       expect(response.status()).toBe(403);
@@ -139,7 +137,6 @@ test.describe
             createdAt: new Date().toISOString(),
           },
           selectedChatModel: "chat-model",
-          selectedVisibilityType: "private",
         },
       });
 
@@ -193,7 +190,6 @@ test.describe
             createdAt: new Date().toISOString(),
           },
           selectedChatModel: "chat-model",
-          selectedVisibilityType: "private",
         },
       });
 
@@ -243,7 +239,6 @@ test.describe
             createdAt: new Date().toISOString(),
           },
           selectedChatModel: "chat-model",
-          selectedVisibilityType: "private",
         },
       });
 
@@ -286,7 +281,6 @@ test.describe
             createdAt: new Date().toISOString(),
           },
           selectedChatModel: "chat-model",
-          selectedVisibilityType: "private",
         },
       });
 
@@ -333,7 +327,6 @@ test.describe
             createdAt: new Date().toISOString(),
           },
           selectedChatModel: "chat-model",
-          selectedVisibilityType: "public",
         },
       });
 

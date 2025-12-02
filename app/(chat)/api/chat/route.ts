@@ -18,7 +18,6 @@ import { fetchModels } from "tokenlens/fetch";
 import { getUsage } from "tokenlens/helpers";
 import { z } from "zod";
 import { auth, type UserType } from "@/app/(auth)/auth";
-import type { VisibilityType } from "@/components/visibility-selector";
 import { entitlementsByUserType } from "@/lib/ai/entitlements";
 import {
   type ChatModel,
@@ -128,12 +127,10 @@ export async function POST(request: Request) {
       id,
       message,
       selectedChatModel: requestedChatModel,
-      selectedVisibilityType,
     }: {
       id: string;
       message: ChatMessage;
       selectedChatModel: ChatModel["id"];
-      selectedVisibilityType: VisibilityType;
     } = requestBody;
 
     // Transform hidden models to default visible model
@@ -190,7 +187,6 @@ export async function POST(request: Request) {
         id,
         userId: session.user.id,
         title,
-        visibility: selectedVisibilityType,
       });
     }
 

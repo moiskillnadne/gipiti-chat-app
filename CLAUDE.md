@@ -72,7 +72,7 @@ middleware.ts          # NextAuth route protection
 - `UserSubscription`: userId, planId, billing period, status, external IDs
 
 **Chat & Messages:**
-- `Chat`: id, userId, title, visibility (public/private), lastContext (usage JSON)
+- `Chat`: id, userId, title, lastContext (usage JSON)
 - `Message_v2`: id, chatId, role, parts (JSON array), attachments, createdAt
 - `Vote_v2`: chatId + messageId composite PK, isUpvoted
 
@@ -188,7 +188,6 @@ middleware.ts          # NextAuth route protection
 - `useMessages()`: Scroll-to-bottom + message tracking
 - `useArtifact()`: Artifact state management
 - `useAutoResume()`: Resume interrupted streams
-- `useChatVisibility()`: Chat visibility state
 - `useScrollToBottom()`: Sticky scroll behavior
 - `useMobile()`: Responsive breakpoint detection
 

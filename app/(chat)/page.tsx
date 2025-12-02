@@ -46,7 +46,6 @@ export default async function Page() {
         id={id}
         initialChatModel={validatedModelId}
         initialMessages={[]}
-        initialVisibilityType="private"
         isReadonly={false}
         key={id}
       />
