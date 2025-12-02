@@ -301,7 +301,6 @@ export async function saveChat({
       createdAt: new Date(),
       userId,
       title,
-      visibility: "private",
     });
   } catch (_error) {
     throw new ChatSDKError("bad_request:database", "Failed to save chat");
@@ -688,7 +687,6 @@ export async function deleteMessagesByChatIdAfterTimestamp({
     );
   }
 }
-
 
 export async function updateChatLastContextById({
   chatId,
