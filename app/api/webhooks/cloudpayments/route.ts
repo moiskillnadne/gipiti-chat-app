@@ -53,10 +53,13 @@ async function handleCheckWebhook(
 ): Promise<Response> {
   const { AccountId, Amount, Data, Currency, SubscriptionId } = payload;
 
-  console.log("[CloudPayments] Check webhook received", payload);
+  console.info(
+    "[CloudPayments:Check] Received webhook",
+    JSON.stringify(payload, null, 2)
+  );
 
   if (!AccountId) {
-    console.error("[CloudPayments] Check webhook missing AccountId");
+    console.error("[CloudPayments:Check] Missing AccountId");
     return Response.json({ code: 10 });
   }
 
@@ -67,7 +70,7 @@ async function handleCheckWebhook(
     .limit(1);
 
   if (users.length === 0) {
-    console.error(`[CloudPayments] Check: user not found: ${AccountId}`);
+    console.error(`[CloudPayments:Check] User not found: ${AccountId}`);
     return Response.json({ code: 10 });
   }
 
@@ -85,7 +88,7 @@ async function handleCheckWebhook(
 
   if (!planName) {
     console.log(
-      "[CloudPayments] Check: planName not found in Data, looking up subscription from database"
+      "[CloudPayments:Check] planName not found in Data, looking up subscription from database"
     );
 
     if (SubscriptionId) {
@@ -109,7 +112,7 @@ async function handleCheckWebhook(
       if (subscriptions.length > 0) {
         planName = subscriptions[0].planName;
         console.log(
-          `[CloudPayments] Check: Found plan ${planName} by SubscriptionId ${SubscriptionId}`
+          `[CloudPayments:Check] Found plan ${planName} by SubscriptionId ${SubscriptionId}`
         );
       }
     }
@@ -135,7 +138,7 @@ async function handleCheckWebhook(
       if (subscriptions.length > 0) {
         planName = subscriptions[0].planName;
         console.log(
-          `[CloudPayments] Check: Found plan ${planName} by AccountId ${AccountId}`
+          `[CloudPayments:Check] Found plan ${planName} by AccountId ${AccountId}`
         );
       }
     }
@@ -143,29 +146,34 @@ async function handleCheckWebhook(
 
   if (!planName) {
     console.error(
-      `[CloudPayments] Check: Could not determine plan for user ${AccountId}`
+      `[CloudPayments:Check] Could not determine plan for user ${AccountId}`
     );
     return Response.json({ code: 13 });
   }
 
   const tier = SUBSCRIPTION_TIERS[planName as keyof typeof SUBSCRIPTION_TIERS];
 
-  console.log("[CloudPayments] Check Webhook - Plan:", planName, "Tier:", tier);
-  if (!tier || (tier.isTesterPlan && tier.price.RUB === 0)) {
-    console.error(`[CloudPayments] Check: invalid plan: ${planName}`);
+  console.log("[CloudPayments:Check] Plan:", planName, "Tier:", tier);
+
+  if (!tier) {
+    console.error(`[CloudPayments:Check] Invalid plan: ${planName}`);
+    return Response.json({ code: 13 });
+  }
+
+  if (tier.isTesterPlan && tier.price.RUB === 0) {
+    console.error(
+      "[CloudPayments:Check] Free tester plans are not allowed to be charged."
+    );
     return Response.json({ code: 13 });
   }
 
   const expectedAmount = Currency === "RUB" ? tier.price.RUB : tier.price.USD;
   console.log(
-    "[CloudPayments] Check Webhook - Expected Amount:",
-    expectedAmount,
-    "Received Amount:",
-    Amount
+    `[CloudPayments:Check] Expected Amount: ${expectedAmount}. Received Amount: ${Amount}`
   );
   if (Number(Amount) !== expectedAmount) {
     console.error(
-      `[CloudPayments] Check: amount mismatch. Expected ${expectedAmount}, got ${Amount}`
+      `[CloudPayments:Check] Check: amount mismatch. Expected ${expectedAmount}, got ${Amount}`
     );
     return Response.json({ code: 12 });
   }
@@ -187,7 +195,7 @@ async function handlePayWebhook(
   } = payload;
 
   if (!AccountId) {
-    console.error("[CloudPayments] Pay webhook missing AccountId");
+    console.error("[CloudPayments:Pay] Pay webhook missing AccountId");
     return Response.json({ code: 13 });
   }
 
@@ -205,7 +213,7 @@ async function handlePayWebhook(
 
   const tier = SUBSCRIPTION_TIERS[planName as keyof typeof SUBSCRIPTION_TIERS];
   if (!tier || (tier.isTesterPlan && tier.price.RUB === 0)) {
-    console.error(`[CloudPayments] Invalid plan: ${planName}`);
+    console.error(`[CloudPayments:Pay] Invalid plan: ${planName}`);
     return Response.json({ code: 13 });
   }
 
@@ -218,7 +226,7 @@ async function handlePayWebhook(
 
     if (existing.length > 0) {
       console.log(
-        `[CloudPayments] Subscription ${SubscriptionId} already processed, skipping`
+        `[CloudPayments:Pay] Subscription ${SubscriptionId} already processed, skipping`
       );
       return Response.json({ code: 0 });
     }
@@ -232,7 +240,7 @@ async function handlePayWebhook(
       .limit(1);
 
     if (users.length === 0) {
-      console.error(`[CloudPayments] User not found: ${AccountId}`);
+      console.error(`[CloudPayments:Pay] User not found: ${AccountId}`);
       return Response.json({ code: 13 });
     }
 
@@ -319,12 +327,12 @@ async function handlePayWebhook(
       .where(eq(user.id, AccountId));
 
     console.log(
-      `[CloudPayments] Subscription activated for user ${AccountId}, plan: ${planName}, card: ****${CardLastFour}`
+      `[CloudPayments:Pay] Subscription activated for user ${AccountId}, plan: ${planName}, card: ****${CardLastFour}`
     );
 
     return Response.json({ code: 0 });
   } catch (error) {
-    console.error("[CloudPayments] Error processing pay webhook:", error);
+    console.error("[CloudPayments:Pay] Error processing pay webhook:", error);
     return Response.json({ code: 13 });
   }
 }
@@ -335,7 +343,7 @@ async function handleFailWebhook(
   const { AccountId, Reason, ReasonCode, SubscriptionId } = payload;
 
   console.error(
-    `[CloudPayments] Payment failed for user ${AccountId}, reason: ${Reason} (code: ${ReasonCode}), subscription: ${SubscriptionId}`
+    `[CloudPayments:Fail] Payment failed for user ${AccountId}, reason: ${Reason} (code: ${ReasonCode}), subscription: ${SubscriptionId}`
   );
 
   if (AccountId) {
@@ -367,7 +375,7 @@ async function handleRecurrentWebhook(
   const { AccountId, Amount, SuccessfulTransactionsNumber, Id } = payload;
 
   console.log(
-    `[CloudPayments] Recurrent payment for user ${AccountId}, amount: ${Amount}, successful txs: ${SuccessfulTransactionsNumber}, subscription: ${Id}`
+    `[CloudPayments:Recurrent] Recurrent payment for user ${AccountId}, amount: ${Amount}, successful txs: ${SuccessfulTransactionsNumber}, subscription: ${Id}`
   );
 
   if (AccountId) {
@@ -418,7 +426,7 @@ async function handleCancelWebhook(
   const { AccountId, Id } = payload;
 
   console.log(
-    `[CloudPayments] Subscription cancelled for user ${AccountId}, subscription: ${Id}`
+    `[CloudPayments:Cancel] Subscription cancelled for user ${AccountId}, subscription: ${Id}`
   );
 
   if (AccountId) {
@@ -454,6 +462,8 @@ export async function POST(request: Request): Promise<Response> {
       { status: 400 }
     );
   }
+
+  console.info(`[CloudPayments] Received webhook of type ${webhookType}`);
 
   const rawBody = await request.text();
   const signature = request.headers.get("Content-HMAC");
