@@ -2,6 +2,7 @@
 
 import { ChevronUp } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { User } from "next-auth";
 import { signOut, useSession } from "next-auth/react";
@@ -140,6 +141,10 @@ export function SidebarUserNav({ user }: { user: User }) {
               {resolvedTheme === "light"
                 ? tSettings("toggleDark")
                 : tSettings("toggleLight")}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild data-testid="user-nav-item-subscription">
+              <Link href="/subscription">{t("navigation.subscription")}</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild data-testid="user-nav-item-auth">

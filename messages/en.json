@@ -34,7 +34,8 @@
       "loadingAuthStatus": "Loading auth status",
       "account": "Account",
       "checkingAuthStatus": "Checking authentication status, please try again!",
-      "signOut": "Sign out"
+      "signOut": "Sign out",
+      "subscription": "Subscription"
     },
     "language": {
       "switchLanguage": "Switch Language",
@@ -204,7 +205,26 @@
       "subscribing": "Processing...",
       "success": "Subscription activated!",
       "error": "Failed to activate subscription. Please try again.",
-      "comingSoon": "Payment integration coming soon! Thank you for your patience."
+      "comingSoon": "Payment integration coming soon! Thank you for your patience.",
+      "management": {
+        "title": "Subscription Management",
+        "description": "View your subscription details and payment information",
+        "planName": "Plan Name",
+        "billingPeriod": "Billing Period",
+        "billingPeriods": {
+          "daily": "Daily",
+          "weekly": "Weekly",
+          "monthly": "Monthly",
+          "annual": "Annual"
+        },
+        "latestPurchaseDate": "Latest Purchase Date",
+        "latestPurchaseAmount": "Latest Purchase Amount",
+        "nextPaymentDate": "Next Payment Date",
+        "nextPaymentAmount": "Next Payment Amount",
+        "noSubscriptionDescription": "You don't have an active subscription. Subscribe to get started.",
+        "subscribeLink": "Subscribe Now",
+        "notAvailable": "Not available"
+      }
     }
   },
   "chat": {

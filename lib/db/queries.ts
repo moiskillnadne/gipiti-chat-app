@@ -804,6 +804,44 @@ export async function getActiveUserSubscription({
   }
 }
 
+export async function getUserSubscriptionWithPlan({
+  userId,
+}: {
+  userId: string;
+}): Promise<{ subscription: UserSubscription; plan: SubscriptionPlan } | null> {
+  try {
+    const subscriptions = await db
+      .select({
+        subscription: userSubscription,
+        plan: subscriptionPlan,
+      })
+      .from(userSubscription)
+      .innerJoin(
+        subscriptionPlan,
+        eq(userSubscription.planId, subscriptionPlan.id)
+      )
+      .where(
+        and(
+          eq(userSubscription.userId, userId),
+          eq(userSubscription.status, "active")
+        )
+      )
+      .orderBy(desc(userSubscription.currentPeriodEnd))
+      .limit(1);
+
+    if (subscriptions.length === 0) {
+      return null;
+    }
+
+    return subscriptions[0];
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to get user subscription with plan"
+    );
+  }
+}
+
 export async function getSearchUsageCountByDateRange({
   userId,
   startDate,
