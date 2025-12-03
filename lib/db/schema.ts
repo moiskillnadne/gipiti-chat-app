@@ -287,7 +287,7 @@ export const userSubscription = pgTable(
     externalSubscriptionId: varchar("external_subscription_id", {
       length: 128,
     }),
-    externalCustomerId: varchar("external_customer_id", { length: 128 }),
+    cardToken: varchar("card_token", { length: 128 }),
     cardMask: varchar("card_mask", { length: 32 }),
 
     // Payment history reference

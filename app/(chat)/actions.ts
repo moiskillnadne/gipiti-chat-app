@@ -39,4 +39,3 @@ export async function deleteTrailingMessages({ id }: { id: string }) {
     timestamp: message.createdAt,
   });
 }
-

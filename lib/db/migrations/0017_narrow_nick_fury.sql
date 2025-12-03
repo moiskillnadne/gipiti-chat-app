@@ -1,0 +1,1 @@
+ALTER TABLE "UserSubscription" RENAME COLUMN "external_customer_id" TO "card_token";

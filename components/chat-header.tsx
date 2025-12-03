@@ -9,13 +9,12 @@ import { Button } from "@/components/ui/button";
 import { PlusIcon } from "./icons";
 import { useSidebar } from "./ui/sidebar";
 
-function PureChatHeader({
-  chatId,
-  isReadonly,
-}: {
+type PureChatHeaderProps = {
   chatId: string;
   isReadonly: boolean;
-}) {
+};
+
+function PureChatHeader(_props: PureChatHeaderProps) {
   const t = useTranslations("common.accessibility");
   const router = useRouter();
   const { open } = useSidebar();
@@ -39,7 +38,6 @@ function PureChatHeader({
           <span className="md:sr-only">{t("newChat")}</span>
         </Button>
       )}
-
     </header>
   );
 }

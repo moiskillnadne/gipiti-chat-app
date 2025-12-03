@@ -1,6 +1,6 @@
 {
-  "id": "b9bf09ff-4e9f-4873-bf96-e0a90f2a4035",
-  "prevId": "cf84797b-8ce9-4268-aa94-de26638af5b1",
+  "id": "26ac4f91-9a47-4c46-a793-f78caabfa398",
+  "prevId": "b9bf09ff-4e9f-4873-bf96-e0a90f2a4035",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -1101,8 +1101,8 @@
           "primaryKey": false,
           "notNull": false
         },
-        "external_customer_id": {
-          "name": "external_customer_id",
+        "card_token": {
+          "name": "card_token",
           "type": "varchar(128)",
           "primaryKey": false,
           "notNull": false

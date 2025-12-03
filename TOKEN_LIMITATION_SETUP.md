@@ -328,7 +328,7 @@ export async function POST(request: Request) {
     await db.update(userSubscription)
       .set({
         externalSubscriptionId: session.subscription,
-        externalCustomerId: session.customer,
+        cardToken: session.customer,
       })
       .where(eq(userSubscription.userId, userId));
   }
@@ -339,7 +339,7 @@ export async function POST(request: Request) {
 
 3. **Subscription Fields for Payments:**
    - `externalSubscriptionId` - Stripe/Paddle subscription ID
-   - `externalCustomerId` - Customer ID from payment provider
+   - `cardToken` - Card token from payment provider
    - `lastPaymentDate` - Last successful payment
    - `lastPaymentAmount` - Amount charged
    - `cancelAtPeriodEnd` - Flag for cancellation
