@@ -51,7 +51,7 @@ function getWebhookType(request: Request): WebhookType | null {
 async function handleCheckWebhook(
   payload: CloudPaymentsCheckWebhook
 ): Promise<Response> {
-  const { AccountId, Amount, Data, Currency } = payload;
+  const { AccountId, Amount, Data, Currency, SubscriptionId } = payload;
 
   console.log("[CloudPayments] Check webhook received", payload);
 
@@ -71,7 +71,7 @@ async function handleCheckWebhook(
     return Response.json({ code: 10 });
   }
 
-  let planName = "basic_monthly";
+  let planName: string | null = null;
   if (Data) {
     try {
       const data = JSON.parse(Data);
@@ -83,9 +83,74 @@ async function handleCheckWebhook(
     }
   }
 
+  if (!planName) {
+    console.log(
+      "[CloudPayments] Check: planName not found in Data, looking up subscription from database"
+    );
+
+    if (SubscriptionId) {
+      const subscriptions = await db
+        .select({
+          planName: subscriptionPlan.name,
+        })
+        .from(userSubscription)
+        .innerJoin(
+          subscriptionPlan,
+          eq(userSubscription.planId, subscriptionPlan.id)
+        )
+        .where(
+          and(
+            eq(userSubscription.externalSubscriptionId, SubscriptionId),
+            eq(userSubscription.status, "active")
+          )
+        )
+        .limit(1);
+
+      if (subscriptions.length > 0) {
+        planName = subscriptions[0].planName;
+        console.log(
+          `[CloudPayments] Check: Found plan ${planName} by SubscriptionId ${SubscriptionId}`
+        );
+      }
+    }
+
+    if (!planName) {
+      const subscriptions = await db
+        .select({
+          planName: subscriptionPlan.name,
+        })
+        .from(userSubscription)
+        .innerJoin(
+          subscriptionPlan,
+          eq(userSubscription.planId, subscriptionPlan.id)
+        )
+        .where(
+          and(
+            eq(userSubscription.userId, AccountId),
+            eq(userSubscription.status, "active")
+          )
+        )
+        .limit(1);
+
+      if (subscriptions.length > 0) {
+        planName = subscriptions[0].planName;
+        console.log(
+          `[CloudPayments] Check: Found plan ${planName} by AccountId ${AccountId}`
+        );
+      }
+    }
+  }
+
+  if (!planName) {
+    console.error(
+      `[CloudPayments] Check: Could not determine plan for user ${AccountId}`
+    );
+    return Response.json({ code: 13 });
+  }
+
   const tier = SUBSCRIPTION_TIERS[planName as keyof typeof SUBSCRIPTION_TIERS];
 
-  console.log("[CloudPayments] Check Webhook - Tier:", tier);
+  console.log("[CloudPayments] Check Webhook - Plan:", planName, "Tier:", tier);
   if (!tier || (tier.isTesterPlan && tier.price.RUB === 0)) {
     console.error(`[CloudPayments] Check: invalid plan: ${planName}`);
     return Response.json({ code: 13 });
@@ -94,7 +159,9 @@ async function handleCheckWebhook(
   const expectedAmount = Currency === "RUB" ? tier.price.RUB : tier.price.USD;
   console.log(
     "[CloudPayments] Check Webhook - Expected Amount:",
-    expectedAmount
+    expectedAmount,
+    "Received Amount:",
+    Amount
   );
   if (Number(Amount) !== expectedAmount) {
     console.error(
