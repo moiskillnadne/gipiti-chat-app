@@ -181,7 +181,6 @@ export class ChatPage {
     expect(await this.getSelectedModel()).toBe(chatModel.name);
   }
 
-
   async getRecentAssistantMessage() {
     const messageElements = await this.page
       .getByTestId("message-assistant")
