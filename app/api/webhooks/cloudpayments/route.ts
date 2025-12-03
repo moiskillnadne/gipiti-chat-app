@@ -307,7 +307,7 @@ async function handlePayWebhook(
       nextBillingDate: nextBilling,
       status: "active",
       externalSubscriptionId: SubscriptionId ?? null,
-      externalCustomerId: Token ?? null,
+      cardToken: Token ?? null,
       cardMask,
       lastPaymentDate: now,
       lastPaymentAmount: Amount?.toString() ?? null,
