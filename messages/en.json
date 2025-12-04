@@ -170,7 +170,9 @@
     },
     "subscription": {
       "title": "Choose Your Plan",
-      "subtitle": "Get unlimited access to all features",
+      "subtitle": "Subscribe to get access to AI chat and all features",
+      "welcomeNew": "Welcome! To get started, please choose a subscription plan below.",
+      "required": "A subscription is required to access the chat",
       "monthly": {
         "name": "Monthly",
         "period": "/month",

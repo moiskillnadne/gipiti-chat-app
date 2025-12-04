@@ -25,7 +25,7 @@ export const user = pgTable(
     id: uuid("id").primaryKey().notNull().defaultRandom(),
     email: varchar("email", { length: 64 }).notNull(),
     password: varchar("password", { length: 64 }),
-    currentPlan: varchar("current_plan", { length: 32 }).default("tester"),
+    currentPlan: varchar("current_plan", { length: 32 }), // No default - new users must subscribe
     preferredLanguage: varchar("preferred_language", { length: 8 }).default(
       "en"
     ),

@@ -1,6 +1,6 @@
 import { and, eq, lte } from "drizzle-orm";
 import { db } from "@/lib/db/queries";
-import { subscriptionPlan, userSubscription } from "@/lib/db/schema";
+import { subscriptionPlan, user, userSubscription } from "@/lib/db/schema";
 import {
   calculateNextBillingDate,
   calculatePeriodEnd,
@@ -82,9 +82,57 @@ export async function GET(request: Request) {
     `[Cron:ResetQuotas] Completed: ${renewed} tester subscriptions renewed`
   );
 
+  // Cleanup: Remove access for cancelled subscriptions that have passed their period end
+  console.log(
+    "[Cron:ResetQuotas] Checking for expired cancelled subscriptions"
+  );
+
+  const expiredCancelled = await db
+    .select()
+    .from(userSubscription)
+    .where(
+      and(
+        eq(userSubscription.cancelAtPeriodEnd, true),
+        lte(userSubscription.currentPeriodEnd, now)
+      )
+    );
+
+  console.log(
+    `[Cron:ResetQuotas] Found ${expiredCancelled.length} cancelled subscriptions past period end`
+  );
+
+  let cleaned = 0;
+
+  for (const sub of expiredCancelled) {
+    console.log(
+      `[Cron:ResetQuotas] Removing access for user ${sub.userId}, subscription ${sub.id}`
+    );
+
+    // Set user's currentPlan to null (remove access)
+    await db
+      .update(user)
+      .set({ currentPlan: null })
+      .where(eq(user.id, sub.userId));
+
+    // Ensure subscription status is cancelled
+    if (sub.status !== "cancelled") {
+      await db
+        .update(userSubscription)
+        .set({ status: "cancelled" })
+        .where(eq(userSubscription.id, sub.id));
+    }
+
+    cleaned++;
+  }
+
+  console.log(
+    `[Cron:ResetQuotas] Cleanup completed: ${cleaned} users lost access after cancellation period ended`
+  );
+
   return Response.json({
     renewed,
+    cleaned,
     timestamp: now.toISOString(),
-    message: `Successfully renewed ${renewed} free tester plan subscriptions. Paid plans use webhooks.`,
+    message: `Renewed ${renewed} tester subscriptions. Removed access for ${cleaned} expired cancelled subscriptions.`,
   });
 }

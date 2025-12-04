@@ -76,7 +76,12 @@ export async function createUser(
   try {
     const [newUser] = await db
       .insert(user)
-      .values({ email, password: hashedPassword, preferredLanguage })
+      .values({
+        email,
+        password: hashedPassword,
+        preferredLanguage,
+        currentPlan: null, // No default plan - users must subscribe to get access
+      })
       .returning();
     return newUser;
   } catch (_error) {

@@ -4,7 +4,7 @@ import { getUserQuotaInfo } from "@/lib/ai/token-quota";
 import { upgradeToPlan } from "@/lib/subscription/subscription-init";
 import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 import { db } from "../../../../lib/db/queries";
-import { user, userSubscription } from "../../../../lib/db/schema";
+import { userSubscription } from "../../../../lib/db/schema";
 import { cancelSubscription } from "../../../../lib/payments/cloudpayments";
 
 /**
@@ -109,14 +109,12 @@ export async function DELETE(_request: Request) {
       })
       .where(eq(userSubscription.id, subscription.id));
 
-    await db
-      .update(user)
-      .set({ currentPlan: "tester" })
-      .where(eq(user.id, session.user.id));
+    // Note: currentPlan will be set to null by cron job when period ends
+    // User retains access until currentPeriodEnd
 
     return Response.json({
       success: true,
-      message: "Subscription cancelled successfully",
+      message: "Subscription cancelled successfully. Access until period end.",
     });
   } catch (error) {
     console.error("Failed to cancel subscription:", error);
