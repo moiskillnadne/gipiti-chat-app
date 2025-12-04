@@ -208,6 +208,11 @@
       "success": "Subscription activated!",
       "error": "Failed to activate subscription. Please try again.",
       "comingSoon": "Payment integration coming soon! Thank you for your patience.",
+      "processing": "Processing your payment...",
+      "verifying": "Verifying payment...",
+      "activating": "Activating your subscription...",
+      "successRedirect": "Success! Redirecting you to the app...",
+      "pleaseWait": "Please don't close this page",
       "management": {
         "title": "Subscription Management",
         "description": "View your subscription details and payment information",
