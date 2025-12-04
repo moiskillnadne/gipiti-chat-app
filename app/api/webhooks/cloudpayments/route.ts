@@ -1,7 +1,12 @@
 import crypto from "node:crypto";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db/queries";
-import { subscriptionPlan, user, userSubscription } from "@/lib/db/schema";
+import {
+  paymentIntent,
+  subscriptionPlan,
+  user,
+  userSubscription,
+} from "@/lib/db/schema";
 import { getCloudPaymentsConfig } from "@/lib/payments/cloudpayments-config";
 import type {
   CloudPaymentsCancelWebhook,
@@ -200,11 +205,15 @@ async function handlePayWebhook(
   }
 
   let planName = "basic_monthly";
+  let sessionId: string | null = null;
   if (Data) {
     try {
       const data = JSON.parse(Data);
       if (data.planName) {
         planName = data.planName;
+      }
+      if (data.sessionId) {
+        sessionId = data.sessionId;
       }
     } catch {
       // Ignore parse errors
@@ -326,6 +335,39 @@ async function handlePayWebhook(
       .set({ currentPlan: planName })
       .where(eq(user.id, AccountId));
 
+    // Update PaymentIntent if sessionId was provided
+    if (sessionId) {
+      const intents = await db
+        .select()
+        .from(paymentIntent)
+        .where(
+          and(
+            eq(paymentIntent.sessionId, sessionId),
+            eq(paymentIntent.userId, AccountId)
+          )
+        )
+        .limit(1);
+
+      if (intents.length > 0) {
+        await db
+          .update(paymentIntent)
+          .set({
+            status: "succeeded",
+            externalSubscriptionId: SubscriptionId ?? null,
+            updatedAt: new Date(),
+          })
+          .where(eq(paymentIntent.id, intents[0].id));
+
+        console.log(
+          `[CloudPayments:Pay] Updated payment intent ${sessionId} to succeeded`
+        );
+      } else {
+        console.warn(
+          `[CloudPayments:Pay] PaymentIntent not found for sessionId ${sessionId}`
+        );
+      }
+    }
+
     console.log(
       `[CloudPayments:Pay] Subscription activated for user ${AccountId}, plan: ${planName}, card: ****${CardLastFour}`
     );
@@ -340,11 +382,24 @@ async function handlePayWebhook(
 async function handleFailWebhook(
   payload: CloudPaymentsFailWebhook
 ): Promise<Response> {
-  const { AccountId, Reason, ReasonCode, SubscriptionId } = payload;
+  const { AccountId, Reason, ReasonCode, SubscriptionId, Data } = payload;
 
   console.error(
     `[CloudPayments:Fail] Payment failed for user ${AccountId}, reason: ${Reason} (code: ${ReasonCode}), subscription: ${SubscriptionId}`
   );
+
+  // Extract sessionId from Data if available
+  let sessionId: string | null = null;
+  if (Data) {
+    try {
+      const data = JSON.parse(Data);
+      if (data.sessionId) {
+        sessionId = data.sessionId;
+      }
+    } catch {
+      // Ignore parse errors
+    }
+  }
 
   if (AccountId) {
     const subscriptions = await db
@@ -363,6 +418,35 @@ async function handleFailWebhook(
         .update(userSubscription)
         .set({ status: "past_due" })
         .where(eq(userSubscription.id, subscriptions[0].id));
+    }
+
+    // Update PaymentIntent if sessionId was provided
+    if (sessionId) {
+      const intents = await db
+        .select()
+        .from(paymentIntent)
+        .where(
+          and(
+            eq(paymentIntent.sessionId, sessionId),
+            eq(paymentIntent.userId, AccountId)
+          )
+        )
+        .limit(1);
+
+      if (intents.length > 0) {
+        await db
+          .update(paymentIntent)
+          .set({
+            status: "failed",
+            failureReason: `${Reason} (code: ${ReasonCode})`,
+            updatedAt: new Date(),
+          })
+          .where(eq(paymentIntent.id, intents[0].id));
+
+        console.log(
+          `[CloudPayments:Fail] Updated payment intent ${sessionId} to failed`
+        );
+      }
     }
   }
 

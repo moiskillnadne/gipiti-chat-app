@@ -210,6 +210,15 @@ export const billingPeriodEnum = pgEnum("billing_period", [
   "annual",
 ]);
 
+// Payment intent status enum
+export const paymentIntentStatusEnum = pgEnum("payment_intent_status", [
+  "pending",
+  "processing",
+  "succeeded",
+  "failed",
+  "expired",
+]);
+
 // Subscription Plans
 export const subscriptionPlan = pgTable(
   "SubscriptionPlan",
@@ -315,6 +324,67 @@ export const userSubscription = pgTable(
 );
 
 export type UserSubscription = InferSelectModel<typeof userSubscription>;
+
+// Payment Intent (tracks payment lifecycle for redirect recovery)
+export const paymentIntent = pgTable(
+  "PaymentIntent",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+
+    // Unique session identifier for client-side tracking
+    sessionId: varchar("session_id", { length: 64 }).notNull(),
+
+    // User & plan info
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    planName: varchar("plan_name", { length: 64 }).notNull(),
+
+    // Payment details
+    amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+    currency: varchar("currency", { length: 3 }).notNull().default("RUB"),
+
+    // Status tracking
+    status: paymentIntentStatusEnum("status").notNull().default("pending"),
+
+    // CloudPayments integration
+    externalTransactionId: varchar("external_transaction_id", { length: 128 }),
+    externalSubscriptionId: varchar("external_subscription_id", {
+      length: 128,
+    }),
+
+    // Failure info
+    failureReason: text("failure_reason"),
+
+    // Additional metadata
+    metadata: jsonb("metadata").$type<{
+      planDisplayName?: string;
+      billingPeriod?: string;
+      clientIp?: string;
+      userAgent?: string;
+    }>(),
+
+    // Expiration (30 minutes default)
+    expiresAt: timestamp("expires_at").notNull(),
+
+    // Meta
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    sessionIdIdx: uniqueIndex("payment_intent_session_id_idx").on(
+      table.sessionId
+    ),
+    userIdStatusIdx: index("payment_intent_user_id_status_idx").on(
+      table.userId,
+      table.status
+    ),
+    expiresAtIdx: index("payment_intent_expires_at_idx").on(table.expiresAt),
+    createdAtIdx: index("payment_intent_created_at_idx").on(table.createdAt),
+  })
+);
+
+export type PaymentIntent = InferSelectModel<typeof paymentIntent>;
 
 // Token Usage Log
 export const tokenUsageLog = pgTable(

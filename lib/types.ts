@@ -59,3 +59,28 @@ export type Attachment = {
   url: string;
   contentType: string;
 };
+
+// Payment Intent types
+export type PaymentStatus =
+  | "pending"
+  | "processing"
+  | "verifying"
+  | "activating"
+  | "succeeded"
+  | "failed"
+  | "expired";
+
+export type PaymentIntentResponse = {
+  sessionId: string;
+  expiresAt: string;
+};
+
+export type PaymentStatusResponse = {
+  status: PaymentStatus;
+  subscription?: {
+    id: string;
+    planName: string;
+    status: string;
+  };
+  failureReason?: string;
+};
