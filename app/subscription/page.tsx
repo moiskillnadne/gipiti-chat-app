@@ -1,8 +1,10 @@
+import { ChevronLeftIcon } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { ChevronLeftIcon } from "lucide-react";
 import { auth } from "@/app/(auth)/auth";
+import { CancelSubscriptionButton } from "@/components/cancel-subscription-button";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -76,7 +78,7 @@ export default async function SubscriptionPage() {
       <div className="container mx-auto max-w-4xl p-6">
         <div className="mb-4">
           <Link href="/">
-            <Button variant="ghost" className="gap-2">
+            <Button className="gap-2" variant="ghost">
               <ChevronLeftIcon size={16} />
               {tCommon("back")}
             </Button>
@@ -99,11 +101,41 @@ export default async function SubscriptionPage() {
 
   const { subscription, plan } = subscriptionData;
 
+  const getStatusBadge = (status: string) => {
+    if (status === "cancelled") {
+      return (
+        <Badge className="w-fit" variant="destructive">
+          {t("statusCancelled")}
+        </Badge>
+      );
+    }
+
+    if (status === "past_due") {
+      return (
+        <Badge
+          className="w-fit border-yellow-500 text-yellow-600"
+          variant="outline"
+        >
+          {t("statusPastDue")}
+        </Badge>
+      );
+    }
+
+    return (
+      <Badge className="w-fit bg-green-100 text-green-800" variant="secondary">
+        {t("statusActive")}
+      </Badge>
+    );
+  };
+
+  const isCancelled =
+    subscription.status === "cancelled" || subscription.cancelAtPeriodEnd;
+
   return (
     <div className="container mx-auto max-w-4xl p-6">
       <div className="mb-4">
         <Link href="/">
-          <Button variant="ghost" className="gap-2">
+          <Button className="gap-2" variant="ghost">
             <ChevronLeftIcon size={16} />
             {tCommon("back")}
           </Button>
@@ -115,6 +147,30 @@ export default async function SubscriptionPage() {
           <CardDescription>{t("description")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <h3 className="font-medium text-muted-foreground text-sm">
+              {t("status")}
+            </h3>
+            <div className="flex flex-col gap-2">
+              {getStatusBadge(subscription.status)}
+              {subscription.cancelAtPeriodEnd &&
+                subscription.currentPeriodEnd && (
+                  <p className="text-muted-foreground text-sm">
+                    {t("willCancelAt", {
+                      date: formatDate(subscription.currentPeriodEnd),
+                    })}
+                  </p>
+                )}
+              {subscription.cancelledAt && (
+                <p className="text-muted-foreground text-sm">
+                  {t("cancelledOn", {
+                    date: formatDate(subscription.cancelledAt),
+                  })}
+                </p>
+              )}
+            </div>
+          </div>
+
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <h3 className="font-medium text-muted-foreground text-sm">
@@ -173,7 +229,23 @@ export default async function SubscriptionPage() {
           </div>
         </CardContent>
       </Card>
+
+      {subscription.status === "active" && !subscription.cancelAtPeriodEnd && (
+        <Card className="mt-6 border-destructive/50">
+          <CardHeader>
+            <CardTitle className="text-destructive">
+              {t("dangerZone.title")}
+            </CardTitle>
+            <CardDescription>{t("dangerZone.description")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <CancelSubscriptionButton
+              currentPeriodEnd={subscription.currentPeriodEnd}
+              isAlreadyCancelled={isCancelled}
+            />
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
-

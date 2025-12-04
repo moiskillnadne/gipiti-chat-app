@@ -223,7 +223,24 @@
         "nextPaymentAmount": "Next Payment Amount",
         "noSubscriptionDescription": "You don't have an active subscription. Subscribe to get started.",
         "subscribeLink": "Subscribe Now",
-        "notAvailable": "Not available"
+        "notAvailable": "Not available",
+        "status": "Status",
+        "statusActive": "Active",
+        "statusCancelled": "Cancelled",
+        "statusPastDue": "Past Due",
+        "willCancelAt": "Will cancel at period end: {date}",
+        "cancelledOn": "Cancelled on {date}",
+        "dangerZone": {
+          "title": "Danger Zone",
+          "description": "Permanently cancel your subscription",
+          "cancelButton": "Cancel Subscription",
+          "cancelling": "Cancelling...",
+          "confirmTitle": "Cancel Subscription?",
+          "confirmDescription": "Are you sure you want to cancel your subscription? You'll retain access until {date}. This action cannot be undone and no refunds will be issued for the current billing period.",
+          "confirmButton": "Yes, Cancel Subscription",
+          "cancelSuccess": "Subscription cancelled successfully. You'll retain access until {date}.",
+          "cancelError": "Failed to cancel subscription. Please try again or contact support."
+        }
       }
     }
   },
