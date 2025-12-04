@@ -207,14 +207,14 @@ function SubscribePage() {
       tinkoffInstallmentSupport: false,
       loanSupport: false,
       dolyameSupport: false,
-      mirPaySupport: false,
+      mirPaySupport: true,
       speiSupport: false,
       cashSupport: false,
       cardInstallmentSupport: false,
       foreignSupport: false,
       sbpSupport: false,
-      sberPaySupport: false,
-      tinkoffPaySupport: false,
+      sberPaySupport: true,
+      tinkoffPaySupport: true,
     });
 
     widget.pay(
