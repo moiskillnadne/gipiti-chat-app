@@ -170,7 +170,9 @@
     },
     "subscription": {
       "title": "Choose Your Plan",
-      "subtitle": "Get unlimited access to all features",
+      "subtitle": "Subscribe to get access to AI chat and all features",
+      "welcomeNew": "Welcome! To get started, please choose a subscription plan below.",
+      "required": "A subscription is required to access the chat",
       "monthly": {
         "name": "Monthly",
         "period": "/month",
@@ -206,6 +208,11 @@
       "success": "Subscription activated!",
       "error": "Failed to activate subscription. Please try again.",
       "comingSoon": "Payment integration coming soon! Thank you for your patience.",
+      "processing": "Processing your payment...",
+      "verifying": "Verifying payment...",
+      "activating": "Activating your subscription...",
+      "successRedirect": "Success! Redirecting you to the app...",
+      "pleaseWait": "Please don't close this page",
       "management": {
         "title": "Subscription Management",
         "description": "View your subscription details and payment information",

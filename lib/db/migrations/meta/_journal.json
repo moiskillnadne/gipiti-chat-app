@@ -127,6 +127,13 @@
       "when": 1764763734803,
       "tag": "0017_narrow_nick_fury",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1764847820531,
+      "tag": "0018_glossy_blazing_skull",
+      "breakpoints": true
     }
   ]
 }

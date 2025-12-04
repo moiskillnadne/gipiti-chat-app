@@ -1,0 +1,1 @@
+ALTER TABLE "User" ALTER COLUMN "current_plan" DROP DEFAULT;

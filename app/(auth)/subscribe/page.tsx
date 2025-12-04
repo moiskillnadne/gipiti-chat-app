@@ -6,6 +6,10 @@ import { signOut, useSession } from "next-auth/react";
 import { useLocale, useTranslations } from "next-intl";
 import { Suspense, useCallback, useState } from "react";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import {
+  PaymentLoadingOverlay,
+  type PaymentStatus,
+} from "@/components/payment-loading-overlay";
 import { toast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
 import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
@@ -137,6 +141,9 @@ function SubscribePage() {
     isTester ? "tester_paid" : "basic_annual"
   );
   const [isLoading, setIsLoading] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus | null>(
+    null
+  );
 
   const handleSessionUpdate = useCallback(async () => {
     await updateSession({ hasActiveSubscription: true });
@@ -161,6 +168,7 @@ function SubscribePage() {
     }
 
     setIsLoading(true);
+    setPaymentStatus("processing");
 
     const tier = SUBSCRIPTION_TIERS[selectedPlan];
     const displayName = tier.displayName[locale];
@@ -199,14 +207,14 @@ function SubscribePage() {
       tinkoffInstallmentSupport: false,
       loanSupport: false,
       dolyameSupport: false,
-      mirPaySupport: false,
+      mirPaySupport: true,
       speiSupport: false,
       cashSupport: false,
       cardInstallmentSupport: false,
       foreignSupport: false,
       sbpSupport: false,
-      sberPaySupport: false,
-      tinkoffPaySupport: false,
+      sberPaySupport: true,
+      tinkoffPaySupport: true,
     });
 
     widget.pay(
@@ -232,32 +240,55 @@ function SubscribePage() {
       },
       {
         onSuccess: async () => {
-          for (let i = 0; i < 10; i++) {
+          // Start polling for subscription activation
+          setPaymentStatus("verifying");
+
+          // Extended polling: 30 retries × 500ms = 15 seconds total
+          for (let i = 0; i < 30; i++) {
             try {
               const res = await fetch("/api/subscription");
               const data = await res.json();
+
               if (data.subscription?.status === "active") {
-                setIsLoading(false);
+                // Subscription confirmed
+                setPaymentStatus("activating");
+                await new Promise((resolve) => setTimeout(resolve, 500));
+
+                setPaymentStatus("success");
                 toast({ type: "success", description: t("success") });
+
+                await new Promise((resolve) => setTimeout(resolve, 500));
                 handleSessionUpdate();
                 return;
               }
             } catch {
-              // Continue polling
+              // Continue polling on error
             }
+
+            // Show "activating" status after 10 retries (5 seconds)
+            if (i === 10) {
+              setPaymentStatus("activating");
+            }
+
             await new Promise((resolve) => setTimeout(resolve, 500));
           }
-          setIsLoading(false);
+
+          // Polling completed - assume success and proceed
+          setPaymentStatus("success");
           toast({ type: "success", description: t("success") });
+          await new Promise((resolve) => setTimeout(resolve, 500));
           handleSessionUpdate();
         },
         onFail: (reason) => {
           setIsLoading(false);
+          setPaymentStatus(null);
           console.error("[CloudPayments] Payment failed:", reason);
           toast({ type: "error", description: t("error") });
         },
         onComplete: () => {
+          // Clean up if user closes modal without completing
           setIsLoading(false);
+          setPaymentStatus(null);
         },
       }
     );
@@ -523,6 +554,8 @@ function SubscribePage() {
       <div className="fixed bottom-4 left-4 z-50">
         <LanguageSwitcher />
       </div>
+
+      <PaymentLoadingOverlay isOpen={isLoading} status={paymentStatus} />
     </div>
   );
 }

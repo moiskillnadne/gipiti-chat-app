@@ -1,6 +1,6 @@
 import { and, eq, lte } from "drizzle-orm";
 import { db } from "@/lib/db/queries";
-import { userSubscription } from "@/lib/db/schema";
+import { subscriptionPlan, user, userSubscription } from "@/lib/db/schema";
 import {
   calculateNextBillingDate,
   calculatePeriodEnd,
@@ -15,21 +15,40 @@ export async function GET(request: Request) {
 
   const now = new Date();
 
-  // Find all subscriptions with expired periods
+  console.log("[Cron:ResetQuotas] Starting quota reset for free tester plans");
+
+  // Find only FREE tester plan subscriptions with expired periods
+  // Paid plans (including tester_paid) use CloudPayments webhooks for resets
   const expiredSubscriptions = await db
-    .select()
+    .select({
+      subscription: userSubscription,
+      plan: subscriptionPlan,
+    })
     .from(userSubscription)
+    .innerJoin(
+      subscriptionPlan,
+      eq(userSubscription.planId, subscriptionPlan.id)
+    )
     .where(
       and(
         eq(userSubscription.status, "active"),
-        lte(userSubscription.currentPeriodEnd, now)
+        lte(userSubscription.currentPeriodEnd, now),
+        eq(subscriptionPlan.name, "tester") // Only free tester plan
       )
     );
+
+  console.log(
+    `[Cron:ResetQuotas] Found ${expiredSubscriptions.length} expired tester subscriptions`
+  );
 
   let renewed = 0;
 
   // Renew each subscription based on its billing period and count
-  for (const sub of expiredSubscriptions) {
+  for (const { subscription: sub, plan } of expiredSubscriptions) {
+    console.log(
+      `[Cron:ResetQuotas] Renewing subscription ${sub.id} for user ${sub.userId}, plan: ${plan.name}`
+    );
+
     const newPeriodStart = sub.currentPeriodEnd;
     const newPeriodEnd = calculatePeriodEnd(
       newPeriodStart,
@@ -52,12 +71,68 @@ export async function GET(request: Request) {
       })
       .where(eq(userSubscription.id, sub.id));
 
+    console.log(
+      `[Cron:ResetQuotas] Renewed: new period ${newPeriodStart.toISOString()} to ${newPeriodEnd.toISOString()}`
+    );
+
     renewed++;
   }
 
+  console.log(
+    `[Cron:ResetQuotas] Completed: ${renewed} tester subscriptions renewed`
+  );
+
+  // Cleanup: Remove access for cancelled subscriptions that have passed their period end
+  console.log(
+    "[Cron:ResetQuotas] Checking for expired cancelled subscriptions"
+  );
+
+  const expiredCancelled = await db
+    .select()
+    .from(userSubscription)
+    .where(
+      and(
+        eq(userSubscription.cancelAtPeriodEnd, true),
+        lte(userSubscription.currentPeriodEnd, now)
+      )
+    );
+
+  console.log(
+    `[Cron:ResetQuotas] Found ${expiredCancelled.length} cancelled subscriptions past period end`
+  );
+
+  let cleaned = 0;
+
+  for (const sub of expiredCancelled) {
+    console.log(
+      `[Cron:ResetQuotas] Removing access for user ${sub.userId}, subscription ${sub.id}`
+    );
+
+    // Set user's currentPlan to null (remove access)
+    await db
+      .update(user)
+      .set({ currentPlan: null })
+      .where(eq(user.id, sub.userId));
+
+    // Ensure subscription status is cancelled
+    if (sub.status !== "cancelled") {
+      await db
+        .update(userSubscription)
+        .set({ status: "cancelled" })
+        .where(eq(userSubscription.id, sub.id));
+    }
+
+    cleaned++;
+  }
+
+  console.log(
+    `[Cron:ResetQuotas] Cleanup completed: ${cleaned} users lost access after cancellation period ended`
+  );
+
   return Response.json({
     renewed,
+    cleaned,
     timestamp: now.toISOString(),
-    message: `Successfully renewed ${renewed} subscriptions across all billing periods`,
+    message: `Renewed ${renewed} tester subscriptions. Removed access for ${cleaned} expired cancelled subscriptions.`,
   });
 }

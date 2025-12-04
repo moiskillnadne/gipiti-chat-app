@@ -444,10 +444,8 @@ async function handleCancelWebhook(
         )
       );
 
-    await db
-      .update(user)
-      .set({ currentPlan: "tester" })
-      .where(eq(user.id, AccountId));
+    // Note: currentPlan will be set to null by cron job when period ends
+    // User retains access until currentPeriodEnd
   }
 
   return Response.json({ code: 0 });
