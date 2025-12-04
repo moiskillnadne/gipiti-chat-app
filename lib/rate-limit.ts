@@ -4,6 +4,7 @@ import { getUpstashClient } from "@/lib/redis";
 // Initialize rate limiters with Upstash client
 let passwordResetRateLimiter: Ratelimit | null = null;
 let verificationResendRateLimiter: Ratelimit | null = null;
+let paymentStatusRateLimiter: Ratelimit | null = null;
 
 const upstashClient = getUpstashClient();
 if (upstashClient) {
@@ -19,6 +20,13 @@ if (upstashClient) {
     limiter: Ratelimit.fixedWindow(1, "60 s"),
     analytics: true,
     prefix: "ratelimit:verification-resend",
+  });
+
+  paymentStatusRateLimiter = new Ratelimit({
+    redis: upstashClient,
+    limiter: Ratelimit.slidingWindow(120, "1 m"),
+    analytics: true,
+    prefix: "ratelimit:payment-status",
   });
 }
 
@@ -122,4 +130,38 @@ export function getRateLimitResetSeconds(resetTimestamp?: number): number {
   const now = Date.now();
   const diff = resetTimestamp - now;
   return Math.ceil(diff / 1000);
+}
+
+/**
+ * Check if payment status request is rate limited
+ * @param identifier The IP address or user ID checking payment status
+ * @returns Object with success status and remaining attempts
+ */
+export async function checkPaymentStatusRateLimit(identifier: string): Promise<{
+  success: boolean;
+  remaining?: number;
+  reset?: number;
+}> {
+  // If rate limiter is not configured, allow the request
+  if (!paymentStatusRateLimiter) {
+    console.warn(
+      "Payment status rate limiting is not configured. Requests will proceed without rate limiting."
+    );
+    return { success: true };
+  }
+
+  try {
+    // Check rate limit using identifier (IP or sessionId)
+    const { success, remaining, reset } =
+      await paymentStatusRateLimiter.limit(identifier);
+
+    return {
+      success,
+      remaining,
+      reset,
+    };
+  } catch (error) {
+    console.error("Error checking payment status rate limit:", error);
+    return { success: true };
+  }
 }

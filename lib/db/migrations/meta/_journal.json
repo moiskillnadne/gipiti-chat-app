@@ -134,6 +134,13 @@
       "when": 1764847820531,
       "tag": "0018_glossy_blazing_skull",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1764872482466,
+      "tag": "0019_youthful_the_phantom",
+      "breakpoints": true
     }
   ]
 }

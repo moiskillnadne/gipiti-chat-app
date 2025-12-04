@@ -4,15 +4,17 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { useLocale, useTranslations } from "next-intl";
-import { Suspense, useCallback, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { LanguageSwitcher } from "@/components/language-switcher";
-import {
-  PaymentLoadingOverlay,
-  type PaymentStatus,
-} from "@/components/payment-loading-overlay";
+import { PaymentLoadingOverlay } from "@/components/payment-loading-overlay";
 import { toast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
 import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
+import type {
+  PaymentIntentResponse,
+  PaymentStatus,
+  PaymentStatusResponse,
+} from "@/lib/types";
 import { Loader } from "../../../components/elements/loader";
 import type { Locale } from "../../../i18n/config";
 import type {
@@ -144,13 +146,110 @@ function SubscribePage() {
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus | null>(
     null
   );
+  const [paymentError, setPaymentError] = useState<string | null>(null);
 
   const handleSessionUpdate = useCallback(async () => {
     await updateSession({ hasActiveSubscription: true });
     router.replace("/");
   }, [updateSession, router]);
 
-  const handleSubscribe = useCallback(() => {
+  // Poll payment status using the new payment intent system
+  const pollPaymentStatus = useCallback(
+    async (sessionId: string, maxRetries = 10) => {
+      setPaymentStatus("verifying");
+
+      for (let i = 0; i < maxRetries; i++) {
+        try {
+          const res = await fetch(
+            `/api/payment/status?sessionId=${encodeURIComponent(sessionId)}`
+          );
+
+          if (!res.ok) {
+            if (res.status === 429) {
+              // Rate limited, wait longer
+              await new Promise((resolve) => setTimeout(resolve, 2000));
+              continue;
+            }
+            throw new Error("Failed to fetch payment status");
+          }
+
+          const data: PaymentStatusResponse = await res.json();
+
+          if (data.status === "succeeded") {
+            setPaymentStatus("activating");
+            await new Promise((resolve) => setTimeout(resolve, 500));
+
+            setPaymentStatus("succeeded");
+            toast({ type: "success", description: t("success") });
+
+            sessionStorage.removeItem("payment_session_id");
+            sessionStorage.removeItem("payment_expires_at");
+
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            await handleSessionUpdate();
+            return;
+          }
+
+          if (data.status === "failed" || data.status === "expired") {
+            setPaymentStatus(data.status);
+            setPaymentError(data.failureReason || null);
+            setIsLoading(false);
+            toast({ type: "error", description: t("error") });
+            return;
+          }
+
+          // Update status if changed
+          if (data.status !== paymentStatus) {
+            setPaymentStatus(data.status);
+          }
+        } catch (error) {
+          console.error("Polling error:", error);
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+
+      // Timeout: redirect to extended polling page
+      router.push(`/payment-status?sessionId=${encodeURIComponent(sessionId)}`);
+    },
+    [t, handleSessionUpdate, paymentStatus, router]
+  );
+
+  // Check for existing payment session on mount (redirect recovery)
+  useEffect(() => {
+    const checkExistingSession = async () => {
+      // Check URL params first (CloudPayments callback may add it)
+      const urlParams = new URLSearchParams(window.location.search);
+      let sessionId = urlParams.get("sessionId");
+
+      // Fallback to sessionStorage
+      if (!sessionId) {
+        sessionId = sessionStorage.getItem("payment_session_id");
+      }
+
+      if (!sessionId) {
+        return;
+      }
+
+      // Check expiration
+      const expiresAt = sessionStorage.getItem("payment_expires_at");
+      if (expiresAt && new Date(expiresAt) < new Date()) {
+        sessionStorage.clear();
+        return;
+      }
+
+      // Resume polling
+      setIsLoading(true);
+      setPaymentStatus("verifying");
+      await pollPaymentStatus(sessionId);
+    };
+
+    if (sessionStatus !== "loading" && session?.user) {
+      checkExistingSession();
+    }
+  }, [sessionStatus, session, pollPaymentStatus]);
+
+  const handleSubscribe = useCallback(async () => {
     if (!session?.user?.id || !session?.user?.email) {
       toast({ type: "error", description: t("error") });
       return;
@@ -167,139 +266,137 @@ function SubscribePage() {
       return;
     }
 
-    setIsLoading(true);
-    setPaymentStatus("processing");
+    try {
+      setIsLoading(true);
+      setPaymentStatus("processing");
+      setPaymentError(null);
 
-    const tier = SUBSCRIPTION_TIERS[selectedPlan];
-    const displayName = tier.displayName[locale];
-    const currency = getCurrency();
-    const amount = getAmount(selectedPlan, currency);
+      // Create payment intent first
+      const intentRes = await fetch("/api/payment/create-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ planName: selectedPlan }),
+      });
 
-    console.log("amount", amount);
-    console.log("currency", currency);
-    console.log("selectedPlan", selectedPlan);
-    console.log("tier", tier);
-    console.log("session.user.email", session.user.email);
-    console.log("publicId", publicId);
-    console.log("description", `${displayName}`);
+      if (!intentRes.ok) {
+        throw new Error("Failed to create payment intent");
+      }
 
-    let recurrentConfig: { interval: "Day" | "Month"; period: number };
-    if (tier.billingPeriod === "daily") {
-      recurrentConfig = { interval: "Day", period: tier.billingPeriodCount };
-    } else if (tier.billingPeriod === "annual") {
-      recurrentConfig = {
-        interval: "Month",
-        period: 12 * tier.billingPeriodCount,
-      };
-    } else {
-      recurrentConfig = { interval: "Month", period: tier.billingPeriodCount };
-    }
+      const intentData: PaymentIntentResponse = await intentRes.json();
 
-    const receipt = buildReceipt(displayName, amount, session.user.email);
+      // Store in sessionStorage for redirect recovery
+      sessionStorage.setItem("payment_session_id", intentData.sessionId);
+      sessionStorage.setItem("payment_expires_at", intentData.expiresAt);
 
-    const widget: CloudPaymentsWidget = new window.cp.CloudPayments({
-      language: locale,
-      email: session.user.email,
-      applePaySupport: false,
-      googlePaySupport: false,
-      yandexPaySupport: false,
-      masterPassSupport: false,
-      tinkoffInstallmentSupport: false,
-      loanSupport: false,
-      dolyameSupport: false,
-      mirPaySupport: true,
-      speiSupport: false,
-      cashSupport: false,
-      cardInstallmentSupport: false,
-      foreignSupport: false,
-      sbpSupport: false,
-      sberPaySupport: true,
-      tinkoffPaySupport: true,
-    });
+      const tier = SUBSCRIPTION_TIERS[selectedPlan];
+      const displayName = tier.displayName[locale];
+      const currency = getCurrency();
+      const amount = getAmount(selectedPlan, currency);
 
-    widget.pay(
-      "charge",
-      {
-        publicId,
-        description: displayName,
-        amount,
-        currency,
-        accountId: session.user.id,
+      console.log("amount", amount);
+      console.log("currency", currency);
+      console.log("selectedPlan", selectedPlan);
+      console.log("sessionId", intentData.sessionId);
+
+      let recurrentConfig: { interval: "Day" | "Month"; period: number };
+      if (tier.billingPeriod === "daily") {
+        recurrentConfig = { interval: "Day", period: tier.billingPeriodCount };
+      } else if (tier.billingPeriod === "annual") {
+        recurrentConfig = {
+          interval: "Month",
+          period: 12 * tier.billingPeriodCount,
+        };
+      } else {
+        recurrentConfig = {
+          interval: "Month",
+          period: tier.billingPeriodCount,
+        };
+      }
+
+      const receipt = buildReceipt(displayName, amount, session.user.email);
+
+      const widget: CloudPaymentsWidget = new window.cp.CloudPayments({
+        language: locale,
         email: session.user.email,
-        skin: "classic",
-        data: {
-          planName: selectedPlan,
-          CloudPayments: {
-            CustomerReceipt: receipt,
-            recurrent: {
-              ...recurrentConfig,
-              customerReceipt: receipt,
+        applePaySupport: false,
+        googlePaySupport: false,
+        yandexPaySupport: false,
+        masterPassSupport: false,
+        tinkoffInstallmentSupport: false,
+        loanSupport: false,
+        dolyameSupport: false,
+        mirPaySupport: true,
+        speiSupport: false,
+        cashSupport: false,
+        cardInstallmentSupport: false,
+        foreignSupport: false,
+        sbpSupport: false,
+        sberPaySupport: true,
+        tinkoffPaySupport: true,
+      });
+
+      widget.pay(
+        "charge",
+        {
+          publicId,
+          description: displayName,
+          amount,
+          currency,
+          accountId: session.user.id,
+          email: session.user.email,
+          skin: "classic",
+          data: {
+            sessionId: intentData.sessionId, // CRITICAL: webhook will use this
+            planName: selectedPlan,
+            CloudPayments: {
+              CustomerReceipt: receipt,
+              recurrent: {
+                ...recurrentConfig,
+                customerReceipt: receipt,
+              },
             },
           },
         },
-      },
-      {
-        onSuccess: async () => {
-          // Start polling for subscription activation
-          setPaymentStatus("verifying");
-
-          // Extended polling: 30 retries × 500ms = 15 seconds total
-          for (let i = 0; i < 30; i++) {
-            try {
-              const res = await fetch("/api/subscription");
-              const data = await res.json();
-
-              if (data.subscription?.status === "active") {
-                // Subscription confirmed
-                setPaymentStatus("activating");
-                await new Promise((resolve) => setTimeout(resolve, 500));
-
-                setPaymentStatus("success");
-                toast({ type: "success", description: t("success") });
-
-                await new Promise((resolve) => setTimeout(resolve, 500));
-                handleSessionUpdate();
-                return;
-              }
-            } catch {
-              // Continue polling on error
+        {
+          onSuccess: async () => {
+            // Start polling using the new payment status endpoint
+            await pollPaymentStatus(intentData.sessionId);
+          },
+          onFail: (reason) => {
+            setIsLoading(false);
+            setPaymentStatus("failed");
+            setPaymentError(typeof reason === "string" ? reason : t("error"));
+            console.error("[CloudPayments] Payment failed:", reason);
+            toast({ type: "error", description: t("error") });
+          },
+          onComplete: () => {
+            // Only clean up if not in a success flow
+            if (
+              paymentStatus !== "succeeded" &&
+              paymentStatus !== "activating"
+            ) {
+              setIsLoading(false);
+              setPaymentStatus(null);
             }
-
-            // Show "activating" status after 10 retries (5 seconds)
-            if (i === 10) {
-              setPaymentStatus("activating");
-            }
-
-            await new Promise((resolve) => setTimeout(resolve, 500));
-          }
-
-          // Polling completed - assume success and proceed
-          setPaymentStatus("success");
-          toast({ type: "success", description: t("success") });
-          await new Promise((resolve) => setTimeout(resolve, 500));
-          handleSessionUpdate();
-        },
-        onFail: (reason) => {
-          setIsLoading(false);
-          setPaymentStatus(null);
-          console.error("[CloudPayments] Payment failed:", reason);
-          toast({ type: "error", description: t("error") });
-        },
-        onComplete: () => {
-          // Clean up if user closes modal without completing
-          setIsLoading(false);
-          setPaymentStatus(null);
-        },
-      }
-    );
+          },
+        }
+      );
+    } catch (error) {
+      setIsLoading(false);
+      setPaymentStatus("failed");
+      setPaymentError(error instanceof Error ? error.message : t("error"));
+      console.error("Error in handleSubscribe:", error);
+      toast({ type: "error", description: t("error") });
+    }
   }, [
     session,
     selectedPlan,
     t,
-    handleSessionUpdate,
+    pollPaymentStatus,
     getAmount,
     getCurrency,
     locale,
+    paymentStatus,
   ]);
 
   return (
@@ -555,7 +652,16 @@ function SubscribePage() {
         <LanguageSwitcher />
       </div>
 
-      <PaymentLoadingOverlay isOpen={isLoading} status={paymentStatus} />
+      <PaymentLoadingOverlay
+        error={paymentError}
+        isOpen={isLoading}
+        onRetry={() => {
+          setPaymentError(null);
+          setPaymentStatus(null);
+          setIsLoading(false);
+        }}
+        status={paymentStatus}
+      />
     </div>
   );
 }
