@@ -9,7 +9,7 @@ import type { PaymentIntentResponse } from "@/lib/types";
  * Generate a unique session ID for payment intent
  */
 function generateSessionId(): string {
-  return `ps_${crypto.randomBytes(32).toString("hex")}`;
+  return `ps_${crypto.randomBytes(28).toString("hex")}`;
 }
 
 /**
