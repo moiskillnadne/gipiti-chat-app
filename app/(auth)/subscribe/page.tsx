@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { useLocale, useTranslations } from "next-intl";
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { PaymentLoadingOverlay } from "@/components/payment-loading-overlay";
 import { toast } from "@/components/toast";
@@ -148,6 +148,9 @@ function SubscribePage() {
   );
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
+  // Polling guard to prevent concurrent polling loops
+  const isPollingRef = useRef(false);
+
   const handleSessionUpdate = useCallback(async () => {
     await updateSession({ hasActiveSubscription: true });
     router.replace("/");
@@ -155,68 +158,110 @@ function SubscribePage() {
 
   // Poll payment status using the new payment intent system
   const pollPaymentStatus = useCallback(
-    async (sessionId: string, maxRetries = 10) => {
-      setPaymentStatus("verifying");
-
-      for (let i = 0; i < maxRetries; i++) {
-        try {
-          const res = await fetch(
-            `/api/payment/status?sessionId=${encodeURIComponent(sessionId)}`
-          );
-
-          if (!res.ok) {
-            if (res.status === 429) {
-              // Rate limited, wait longer
-              await new Promise((resolve) => setTimeout(resolve, 2000));
-              continue;
-            }
-            throw new Error("Failed to fetch payment status");
-          }
-
-          const data: PaymentStatusResponse = await res.json();
-
-          if (data.status === "succeeded") {
-            setPaymentStatus("activating");
-            await new Promise((resolve) => setTimeout(resolve, 500));
-
-            setPaymentStatus("succeeded");
-            toast({ type: "success", description: t("success") });
-
-            sessionStorage.removeItem("payment_session_id");
-            sessionStorage.removeItem("payment_expires_at");
-
-            await new Promise((resolve) => setTimeout(resolve, 500));
-            await handleSessionUpdate();
-            return;
-          }
-
-          if (data.status === "failed" || data.status === "expired") {
-            setPaymentStatus(data.status);
-            setPaymentError(data.failureReason || null);
-            setIsLoading(false);
-            toast({ type: "error", description: t("error") });
-            return;
-          }
-
-          // Update status if changed
-          if (data.status !== paymentStatus) {
-            setPaymentStatus(data.status);
-          }
-        } catch (error) {
-          console.error("Polling error:", error);
-        }
-
-        await new Promise((resolve) => setTimeout(resolve, 500));
+    async (sessionId: string, maxRetries = 10, abortSignal?: AbortSignal) => {
+      // Guard against concurrent polling
+      if (isPollingRef.current) {
+        console.warn("[Payment] Polling already in progress, skipping");
+        return;
       }
 
-      // Timeout: redirect to extended polling page
-      router.push(`/payment-status?sessionId=${encodeURIComponent(sessionId)}`);
+      isPollingRef.current = true;
+
+      try {
+        setPaymentStatus("verifying");
+
+        for (let i = 0; i < maxRetries; i++) {
+          // Check if polling was aborted
+          if (abortSignal?.aborted) {
+            console.log("[Payment] Polling aborted");
+            return;
+          }
+
+          // Check if session expired before polling
+          const expiresAt = sessionStorage.getItem("payment_expires_at");
+          if (expiresAt && new Date(expiresAt) < new Date()) {
+            setPaymentStatus("expired");
+            setPaymentError("Payment session expired");
+            setIsLoading(false);
+            sessionStorage.removeItem("payment_session_id");
+            sessionStorage.removeItem("payment_expires_at");
+            return;
+          }
+
+          try {
+            const res = await fetch(
+              `/api/payment/status?sessionId=${encodeURIComponent(sessionId)}`,
+              { signal: abortSignal }
+            );
+
+            if (!res.ok) {
+              if (res.status === 429) {
+                // Rate limited, wait longer
+                await new Promise((resolve) => setTimeout(resolve, 2000));
+                continue;
+              }
+              throw new Error("Failed to fetch payment status");
+            }
+
+            const data: PaymentStatusResponse = await res.json();
+
+            // Always update status (don't compare with closure variable)
+            setPaymentStatus(data.status);
+
+            if (data.status === "succeeded") {
+              setPaymentStatus("activating");
+              await new Promise((resolve) => setTimeout(resolve, 500));
+
+              setPaymentStatus("succeeded");
+              toast({ type: "success", description: t("success") });
+
+              sessionStorage.removeItem("payment_session_id");
+              sessionStorage.removeItem("payment_expires_at");
+
+              await new Promise((resolve) => setTimeout(resolve, 500));
+              await handleSessionUpdate();
+              return;
+            }
+
+            if (data.status === "failed" || data.status === "expired") {
+              setPaymentError(data.failureReason || null);
+              setIsLoading(false);
+              toast({ type: "error", description: t("error") });
+              sessionStorage.removeItem("payment_session_id");
+              sessionStorage.removeItem("payment_expires_at");
+              return;
+            }
+          } catch (error) {
+            // Ignore abort errors
+            if (error instanceof Error && error.name === "AbortError") {
+              console.log("[Payment] Fetch aborted");
+              return;
+            }
+            console.error("Polling error:", error);
+          }
+
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        }
+
+        // Timeout: redirect to extended polling page
+        router.push(
+          `/payment-status?sessionId=${encodeURIComponent(sessionId)}`
+        );
+      } finally {
+        isPollingRef.current = false;
+      }
     },
-    [t, handleSessionUpdate, paymentStatus, router]
+    [t, handleSessionUpdate, router]
   );
+
+  // Store latest pollPaymentStatus ref to avoid useEffect re-triggers
+  const pollPaymentStatusRef = useRef(pollPaymentStatus);
+  pollPaymentStatusRef.current = pollPaymentStatus;
 
   // Check for existing payment session on mount (redirect recovery)
   useEffect(() => {
+    const abortController = new AbortController();
+
     const checkExistingSession = async () => {
       // Check URL params first (CloudPayments callback may add it)
       const urlParams = new URLSearchParams(window.location.search);
@@ -234,20 +279,26 @@ function SubscribePage() {
       // Check expiration
       const expiresAt = sessionStorage.getItem("payment_expires_at");
       if (expiresAt && new Date(expiresAt) < new Date()) {
-        sessionStorage.clear();
+        sessionStorage.removeItem("payment_session_id");
+        sessionStorage.removeItem("payment_expires_at");
         return;
       }
 
       // Resume polling
       setIsLoading(true);
       setPaymentStatus("verifying");
-      await pollPaymentStatus(sessionId);
+      await pollPaymentStatusRef.current(sessionId, 10, abortController.signal);
     };
 
     if (sessionStatus !== "loading" && session?.user) {
       checkExistingSession();
     }
-  }, [sessionStatus, session, pollPaymentStatus]);
+
+    // Cleanup: abort ongoing polling on unmount
+    return () => {
+      abortController.abort();
+    };
+  }, [sessionStatus, session]);
 
   const handleSubscribe = useCallback(async () => {
     if (!session?.user?.id || !session?.user?.email) {
@@ -366,17 +417,19 @@ function SubscribePage() {
             setIsLoading(false);
             setPaymentStatus("failed");
             setPaymentError(typeof reason === "string" ? reason : t("error"));
+            sessionStorage.removeItem("payment_session_id");
+            sessionStorage.removeItem("payment_expires_at");
             console.error("[CloudPayments] Payment failed:", reason);
             toast({ type: "error", description: t("error") });
           },
-          onComplete: () => {
-            // Only clean up if not in a success flow
-            if (
-              paymentStatus !== "succeeded" &&
-              paymentStatus !== "activating"
-            ) {
+          onComplete: (paymentResult) => {
+            // Widget closed - clean up if payment didn't succeed
+            // Don't clear sessionStorage if payment succeeded (let polling handle it)
+            if (!paymentResult || !paymentResult.success) {
               setIsLoading(false);
               setPaymentStatus(null);
+              sessionStorage.removeItem("payment_session_id");
+              sessionStorage.removeItem("payment_expires_at");
             }
           },
         }
@@ -396,7 +449,6 @@ function SubscribePage() {
     getAmount,
     getCurrency,
     locale,
-    paymentStatus,
   ]);
 
   return (
@@ -659,6 +711,8 @@ function SubscribePage() {
           setPaymentError(null);
           setPaymentStatus(null);
           setIsLoading(false);
+          sessionStorage.removeItem("payment_session_id");
+          sessionStorage.removeItem("payment_expires_at");
         }}
         status={paymentStatus}
       />
