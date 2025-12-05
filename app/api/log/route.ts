@@ -7,4 +7,3 @@ export async function POST(request: NextRequest) {
   logFn(`[CLIENT ${level.toUpperCase()}]`, message, context ?? "");
   return NextResponse.json({ ok: true });
 }
-

@@ -10,4 +10,3 @@ export const clientLog = {
       JSON.stringify({ level: "info", message, context })
     ),
 };
-

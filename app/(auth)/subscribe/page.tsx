@@ -159,7 +159,7 @@ function SubscribePage() {
 
   // Poll payment status using the new payment intent system
   const pollPaymentStatus = useCallback(
-    async (sessionId: string, maxRetries = 10, abortSignal?: AbortSignal) => {
+    async (sessionId: string, maxRetries = 60, abortSignal?: AbortSignal) => {
       // Guard against concurrent polling
       if (isPollingRef.current) {
         clientLog.info("[Payment] Polling already in progress, skipping", {
@@ -246,15 +246,15 @@ function SubscribePage() {
           await new Promise((resolve) => setTimeout(resolve, 500));
         }
 
-        // Timeout: redirect to extended polling page
-        router.push(
-          `/payment-status?sessionId=${encodeURIComponent(sessionId)}`
-        );
+        // Timeout: show error with retry option
+        setPaymentStatus("failed");
+        setPaymentError(t("error"));
+        setIsLoading(false);
       } finally {
         isPollingRef.current = false;
       }
     },
-    [t, handleSessionUpdate, router]
+    [t, handleSessionUpdate]
   );
 
   // Store latest pollPaymentStatus ref to avoid useEffect re-triggers
@@ -299,7 +299,7 @@ function SubscribePage() {
       // Resume polling
       setIsLoading(true);
       setPaymentStatus("verifying");
-      await pollPaymentStatusRef.current(sessionId, 10, abortController.signal);
+      await pollPaymentStatusRef.current(sessionId, 60, abortController.signal);
     };
 
     if (sessionStatus !== "loading" && session?.user) {
@@ -398,7 +398,7 @@ function SubscribePage() {
         tinkoffPaySupport: true,
       });
 
-      const returnUrl = `${window.location.origin}/payment-status?sessionId=${encodeURIComponent(intentData.sessionId)}`;
+      const returnUrl = `${window.location.origin}/subscribe?sessionId=${encodeURIComponent(intentData.sessionId)}`;
 
       widget.pay(
         "charge",
