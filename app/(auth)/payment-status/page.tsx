@@ -44,7 +44,7 @@ function PaymentStatusContent() {
     let sessionId = searchParams.get("sessionId");
 
     if (!sessionId) {
-      sessionId = sessionStorage.getItem("payment_session_id");
+      sessionId = localStorage.getItem("payment_session_id");
     }
 
     if (!sessionId) {
@@ -52,10 +52,10 @@ function PaymentStatusContent() {
       return;
     }
 
-    const expiresAt = sessionStorage.getItem("payment_expires_at");
+    const expiresAt = localStorage.getItem("payment_expires_at");
     if (expiresAt && new Date(expiresAt) < new Date()) {
-      sessionStorage.removeItem("payment_session_id");
-      sessionStorage.removeItem("payment_expires_at");
+      localStorage.removeItem("payment_session_id");
+      localStorage.removeItem("payment_expires_at");
       router.push("/subscribe");
       return;
     }
@@ -89,8 +89,8 @@ function PaymentStatusContent() {
           if (data.status === "succeeded") {
             // Success! Update session and redirect
             await updateSession({ hasActiveSubscription: true });
-            sessionStorage.removeItem("payment_session_id");
-            sessionStorage.removeItem("payment_expires_at");
+            localStorage.removeItem("payment_session_id");
+            localStorage.removeItem("payment_expires_at");
 
             await new Promise((resolve) => setTimeout(resolve, 2000));
             router.push("/");
@@ -128,8 +128,8 @@ function PaymentStatusContent() {
   };
 
   const handleGoToSubscribe = () => {
-    sessionStorage.removeItem("payment_session_id");
-    sessionStorage.removeItem("payment_expires_at");
+    localStorage.removeItem("payment_session_id");
+    localStorage.removeItem("payment_expires_at");
     router.push("/subscribe");
   };
 

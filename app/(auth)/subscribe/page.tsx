@@ -178,13 +178,13 @@ function SubscribePage() {
           }
 
           // Check if session expired before polling
-          const expiresAt = sessionStorage.getItem("payment_expires_at");
+          const expiresAt = localStorage.getItem("payment_expires_at");
           if (expiresAt && new Date(expiresAt) < new Date()) {
             setPaymentStatus("expired");
             setPaymentError("Payment session expired");
             setIsLoading(false);
-            sessionStorage.removeItem("payment_session_id");
-            sessionStorage.removeItem("payment_expires_at");
+            localStorage.removeItem("payment_session_id");
+            localStorage.removeItem("payment_expires_at");
             return;
           }
 
@@ -215,8 +215,8 @@ function SubscribePage() {
               setPaymentStatus("succeeded");
               toast({ type: "success", description: t("success") });
 
-              sessionStorage.removeItem("payment_session_id");
-              sessionStorage.removeItem("payment_expires_at");
+              localStorage.removeItem("payment_session_id");
+              localStorage.removeItem("payment_expires_at");
 
               await new Promise((resolve) => setTimeout(resolve, 500));
               await handleSessionUpdate();
@@ -227,8 +227,8 @@ function SubscribePage() {
               setPaymentError(data.failureReason || null);
               setIsLoading(false);
               toast({ type: "error", description: t("error") });
-              sessionStorage.removeItem("payment_session_id");
-              sessionStorage.removeItem("payment_expires_at");
+              localStorage.removeItem("payment_session_id");
+              localStorage.removeItem("payment_expires_at");
               return;
             }
           } catch (error) {
@@ -269,7 +269,7 @@ function SubscribePage() {
 
       // Fallback to sessionStorage
       if (!sessionId) {
-        sessionId = sessionStorage.getItem("payment_session_id");
+        sessionId = localStorage.getItem("payment_session_id");
       }
 
       if (!sessionId) {
@@ -277,10 +277,10 @@ function SubscribePage() {
       }
 
       // Check expiration
-      const expiresAt = sessionStorage.getItem("payment_expires_at");
+      const expiresAt = localStorage.getItem("payment_expires_at");
       if (expiresAt && new Date(expiresAt) < new Date()) {
-        sessionStorage.removeItem("payment_session_id");
-        sessionStorage.removeItem("payment_expires_at");
+        localStorage.removeItem("payment_session_id");
+        localStorage.removeItem("payment_expires_at");
         return;
       }
 
@@ -336,8 +336,8 @@ function SubscribePage() {
       const intentData: PaymentIntentResponse = await intentRes.json();
 
       // Store in sessionStorage for redirect recovery
-      sessionStorage.setItem("payment_session_id", intentData.sessionId);
-      sessionStorage.setItem("payment_expires_at", intentData.expiresAt);
+      localStorage.setItem("payment_session_id", intentData.sessionId);
+      localStorage.setItem("payment_expires_at", intentData.expiresAt);
 
       const tier = SUBSCRIPTION_TIERS[selectedPlan];
       const displayName = tier.displayName[locale];
@@ -422,8 +422,8 @@ function SubscribePage() {
             setIsLoading(false);
             setPaymentStatus("failed");
             setPaymentError(typeof reason === "string" ? reason : t("error"));
-            sessionStorage.removeItem("payment_session_id");
-            sessionStorage.removeItem("payment_expires_at");
+            localStorage.removeItem("payment_session_id");
+            localStorage.removeItem("payment_expires_at");
             console.error("[CloudPayments] Payment failed:", reason);
             toast({ type: "error", description: t("error") });
           },
@@ -716,8 +716,8 @@ function SubscribePage() {
           setPaymentError(null);
           setPaymentStatus(null);
           setIsLoading(false);
-          sessionStorage.removeItem("payment_session_id");
-          sessionStorage.removeItem("payment_expires_at");
+          localStorage.removeItem("payment_session_id");
+          localStorage.removeItem("payment_expires_at");
         }}
         status={paymentStatus}
       />
