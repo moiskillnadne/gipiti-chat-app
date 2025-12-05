@@ -3,15 +3,32 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { PaymentLoadingOverlay } from "@/components/payment-loading-overlay";
 import { Button } from "@/components/ui/button";
 import type { PaymentStatus, PaymentStatusResponse } from "@/lib/types";
 
 export default function PaymentStatusPage() {
+  return (
+    <Suspense fallback={<PaymentStatusFallback />}>
+      <PaymentStatusContent />
+    </Suspense>
+  );
+}
+
+function PaymentStatusFallback() {
+  return (
+    <div className="flex min-h-dvh w-screen items-center justify-center bg-background">
+      <div className="flex w-full max-w-md flex-col items-center gap-6 p-8">
+        <PaymentLoadingOverlay error={null} isOpen={true} status="verifying" />
+      </div>
+    </div>
+  );
+}
+
+function PaymentStatusContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const sessionId = searchParams.get("sessionId");
   const { update: updateSession } = useSession();
   const t = useTranslations("auth.subscription");
 
@@ -19,20 +36,39 @@ export default function PaymentStatusPage() {
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [isTimeout, setIsTimeout] = useState(false);
+  const [resolvedSessionId, setResolvedSessionId] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
+    let sessionId = searchParams.get("sessionId");
+
+    if (!sessionId) {
+      sessionId = sessionStorage.getItem("payment_session_id");
+    }
+
     if (!sessionId) {
       router.push("/subscribe");
       return;
     }
 
-    const pollPaymentStatus = async () => {
+    const expiresAt = sessionStorage.getItem("payment_expires_at");
+    if (expiresAt && new Date(expiresAt) < new Date()) {
+      sessionStorage.removeItem("payment_session_id");
+      sessionStorage.removeItem("payment_expires_at");
+      router.push("/subscribe");
+      return;
+    }
+
+    setResolvedSessionId(sessionId);
+
+    const pollPaymentStatus = async (sid: string) => {
       const maxRetries = 60; // 60 retries × 1000ms = 60 seconds
 
       for (let i = 0; i < maxRetries; i++) {
         try {
           const res = await fetch(
-            `/api/payment/status?sessionId=${encodeURIComponent(sessionId)}`
+            `/api/payment/status?sessionId=${encodeURIComponent(sid)}`
           );
 
           if (!res.ok) {
@@ -82,20 +118,23 @@ export default function PaymentStatusPage() {
       setError(t("timeoutError"));
     };
 
-    pollPaymentStatus();
-  }, [sessionId, router, updateSession, t, status]);
+    pollPaymentStatus(sessionId);
+  }, [searchParams, router, updateSession, t, status]);
 
   const handleRetry = () => {
-    router.push(`/subscribe?sessionId=${encodeURIComponent(sessionId || "")}`);
+    router.push(
+      `/subscribe?sessionId=${encodeURIComponent(resolvedSessionId || "")}`
+    );
   };
 
   const handleGoToSubscribe = () => {
-    sessionStorage.clear();
+    sessionStorage.removeItem("payment_session_id");
+    sessionStorage.removeItem("payment_expires_at");
     router.push("/subscribe");
   };
 
-  if (!sessionId) {
-    return null;
+  if (!resolvedSessionId) {
+    return <PaymentStatusFallback />;
   }
 
   return (

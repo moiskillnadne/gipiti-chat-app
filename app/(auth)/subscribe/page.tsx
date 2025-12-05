@@ -386,6 +386,8 @@ function SubscribePage() {
         tinkoffPaySupport: true,
       });
 
+      const returnUrl = `${window.location.origin}/payment-status?sessionId=${encodeURIComponent(intentData.sessionId)}`;
+
       widget.pay(
         "charge",
         {
@@ -407,6 +409,9 @@ function SubscribePage() {
               },
             },
           },
+          jsonData: {
+            returnUrl,
+          },
         },
         {
           onSuccess: async () => {
@@ -423,13 +428,13 @@ function SubscribePage() {
             toast({ type: "error", description: t("error") });
           },
           onComplete: (paymentResult) => {
-            // Widget closed - clean up if payment didn't succeed
-            // Don't clear sessionStorage if payment succeeded (let polling handle it)
+            // Widget closed - reset UI state but DON'T clear sessionStorage
+            // For redirect-based payments (T-Pay, SberPay), the widget closes before
+            // payment completes. SessionStorage is needed for recovery when user returns.
+            // It will expire naturally based on payment_expires_at (30 min).
             if (!paymentResult || !paymentResult.success) {
               setIsLoading(false);
               setPaymentStatus(null);
-              sessionStorage.removeItem("payment_session_id");
-              sessionStorage.removeItem("payment_expires_at");
             }
           },
         }
