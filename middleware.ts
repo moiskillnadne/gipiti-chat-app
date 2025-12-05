@@ -40,11 +40,12 @@ export async function middleware(request: NextRequest) {
     return new Response("pong", { status: 200 });
   }
 
-  // Allow webhook, auth, and payment API routes through without auth
+  // Allow webhook, auth, payment, and log API routes through without auth
   if (
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/api/webhooks") ||
-    pathname.startsWith("/api/payment")
+    pathname.startsWith("/api/payment") ||
+    pathname.startsWith("/api/log")
   ) {
     return NextResponse.next();
   }

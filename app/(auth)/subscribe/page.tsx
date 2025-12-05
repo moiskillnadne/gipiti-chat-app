@@ -17,6 +17,7 @@ import type {
 } from "@/lib/types";
 import { Loader } from "../../../components/elements/loader";
 import type { Locale } from "../../../i18n/config";
+import { clientLog } from "../../../lib/client-logger";
 import type {
   CloudPaymentsReceipt,
   CloudPaymentsWidget,
@@ -161,7 +162,9 @@ function SubscribePage() {
     async (sessionId: string, maxRetries = 10, abortSignal?: AbortSignal) => {
       // Guard against concurrent polling
       if (isPollingRef.current) {
-        console.warn("[Payment] Polling already in progress, skipping");
+        clientLog.info("[Payment] Polling already in progress, skipping", {
+          sessionId,
+        });
         return;
       }
 
@@ -262,6 +265,11 @@ function SubscribePage() {
   useEffect(() => {
     const abortController = new AbortController();
 
+    clientLog.info("[Payment] Check exising session on mount", {
+      session,
+      sessionStatus,
+    });
+
     const checkExistingSession = async () => {
       // Check URL params first (CloudPayments callback may add it)
       const urlParams = new URLSearchParams(window.location.search);
@@ -269,12 +277,16 @@ function SubscribePage() {
 
       // Fallback to sessionStorage
       if (!sessionId) {
+        clientLog.info("[Payment] No sessionId in url params");
         sessionId = localStorage.getItem("payment_session_id");
       }
 
       if (!sessionId) {
+        clientLog.info("[Payment] No sessionId in localStorage");
         return;
       }
+
+      clientLog.info("[Payment] SessionId found", { sessionId });
 
       // Check expiration
       const expiresAt = localStorage.getItem("payment_expires_at");

@@ -5,6 +5,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { Toaster } from "sonner";
+import { ErrorLogger } from "@/components/error-logger";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
@@ -80,6 +81,7 @@ export default async function RootLayout({
         <script src="https://widget.cloudpayments.ru/bundles/cloudpayments.js" />
       </head>
       <body className="antialiased" suppressHydrationWarning>
+        <ErrorLogger />
         <SpeedInsights />
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider
