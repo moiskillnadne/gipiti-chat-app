@@ -282,6 +282,7 @@ function SubscribePage() {
       }
 
       if (!sessionId) {
+        clientLog.info("[Payment] No sessionId in localStorage");
         return;
       }
 
