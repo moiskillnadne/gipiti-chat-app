@@ -1,0 +1,103 @@
+---
+description: CloudPayments payment integration documentation and important links
+alwaysApply: false
+---
+
+# CloudPayments Integration Documentation
+
+## Important Links
+
+### Official Documentation
+- **Main Documentation**: https://developers.cloudpayments.ru/
+- **Payment Widget**: https://widget.cloudpayments.ru/docs/widget.html
+
+### Key Documentation Pages
+- **Payment Widget**: https://developers.cloudpayments.ru/#platezhnyy-vidzhet
+- **Recurring Payments**:https://developers.cloudpayments.ru/#rekurrentnye-platezhi
+- **Webhooks**: https://developers.cloudpayments.ru/#uvedomleniya
+
+## Implementation Overview
+
+### Environment Variables
+- `CLOUDPAYMENTS_PUBLIC_ID` - Public ID for widget initialization
+- `CLOUDPAYMENTS_API_SECRET` - API secret for webhook signature validation and API calls
+
+### Key Files
+- `lib/payments/cloudpayments.ts` - API client functions
+- `lib/payments/cloudpayments-types.ts` - TypeScript type definitions
+- `lib/payments/cloudpayments-config.ts` - Configuration helpers
+- `app/api/webhooks/cloudpayments/route.ts` - Webhook handler
+
+### Webhook Types Handled
+1. **check** - Initial payment check
+2. **pay** - Successful payment
+3. **fail** - Failed payment
+4. **recurrent** - Recurring payment execution
+5. **cancel** - Subscription cancellation
+
+### Webhook Security
+- Webhooks are validated using HMAC-SHA256 signature
+- Signature is sent in `Content-HMAC` header
+- Validation function: `validateWebhookSignature()` in webhook route
+
+### API Endpoints Used
+- `/subscriptions/create` - Create subscription
+- `/subscriptions/get` - Get subscription details
+- `/subscriptions/find` - Find subscriptions by account ID
+- `/subscriptions/update` - Update subscription
+- `/subscriptions/cancel` - Cancel subscription
+- `/payments/tokens/charge` - Charge by token
+
+### Widget Integration
+- Widget is loaded from CloudPayments CDN
+- Available methods: `pay()`, `charge()`, `auth()`
+- Supports both one-time and recurring payments
+- Payment schemes: `auth` (two-step) and `charge` (one-step)
+
+### Important Notes
+- All API requests use Basic Authentication (publicId:apiSecret)
+- Currency codes are numeric (e.g., 643 for RUB)
+- Subscription intervals: "Day", "Week", "Month"
+- Subscription statuses: "Active", "PastDue", "Cancelled", "Rejected", "Expired"
+- Webhook responses must return JSON with `code` field (0 for success)
+
+## Common Tasks
+
+### Creating a Subscription
+```typescript
+import { createSubscription } from "@/lib/payments/cloudpayments";
+
+await createSubscription({
+  token: "card_token_from_widget",
+  accountId: user.id,
+  description: "Premium subscription",
+  amount: 1000,
+  currency: "RUB",
+  interval: "Month",
+  period: 1,
+  requireConfirmation: false,
+  startDate: new Date().toISOString(),
+});
+```
+
+### Handling Webhooks
+Webhooks are received at `/api/webhooks/cloudpayments?type={webhookType}` and automatically validated. The handler processes different webhook types and updates the database accordingly.
+
+### Testing
+- Use test mode credentials for development
+- Test webhooks can be simulated using CloudPayments test cards
+- Check `TestMode` field in webhook payloads
+```
+
+This file:
+1. Follows the same `.mdc` format as your other rules
+2. Includes important CloudPayments documentation links
+3. Documents your implementation details
+4. Provides quick reference for common tasks
+5. Can be referenced by the AI assistant when working with payment code
+
+The file is set to `alwaysApply: false`, so it's only loaded when relevant. You can change this to `true` if you want it always available.
+
+Should I add any specific CloudPayments documentation sections or links?
+alwaysApply: true
+---

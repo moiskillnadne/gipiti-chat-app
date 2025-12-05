@@ -62,6 +62,9 @@ export type CloudPaymentsPaymentOptions = {
     };
     [key: string]: unknown;
   };
+  jsonData?: {
+    [key: string]: unknown;
+  };
 };
 
 export type CloudPaymentsWidgetResult = {

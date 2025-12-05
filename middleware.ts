@@ -95,8 +95,12 @@ export async function middleware(request: NextRequest) {
 
   // Authenticated and verified but no subscription - subscription gate
   if (token?.emailVerified && !token?.hasActiveSubscription) {
-    // Allow access to subscribe page and public routes
-    if (pathname === "/subscribe" || isPublicRoute) {
+    // Allow access to subscribe, payment-status pages and public routes
+    if (
+      pathname === "/subscribe" ||
+      pathname === "/payment-status" ||
+      isPublicRoute
+    ) {
       return response;
     }
     // Redirect users without subscription to paywall
