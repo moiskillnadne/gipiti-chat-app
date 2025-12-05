@@ -265,7 +265,10 @@ function SubscribePage() {
   useEffect(() => {
     const abortController = new AbortController();
 
-    clientLog.info("[Payment] Check exising session on mount");
+    clientLog.info("[Payment] Check exising session on mount", {
+      session,
+      sessionStatus,
+    });
 
     const checkExistingSession = async () => {
       // Check URL params first (CloudPayments callback may add it)
