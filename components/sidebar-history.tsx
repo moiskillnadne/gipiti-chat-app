@@ -53,7 +53,7 @@ const getUtcDayDiff = (date: Date, now: Date) => {
 };
 
 const groupChatsByDate = (chats: Chat[], now: Date): GroupedChats => {
-  return chats.reduce(
+  return chats.reduce<GroupedChats>(
     (groups, chat) => {
       const chatDate = new Date(chat.createdAt);
       const dayDiff = getUtcDayDiff(chatDate, now);
