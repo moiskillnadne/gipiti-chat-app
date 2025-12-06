@@ -10,7 +10,9 @@ export async function GET(request: Request) {
 
   const now = new Date();
 
-  console.log("[Cron:CleanupCancelled] Checking for expired cancelled subscriptions");
+  console.log(
+    "[Cron:CleanupCancelled] Checking for expired cancelled subscriptions"
+  );
 
   const expiredCancelled = await db
     .select()
@@ -58,4 +60,3 @@ export async function GET(request: Request) {
     message: `Removed access for ${cleaned} expired cancelled subscriptions.`,
   });
 }
-
