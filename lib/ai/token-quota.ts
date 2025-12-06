@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, gt, or } from "drizzle-orm";
 import { db } from "@/lib/db/queries";
 import {
   subscriptionPlan,
@@ -20,6 +20,7 @@ import type { BillingPeriod } from "../subscription/subscription-tiers";
  */
 export async function getUserQuotaInfo(userId: string) {
   // Get active subscription
+  const now = new Date();
   const subscriptions = await db
     .select({
       subscription: userSubscription,
@@ -33,7 +34,14 @@ export async function getUserQuotaInfo(userId: string) {
     .where(
       and(
         eq(userSubscription.userId, userId),
-        eq(userSubscription.status, "active")
+        gt(userSubscription.currentPeriodEnd, now),
+        or(
+          eq(userSubscription.status, "active"),
+          and(
+            eq(userSubscription.status, "cancelled"),
+            eq(userSubscription.cancelAtPeriodEnd, true)
+          )
+        )
       )
     )
     .orderBy(desc(userSubscription.currentPeriodEnd))
@@ -47,6 +55,9 @@ export async function getUserQuotaInfo(userId: string) {
 
   // Check if period has expired and auto-renew
   if (isPeriodExpired(sub.currentPeriodEnd)) {
+    if (sub.cancelAtPeriodEnd) {
+      return null;
+    }
     sub = await renewSubscriptionPeriod(sub);
   }
 

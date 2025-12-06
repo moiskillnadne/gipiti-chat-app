@@ -11,6 +11,7 @@ import {
   inArray,
   lt,
   lte,
+  or,
   type SQL,
 } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -789,13 +790,21 @@ export async function getActiveUserSubscription({
   userId: string;
 }): Promise<UserSubscription | null> {
   try {
+    const now = new Date();
     const [subscription] = await db
       .select()
       .from(userSubscription)
       .where(
         and(
           eq(userSubscription.userId, userId),
-          eq(userSubscription.status, "active")
+          gt(userSubscription.currentPeriodEnd, now),
+          or(
+            eq(userSubscription.status, "active"),
+            and(
+              eq(userSubscription.status, "cancelled"),
+              eq(userSubscription.cancelAtPeriodEnd, true)
+            )
+          )
         )
       )
       .limit(1);
@@ -815,6 +824,7 @@ export async function getUserSubscriptionWithPlan({
   userId: string;
 }): Promise<{ subscription: UserSubscription; plan: SubscriptionPlan } | null> {
   try {
+    const now = new Date();
     const subscriptions = await db
       .select({
         subscription: userSubscription,
@@ -828,7 +838,14 @@ export async function getUserSubscriptionWithPlan({
       .where(
         and(
           eq(userSubscription.userId, userId),
-          eq(userSubscription.status, "active")
+          gt(userSubscription.currentPeriodEnd, now),
+          or(
+            eq(userSubscription.status, "active"),
+            and(
+              eq(userSubscription.status, "cancelled"),
+              eq(userSubscription.cancelAtPeriodEnd, true)
+            )
+          )
         )
       )
       .orderBy(desc(userSubscription.currentPeriodEnd))
