@@ -1,4 +1,4 @@
-import { and, desc, eq, gt, or } from "drizzle-orm";
+import { and, desc, eq, gt } from "drizzle-orm";
 import { db } from "@/lib/db/queries";
 import {
   subscriptionPlan,
@@ -35,13 +35,7 @@ export async function getUserQuotaInfo(userId: string) {
       and(
         eq(userSubscription.userId, userId),
         gt(userSubscription.currentPeriodEnd, now),
-        or(
-          eq(userSubscription.status, "active"),
-          and(
-            eq(userSubscription.status, "cancelled"),
-            eq(userSubscription.cancelAtPeriodEnd, true)
-          )
-        )
+        eq(userSubscription.status, "active")
       )
     )
     .orderBy(desc(userSubscription.currentPeriodEnd))

@@ -11,7 +11,6 @@ import {
   inArray,
   lt,
   lte,
-  or,
   type SQL,
 } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -798,13 +797,7 @@ export async function getActiveUserSubscription({
         and(
           eq(userSubscription.userId, userId),
           gt(userSubscription.currentPeriodEnd, now),
-          or(
-            eq(userSubscription.status, "active"),
-            and(
-              eq(userSubscription.status, "cancelled"),
-              eq(userSubscription.cancelAtPeriodEnd, true)
-            )
-          )
+          eq(userSubscription.status, "active")
         )
       )
       .limit(1);
@@ -839,13 +832,7 @@ export async function getUserSubscriptionWithPlan({
         and(
           eq(userSubscription.userId, userId),
           gt(userSubscription.currentPeriodEnd, now),
-          or(
-            eq(userSubscription.status, "active"),
-            and(
-              eq(userSubscription.status, "cancelled"),
-              eq(userSubscription.cancelAtPeriodEnd, true)
-            )
-          )
+          eq(userSubscription.status, "active")
         )
       )
       .orderBy(desc(userSubscription.currentPeriodEnd))
