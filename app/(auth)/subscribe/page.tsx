@@ -394,8 +394,8 @@ function SubscribePage() {
         cardInstallmentSupport: false,
         foreignSupport: false,
         sbpSupport: false,
-        sberPaySupport: true,
-        tinkoffPaySupport: true,
+        sberPaySupport: false,
+        tinkoffPaySupport: false,
       });
 
       const returnUrl = `${window.location.origin}/subscribe?sessionId=${encodeURIComponent(intentData.sessionId)}`;
