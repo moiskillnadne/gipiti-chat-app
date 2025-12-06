@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { getUserSubscriptionWithPlan } from "@/lib/db/queries";
+import { SUBSCRIPTION_TIERS } from "../../lib/subscription/subscription-tiers";
 
 export default async function SubscriptionPage() {
   const session = await auth();
@@ -100,6 +101,9 @@ export default async function SubscriptionPage() {
   }
 
   const { subscription, plan } = subscriptionData;
+
+  const subscriptionPriceInRubles =
+    SUBSCRIPTION_TIERS[plan.name]?.price.RUB ?? plan.price;
 
   const getStatusBadge = (status: string) => {
     if (status === "cancelled") {
@@ -222,7 +226,9 @@ export default async function SubscriptionPage() {
                   <h3 className="font-medium text-muted-foreground text-sm">
                     {t("nextPaymentAmount")}
                   </h3>
-                  <p className="text-lg">{formatCurrency(plan.price)}</p>
+                  <p className="text-lg">
+                    {formatCurrency(subscriptionPriceInRubles.toString())}
+                  </p>
                 </div>
               </>
             )}
