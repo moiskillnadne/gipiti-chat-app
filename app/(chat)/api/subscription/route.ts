@@ -5,7 +5,10 @@ import { upgradeToPlan } from "@/lib/subscription/subscription-init";
 import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 import { db } from "../../../../lib/db/queries";
 import { userSubscription } from "../../../../lib/db/schema";
-import { cancelSubscription } from "../../../../lib/payments/cloudpayments";
+import {
+  cancelSubscription,
+  getSubscription,
+} from "../../../../lib/payments/cloudpayments";
 
 /**
  * Create or upgrade subscription
@@ -71,6 +74,8 @@ export async function DELETE(_request: Request) {
     return new Response("Unauthorized", { status: 401 });
   }
 
+  console.log("Cancelling subscription for user:", session.user.id);
+
   try {
     const subscriptions = await db
       .select()
@@ -94,7 +99,30 @@ export async function DELETE(_request: Request) {
 
     if (subscription.externalSubscriptionId) {
       try {
-        await cancelSubscription(subscription.externalSubscriptionId);
+        const cancelResponse = await cancelSubscription(
+          subscription.externalSubscriptionId
+        );
+
+        if (!cancelResponse.Success) {
+          return Response.json(
+            { error: "CloudPayments cancellation failed" },
+            { status: 502 }
+          );
+        }
+
+        const statusResponse = await getSubscription(
+          subscription.externalSubscriptionId
+        );
+
+        const isCancelled =
+          statusResponse.Success && statusResponse.Model.Status === "Cancelled";
+
+        if (!isCancelled) {
+          return Response.json(
+            { error: "CloudPayments did not confirm cancellation" },
+            { status: 502 }
+          );
+        }
       } catch (error) {
         console.error("Failed to cancel CloudPayments subscription:", error);
       }
