@@ -658,17 +658,24 @@ const SidebarMenuSkeleton = forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & {
     showIcon?: boolean;
+    /**
+     * Deterministic width for the text placeholder (e.g. "70%").
+     * Defaults to 70% to keep SSR/CSR output stable.
+     */
+    width?: string;
   }
->(({ className, showIcon = false, ...props }, ref) => {
-  // Random width between 50 to 90%.
-  const width = useMemo(() => {
-    return `${Math.floor(Math.random() * 40) + 50}%`;
-  }, []);
+>(({ className, showIcon = false, width = "70%", style, ...props }, ref) => {
 
   return (
     <div
       className={cn("flex h-8 items-center gap-2 rounded-md px-2", className)}
       data-sidebar="menu-skeleton"
+      style={
+        {
+          "--skeleton-width": width,
+          ...style,
+        } as React.CSSProperties
+      }
       ref={ref}
       {...props}
     >
@@ -681,11 +688,6 @@ const SidebarMenuSkeleton = forwardRef<
       <Skeleton
         className="h-4 max-w-[var(--skeleton-width)] flex-1"
         data-sidebar="menu-skeleton-text"
-        style={
-          {
-            "--skeleton-width": width,
-          } as React.CSSProperties
-        }
       />
     </div>
   );

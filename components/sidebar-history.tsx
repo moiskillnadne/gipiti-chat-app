@@ -1,11 +1,10 @@
 "use client";
 
-import { isToday, isYesterday, subMonths, subWeeks } from "date-fns";
 import { motion } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
 import type { User } from "next-auth";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWRInfinite from "swr/infinite";
 import {
@@ -44,22 +43,28 @@ export type ChatHistory = {
 
 const PAGE_SIZE = 20;
 
-const groupChatsByDate = (chats: Chat[]): GroupedChats => {
-  const now = new Date();
-  const oneWeekAgo = subWeeks(now, 1);
-  const oneMonthAgo = subMonths(now, 1);
+const MS_IN_DAY = 86_400_000;
 
+const getUtcDay = (date: Date) =>
+  Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+
+const getUtcDayDiff = (date: Date, now: Date) => {
+  return Math.floor((getUtcDay(now) - getUtcDay(date)) / MS_IN_DAY);
+};
+
+const groupChatsByDate = (chats: Chat[], now: Date): GroupedChats => {
   return chats.reduce(
     (groups, chat) => {
       const chatDate = new Date(chat.createdAt);
+      const dayDiff = getUtcDayDiff(chatDate, now);
 
-      if (isToday(chatDate)) {
+      if (dayDiff === 0) {
         groups.today.push(chat);
-      } else if (isYesterday(chatDate)) {
+      } else if (dayDiff === 1) {
         groups.yesterday.push(chat);
-      } else if (chatDate > oneWeekAgo) {
+      } else if (dayDiff < 7) {
         groups.lastWeek.push(chat);
-      } else if (chatDate > oneMonthAgo) {
+      } else if (dayDiff < 30) {
         groups.lastMonth.push(chat);
       } else {
         groups.older.push(chat);
@@ -73,7 +78,7 @@ const groupChatsByDate = (chats: Chat[]): GroupedChats => {
       lastWeek: [],
       lastMonth: [],
       older: [],
-    } as GroupedChats
+    } satisfies GroupedChats
   );
 };
 
@@ -103,6 +108,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
   const tCommon = useTranslations("common.buttons");
   const { setOpenMobile } = useSidebar();
   const { id } = useParams();
+  const stableNow = useMemo(() => new Date(), []);
 
   const {
     data: paginatedChatHistories,
@@ -219,7 +225,10 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                   (paginatedChatHistory) => paginatedChatHistory.chats
                 );
 
-                const groupedChats = groupChatsByDate(chatsFromHistory);
+                const groupedChats = groupChatsByDate(
+                  chatsFromHistory,
+                  stableNow
+                );
 
                 return (
                   <div className="flex flex-col gap-6">
