@@ -34,7 +34,8 @@ The system implements:
 - `GET /api/usage` - Get user's usage statistics
 - `GET /api/subscription` - Get current subscription details
 - `POST /api/subscription` - Upgrade/change subscription
-- `GET /api/cron/reset-quotas` - Reset expired billing periods (called by Vercel Cron)
+- `GET /api/cron/reset-quotas` - Renew expired tester billing periods (called by Vercel Cron)
+- `GET /api/cron/cleanup-cancelled` - Remove access for cancelled subscriptions past period end
 
 ## Setup Instructions
 
@@ -90,7 +91,7 @@ openssl rand -base64 32
 
 ### 4. Vercel Cron Configuration
 
-The `vercel.json` file has been created with the following cron job:
+The `vercel.json` file has been created with the following cron jobs:
 
 ```json
 {
@@ -98,12 +99,16 @@ The `vercel.json` file has been created with the following cron job:
     {
       "path": "/api/cron/reset-quotas",
       "schedule": "0 */6 * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-cancelled",
+      "schedule": "15 0 * * *"
     }
   ]
 }
 ```
 
-This runs every 6 hours to catch daily tester plan resets and renew expired periods.
+Quota resets run every 6 hours to catch daily tester plan renewals. Cancelled-subscription cleanup runs daily at 00:15.
 
 **Important**: When deploying to Vercel, make sure to:
 1. Add `CRON_SECRET` to your Vercel environment variables
@@ -179,9 +184,9 @@ await recordTokenUsage({
 
 ### 3. Automatic Period Renewal
 
-When a user's billing period expires:
+When a tester user's billing period expires:
 - Cron job calls `/api/cron/reset-quotas`
-- System checks all subscriptions with `currentPeriodEnd <= now`
+- System checks tester subscriptions with `currentPeriodEnd <= now`
 - Automatically renews periods based on billing type:
   - Daily → +1 day
   - Weekly → +7 days
@@ -189,6 +194,10 @@ When a user's billing period expires:
   - Annual → +1 year
 - Previous period's usage is archived in `TokenUsageLog`
 - New aggregate record created in `UserTokenUsage`
+
+When a paid user's subscription is set to cancel at period end and the period has passed:
+- Cron job calls `/api/cron/cleanup-cancelled`
+- Access is removed by clearing `user.currentPlan` and marking the subscription as `cancelled` if needed
 
 ### 4. Usage Tracking
 
@@ -259,6 +268,13 @@ curl -X POST http://localhost:3000/api/subscription \
 
 ```bash
 curl -X GET http://localhost:3000/api/cron/reset-quotas \
+  -H "Authorization: Bearer YOUR_CRON_SECRET"
+```
+
+### Manually Trigger Cancelled Cleanup
+
+```bash
+curl -X GET http://localhost:3000/api/cron/cleanup-cancelled \
   -H "Authorization: Bearer YOUR_CRON_SECRET"
 ```
 
@@ -407,6 +423,15 @@ await assignTesterPlan(userId);
 1. Verify `CRON_SECRET` is set in environment
 2. Check Vercel cron logs
 3. Manually trigger: `curl http://your-domain.com/api/cron/reset-quotas -H "Authorization: Bearer $CRON_SECRET"`
+
+### Issue: Cancelled users still have access
+
+**Cause:** Cleanup cron not running or CRON_SECRET not set
+
+**Fix:**
+1. Verify `CRON_SECRET` is set in environment
+2. Check Vercel cron logs for `/api/cron/cleanup-cancelled`
+3. Manually trigger: `curl http://your-domain.com/api/cron/cleanup-cancelled -H "Authorization: Bearer $CRON_SECRET"`
 
 ### Issue: Usage not being recorded
 

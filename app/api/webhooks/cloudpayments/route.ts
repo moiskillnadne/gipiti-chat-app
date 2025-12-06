@@ -517,9 +517,8 @@ async function handleCancelWebhook(
     await db
       .update(userSubscription)
       .set({
-        status: "cancelled",
-        cancelledAt: new Date(),
         cancelAtPeriodEnd: true,
+        cancelledAt: new Date(),
       })
       .where(
         and(

@@ -103,9 +103,8 @@ export async function DELETE(_request: Request) {
     await db
       .update(userSubscription)
       .set({
-        status: "cancelled",
-        cancelledAt: new Date(),
         cancelAtPeriodEnd: true,
+        cancelledAt: new Date(),
       })
       .where(eq(userSubscription.id, subscription.id));
 

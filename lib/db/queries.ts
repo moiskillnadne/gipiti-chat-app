@@ -789,12 +789,14 @@ export async function getActiveUserSubscription({
   userId: string;
 }): Promise<UserSubscription | null> {
   try {
+    const now = new Date();
     const [subscription] = await db
       .select()
       .from(userSubscription)
       .where(
         and(
           eq(userSubscription.userId, userId),
+          gt(userSubscription.currentPeriodEnd, now),
           eq(userSubscription.status, "active")
         )
       )
@@ -815,6 +817,7 @@ export async function getUserSubscriptionWithPlan({
   userId: string;
 }): Promise<{ subscription: UserSubscription; plan: SubscriptionPlan } | null> {
   try {
+    const now = new Date();
     const subscriptions = await db
       .select({
         subscription: userSubscription,
@@ -828,6 +831,7 @@ export async function getUserSubscriptionWithPlan({
       .where(
         and(
           eq(userSubscription.userId, userId),
+          gt(userSubscription.currentPeriodEnd, now),
           eq(userSubscription.status, "active")
         )
       )

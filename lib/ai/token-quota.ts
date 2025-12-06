@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, gt } from "drizzle-orm";
 import { db } from "@/lib/db/queries";
 import {
   subscriptionPlan,
@@ -7,19 +7,15 @@ import {
   userTokenUsage,
 } from "@/lib/db/schema";
 import type { AppUsage } from "@/lib/usage";
-import {
-  calculateNextBillingDate,
-  calculatePeriodEnd,
-  isPeriodExpired,
-} from "../subscription/billing-periods";
+import { isPeriodExpired } from "../subscription/billing-periods";
 import type { BillingPeriod } from "../subscription/subscription-tiers";
 
 /**
  * Get user's current subscription and quota information
- * Automatically renews period if expired
  */
 export async function getUserQuotaInfo(userId: string) {
   // Get active subscription
+  const now = new Date();
   const subscriptions = await db
     .select({
       subscription: userSubscription,
@@ -33,6 +29,7 @@ export async function getUserQuotaInfo(userId: string) {
     .where(
       and(
         eq(userSubscription.userId, userId),
+        gt(userSubscription.currentPeriodEnd, now),
         eq(userSubscription.status, "active")
       )
     )
@@ -43,11 +40,11 @@ export async function getUserQuotaInfo(userId: string) {
     return null;
   }
 
-  let { subscription: sub, plan } = subscriptions[0];
+  const { subscription: sub, plan } = subscriptions[0];
 
-  // Check if period has expired and auto-renew
-  if (isPeriodExpired(sub.currentPeriodEnd)) {
-    sub = await renewSubscriptionPeriod(sub);
+  // Check if period has expired
+  if (isPeriodExpired(sub.currentPeriodEnd) && sub.cancelAtPeriodEnd) {
+    return null;
   }
 
   // Get current period usage
@@ -86,38 +83,6 @@ export async function getUserQuotaInfo(userId: string) {
     percentUsed: quota > 0 ? (used / quota) * 100 : 0,
     isExceeded: used >= quota,
   };
-}
-
-/**
- * Renew subscription period (called when period expires)
- */
-async function renewSubscriptionPeriod(
-  subscription: typeof userSubscription.$inferSelect
-) {
-  const newPeriodStart = subscription.currentPeriodEnd;
-  const newPeriodEnd = calculatePeriodEnd(
-    newPeriodStart,
-    subscription.billingPeriod,
-    subscription.billingPeriodCount
-  );
-  const newBillingDate = calculateNextBillingDate(
-    newPeriodStart,
-    subscription.billingPeriod,
-    subscription.billingPeriodCount
-  );
-
-  const [updated] = await db
-    .update(userSubscription)
-    .set({
-      currentPeriodStart: newPeriodStart,
-      currentPeriodEnd: newPeriodEnd,
-      nextBillingDate: newBillingDate,
-      updatedAt: new Date(),
-    })
-    .where(eq(userSubscription.id, subscription.id))
-    .returning();
-
-  return updated;
 }
 
 /**

@@ -130,6 +130,10 @@ export default async function SubscriptionPage() {
 
   const isCancelled =
     subscription.status === "cancelled" || subscription.cancelAtPeriodEnd;
+  const showNextPaymentInfo =
+    subscription.status === "active" && !subscription.cancelAtPeriodEnd;
+  const showNoFurtherCharges =
+    subscription.status === "active" && subscription.cancelAtPeriodEnd;
 
   return (
     <div className="container mx-auto max-w-4xl p-6">
@@ -153,14 +157,6 @@ export default async function SubscriptionPage() {
             </h3>
             <div className="flex flex-col gap-2">
               {getStatusBadge(subscription.status)}
-              {subscription.cancelAtPeriodEnd &&
-                subscription.currentPeriodEnd && (
-                  <p className="text-muted-foreground text-sm">
-                    {t("willCancelAt", {
-                      date: formatDate(subscription.currentPeriodEnd),
-                    })}
-                  </p>
-                )}
               {subscription.cancelledAt && (
                 <p className="text-muted-foreground text-sm">
                   {t("cancelledOn", {
@@ -211,24 +207,52 @@ export default async function SubscriptionPage() {
               </p>
             </div>
 
-            <div className="space-y-2">
-              <h3 className="font-medium text-muted-foreground text-sm">
-                {t("nextPaymentDate")}
-              </h3>
-              <p className="text-lg">
-                {formatDate(subscription.nextBillingDate)}
-              </p>
-            </div>
+            {showNextPaymentInfo && (
+              <>
+                <div className="space-y-2">
+                  <h3 className="font-medium text-muted-foreground text-sm">
+                    {t("nextPaymentDate")}
+                  </h3>
+                  <p className="text-lg">
+                    {formatDate(subscription.nextBillingDate)}
+                  </p>
+                </div>
 
-            <div className="space-y-2">
-              <h3 className="font-medium text-muted-foreground text-sm">
-                {t("nextPaymentAmount")}
-              </h3>
-              <p className="text-lg">{formatCurrency(plan.price)}</p>
-            </div>
+                <div className="space-y-2">
+                  <h3 className="font-medium text-muted-foreground text-sm">
+                    {t("nextPaymentAmount")}
+                  </h3>
+                  <p className="text-lg">{formatCurrency(plan.price)}</p>
+                </div>
+              </>
+            )}
+
+            {showNoFurtherCharges && (
+              <div className="space-y-2 md:col-span-2">
+                <h3 className="font-medium text-muted-foreground text-sm">
+                  {t("nextPaymentInfo")}
+                </h3>
+                <p className="text-lg">{t("noFurtherCharges")}</p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
+
+      {subscription.cancelAtPeriodEnd && subscription.currentPeriodEnd && (
+        <Card className="mt-6 border-destructive/50 bg-destructive/5">
+          <CardHeader>
+            <CardTitle className="text-destructive">
+              {t("willCancelAt", {
+                date: formatDate(subscription.currentPeriodEnd),
+              })}
+            </CardTitle>
+            <CardDescription className="text-destructive">
+              {t("noFurtherCharges")}
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      )}
 
       {subscription.status === "active" && !subscription.cancelAtPeriodEnd && (
         <Card className="mt-6 border-destructive/50">
