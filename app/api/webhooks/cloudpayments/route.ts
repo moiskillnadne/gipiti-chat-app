@@ -5,13 +5,13 @@ import type {
   CloudPaymentsCheckWebhook,
   CloudPaymentsFailWebhook,
   CloudPaymentsPayWebhook,
-  CloudPaymentsRecurrentWebhook,
 } from "@/lib/payments/cloudpayments-types";
 import { handleCancelWebhook } from "./lib/handlers/cancel";
 import { handleCheckWebhook } from "./lib/handlers/check";
 import { handleFailWebhook } from "./lib/handlers/fail";
 import { handlePayWebhook } from "./lib/handlers/pay";
 import { handleRecurrentWebhook } from "./lib/handlers/recurrent";
+import { normalizeRecurrentPayload } from "./lib/recurrent-normalizer";
 
 type WebhookType = "check" | "pay" | "fail" | "recurrent" | "cancel";
 
@@ -86,8 +86,16 @@ export async function POST(request: Request): Promise<Response> {
       return handlePayWebhook(payload as CloudPaymentsPayWebhook);
     case "fail":
       return handleFailWebhook(payload as CloudPaymentsFailWebhook);
-    case "recurrent":
-      return handleRecurrentWebhook(payload as CloudPaymentsRecurrentWebhook);
+    case "recurrent": {
+      // Ensure required fields are present and types are normalized before handing off to the recurrent handler.
+      const normalized = normalizeRecurrentPayload(payload);
+
+      if (!normalized) {
+        return Response.json({ code: 13 }, { status: 400 });
+      }
+
+      return handleRecurrentWebhook(normalized);
+    }
     case "cancel":
       return handleCancelWebhook(payload as CloudPaymentsCancelWebhook);
     default:

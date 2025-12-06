@@ -145,6 +145,7 @@ export type CloudPaymentsRecurrentWebhook = CloudPaymentsWebhookPayload & {
   SuccessfulTransactionsNumber: number;
   FailedTransactionsNumber: number;
   StatusCode: number;
+  Status: "Active" | "Cancelled" | "PastDue" | "Rejected" | "Expired";
 };
 export type CloudPaymentsCancelWebhook = {
   Id: string;
