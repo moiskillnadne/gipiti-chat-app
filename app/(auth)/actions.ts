@@ -7,13 +7,13 @@ import {
   createUser,
   createUserSubscription,
   getSubscriptionPlanByName,
-  getUser,
   getUserByResetToken,
   getUserByVerificationCode,
   markEmailAsVerified,
   setPasswordResetToken,
   updateUserPassword,
 } from "@/lib/db/queries";
+import { getUserByEmail } from "@/lib/db/query/user/get-by-email";
 import { generateHashedPassword } from "@/lib/db/utils";
 import { sendPasswordChangedEmail } from "@/lib/email/send-password-changed";
 import { sendPasswordResetEmail } from "@/lib/email/send-password-reset";
@@ -105,7 +105,7 @@ export const register = async (
 
     const locale = (formData.get("locale") as string) || "en";
 
-    const [existingUser] = await getUser(validatedData.email);
+    const [existingUser] = await getUserByEmail(validatedData.email);
 
     if (existingUser) {
       return { status: "user_exists" } as RegisterActionState;
@@ -238,7 +238,7 @@ export const resendVerificationCode = async (
     }
 
     // Check if user exists and is not already verified
-    const [foundUser] = await getUser(validatedData.email);
+    const [foundUser] = await getUserByEmail(validatedData.email);
 
     // Always return success to prevent email enumeration
     if (!foundUser || foundUser.emailVerified) {
@@ -306,7 +306,7 @@ export const requestPasswordReset = async (
     }
 
     // Find user by email
-    const [foundUser] = await getUser(validatedData.email);
+    const [foundUser] = await getUserByEmail(validatedData.email);
 
     // Always return success to prevent email enumeration
     // Even if user doesn't exist, we pretend we sent the email

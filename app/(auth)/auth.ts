@@ -3,7 +3,8 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { getAuthSecret } from "@/lib/auth/secret";
 import { DUMMY_PASSWORD } from "@/lib/constants";
-import { getActiveUserSubscription, getUser } from "@/lib/db/queries";
+import { getActiveUserSubscription } from "@/lib/db/queries";
+import { getUserByEmail } from "../../lib/db/query/user/get-by-email";
 import { authConfig } from "./auth.config";
 
 export type { UserType } from "@/types/next-auth";
@@ -20,7 +21,7 @@ export const {
     Credentials({
       credentials: {},
       async authorize({ email, password }: any) {
-        const users = await getUser(email);
+        const users = await getUserByEmail(email);
 
         if (users.length === 0) {
           await compare(password, DUMMY_PASSWORD);
@@ -77,7 +78,7 @@ export const {
         }
 
         if (token.email) {
-          const [dbUser] = await getUser(token.email);
+          const [dbUser] = await getUserByEmail(token.email);
           if (dbUser) {
             token.emailVerified = dbUser.emailVerified as boolean;
             token.isTester = dbUser.isTester as boolean;

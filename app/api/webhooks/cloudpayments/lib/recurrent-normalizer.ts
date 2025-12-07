@@ -1,17 +1,5 @@
 import type { CloudPaymentsRecurrentWebhook } from "@/lib/payments/cloudpayments-types";
-
-const toNumber = (value: unknown): number | null => {
-  if (typeof value === "number") {
-    return Number.isNaN(value) ? null : value;
-  }
-
-  if (typeof value === "string") {
-    const parsed = Number(value);
-    return Number.isNaN(parsed) ? null : parsed;
-  }
-
-  return null;
-};
+import { toNumber } from "./handlers/utils";
 
 const toBoolean = (value: unknown): boolean => {
   if (typeof value === "boolean") {

@@ -6,19 +6,7 @@ import {
   calculateNextBillingDate,
   calculatePeriodEnd,
 } from "@/lib/subscription/billing-periods";
-
-const toNumber = (value: unknown): number | null => {
-  if (typeof value === "number") {
-    return Number.isNaN(value) ? null : value;
-  }
-
-  if (typeof value === "string") {
-    const parsed = Number(value);
-    return Number.isNaN(parsed) ? null : parsed;
-  }
-
-  return null;
-};
+import { toNumber } from "./utils";
 
 const findSubscription = async (accountId: string, externalId: string) => {
   const byExternal = await db
