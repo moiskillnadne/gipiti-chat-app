@@ -14,3 +14,16 @@ export function parseWebhookData<T extends object>(rawData?: string): T | null {
 
   return null;
 }
+
+export function toNumber(value: unknown): number | null {
+  if (typeof value === "number") {
+    return Number.isNaN(value) ? null : value;
+  }
+
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isNaN(parsed) ? null : parsed;
+  }
+
+  return null;
+}

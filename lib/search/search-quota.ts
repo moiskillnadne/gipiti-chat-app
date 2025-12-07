@@ -2,9 +2,9 @@ import {
   getActiveUserSubscription,
   getSearchUsageCountByBillingPeriod,
   getSearchUsageCountByDateRange,
-  getUserById,
   insertSearchUsageLog,
 } from "@/lib/db/queries";
+import { getUserById } from "@/lib/db/query/user/get-by-id";
 import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 import type {
   SearchDepth,
