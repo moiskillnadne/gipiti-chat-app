@@ -8,6 +8,7 @@ export type AppUsage = LanguageModelUsage &
     modelId?: string;
     inputCost?: number;
     outputCost?: number;
+    totalCost?: number;
     cacheWriteTokens?: number;
     cacheReadTokens?: number;
   };
