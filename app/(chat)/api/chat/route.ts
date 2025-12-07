@@ -49,6 +49,7 @@ import { ChatSDKError } from "@/lib/errors";
 import type { ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
 import { convertToUIMessages, generateUUID } from "@/lib/utils";
+import { generateImage } from "../../../../lib/ai/tools/generate-image";
 import { generateTitleFromUserMessage } from "../../actions";
 import { type PostRequestBody, postRequestBodySchema } from "./schema";
 
@@ -240,6 +241,7 @@ export async function POST(request: Request) {
                   "updateDocument",
                   "requestSuggestions",
                   "webSearch",
+                  "generateImage",
                 ],
           experimental_transform: smoothStream({ chunking: "word" }),
           tools: {
@@ -251,6 +253,7 @@ export async function POST(request: Request) {
               dataStream,
             }),
             webSearch: webSearch({ session, chatId: id }),
+            generateImage: generateImage({ dataStream }),
           },
           experimental_telemetry: {
             isEnabled: isProductionEnvironment,
@@ -338,16 +341,6 @@ export async function POST(request: Request) {
         return "Oops, an error occurred!";
       },
     });
-
-    // const streamContext = getStreamContext();
-
-    // if (streamContext) {
-    //   return new Response(
-    //     await streamContext.resumableStream(streamId, () =>
-    //       stream.pipeThrough(new JsonToSseTransformStream())
-    //     )
-    //   );
-    // }
 
     return new Response(stream.pipeThrough(new JsonToSseTransformStream()));
   } catch (error) {

@@ -2,6 +2,7 @@ import type { InferUITool, UIMessage } from "ai";
 import { z } from "zod";
 import type { ArtifactKind } from "@/components/artifact";
 import type { createDocument } from "./ai/tools/create-document";
+import type { generateImageTool } from "./ai/tools/generate-image";
 import type { getWeather } from "./ai/tools/get-weather";
 import type { requestSuggestions } from "./ai/tools/request-suggestions";
 import type { updateDocument } from "./ai/tools/update-document";
@@ -24,6 +25,7 @@ type requestSuggestionsTool = InferUITool<
   ReturnType<typeof requestSuggestions>
 >;
 type webSearchTool = InferUITool<ReturnType<typeof webSearch>>;
+type generateImageToolType = InferUITool<ReturnType<typeof generateImageTool>>;
 
 export type ChatTools = {
   getWeather: weatherTool;
@@ -31,6 +33,7 @@ export type ChatTools = {
   updateDocument: updateDocumentTool;
   requestSuggestions: requestSuggestionsTool;
   webSearch: webSearchTool;
+  generateImage: generateImageToolType;
 };
 
 export type CustomUIDataTypes = {

@@ -279,7 +279,8 @@
       "edit": "Edit",
       "loadingDocument": "Creating document...",
       "errorCreatingDocument": "Error creating document",
-      "errorUpdatingDocument": "Error updating document"
+      "errorUpdatingDocument": "Error updating document",
+      "generatingImage": "Generating image..."
     },
     "empty": {
       "title": "Start a new conversation",

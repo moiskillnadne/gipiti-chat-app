@@ -313,6 +313,31 @@ const PurePreviewMessage = ({
               );
             }
 
+            if (type === "tool-generateImage") {
+              const { toolCallId, state } = part;
+
+              return (
+                <div className="overflow-hidden rounded-lg" key={toolCallId}>
+                  {state === "output-available" && part.output.imageUrl ? (
+                    <picture>
+                      {/* biome-ignore lint/nursery/useImageSize: "Generated image" */}
+                      <img
+                        alt={part.input.prompt}
+                        className="max-w-full rounded-lg"
+                        src={part.output.imageUrl}
+                      />
+                    </picture>
+                  ) : (
+                    <div className="flex items-center gap-2 rounded-lg border p-4 text-muted-foreground">
+                      <span className="animate-pulse">
+                        {t("generatingImage")}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
             return null;
           })}
 
