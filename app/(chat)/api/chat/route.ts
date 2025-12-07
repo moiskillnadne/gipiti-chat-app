@@ -49,6 +49,7 @@ import { ChatSDKError } from "@/lib/errors";
 import type { ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
 import { convertToUIMessages, generateUUID } from "@/lib/utils";
+import { mapProviderModelIdToModelId } from "../../../../lib/ai/mapper";
 import { generateTitleFromUserMessage } from "../../actions";
 import { type PostRequestBody, postRequestBodySchema } from "./schema";
 
@@ -256,13 +257,17 @@ export async function POST(request: Request) {
             isEnabled: isProductionEnvironment,
             functionId: "stream-text",
           },
-          onFinish: async ({ usage }) => {
+          onFinish: async ({ usage, totalUsage }) => {
+            console.log("totalUsage", totalUsage);
+            console.log("usage", usage);
+
+            const baseUsage = usage as AppUsage;
             try {
               const providers = await getTokenlensCatalog();
               const modelId =
                 myProvider.languageModel(selectedChatModel).modelId;
               if (!modelId) {
-                finalMergedUsage = usage;
+                finalMergedUsage = baseUsage;
                 dataStream.write({
                   type: "data-usage",
                   data: finalMergedUsage,
@@ -271,7 +276,7 @@ export async function POST(request: Request) {
               }
 
               if (!providers) {
-                finalMergedUsage = usage;
+                finalMergedUsage = baseUsage;
                 dataStream.write({
                   type: "data-usage",
                   data: finalMergedUsage,
@@ -279,24 +284,39 @@ export async function POST(request: Request) {
                 return;
               }
 
-              const summary = getUsage({ modelId, usage, providers });
-              finalMergedUsage = { ...usage, ...summary, modelId } as AppUsage;
-              dataStream.write({ type: "data-usage", data: finalMergedUsage });
+              const mappedModelId = mapProviderModelIdToModelId(modelId);
 
-              // Record token usage for quota tracking
-              try {
-                await recordTokenUsage({
-                  userId: session.user.id,
-                  chatId: id,
-                  messageId: undefined, // Will be set in outer onFinish
-                  usage: finalMergedUsage,
-                });
-              } catch (err) {
-                console.warn("Failed to record token usage", err);
-              }
+              const summary = getUsage({
+                modelId: mappedModelId,
+                usage: baseUsage,
+                providers,
+              }) as Partial<AppUsage>;
+
+              // console.log("summary", summary);
+
+              const combinedInputCost =
+                summary?.inputCost ?? baseUsage.inputCost ?? 0;
+
+              const combinedOutputCost =
+                summary?.outputCost ?? baseUsage.outputCost ?? 0;
+
+              const combinedTotalCost =
+                summary?.totalCost ??
+                baseUsage.totalCost ??
+                combinedInputCost + combinedOutputCost;
+
+              finalMergedUsage = {
+                ...baseUsage,
+                ...summary,
+                modelId,
+                totalCost: combinedTotalCost,
+                inputCost: combinedInputCost,
+                outputCost: combinedOutputCost,
+              } as AppUsage;
+              dataStream.write({ type: "data-usage", data: finalMergedUsage });
             } catch (err) {
               console.warn("TokenLens enrichment failed", err);
-              finalMergedUsage = usage;
+              finalMergedUsage = baseUsage;
               dataStream.write({ type: "data-usage", data: finalMergedUsage });
             }
           },
@@ -312,6 +332,14 @@ export async function POST(request: Request) {
       },
       generateId: generateUUID,
       onFinish: async ({ messages }) => {
+        let messageIdForUsage: string | undefined;
+        for (let idx = messages.length - 1; idx >= 0; idx -= 1) {
+          if (messages[idx].role === "assistant") {
+            messageIdForUsage = messages[idx].id;
+            break;
+          }
+        }
+
         await saveMessages({
           messages: messages.map((currentMessage) => ({
             id: currentMessage.id,
@@ -332,22 +360,22 @@ export async function POST(request: Request) {
           } catch (err) {
             console.warn("Unable to persist last usage for chat", id, err);
           }
+          try {
+            await recordTokenUsage({
+              userId: session.user.id,
+              chatId: id,
+              messageId: messageIdForUsage,
+              usage: finalMergedUsage,
+            });
+          } catch (err) {
+            console.warn("Failed to record token usage", err);
+          }
         }
       },
       onError: () => {
         return "Oops, an error occurred!";
       },
     });
-
-    // const streamContext = getStreamContext();
-
-    // if (streamContext) {
-    //   return new Response(
-    //     await streamContext.resumableStream(streamId, () =>
-    //       stream.pipeThrough(new JsonToSseTransformStream())
-    //     )
-    //   );
-    // }
 
     return new Response(stream.pipeThrough(new JsonToSseTransformStream()));
   } catch (error) {

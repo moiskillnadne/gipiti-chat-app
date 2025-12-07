@@ -10,6 +10,14 @@ import type { AppUsage } from "@/lib/usage";
 import { isPeriodExpired } from "../subscription/billing-periods";
 import type { BillingPeriod } from "../subscription/subscription-tiers";
 
+function normalizeCost(value: number | string | undefined): number {
+  if (value === undefined) {
+    return 0;
+  }
+  const numericValue = typeof value === "string" ? Number(value) : value;
+  return Number.isNaN(numericValue) ? 0 : numericValue;
+}
+
 /**
  * Get user's current subscription and quota information
  */
@@ -146,9 +154,12 @@ export async function recordTokenUsage({
 
   // Calculate totals
   const totalTokens = (usage.inputTokens || 0) + (usage.outputTokens || 0);
-  const totalCost = ((usage.inputCost || 0) + (usage.outputCost || 0)).toFixed(
-    8
-  );
+  const inputCost = normalizeCost(usage.inputCost);
+  const outputCost = normalizeCost(usage.outputCost);
+  const totalCostValue =
+    normalizeCost((usage as { totalCost?: number }).totalCost) ||
+    inputCost + outputCost;
+  const totalCost = totalCostValue.toFixed(8);
 
   // Insert into usage log
   await db.insert(tokenUsageLog).values({
@@ -162,8 +173,8 @@ export async function recordTokenUsage({
     totalTokens,
     cacheWriteTokens: usage.cacheWriteTokens || 0,
     cacheReadTokens: usage.cacheReadTokens || 0,
-    inputCost: usage.inputCost?.toString(),
-    outputCost: usage.outputCost?.toString(),
+    inputCost: inputCost.toString(),
+    outputCost: outputCost.toString(),
     totalCost,
     billingPeriodType: subscription.billingPeriod,
     billingPeriodStart: subscription.currentPeriodStart,
@@ -200,7 +211,11 @@ async function updateUserTokenUsage({
   usage: AppUsage;
 }) {
   const totalTokens = (usage.inputTokens || 0) + (usage.outputTokens || 0);
-  const totalCost = (usage.inputCost || 0) + (usage.outputCost || 0);
+  const inputCost = normalizeCost(usage.inputCost);
+  const outputCost = normalizeCost(usage.outputCost);
+  const totalCost =
+    normalizeCost((usage as { totalCost?: number }).totalCost) ||
+    inputCost + outputCost;
 
   // Try to get existing record
   const existing = await db
