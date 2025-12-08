@@ -556,3 +556,56 @@ export const searchUsageLog = pgTable(
 );
 
 export type SearchUsageLog = InferSelectModel<typeof searchUsageLog>;
+
+// Image Generation Usage Log
+export const imageGenerationUsageLog = pgTable(
+  "ImageGenerationUsageLog",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+
+    // User context
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    chatId: uuid("chat_id").references(() => chat.id, { onDelete: "set null" }),
+
+    // Image generation details
+    modelId: varchar("model_id", { length: 128 }).notNull(),
+    prompt: text("prompt").notNull(),
+    imageUrl: varchar("image_url", { length: 512 }),
+    success: boolean("success").notNull().default(true),
+
+    // Token usage (from metadata.google.usageMetadata)
+    promptTokens: integer("prompt_tokens").default(0),
+    candidatesTokens: integer("candidates_tokens").default(0),
+    thoughtsTokens: integer("thoughts_tokens").default(0),
+    totalTokens: integer("total_tokens").default(0),
+
+    // Pricing (from metadata.gateway.cost - in USD)
+    totalCostUsd: decimal("total_cost_usd", { precision: 12, scale: 8 }),
+
+    // Billing period
+    billingPeriodType: billingPeriodEnum("billing_period_type").notNull(),
+    billingPeriodStart: timestamp("billing_period_start").notNull(),
+    billingPeriodEnd: timestamp("billing_period_end").notNull(),
+
+    // Meta
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index("image_generation_usage_log_user_id_idx").on(table.userId),
+    chatIdIdx: index("image_generation_usage_log_chat_id_idx").on(table.chatId),
+    createdAtIdx: index("image_generation_usage_log_created_at_idx").on(
+      table.createdAt
+    ),
+    userPeriodIdx: index("image_generation_usage_log_user_period_idx").on(
+      table.userId,
+      table.billingPeriodStart,
+      table.billingPeriodEnd
+    ),
+  })
+);
+
+export type ImageGenerationUsageLog = InferSelectModel<
+  typeof imageGenerationUsageLog
+>;

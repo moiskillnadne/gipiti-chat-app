@@ -253,7 +253,11 @@ export async function POST(request: Request) {
               dataStream,
             }),
             webSearch: webSearch({ session, chatId: id }),
-            generateImage: generateImage({ dataStream }),
+            generateImage: generateImage({
+              dataStream,
+              userId: session.user.id,
+              chatId: id,
+            }),
           },
           experimental_telemetry: {
             isEnabled: isProductionEnvironment,

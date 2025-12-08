@@ -19,7 +19,7 @@ import {
   ToolInput,
   ToolOutput,
 } from "./elements/tool";
-import { SparklesIcon } from "./icons";
+import { DownloadIcon, SparklesIcon } from "./icons";
 import { MessageActions } from "./message-actions";
 import { MessageEditor } from "./message-editor";
 import { MessageReasoning } from "./message-reasoning";
@@ -316,17 +316,45 @@ const PurePreviewMessage = ({
             if (type === "tool-generateImage") {
               const { toolCallId, state } = part;
 
+              const handleDownload = async (imageUrl: string) => {
+                const response = await fetch(imageUrl);
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                const filename =
+                  imageUrl.split("/").pop() ?? "generated-image.png";
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+              };
+
               return (
-                <div className="overflow-hidden rounded-lg" key={toolCallId}>
+                <div
+                  className="group/image relative overflow-hidden rounded-lg"
+                  key={toolCallId}
+                >
                   {state === "output-available" && part.output.imageUrl ? (
-                    <picture>
-                      {/* biome-ignore lint/nursery/useImageSize: "Generated image" */}
-                      <img
-                        alt={part.input.prompt}
-                        className="max-w-full rounded-lg"
-                        src={part.output.imageUrl}
-                      />
-                    </picture>
+                    <>
+                      <picture>
+                        {/* biome-ignore lint/nursery/useImageSize: "Generated image" */}
+                        <img
+                          alt={part.input.prompt}
+                          className="max-w-full rounded-lg"
+                          src={part.output.imageUrl}
+                        />
+                      </picture>
+                      <button
+                        className="absolute right-2 bottom-2 flex size-8 items-center justify-center rounded-lg bg-black/50 text-white opacity-0 transition-opacity hover:bg-black/70 group-hover/image:opacity-100"
+                        onClick={() => handleDownload(part.output.imageUrl)}
+                        title={t("download")}
+                        type="button"
+                      >
+                        <DownloadIcon size={16} />
+                      </button>
+                    </>
                   ) : (
                     <div className="flex items-center gap-2 rounded-lg border p-4 text-muted-foreground">
                       <span className="animate-pulse">

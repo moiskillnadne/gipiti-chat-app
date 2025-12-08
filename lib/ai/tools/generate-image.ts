@@ -1,6 +1,10 @@
 import { put } from "@vercel/blob";
 import { streamText, tool, type UIMessageStreamWriter } from "ai";
 import z from "zod/v4";
+import {
+  getActiveUserSubscription,
+  insertImageGenerationUsageLog,
+} from "../../db/queries";
 import type { ChatMessage } from "../../types";
 import { generateUUID } from "../../utils";
 
@@ -16,8 +20,17 @@ async function uploadGeneratedImage(
   return url;
 }
 
+type ImageUsageMetadata = {
+  promptTokenCount?: number;
+  candidatesTokenCount?: number;
+  thoughtsTokenCount?: number;
+  totalTokenCount?: number;
+};
+
 type GenerateImageProps = {
   dataStream: UIMessageStreamWriter<ChatMessage>;
+  userId: string;
+  chatId: string;
 };
 
 type GeneratedFileWithBase64 = {
@@ -25,7 +38,13 @@ type GeneratedFileWithBase64 = {
   mediaType: string;
 };
 
-export const generateImageTool = ({ dataStream }: GenerateImageProps) =>
+const IMAGE_MODEL_ID = "google/gemini-3-pro-image";
+
+export const generateImageTool = ({
+  dataStream,
+  userId,
+  chatId,
+}: GenerateImageProps) =>
   tool({
     description:
       "Tool for image generation. Use it when you want to generate an image from a prompt.",
@@ -36,8 +55,8 @@ export const generateImageTool = ({ dataStream }: GenerateImageProps) =>
     execute: async ({ prompt }) => {
       const id = generateUUID();
       let imageUrl: string | undefined;
-
-      console.log("Generating image...");
+      let usageMetadata: ImageUsageMetadata | undefined;
+      let totalCostUsd: string | undefined;
 
       dataStream.write({
         type: "data-kind",
@@ -58,12 +77,11 @@ export const generateImageTool = ({ dataStream }: GenerateImageProps) =>
       });
 
       const result = streamText({
-        model: "google/gemini-3-pro-image",
+        model: IMAGE_MODEL_ID,
         prompt,
       });
 
       for await (const delta of result.fullStream) {
-        console.dir(delta, { depth: null });
         const { type } = delta;
 
         if (type === "start") {
@@ -105,6 +123,16 @@ export const generateImageTool = ({ dataStream }: GenerateImageProps) =>
             );
           }
         }
+
+        if (type === "finish-step") {
+          const metadata = await result.providerMetadata;
+
+          if (metadata) {
+            usageMetadata =
+              metadata.google?.usageMetadata as ImageUsageMetadata;
+            totalCostUsd = metadata.gateway?.cost?.toString();
+          }
+        }
       }
 
       dataStream.write({
@@ -114,6 +142,47 @@ export const generateImageTool = ({ dataStream }: GenerateImageProps) =>
       });
 
       dataStream.write({ type: "data-finish", data: null, transient: true });
+
+      // Record usage
+      try {
+        const subscription = await getActiveUserSubscription({ userId });
+
+        let billingPeriodStart: Date;
+        let billingPeriodEnd: Date;
+        let billingPeriodType: "daily" | "weekly" | "monthly" | "annual";
+
+        if (subscription) {
+          billingPeriodStart = subscription.currentPeriodStart;
+          billingPeriodEnd = subscription.currentPeriodEnd;
+          billingPeriodType = subscription.billingPeriod;
+        } else {
+          const now = new Date();
+          billingPeriodStart = new Date(now);
+          billingPeriodStart.setHours(0, 0, 0, 0);
+          billingPeriodEnd = new Date(now);
+          billingPeriodEnd.setHours(23, 59, 59, 999);
+          billingPeriodType = "daily";
+        }
+
+        await insertImageGenerationUsageLog({
+          userId,
+          chatId,
+          modelId: IMAGE_MODEL_ID,
+          prompt,
+          imageUrl: imageUrl ?? null,
+          success: Boolean(imageUrl),
+          promptTokens: usageMetadata?.promptTokenCount ?? 0,
+          candidatesTokens: usageMetadata?.candidatesTokenCount ?? 0,
+          thoughtsTokens: usageMetadata?.thoughtsTokenCount ?? 0,
+          totalTokens: usageMetadata?.totalTokenCount ?? 0,
+          totalCostUsd: totalCostUsd ?? null,
+          billingPeriodType,
+          billingPeriodStart,
+          billingPeriodEnd,
+        });
+      } catch (err) {
+        console.warn("Failed to record image generation usage", err);
+      }
 
       return {
         id,

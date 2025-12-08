@@ -280,7 +280,8 @@
       "loadingDocument": "Creating document...",
       "errorCreatingDocument": "Error creating document",
       "errorUpdatingDocument": "Error updating document",
-      "generatingImage": "Generating image..."
+      "generatingImage": "Generating image...",
+      "download": "Download"
     },
     "empty": {
       "title": "Start a new conversation",

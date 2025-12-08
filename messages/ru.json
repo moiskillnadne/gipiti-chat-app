@@ -280,7 +280,8 @@
       "loadingDocument": "Создание документа...",
       "errorCreatingDocument": "Ошибка создания документа",
       "errorUpdatingDocument": "Ошибка обновления документа",
-      "generatingImage": "Генерация изображения..."
+      "generatingImage": "Генерация изображения...",
+      "download": "Скачать"
     },
     "empty": {
       "title": "Начните новый разговор",
