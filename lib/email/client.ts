@@ -20,10 +20,14 @@ if (!appUrl) {
 
 export const resend = new Resend(resendApiKey);
 
+// Webhook secret for verifying incoming webhooks (optional - only needed for receiving emails)
+export const resendWebhookSecret = process.env.RESEND_WEBHOOK_SECRET;
+
 // Email configuration
 export const emailConfig = {
   from: "noreply@gipiti.ru",
   supportEmail: "vitya.ryabkov@gmail.com",
+  forwardTo: process.env.EMAIL_FORWARD_TO ?? "vitya.ryabkov@gmail.com",
   appName: "GIPITI",
   appUrl,
 };
