@@ -24,6 +24,7 @@ import {
   chat,
   type DBMessage,
   document,
+  imageGenerationUsageLog,
   message,
   type SubscriptionPlan,
   type Suggestion,
@@ -1010,6 +1011,92 @@ export async function createUserSubscription({
     throw new ChatSDKError(
       "bad_request:database",
       "Failed to create user subscription"
+    );
+  }
+}
+
+export async function insertImageGenerationUsageLog({
+  userId,
+  chatId,
+  modelId,
+  prompt,
+  imageUrl,
+  success,
+  promptTokens,
+  candidatesTokens,
+  thoughtsTokens,
+  totalTokens,
+  totalCostUsd,
+  billingPeriodType,
+  billingPeriodStart,
+  billingPeriodEnd,
+}: {
+  userId: string;
+  chatId: string | null;
+  modelId: string;
+  prompt: string;
+  imageUrl: string | null;
+  success: boolean;
+  promptTokens: number;
+  candidatesTokens: number;
+  thoughtsTokens: number;
+  totalTokens: number;
+  totalCostUsd: string | null;
+  billingPeriodType: "daily" | "weekly" | "monthly" | "annual";
+  billingPeriodStart: Date;
+  billingPeriodEnd: Date;
+}): Promise<void> {
+  try {
+    await db.insert(imageGenerationUsageLog).values({
+      userId,
+      chatId,
+      modelId,
+      prompt,
+      imageUrl,
+      success,
+      promptTokens,
+      candidatesTokens,
+      thoughtsTokens,
+      totalTokens,
+      totalCostUsd,
+      billingPeriodType,
+      billingPeriodStart,
+      billingPeriodEnd,
+    });
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to insert image generation usage log"
+    );
+  }
+}
+
+export async function getImageGenerationCountByBillingPeriod({
+  userId,
+  periodStart,
+  periodEnd,
+}: {
+  userId: string;
+  periodStart: Date;
+  periodEnd: Date;
+}): Promise<number> {
+  try {
+    const [usageCount] = await db
+      .select({ count: count() })
+      .from(imageGenerationUsageLog)
+      .where(
+        and(
+          eq(imageGenerationUsageLog.userId, userId),
+          gte(imageGenerationUsageLog.billingPeriodStart, periodStart),
+          lte(imageGenerationUsageLog.billingPeriodEnd, periodEnd)
+        )
+      );
+
+    return usageCount?.count ?? 0;
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to get image generation count by billing period"
     );
   }
 }

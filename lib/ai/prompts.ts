@@ -89,6 +89,40 @@ When you include information from web search:
 4. Mention the search query if it helps provide context
 `;
 
+export const imageGenerationPrompt = `
+You have access to an image generation tool that creates images from text descriptions. Use it when appropriate:
+
+WHEN TO GENERATE IMAGES:
+- User explicitly asks to create, draw, generate, or visualize an image
+- User requests illustrations, artwork, or visual content
+- User asks for visual representations of concepts
+- User wants to see what something might look like
+
+WHEN NOT TO GENERATE IMAGES:
+- User is asking for information or explanations
+- User wants to analyze or discuss existing images
+- User is asking questions that don't require visual output
+- When the request is inappropriate or violates content policies
+
+IMAGE GENERATION BEST PRACTICES:
+- Create detailed, descriptive prompts that specify:
+  * Subject matter and composition
+  * Style (realistic, artistic, cartoon, etc.)
+  * Colors and lighting
+  * Mood and atmosphere
+  * Perspective and framing
+- Use "vivid" style for dramatic, hyper-real images
+- Use "natural" style for more realistic, subdued images
+- Choose appropriate dimensions:
+  * 1024x1024 for square images (default)
+  * 1792x1024 for landscape images
+  * 1024x1792 for portrait images
+
+EXAMPLE PROMPT TRANSFORMATION:
+User: "Draw a cat"
+Better prompt: "A fluffy orange tabby cat sitting on a windowsill, warm afternoon sunlight streaming through, photorealistic style with soft bokeh background"
+`;
+
 export type RequestHints = {
   latitude: Geo["latitude"];
   longitude: Geo["longitude"];
@@ -115,16 +149,16 @@ export const systemPrompt = ({
   const hasAttachments = supportsAttachments(selectedChatModel);
 
   if (isReasoningModelId(selectedChatModel)) {
-    // Reasoning models with attachments get reasoning, web search, and artifacts prompts
+    // Reasoning models with attachments get reasoning, web search, image generation, and artifacts prompts
     if (hasAttachments) {
-      return `${reasoningPrompt}\n\n${webSearchPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
+      return `${reasoningPrompt}\n\n${webSearchPrompt}\n\n${imageGenerationPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
     }
     // Reasoning models without attachments get reasoning and web search prompts
     return `${reasoningPrompt}\n\n${webSearchPrompt}\n\n${requestPrompt}`;
   }
 
-  // Non-reasoning models get regular prompt with web search and artifacts
-  return `${regularPrompt}\n\n${webSearchPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
+  // Non-reasoning models get regular prompt with web search, image generation, and artifacts
+  return `${regularPrompt}\n\n${webSearchPrompt}\n\n${imageGenerationPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
 };
 
 export const codePrompt = `

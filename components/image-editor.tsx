@@ -10,6 +10,17 @@ type ImageEditorProps = {
   isInline: boolean;
 };
 
+function isUrl(str: string): boolean {
+  return str.startsWith("http://") || str.startsWith("https://");
+}
+
+export function getImageSrc(content: string): string {
+  if (isUrl(content)) {
+    return content;
+  }
+  return `data:image/png;base64,${content}`;
+}
+
 export function ImageEditor({
   title,
   content,
@@ -40,7 +51,7 @@ export function ImageEditor({
             className={cn("h-fit w-full max-w-[800px]", {
               "p-0 md:p-20": !isInline,
             })}
-            src={`data:image/png;base64,${content}`}
+            src={getImageSrc(content)}
           />
         </picture>
       )}

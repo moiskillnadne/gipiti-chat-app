@@ -279,7 +279,10 @@
       "edit": "Редактировать",
       "loadingDocument": "Создание документа...",
       "errorCreatingDocument": "Ошибка создания документа",
-      "errorUpdatingDocument": "Ошибка обновления документа"
+      "errorUpdatingDocument": "Ошибка обновления документа",
+      "generatingImage": "Генерация изображения...",
+      "download": "Скачать",
+      "downloadError": "Не удалось скачать изображение"
     },
     "empty": {
       "title": "Начните новый разговор",

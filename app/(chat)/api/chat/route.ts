@@ -49,6 +49,10 @@ import { ChatSDKError } from "@/lib/errors";
 import type { ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
 import { convertToUIMessages, generateUUID } from "@/lib/utils";
+import {
+  createImageUsageAccumulator,
+  generateImage,
+} from "../../../../lib/ai/tools/generate-image";
 import { generateTitleFromUserMessage } from "../../actions";
 import { type PostRequestBody, postRequestBodySchema } from "./schema";
 
@@ -219,6 +223,7 @@ export async function POST(request: Request) {
     await createStreamId({ streamId, chatId: id });
 
     let finalMergedUsage: AppUsage | undefined;
+    const imageUsageAccumulator = createImageUsageAccumulator();
 
     const stream = createUIMessageStream({
       execute: ({ writer: dataStream }) => {
@@ -240,6 +245,7 @@ export async function POST(request: Request) {
                   "updateDocument",
                   "requestSuggestions",
                   "webSearch",
+                  "generateImage",
                 ],
           experimental_transform: smoothStream({ chunking: "word" }),
           tools: {
@@ -251,6 +257,12 @@ export async function POST(request: Request) {
               dataStream,
             }),
             webSearch: webSearch({ session, chatId: id }),
+            generateImage: generateImage({
+              dataStream,
+              userId: session.user.id,
+              chatId: id,
+              usageAccumulator: imageUsageAccumulator,
+            }),
           },
           experimental_telemetry: {
             isEnabled: isProductionEnvironment,
@@ -262,7 +274,15 @@ export async function POST(request: Request) {
               const modelId =
                 myProvider.languageModel(selectedChatModel).modelId;
               if (!modelId) {
-                finalMergedUsage = usage;
+                finalMergedUsage = {
+                  ...usage,
+                  inputTokens:
+                    (usage.inputTokens ?? 0) +
+                    imageUsageAccumulator.totalInputTokens,
+                  outputTokens:
+                    (usage.outputTokens ?? 0) +
+                    imageUsageAccumulator.totalOutputTokens,
+                };
                 dataStream.write({
                   type: "data-usage",
                   data: finalMergedUsage,
@@ -271,7 +291,15 @@ export async function POST(request: Request) {
               }
 
               if (!providers) {
-                finalMergedUsage = usage;
+                finalMergedUsage = {
+                  ...usage,
+                  inputTokens:
+                    (usage.inputTokens ?? 0) +
+                    imageUsageAccumulator.totalInputTokens,
+                  outputTokens:
+                    (usage.outputTokens ?? 0) +
+                    imageUsageAccumulator.totalOutputTokens,
+                };
                 dataStream.write({
                   type: "data-usage",
                   data: finalMergedUsage,
@@ -280,7 +308,21 @@ export async function POST(request: Request) {
               }
 
               const summary = getUsage({ modelId, usage, providers });
-              finalMergedUsage = { ...usage, ...summary, modelId } as AppUsage;
+              const baseCost =
+                ((summary as AppUsage).inputCost ?? 0) +
+                ((summary as AppUsage).outputCost ?? 0);
+              finalMergedUsage = {
+                ...usage,
+                ...summary,
+                modelId,
+                inputTokens:
+                  (usage.inputTokens ?? 0) +
+                  imageUsageAccumulator.totalInputTokens,
+                outputTokens:
+                  (usage.outputTokens ?? 0) +
+                  imageUsageAccumulator.totalOutputTokens,
+                inputCost: baseCost + imageUsageAccumulator.totalCost,
+              } as AppUsage;
               dataStream.write({ type: "data-usage", data: finalMergedUsage });
 
               // Record token usage for quota tracking
@@ -296,7 +338,15 @@ export async function POST(request: Request) {
               }
             } catch (err) {
               console.warn("TokenLens enrichment failed", err);
-              finalMergedUsage = usage;
+              finalMergedUsage = {
+                ...usage,
+                inputTokens:
+                  (usage.inputTokens ?? 0) +
+                  imageUsageAccumulator.totalInputTokens,
+                outputTokens:
+                  (usage.outputTokens ?? 0) +
+                  imageUsageAccumulator.totalOutputTokens,
+              };
               dataStream.write({ type: "data-usage", data: finalMergedUsage });
             }
           },
@@ -338,16 +388,6 @@ export async function POST(request: Request) {
         return "Oops, an error occurred!";
       },
     });
-
-    // const streamContext = getStreamContext();
-
-    // if (streamContext) {
-    //   return new Response(
-    //     await streamContext.resumableStream(streamId, () =>
-    //       stream.pipeThrough(new JsonToSseTransformStream())
-    //     )
-    //   );
-    // }
 
     return new Response(stream.pipeThrough(new JsonToSseTransformStream()));
   } catch (error) {
