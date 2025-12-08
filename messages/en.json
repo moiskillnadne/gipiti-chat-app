@@ -281,7 +281,8 @@
       "errorCreatingDocument": "Error creating document",
       "errorUpdatingDocument": "Error updating document",
       "generatingImage": "Generating image...",
-      "download": "Download"
+      "download": "Download",
+      "downloadError": "Failed to download image"
     },
     "empty": {
       "title": "Start a new conversation",

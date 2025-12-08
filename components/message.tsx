@@ -24,6 +24,7 @@ import { MessageActions } from "./message-actions";
 import { MessageEditor } from "./message-editor";
 import { MessageReasoning } from "./message-reasoning";
 import { PreviewAttachment } from "./preview-attachment";
+import { toast } from "./toast";
 import { Weather } from "./weather";
 import { WebSearchResult } from "./web-search-result";
 
@@ -348,7 +349,16 @@ const PurePreviewMessage = ({
                       </picture>
                       <button
                         className="absolute right-2 bottom-2 flex size-8 items-center justify-center rounded-lg bg-black/50 text-white transition-opacity hover:bg-black/70 md:opacity-0 md:group-hover/image:opacity-100"
-                        onClick={() => handleDownload(part.output.imageUrl)}
+                        onClick={() => {
+                          if (part.output.imageUrl) {
+                            handleDownload(part.output.imageUrl);
+                          } else {
+                            toast({
+                              type: "error",
+                              description: t("downloadError"),
+                            });
+                          }
+                        }}
                         title={t("download")}
                         type="button"
                       >
