@@ -27,10 +27,27 @@ type ImageUsageMetadata = {
   totalTokenCount?: number;
 };
 
+export type ImageGenerationUsageAccumulator = {
+  totalInputTokens: number;
+  totalOutputTokens: number;
+  totalCost: number;
+  generationCount: number;
+};
+
+export function createImageUsageAccumulator(): ImageGenerationUsageAccumulator {
+  return {
+    totalInputTokens: 0,
+    totalOutputTokens: 0,
+    totalCost: 0,
+    generationCount: 0,
+  };
+}
+
 type GenerateImageProps = {
   dataStream: UIMessageStreamWriter<ChatMessage>;
   userId: string;
   chatId: string;
+  usageAccumulator?: ImageGenerationUsageAccumulator;
 };
 
 type GeneratedFileWithBase64 = {
@@ -44,6 +61,7 @@ export const generateImageTool = ({
   dataStream,
   userId,
   chatId,
+  usageAccumulator,
 }: GenerateImageProps) =>
   tool({
     description:
@@ -128,8 +146,8 @@ export const generateImageTool = ({
           const metadata = await result.providerMetadata;
 
           if (metadata) {
-            usageMetadata =
-              metadata.google?.usageMetadata as ImageUsageMetadata;
+            usageMetadata = metadata.google
+              ?.usageMetadata as ImageUsageMetadata;
             totalCostUsd = metadata.gateway?.cost?.toString();
           }
         }
@@ -143,7 +161,21 @@ export const generateImageTool = ({
 
       dataStream.write({ type: "data-finish", data: null, transient: true });
 
-      // Record usage
+      // Update accumulator for merged usage tracking
+      if (usageAccumulator) {
+        const inputTokens = usageMetadata?.promptTokenCount ?? 0;
+        const outputTokens =
+          (usageMetadata?.candidatesTokenCount ?? 0) +
+          (usageMetadata?.thoughtsTokenCount ?? 0);
+        const cost = totalCostUsd ? Number.parseFloat(totalCostUsd) : 0;
+
+        usageAccumulator.totalInputTokens += inputTokens;
+        usageAccumulator.totalOutputTokens += outputTokens;
+        usageAccumulator.totalCost += cost;
+        usageAccumulator.generationCount += 1;
+      }
+
+      // Record usage to database
       try {
         const subscription = await getActiveUserSubscription({ userId });
 
