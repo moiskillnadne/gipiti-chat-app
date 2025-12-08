@@ -41,14 +41,6 @@ const percentFromQuota = (usedTokens: number, totalTokens: number) => {
   return Math.min(100, (usedTokens / totalTokens) * 100);
 };
 
-const formatTokens = (tokens: number) => {
-  if (!Number.isFinite(tokens)) {
-    return "—";
-  }
-
-  return tokens.toLocaleString();
-};
-
 const formatReset = (isoDate?: string | null) => {
   if (!isoDate) {
     return;
@@ -105,7 +97,7 @@ export const UsageHint = ({ className, usage }: UsageHintProps) => {
     ? Number.parseFloat(data.quota.percentUsed)
     : percentFromQuota(usedTokens, totalTokens);
   const percent = Number.isFinite(percentRaw) ? Math.min(100, percentRaw) : 0;
-  const roundedPercent = Math.round(percent);
+  const roundedPercent = percent.toFixed(1);
   const resetDate = formatReset(data?.subscription?.periodEnd);
 
   return (
@@ -127,9 +119,6 @@ export const UsageHint = ({ className, usage }: UsageHintProps) => {
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-72 space-y-3 p-4">
-        <div className="flex items-center justify-between font-medium text-sm">
-          <span>{`${formatTokens(usedTokens)} / ${formatTokens(totalTokens)} ${t("tokens")}`}</span>
-        </div>
         <Progress className="h-2 bg-muted" value={percent} />
         <div className="space-y-1">
           <InfoRow label={t("used")} value={`${roundedPercent}%`} />
