@@ -347,7 +347,7 @@ const PurePreviewMessage = ({
                         />
                       </picture>
                       <button
-                        className="absolute right-2 bottom-2 flex size-8 items-center justify-center rounded-lg bg-black/50 text-white opacity-0 transition-opacity hover:bg-black/70 group-hover/image:opacity-100"
+                        className="absolute right-2 bottom-2 flex size-8 items-center justify-center rounded-lg bg-black/50 text-white transition-opacity hover:bg-black/70 md:opacity-0 md:group-hover/image:opacity-100"
                         onClick={() => handleDownload(part.output.imageUrl)}
                         title={t("download")}
                         type="button"

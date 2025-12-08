@@ -4,6 +4,7 @@ import z from "zod/v4";
 import {
   getActiveUserSubscription,
   insertImageGenerationUsageLog,
+  saveDocument,
 } from "../../db/queries";
 import type { ChatMessage } from "../../types";
 import { generateUUID } from "../../utils";
@@ -160,6 +161,16 @@ export const generateImageTool = ({
       });
 
       dataStream.write({ type: "data-finish", data: null, transient: true });
+
+      if (imageUrl) {
+        await saveDocument({
+          id,
+          title: prompt,
+          content: imageUrl,
+          kind: "image",
+          userId,
+        });
+      }
 
       // Update accumulator for merged usage tracking
       if (usageAccumulator) {
