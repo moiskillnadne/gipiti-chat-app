@@ -34,6 +34,7 @@ import { toast } from "./toast";
 export function SidebarUserNav({ user }: { user: User }) {
   const t = useTranslations("common");
   const tSettings = useTranslations("settings.theme");
+  const tSupport = useTranslations("legal.support");
   const { status } = useSession();
   const { setTheme, resolvedTheme } = useTheme();
   const router = useRouter();
@@ -145,6 +146,9 @@ export function SidebarUserNav({ user }: { user: User }) {
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild data-testid="user-nav-item-subscription">
               <Link href="/subscription">{t("navigation.subscription")}</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild data-testid="user-nav-item-support">
+              <Link href="/legal/support">{tSupport("linkText")}</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild data-testid="user-nav-item-auth">
