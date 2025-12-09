@@ -1,6 +1,6 @@
-import { forwardEmail } from "@/lib/email/forward-email";
-import { resend, resendWebhookSecret } from "@/lib/email/client";
 import { type NextRequest, NextResponse } from "next/server";
+import { resend, resendWebhookSecret } from "@/lib/email/client";
+import { forwardEmail } from "@/lib/email/forward-email";
 
 type EmailReceivedEvent = {
   type: "email.received";
@@ -29,9 +29,9 @@ type WebhookEvent = EmailReceivedEvent | { type: string };
 function verifyWebhook(
   payload: string,
   headers: {
-    id: string | null;
-    timestamp: string | null;
-    signature: string | null;
+    "svix-id": string | null;
+    "svix-timestamp": string | null;
+    "svix-signature": string | null;
   }
 ): WebhookEvent | null {
   if (!resendWebhookSecret) {
@@ -41,7 +41,11 @@ function verifyWebhook(
     return JSON.parse(payload) as WebhookEvent;
   }
 
-  if (!headers.id || !headers.timestamp || !headers.signature) {
+  const id = headers["svix-id"];
+  const timestamp = headers["svix-timestamp"];
+  const signature = headers["svix-signature"];
+
+  if (!id || !timestamp || !signature) {
     console.error("[ResendWebhook] Missing required Svix headers");
     return null;
   }
@@ -49,11 +53,7 @@ function verifyWebhook(
   try {
     const result = resend.webhooks.verify({
       payload,
-      headers: {
-        id: headers.id,
-        timestamp: headers.timestamp,
-        signature: headers.signature,
-      },
+      headers: { id, timestamp, signature },
       webhookSecret: resendWebhookSecret,
     });
     return result as WebhookEvent;
@@ -100,9 +100,9 @@ export async function POST(request: NextRequest): Promise<Response> {
   const payload = await request.text();
 
   const event = verifyWebhook(payload, {
-    id: request.headers.get("svix-id"),
-    timestamp: request.headers.get("svix-timestamp"),
-    signature: request.headers.get("svix-signature"),
+    "svix-id": request.headers.get("svix-id"),
+    "svix-timestamp": request.headers.get("svix-timestamp"),
+    "svix-signature": request.headers.get("svix-signature"),
   });
 
   if (!event) {
@@ -179,4 +179,3 @@ export async function POST(request: NextRequest): Promise<Response> {
     );
   }
 }
-

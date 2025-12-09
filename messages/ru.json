@@ -637,6 +637,17 @@
         "phone": "+7-981-731-52-72",
         "website": "https://gipiti.ru"
       }
+    },
+    "support": {
+      "linkText": "Поддержка",
+      "pageTitle": "Поддержка - GIPITI",
+      "pageDescription": "Получите помощь и свяжитесь с поддержкой сервиса GIPITI",
+      "title": "Поддержка",
+      "description": "Мы готовы помочь! Если у вас есть вопросы, проблемы или отзывы о сервисе GIPITI, не стесняйтесь обращаться к нам.",
+      "contactTitle": "Связаться с нами",
+      "contactDescription": "Напишите нам, и мы ответим вам как можно скорее.",
+      "email": "victor.ryabkov.business@gmail.com",
+      "needHelp": "Нужна помощь?"
     }
   },
   "modelList": {

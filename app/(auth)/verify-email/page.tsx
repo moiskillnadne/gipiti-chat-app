@@ -29,6 +29,17 @@ import {
   verifyEmail,
 } from "../actions";
 
+function SupportLink({ text, linkText }: { text: string; linkText: string }) {
+  return (
+    <p className="fixed right-4 bottom-4 z-50 text-gray-500 text-xs dark:text-zinc-500">
+      {text}{" "}
+      <Link className="hover:underline" href="/legal/support">
+        {linkText}
+      </Link>
+    </p>
+  );
+}
+
 export default function Page() {
   return (
     <Suspense fallback={<VerifyEmailPageFallback />}>
@@ -62,6 +73,7 @@ function VerifyEmailPage() {
   const tErrors = useTranslations("auth.errors");
   const tNotifications = useTranslations("common.notifications");
   const tNav = useTranslations("common.navigation");
+  const tSupport = useTranslations("legal.support");
   const router = useRouter();
   const { data: session, status, update: updateSession } = useSession();
 
@@ -212,6 +224,10 @@ function VerifyEmailPage() {
         <div className="fixed bottom-4 left-4 z-50">
           <LanguageSwitcher />
         </div>
+        <SupportLink
+          linkText={tSupport("linkText")}
+          text={tSupport("needHelp")}
+        />
       </div>
     );
   }
@@ -280,6 +296,10 @@ function VerifyEmailPage() {
       <div className="fixed bottom-4 left-4 z-50">
         <LanguageSwitcher />
       </div>
+      <SupportLink
+        linkText={tSupport("linkText")}
+        text={tSupport("needHelp")}
+      />
     </div>
   );
 }
