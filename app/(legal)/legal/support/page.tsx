@@ -1,5 +1,8 @@
+import { ChevronLeftIcon } from "lucide-react";
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { Button } from "@/components/ui/button";
 
 export async function generateMetadata() {
   const t = await getTranslations("legal.support");
@@ -11,10 +14,19 @@ export async function generateMetadata() {
 
 export default async function SupportPage() {
   const t = await getTranslations("legal.support");
+  const tCommon = await getTranslations("common.buttons");
 
   return (
     <div className="flex min-h-dvh w-screen items-start justify-center bg-background py-12 md:py-16">
       <div className="w-full max-w-xl px-4">
+        <div className="mb-4">
+          <Link href="/">
+            <Button className="gap-2" variant="ghost">
+              <ChevronLeftIcon size={16} />
+              {tCommon("back")}
+            </Button>
+          </Link>
+        </div>
         <h1 className="mb-4 font-bold text-2xl md:text-3xl dark:text-zinc-50">
           {t("title")}
         </h1>
@@ -57,4 +69,3 @@ export default async function SupportPage() {
     </div>
   );
 }
-
