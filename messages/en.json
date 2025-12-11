@@ -671,6 +671,10 @@
       "name": "GPT-5.1 Thinking",
       "description": "Model with advanced chain-of-thought reasoning for complex problems."
     },
+    "gpt52": {
+      "name": "GPT-5.2",
+      "description": "Latest OpenAI model with advanced reasoning capabilities."
+    },
     "gpt5Mini": {
       "name": "GPT-5 Mini",
       "description": "Smallest OpenAI GPT model for quick tasks."

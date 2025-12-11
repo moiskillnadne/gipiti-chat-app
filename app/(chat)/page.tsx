@@ -9,7 +9,6 @@ import {
 } from "@/lib/ai/models";
 import { generateUUID } from "@/lib/utils";
 import { auth } from "../(auth)/auth";
-import { saveChatModelAsCookie } from "./actions";
 
 export default async function Page() {
   const session = await auth();
@@ -24,20 +23,12 @@ export default async function Page() {
   const modelIdFromCookie = cookieStore.get("chat-model");
 
   // Validate cookie value and fall back to default if invalid or hidden from UI
-  let validatedModelId = DEFAULT_CHAT_MODEL;
-
-  if (
+  const validatedModelId =
     modelIdFromCookie?.value &&
-    chatModelIds.includes(modelIdFromCookie.value)
-  ) {
-    // Check if model is visible in UI, otherwise fall back to default
-    if (isVisibleInUI(modelIdFromCookie.value)) {
-      validatedModelId = modelIdFromCookie.value;
-    } else {
-      // Update cookie with fallback model
-      await saveChatModelAsCookie(DEFAULT_CHAT_MODEL);
-    }
-  }
+    chatModelIds.includes(modelIdFromCookie.value) &&
+    isVisibleInUI(modelIdFromCookie.value)
+      ? modelIdFromCookie.value
+      : DEFAULT_CHAT_MODEL;
 
   return (
     <>

@@ -45,6 +45,10 @@ export const myProvider = isTestEnvironment
           model: gateway.languageModel("openai/gpt-5.1-thinking"),
           middleware: extractReasoningMiddleware({ tagName: "think" }),
         }),
+        "gpt-5.2": wrapLanguageModel({
+          model: gateway.languageModel("openai/gpt-5.2"),
+          middleware: extractReasoningMiddleware({ tagName: "think" }),
+        }),
         "gemini-2.5-pro": wrapLanguageModel({
           model: gateway.languageModel("google/gemini-2.5-pro"),
           middleware: extractReasoningMiddleware({ tagName: "think" }),

@@ -45,6 +45,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       allowedModels: [
         "gpt-5.1-instant",
         "gpt-5.1-thinking",
+        "gpt-5.2",
         "gemini-3-pro",
         "opus-4.1",
       ],
@@ -78,6 +79,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       allowedModels: [
         "gpt-5.1-instant",
         "gpt-5.1-thinking",
+        "gpt-5.2",
         "gemini-3-pro",
         "opus-4.1",
       ],
@@ -111,6 +113,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       allowedModels: [
         "gpt-5.1-instant",
         "gpt-5.1-thinking",
+        "gpt-5.2",
         "gemini-3-pro",
         "opus-4.1",
       ],
@@ -143,6 +146,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       allowedModels: [
         "gpt-5.1-instant",
         "gpt-5.1-thinking",
+        "gpt-5.2",
         "gemini-3-pro",
         "opus-4.1",
       ],
@@ -174,6 +178,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       allowedModels: [
         "gpt-5.1-instant",
         "gpt-5.1-thinking",
+        "gpt-5.2",
         "gemini-3-pro",
         "opus-4.1",
       ],

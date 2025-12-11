@@ -1,4 +1,4 @@
-export const DEFAULT_CHAT_MODEL: string = "gpt-5.1-instant";
+export const DEFAULT_CHAT_MODEL: string = "gpt-5.2";
 
 export type ChatModelCapabilities = {
   reasoning?: boolean;
@@ -51,12 +51,22 @@ export const chatModels: ChatModel[] = [
       reasoning: false,
       attachments: true,
     },
-    showInUI: true,
+    showInUI: false,
   },
   {
     id: "gpt-5.1-thinking",
     name: "gpt51Thinking.name",
     description: "gpt51Thinking.description",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: false,
+  },
+  {
+    id: "gpt-5.2",
+    name: "gpt52.name",
+    description: "gpt52.description",
     capabilities: {
       reasoning: true,
       attachments: true,

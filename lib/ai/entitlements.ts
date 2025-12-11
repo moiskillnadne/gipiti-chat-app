@@ -18,6 +18,7 @@ export const entitlementsByUserType: Record<UserType, Entitlements> = {
       "gpt-5",
       "gpt-5.1-instant",
       "gpt-5.1-thinking",
+      "gpt-5.2",
       "gemini-3-pro",
       "opus-4.1",
     ],
