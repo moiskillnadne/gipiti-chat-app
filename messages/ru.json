@@ -679,6 +679,10 @@
       "name": "GPT-5.2",
       "description": "Последняя модель от OpenAI с продвинутыми возможностями рассуждения."
     },
+    "gpt52Pro": {
+      "name": "GPT-5.2 Pro",
+      "description": "Самая мощная модель OpenAI с расширенным контекстом и рассуждениями."
+    },
     "gemini25Pro": {
       "name": "Gemini 2.5 Pro",
       "description": "Последняя модель от Google Gemini для ежедневных задач."
@@ -690,6 +694,10 @@
     "opus41": {
       "name": "Opus 4.1",
       "description": "Последняя модель от Anthropic Opus для ежедневных задач."
+    },
+    "opus45": {
+      "name": "Opus 4.5",
+      "description": "Последняя модель Anthropic Opus с расширенным контекстом и рассуждениями."
     }
   }
 }

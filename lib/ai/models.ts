@@ -74,6 +74,16 @@ export const chatModels: ChatModel[] = [
     showInUI: true,
   },
   {
+    id: "gpt-5.2-pro",
+    name: "gpt52Pro.name",
+    description: "gpt52Pro.description",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: false,
+  },
+  {
     id: "gpt-5-mini",
     name: "gpt5Mini.name",
     description: "gpt5Mini.description",
@@ -107,6 +117,16 @@ export const chatModels: ChatModel[] = [
     id: "opus-4.1",
     name: "opus41.name",
     description: "opus41.description",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: false,
+  },
+  {
+    id: "opus-4.5",
+    name: "opus45.name",
+    description: "opus45.description",
     capabilities: {
       reasoning: true,
       attachments: true,

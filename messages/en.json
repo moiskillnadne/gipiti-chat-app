@@ -675,6 +675,10 @@
       "name": "GPT-5.2",
       "description": "Latest OpenAI model with advanced reasoning capabilities."
     },
+    "gpt52Pro": {
+      "name": "GPT-5.2 Pro",
+      "description": "Most powerful OpenAI model with extended context and reasoning."
+    },
     "gpt5Mini": {
       "name": "GPT-5 Mini",
       "description": "Smallest OpenAI GPT model for quick tasks."
@@ -690,6 +694,10 @@
     "opus41": {
       "name": "Opus 4.1",
       "description": "Latest Anthropic Opus model for daily tasks."
+    },
+    "opus45": {
+      "name": "Opus 4.5",
+      "description": "Latest Anthropic Opus model with extended context and reasoning."
     }
   }
 }

@@ -49,6 +49,10 @@ export const myProvider = isTestEnvironment
           model: gateway.languageModel("openai/gpt-5.2"),
           middleware: extractReasoningMiddleware({ tagName: "think" }),
         }),
+        "gpt-5.2-pro": wrapLanguageModel({
+          model: gateway.languageModel("openai/gpt-5.2-pro"),
+          middleware: extractReasoningMiddleware({ tagName: "think" }),
+        }),
         "gemini-2.5-pro": wrapLanguageModel({
           model: gateway.languageModel("google/gemini-2.5-pro"),
           middleware: extractReasoningMiddleware({ tagName: "think" }),
@@ -59,6 +63,10 @@ export const myProvider = isTestEnvironment
         }),
         "opus-4.1": wrapLanguageModel({
           model: gateway.languageModel("anthropic/claude-opus-4.1"),
+          middleware: extractReasoningMiddleware({ tagName: "think" }),
+        }),
+        "opus-4.5": wrapLanguageModel({
+          model: gateway.languageModel("anthropic/claude-opus-4.5"),
           middleware: extractReasoningMiddleware({ tagName: "think" }),
         }),
       },
