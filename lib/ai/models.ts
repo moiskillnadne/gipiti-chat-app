@@ -1,4 +1,4 @@
-export const DEFAULT_CHAT_MODEL: string = "gpt-5.1-instant";
+export const DEFAULT_CHAT_MODEL: string = "gpt-5.2";
 
 export type ChatModelCapabilities = {
   reasoning?: boolean;
@@ -51,7 +51,7 @@ export const chatModels: ChatModel[] = [
       reasoning: false,
       attachments: true,
     },
-    showInUI: true,
+    showInUI: false,
   },
   {
     id: "gpt-5.1-thinking",
@@ -61,7 +61,27 @@ export const chatModels: ChatModel[] = [
       reasoning: true,
       attachments: true,
     },
+    showInUI: false,
+  },
+  {
+    id: "gpt-5.2",
+    name: "gpt52.name",
+    description: "gpt52.description",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
     showInUI: true,
+  },
+  {
+    id: "gpt-5.2-pro",
+    name: "gpt52Pro.name",
+    description: "gpt52Pro.description",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: false,
   },
   {
     id: "gpt-5-mini",
@@ -97,6 +117,16 @@ export const chatModels: ChatModel[] = [
     id: "opus-4.1",
     name: "opus41.name",
     description: "opus41.description",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: false,
+  },
+  {
+    id: "opus-4.5",
+    name: "opus45.name",
+    description: "opus45.description",
     capabilities: {
       reasoning: true,
       attachments: true,

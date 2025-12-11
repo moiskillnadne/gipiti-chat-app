@@ -1,7 +1,6 @@
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/app/(auth)/auth";
-import { saveChatModelAsCookie } from "@/app/(chat)/actions";
 import { Chat } from "@/components/chat";
 import { DataStreamHandler } from "@/components/data-stream-handler";
 import {
@@ -45,20 +44,12 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
   const chatModelFromCookie = cookieStore.get("chat-model");
 
   // Validate cookie value and fall back to default if invalid or hidden from UI
-  let validatedModelId = DEFAULT_CHAT_MODEL;
-
-  if (
+  const validatedModelId =
     chatModelFromCookie?.value &&
-    chatModelIds.includes(chatModelFromCookie.value)
-  ) {
-    // Check if model is visible in UI, otherwise fall back to default
-    if (isVisibleInUI(chatModelFromCookie.value)) {
-      validatedModelId = chatModelFromCookie.value;
-    } else {
-      // Update cookie with fallback model
-      await saveChatModelAsCookie(DEFAULT_CHAT_MODEL);
-    }
-  }
+    chatModelIds.includes(chatModelFromCookie.value) &&
+    isVisibleInUI(chatModelFromCookie.value)
+      ? chatModelFromCookie.value
+      : DEFAULT_CHAT_MODEL;
 
   return (
     <>
