@@ -26,7 +26,6 @@ import {
   isVisibleInUI,
   supportsAttachments,
   supportsThinkingConfig,
-  type ThinkingSetting,
 } from "@/lib/ai/models";
 import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
 import { myProvider } from "@/lib/ai/providers";
