@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { chatModelIds, THINKING_EFFORTS } from "@/lib/ai/models";
+import { chatModelIds } from "@/lib/ai/models";
 
 const textPartSchema = z.object({
   type: z.enum(["text"]),
@@ -17,9 +17,21 @@ const filePartSchema = z.object({
 const partSchema = z.union([textPartSchema, filePartSchema]);
 
 const chatModelIdSchema = z.enum(chatModelIds as [string, ...string[]]);
-const thinkingEffortSchema = z.enum(
-  THINKING_EFFORTS as unknown as [string, ...string[]]
-);
+
+const thinkingSettingEffortSchema = z.object({
+  type: z.literal("effort"),
+  value: z.string(),
+});
+
+const thinkingSettingBudgetSchema = z.object({
+  type: z.literal("budget"),
+  value: z.number(),
+});
+
+const thinkingSettingSchema = z.union([
+  thinkingSettingEffortSchema,
+  thinkingSettingBudgetSchema,
+]);
 
 export const postRequestBodySchema = z.object({
   id: z.string().uuid(),
@@ -29,7 +41,7 @@ export const postRequestBodySchema = z.object({
     parts: z.array(partSchema),
   }),
   selectedChatModel: chatModelIdSchema,
-  thinkingEffort: thinkingEffortSchema.optional(),
+  thinkingSetting: thinkingSettingSchema.optional(),
 });
 
 export type PostRequestBody = z.infer<typeof postRequestBodySchema>;

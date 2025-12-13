@@ -21,12 +21,12 @@ import { auth, type UserType } from "@/app/(auth)/auth";
 import { entitlementsByUserType } from "@/lib/ai/entitlements";
 import {
   DEFAULT_CHAT_MODEL,
-  getOpenAIProviderOptions,
-  isOpenAIModel,
+  getProviderOptions,
   isReasoningModelId,
   isVisibleInUI,
   supportsAttachments,
-  type ThinkingEffort,
+  supportsThinkingConfig,
+  type ThinkingSetting,
 } from "@/lib/ai/models";
 import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
 import { myProvider } from "@/lib/ai/providers";
@@ -132,7 +132,7 @@ export async function POST(request: Request) {
       id,
       message,
       selectedChatModel: requestedChatModel,
-      thinkingEffort,
+      thinkingSetting,
     } = requestBody;
 
     // Transform hidden models to default visible model
@@ -223,17 +223,13 @@ export async function POST(request: Request) {
     let finalMergedUsage: AppUsage | undefined;
     const imageUsageAccumulator = createImageUsageAccumulator();
 
-    const isOpenAI = isOpenAIModel(selectedChatModel);
+    const providerOptions = getProviderOptions(selectedChatModel, thinkingSetting);
 
-    console.log("isOpenAI", isOpenAI);
-    console.log("selectedChatModel", selectedChatModel);
-
-    const openAIProviderOptions = isOpenAI
-      ? getOpenAIProviderOptions({
-          reasoningEffort: thinkingEffort as ThinkingEffort,
-          reasoningSummary: "auto",
-        })
-      : {};
+    const isThinkingEnabled =
+      supportsThinkingConfig(selectedChatModel) &&
+      thinkingSetting &&
+      !(thinkingSetting.type === "effort" && thinkingSetting.value === "none") &&
+      !(thinkingSetting.type === "budget" && thinkingSetting.value === 0);
 
     const stream = createUIMessageStream({
       execute: ({ writer: dataStream }) => {
@@ -243,12 +239,11 @@ export async function POST(request: Request) {
           messages: convertToModelMessages(uiMessages),
           stopWhen: stepCountIs(5),
           ...(isReasoningModelId(selectedChatModel) &&
-            thinkingEffort !== "none" && {
-              reasoningEffort: thinkingEffort ?? "medium",
+            isThinkingEnabled &&
+            thinkingSetting?.type === "effort" && {
+              reasoningEffort: thinkingSetting.value,
             }),
-          providerOptions: {
-            ...openAIProviderOptions,
-          },
+          providerOptions,
           experimental_activeTools:
             isReasoningModelId(selectedChatModel) &&
             !supportsAttachments(selectedChatModel)

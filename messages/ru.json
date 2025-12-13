@@ -650,11 +650,14 @@
       "needHelp": "Нужна помощь?"
     }
   },
-  "thinkingEffort": {
+  "thinkingSetting": {
     "label": "Размышление",
+    "default": "По умолчанию",
     "none": "Нет",
-    "standard": "Обычное",
-    "extended": "Глубокое"
+    "medium": "Обычное",
+    "high": "Глубокое",
+    "low": "Минимальное",
+    "off": "Выкл"
   },
   "modelList": {
     "grokVision": {

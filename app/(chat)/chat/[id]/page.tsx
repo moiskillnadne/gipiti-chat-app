@@ -6,10 +6,9 @@ import { DataStreamHandler } from "@/components/data-stream-handler";
 import {
   chatModelIds,
   DEFAULT_CHAT_MODEL,
-  DEFAULT_THINKING_EFFORT,
+  getDefaultThinkingSetting,
   isVisibleInUI,
-  THINKING_EFFORTS,
-  type ThinkingEffort,
+  parseThinkingSettingFromCookie,
 } from "@/lib/ai/models";
 import { getChatById, getMessagesByChatId } from "@/lib/db/queries";
 import { convertToUIMessages } from "@/lib/utils";
@@ -45,9 +44,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
 
   const cookieStore = await cookies();
   const chatModelFromCookie = cookieStore.get("chat-model");
-  const thinkingEffortFromCookie = cookieStore.get("thinking-effort");
 
-  // Validate cookie value and fall back to default if invalid or hidden from UI
   const validatedModelId =
     chatModelFromCookie?.value &&
     chatModelIds.includes(chatModelFromCookie.value) &&
@@ -55,11 +52,12 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
       ? chatModelFromCookie.value
       : DEFAULT_CHAT_MODEL;
 
-  const validatedThinkingEffort: ThinkingEffort =
-    thinkingEffortFromCookie?.value &&
-    THINKING_EFFORTS.includes(thinkingEffortFromCookie.value as ThinkingEffort)
-      ? (thinkingEffortFromCookie.value as ThinkingEffort)
-      : DEFAULT_THINKING_EFFORT;
+  const thinkingCookieValue = cookieStore.get(
+    `thinking-${validatedModelId}`
+  )?.value;
+  const initialThinkingSetting =
+    parseThinkingSettingFromCookie(validatedModelId, thinkingCookieValue) ??
+    getDefaultThinkingSetting(validatedModelId);
 
   return (
     <>
@@ -69,7 +67,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
         initialChatModel={validatedModelId}
         initialLastContext={chat.lastContext ?? undefined}
         initialMessages={uiMessages}
-        initialThinkingEffort={validatedThinkingEffort}
+        initialThinkingSetting={initialThinkingSetting}
         isReadonly={session?.user?.id !== chat.userId}
       />
       <DataStreamHandler />

@@ -650,11 +650,14 @@
       "needHelp": "Need help?"
     }
   },
-  "thinkingEffort": {
+  "thinkingSetting": {
     "label": "Thinking",
+    "default": "Default",
     "none": "None",
-    "standard": "Standard",
-    "extended": "Extended"
+    "medium": "Standard",
+    "high": "Extended",
+    "low": "Low",
+    "off": "Off"
   },
   "modelList": {
     "grokVision": {
