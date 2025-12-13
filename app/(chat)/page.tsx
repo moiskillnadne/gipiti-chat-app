@@ -7,8 +7,8 @@ import {
   DEFAULT_CHAT_MODEL,
   DEFAULT_THINKING_EFFORT,
   isVisibleInUI,
-  type ThinkingEffort,
   THINKING_EFFORTS,
+  type ThinkingEffort,
 } from "@/lib/ai/models";
 import { generateUUID } from "@/lib/utils";
 import { auth } from "../(auth)/auth";

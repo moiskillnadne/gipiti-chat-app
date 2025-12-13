@@ -8,8 +8,8 @@ import {
   DEFAULT_CHAT_MODEL,
   DEFAULT_THINKING_EFFORT,
   isVisibleInUI,
-  type ThinkingEffort,
   THINKING_EFFORTS,
+  type ThinkingEffort,
 } from "@/lib/ai/models";
 import { getChatById, getMessagesByChatId } from "@/lib/db/queries";
 import { convertToUIMessages } from "@/lib/utils";
