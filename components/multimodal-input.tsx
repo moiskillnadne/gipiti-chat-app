@@ -19,9 +19,19 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useSessionStorage, useWindowSize } from "usehooks-ts";
-import { saveChatModelAsCookie } from "@/app/(chat)/actions";
+import {
+  saveChatModelAsCookie,
+  saveThinkingEffortAsCookie,
+} from "@/app/(chat)/actions";
 import { SelectItem } from "@/components/ui/select";
-import { chatModels, supportsAttachments } from "@/lib/ai/models";
+import {
+  chatModels,
+  supportsAttachments,
+  supportsThinkingEffort,
+  THINKING_EFFORTS,
+  type ThinkingEffort,
+  thinkingEffortLabels,
+} from "@/lib/ai/models";
 import { myProvider } from "@/lib/ai/providers";
 import type { Attachment, ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
@@ -42,6 +52,7 @@ import {
   ChevronDownIcon,
   CpuIcon,
   PaperclipIcon,
+  SparklesIcon,
   StopIcon,
 } from "./icons";
 import { PreviewAttachment } from "./preview-attachment";
@@ -62,6 +73,8 @@ function PureMultimodalInput({
   className,
   selectedModelId,
   onModelChange,
+  selectedThinkingEffort,
+  onThinkingEffortChange,
   usage,
 }: {
   chatId: string;
@@ -77,6 +90,8 @@ function PureMultimodalInput({
   className?: string;
   selectedModelId: string;
   onModelChange?: (modelId: string) => void;
+  selectedThinkingEffort: ThinkingEffort;
+  onThinkingEffortChange?: (effort: ThinkingEffort) => void;
   usage?: AppUsage;
 }) {
   const t = useTranslations("common.toasts");
@@ -322,6 +337,12 @@ function PureMultimodalInput({
               onModelChange={onModelChange}
               selectedModelId={selectedModelId}
             />
+            {supportsThinkingEffort(selectedModelId) && (
+              <ThinkingEffortSelector
+                onThinkingEffortChange={onThinkingEffortChange}
+                selectedThinkingEffort={selectedThinkingEffort}
+              />
+            )}
           </PromptInputTools>
 
           {status === "submitted" || status === "streaming" ? (
@@ -356,6 +377,9 @@ export const MultimodalInput = memo(
       return false;
     }
     if (prevProps.selectedModelId !== nextProps.selectedModelId) {
+      return false;
+    }
+    if (prevProps.selectedThinkingEffort !== nextProps.selectedThinkingEffort) {
       return false;
     }
 
@@ -456,6 +480,66 @@ function PureModelSelectorCompact({
 }
 
 const ModelSelectorCompact = memo(PureModelSelectorCompact);
+
+function PureThinkingEffortSelector({
+  selectedThinkingEffort,
+  onThinkingEffortChange,
+}: {
+  selectedThinkingEffort: ThinkingEffort;
+  onThinkingEffortChange?: (effort: ThinkingEffort) => void;
+}) {
+  const [optimisticEffort, setOptimisticEffort] = useState(
+    selectedThinkingEffort
+  );
+
+  const t = useTranslations("thinkingEffort");
+
+  useEffect(() => {
+    setOptimisticEffort(selectedThinkingEffort);
+  }, [selectedThinkingEffort]);
+
+  const selectedLabel = thinkingEffortLabels[optimisticEffort];
+
+  return (
+    <PromptInputModelSelect
+      onValueChange={(effortLabel) => {
+        const effort = (
+          Object.entries(thinkingEffortLabels) as [ThinkingEffort, string][]
+        ).find(([, label]) => label === effortLabel)?.[0];
+        if (effort) {
+          setOptimisticEffort(effort);
+          onThinkingEffortChange?.(effort);
+          startTransition(() => {
+            saveThinkingEffortAsCookie(effort);
+          });
+        }
+      }}
+      value={selectedLabel}
+    >
+      <Trigger
+        className="flex h-8 items-center gap-2 rounded-lg border-0 bg-background px-2 text-foreground shadow-none transition-colors hover:bg-accent focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+        type="button"
+      >
+        <SparklesIcon size={16} />
+        <span className="font-medium text-xs">{t(selectedLabel)}</span>
+        <ChevronDownIcon size={16} />
+      </Trigger>
+      <PromptInputModelSelectContent className="min-w-[180px] max-w-[90vw] p-0">
+        <div className="flex flex-col gap-px">
+          {THINKING_EFFORTS.map((effort) => (
+            <SelectItem key={effort} value={thinkingEffortLabels[effort]}>
+              <div className="truncate font-medium text-xs">
+                {t(thinkingEffortLabels[effort])}
+              </div>
+            </SelectItem>
+          ))}
+        </div>
+      </PromptInputModelSelectContent>
+    </PromptInputModelSelect>
+  );
+}
+
+const ThinkingEffortSelector = memo(PureThinkingEffortSelector);
 
 function PureStopButton({
   stop,

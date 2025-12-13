@@ -13,6 +13,11 @@ export async function saveChatModelAsCookie(model: string) {
   cookieStore.set("chat-model", model);
 }
 
+export async function saveThinkingEffortAsCookie(effort: string) {
+  const cookieStore = await cookies();
+  cookieStore.set("thinking-effort", effort);
+}
+
 export async function generateTitleFromUserMessage({
   message,
 }: {

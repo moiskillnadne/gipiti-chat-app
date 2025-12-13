@@ -20,11 +20,13 @@ import { z } from "zod";
 import { auth, type UserType } from "@/app/(auth)/auth";
 import { entitlementsByUserType } from "@/lib/ai/entitlements";
 import {
-  type ChatModel,
   DEFAULT_CHAT_MODEL,
+  getOpenAIProviderOptions,
+  isOpenAIModel,
   isReasoningModelId,
   isVisibleInUI,
   supportsAttachments,
+  type ThinkingEffort,
 } from "@/lib/ai/models";
 import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
 import { myProvider } from "@/lib/ai/providers";
@@ -46,7 +48,6 @@ import {
   updateChatLastContextById,
 } from "@/lib/db/queries";
 import { ChatSDKError } from "@/lib/errors";
-import type { ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
 import { convertToUIMessages, generateUUID } from "@/lib/utils";
 import {
@@ -131,10 +132,7 @@ export async function POST(request: Request) {
       id,
       message,
       selectedChatModel: requestedChatModel,
-    }: {
-      id: string;
-      message: ChatMessage;
-      selectedChatModel: ChatModel["id"];
+      thinkingEffort,
     } = requestBody;
 
     // Transform hidden models to default visible model
@@ -225,6 +223,18 @@ export async function POST(request: Request) {
     let finalMergedUsage: AppUsage | undefined;
     const imageUsageAccumulator = createImageUsageAccumulator();
 
+    const isOpenAI = isOpenAIModel(selectedChatModel);
+
+    console.log("isOpenAI", isOpenAI);
+    console.log("selectedChatModel", selectedChatModel);
+
+    const openAIProviderOptions = isOpenAI
+      ? getOpenAIProviderOptions({
+          reasoningEffort: thinkingEffort as ThinkingEffort,
+          reasoningSummary: "auto",
+        })
+      : {};
+
     const stream = createUIMessageStream({
       execute: ({ writer: dataStream }) => {
         const result = streamText({
@@ -232,9 +242,13 @@ export async function POST(request: Request) {
           system: systemPrompt({ selectedChatModel, requestHints }),
           messages: convertToModelMessages(uiMessages),
           stopWhen: stepCountIs(5),
-          ...(isReasoningModelId(selectedChatModel) && {
-            reasoningEffort: "medium",
-          }),
+          ...(isReasoningModelId(selectedChatModel) &&
+            thinkingEffort !== "none" && {
+              reasoningEffort: thinkingEffort ?? "medium",
+            }),
+          providerOptions: {
+            ...openAIProviderOptions,
+          },
           experimental_activeTools:
             isReasoningModelId(selectedChatModel) &&
             !supportsAttachments(selectedChatModel)

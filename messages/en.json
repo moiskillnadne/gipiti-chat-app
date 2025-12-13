@@ -650,6 +650,12 @@
       "needHelp": "Need help?"
     }
   },
+  "thinkingEffort": {
+    "label": "Thinking",
+    "none": "None",
+    "standard": "Standard",
+    "extended": "Extended"
+  },
   "modelList": {
     "grokVision": {
       "name": "Grok Vision",

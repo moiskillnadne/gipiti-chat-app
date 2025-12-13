@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useArtifactSelector } from "@/hooks/use-artifact";
 import { useAutoResume } from "@/hooks/use-auto-resume";
+import type { ThinkingEffort } from "@/lib/ai/models";
 import type { Vote } from "@/lib/db/schema";
 import { ChatSDKError } from "@/lib/errors";
 import type { Attachment, ChatMessage } from "@/lib/types";
@@ -35,6 +36,7 @@ export function Chat({
   id,
   initialMessages,
   initialChatModel,
+  initialThinkingEffort,
   isReadonly,
   autoResume,
   initialLastContext,
@@ -42,6 +44,7 @@ export function Chat({
   id: string;
   initialMessages: ChatMessage[];
   initialChatModel: string;
+  initialThinkingEffort: ThinkingEffort;
   isReadonly: boolean;
   autoResume: boolean;
   initialLastContext?: AppUsage;
@@ -54,10 +57,17 @@ export function Chat({
   const [showCreditCardAlert, setShowCreditCardAlert] = useState(false);
   const [currentModelId, setCurrentModelId] = useState(initialChatModel);
   const currentModelIdRef = useRef(currentModelId);
+  const [currentThinkingEffort, setCurrentThinkingEffort] =
+    useState<ThinkingEffort>(initialThinkingEffort);
+  const currentThinkingEffortRef = useRef(currentThinkingEffort);
 
   useEffect(() => {
     currentModelIdRef.current = currentModelId;
   }, [currentModelId]);
+
+  useEffect(() => {
+    currentThinkingEffortRef.current = currentThinkingEffort;
+  }, [currentThinkingEffort]);
 
   const {
     messages,
@@ -81,6 +91,7 @@ export function Chat({
             id: request.id,
             message: request.messages.at(-1),
             selectedChatModel: currentModelIdRef.current,
+            thinkingEffort: currentThinkingEffortRef.current,
             ...request.body,
           },
         };
@@ -170,7 +181,9 @@ export function Chat({
               input={input}
               messages={messages}
               onModelChange={setCurrentModelId}
+              onThinkingEffortChange={setCurrentThinkingEffort}
               selectedModelId={currentModelId}
+              selectedThinkingEffort={currentThinkingEffort}
               sendMessage={sendMessage}
               setAttachments={setAttachments}
               setInput={setInput}

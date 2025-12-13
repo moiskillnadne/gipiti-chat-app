@@ -1,3 +1,5 @@
+import type { SharedV2ProviderOptions } from "@ai-sdk/provider";
+
 export const DEFAULT_CHAT_MODEL: string = "gpt-5.2";
 
 export type ChatModelCapabilities = {
@@ -158,4 +160,42 @@ export const supportsAttachments = (modelId: string) => {
 export const isVisibleInUI = (modelId: string): boolean => {
   const model = chatModels.find((m) => m.id === modelId);
   return model?.showInUI !== false;
+};
+
+export const THINKING_EFFORTS = ["none", "medium", "high"] as const;
+export type ThinkingEffort = (typeof THINKING_EFFORTS)[number];
+export const DEFAULT_THINKING_EFFORT: ThinkingEffort = "medium";
+
+export const REASONING_SUMMARY = ["auto", "consice", "detailed"] as const;
+export type ReasoningSummary = (typeof REASONING_SUMMARY)[number];
+export const DEFAULT_REASONING_SUMMARY: ReasoningSummary = "auto";
+
+export const thinkingEffortLabels: Record<ThinkingEffort, string> = {
+  none: "none",
+  medium: "standard",
+  high: "extended",
+};
+
+export const supportsThinkingEffort = (modelId: string) =>
+  modelId === "gpt-5.2";
+
+export const openaiModelIds = ["gpt-5.2", "gpt-5.2-pro", "gpt-5-mini"] as const;
+export type OpenAIModelId = (typeof openaiModelIds)[number];
+
+export const isOpenAIModel = (modelId: string) => {
+  return openaiModelIds.includes(modelId as OpenAIModelId);
+};
+
+type OpenAIProviderOptions = {
+  reasoningEffort?: ThinkingEffort;
+  reasoningSummary?: ReasoningSummary;
+};
+
+export const getOpenAIProviderOptions = (options: OpenAIProviderOptions) => {
+  return {
+    openai: {
+      reasoningEffort: options.reasoningEffort,
+      reasoningSummary: options.reasoningSummary,
+    },
+  } as SharedV2ProviderOptions;
 };

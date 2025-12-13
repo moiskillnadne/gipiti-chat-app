@@ -5,7 +5,10 @@ import { DataStreamHandler } from "@/components/data-stream-handler";
 import {
   chatModelIds,
   DEFAULT_CHAT_MODEL,
+  DEFAULT_THINKING_EFFORT,
   isVisibleInUI,
+  type ThinkingEffort,
+  THINKING_EFFORTS,
 } from "@/lib/ai/models";
 import { generateUUID } from "@/lib/utils";
 import { auth } from "../(auth)/auth";
@@ -21,6 +24,7 @@ export default async function Page() {
 
   const cookieStore = await cookies();
   const modelIdFromCookie = cookieStore.get("chat-model");
+  const thinkingEffortFromCookie = cookieStore.get("thinking-effort");
 
   // Validate cookie value and fall back to default if invalid or hidden from UI
   const validatedModelId =
@@ -30,6 +34,12 @@ export default async function Page() {
       ? modelIdFromCookie.value
       : DEFAULT_CHAT_MODEL;
 
+  const validatedThinkingEffort: ThinkingEffort =
+    thinkingEffortFromCookie?.value &&
+    THINKING_EFFORTS.includes(thinkingEffortFromCookie.value as ThinkingEffort)
+      ? (thinkingEffortFromCookie.value as ThinkingEffort)
+      : DEFAULT_THINKING_EFFORT;
+
   return (
     <>
       <Chat
@@ -37,6 +47,7 @@ export default async function Page() {
         id={id}
         initialChatModel={validatedModelId}
         initialMessages={[]}
+        initialThinkingEffort={validatedThinkingEffort}
         isReadonly={false}
         key={id}
       />
