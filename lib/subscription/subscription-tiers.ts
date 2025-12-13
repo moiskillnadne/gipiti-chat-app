@@ -55,8 +55,8 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       maxFileSize: 5 * 1024 * 1024, // 5MB
       maxConcurrentChats: 3,
       hasAPIAccess: false,
-      searchQuota: 10, // 10 searches per day
-      searchDepthAllowed: "basic",
+      searchQuota: 40, // 40 searches per day
+      searchDepthAllowed: "advanced",
     },
     price: {
       USD: 0,
@@ -90,8 +90,8 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       maxFileSize: 5 * 1024 * 1024,
       maxConcurrentChats: 3,
       hasAPIAccess: false,
-      searchQuota: 10,
-      searchDepthAllowed: "basic",
+      searchQuota: 40, // 40 searches per day
+      searchDepthAllowed: "advanced",
     },
     price: {
       USD: 0.05,
@@ -125,8 +125,8 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       maxFileSize: 10 * 1024 * 1024, // 10MB
       maxConcurrentChats: 5,
       hasAPIAccess: false,
-      searchQuota: 100, // 100 searches per month
-      searchDepthAllowed: "basic",
+      searchQuota: 250, // 250 searches per month
+      searchDepthAllowed: "advanced",
     },
     price: {
       USD: 19.99,
@@ -159,8 +159,8 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       maxFileSize: 10 * 1024 * 1024, // 10MB
       maxConcurrentChats: 5,
       hasAPIAccess: false,
-      searchQuota: 300, // 300 searches per quarter (100/month)
-      searchDepthAllowed: "basic",
+      searchQuota: 750, // 750 searches per quarter (250/month)
+      searchDepthAllowed: "advanced",
     },
     price: {
       USD: 49.99,
@@ -192,8 +192,8 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       maxFileSize: 10 * 1024 * 1024, // 10MB
       maxConcurrentChats: 10,
       hasAPIAccess: false,
-      searchQuota: 1200, // 1200 searches per year (100/month)
-      searchDepthAllowed: "basic",
+      searchQuota: 3000, // 3000 searches per year (250/month)
+      searchDepthAllowed: "advanced",
     },
     price: {
       USD: 149.99,

@@ -26,6 +26,7 @@ import { MessageReasoning } from "./message-reasoning";
 import { PreviewAttachment } from "./preview-attachment";
 import { toast } from "./toast";
 import { Weather } from "./weather";
+import { WebSearchInputPreview } from "./web-search-input-preview";
 import { WebSearchResult } from "./web-search-result";
 
 const PurePreviewMessage = ({
@@ -281,36 +282,27 @@ const PurePreviewMessage = ({
             }
 
             if (type === "tool-webSearch") {
-              const { toolCallId, state } = part;
+              const { state, toolCallId } = part;
 
               return (
-                <Tool defaultOpen={true} key={toolCallId}>
-                  <ToolHeader state={state} type="tool-webSearch" />
-                  <ToolContent>
-                    {state === "input-available" && (
-                      <ToolInput input={part.input} />
-                    )}
-                    {state === "output-available" && (
-                      <ToolOutput
-                        errorText={undefined}
-                        output={
-                          "error" in part.output ? (
-                            <div className="rounded border p-2 text-red-500">
-                              Error: {String(part.output.error)}
-                            </div>
-                          ) : (
-                            <WebSearchResult
-                              cached={part.output.cached}
-                              query={part.output.query}
-                              responseTime={part.output.responseTime}
-                              results={part.output.results}
-                            />
-                          )
-                        }
+                <div className="my-2" key={toolCallId}>
+                  {state === "input-available" && (
+                    <WebSearchInputPreview query={part.input.query} />
+                  )}
+                  {state === "output-available" &&
+                    ("error" in part.output ? (
+                      <div className="rounded border p-2 text-red-500">
+                        Error: {String(part.output.error)}
+                      </div>
+                    ) : (
+                      <WebSearchResult
+                        cached={part.output.cached}
+                        query={part.output.query}
+                        responseTime={part.output.responseTime}
+                        results={part.output.results}
                       />
-                    )}
-                  </ToolContent>
-                </Tool>
+                    ))}
+                </div>
               );
             }
 

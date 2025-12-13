@@ -334,12 +334,13 @@
       "output": "Вывод",
       "webSearch": {
         "title": "Веб-поиск",
-        "searching": "Поиск в интернете...",
+        "searching": "Поиск в интернете для \"{query}\"...",
         "noResults": "Не найдено результатов для \"{query}\"",
         "cached": "Из кэша",
         "published": "Опубликовано",
         "resultsCount": "{count, plural, one {# результат} few {# результата} many {# результатов} other {# результатов}}",
-        "sources": "Источники"
+        "sources": "Источники",
+        "moreCount": "ещё {count}"
       }
     }
   },

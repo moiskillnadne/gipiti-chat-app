@@ -334,12 +334,13 @@
       "output": "Output",
       "webSearch": {
         "title": "Web Search",
-        "searching": "Searching the web...",
+        "searching": "Searching the web for \"{query}\"...",
         "noResults": "No results found for \"{query}\"",
         "cached": "Cached",
         "published": "Published",
         "resultsCount": "{count, plural, one {# result} other {# results}}",
-        "sources": "Sources"
+        "sources": "Sources",
+        "moreCount": "{count} more"
       }
     }
   },
