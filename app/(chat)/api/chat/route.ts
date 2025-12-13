@@ -57,7 +57,7 @@ import {
 import { generateTitleFromUserMessage } from "../../actions";
 import { type PostRequestBody, postRequestBodySchema } from "./schema";
 
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 let globalStreamContext: ResumableStreamContext | null = null;
 
