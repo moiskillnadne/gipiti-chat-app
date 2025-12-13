@@ -297,7 +297,8 @@ export const getGoogleProviderOptions = (
   return {
     google: {
       thinkingConfig: {
-        thinkingBudget: options.reasoningEffort,
+        thinkingLevel: options.reasoningEffort,
+        includeThoughts: true,
       },
     },
   };
