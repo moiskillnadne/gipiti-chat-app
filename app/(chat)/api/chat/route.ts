@@ -223,12 +223,17 @@ export async function POST(request: Request) {
     let finalMergedUsage: AppUsage | undefined;
     const imageUsageAccumulator = createImageUsageAccumulator();
 
-    const providerOptions = getProviderOptions(selectedChatModel, thinkingSetting);
+    const providerOptions = getProviderOptions(
+      selectedChatModel,
+      thinkingSetting
+    );
 
     const isThinkingEnabled =
       supportsThinkingConfig(selectedChatModel) &&
       thinkingSetting &&
-      !(thinkingSetting.type === "effort" && thinkingSetting.value === "none") &&
+      !(
+        thinkingSetting.type === "effort" && thinkingSetting.value === "none"
+      ) &&
       !(thinkingSetting.type === "budget" && thinkingSetting.value === 0);
 
     const stream = createUIMessageStream({

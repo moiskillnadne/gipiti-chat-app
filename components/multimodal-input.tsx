@@ -381,7 +381,10 @@ export const MultimodalInput = memo(
       return false;
     }
     if (
-      !equal(prevProps.selectedThinkingSetting, nextProps.selectedThinkingSetting)
+      !equal(
+        prevProps.selectedThinkingSetting,
+        nextProps.selectedThinkingSetting
+      )
     ) {
       return false;
     }
@@ -525,7 +528,9 @@ function PureThinkingSettingSelector({
 
   const handleValueChange = useCallback(
     (selectedLabel: string) => {
-      if (!thinkingConfig) return;
+      if (!thinkingConfig) {
+        return;
+      }
 
       let newSetting: ThinkingSetting | undefined;
 
@@ -565,7 +570,10 @@ function PureThinkingSettingSelector({
   const displayLabel = getCurrentDisplayLabel();
 
   return (
-    <PromptInputModelSelect onValueChange={handleValueChange} value={displayLabel}>
+    <PromptInputModelSelect
+      onValueChange={handleValueChange}
+      value={displayLabel}
+    >
       <Trigger
         className="flex h-8 items-center gap-2 rounded-lg border-0 bg-background px-2 text-foreground shadow-none transition-colors hover:bg-accent focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
         type="button"
