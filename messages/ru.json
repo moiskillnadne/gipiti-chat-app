@@ -393,7 +393,7 @@
     "upgrade": "Улучшить план",
     "tokens": "токенов",
     "used": "Использовано",
-    "tooltip": "Вы использовали {percent}% от вашего лимита использования"
+    "tooltip": "Вы использовали {percent}% от вашего лимита"
   },
   "errors": {
     "pageNotFound": "Страница не найдена",
@@ -649,6 +649,15 @@
       "email": "victor.ryabkov.business@gmail.com",
       "needHelp": "Нужна помощь?"
     }
+  },
+  "thinkingSetting": {
+    "label": "Размышление",
+    "default": "По умолчанию",
+    "none": "Нет",
+    "medium": "Обычное",
+    "high": "Глубокое",
+    "low": "Минимальное",
+    "off": "Выкл"
   },
   "modelList": {
     "grokVision": {

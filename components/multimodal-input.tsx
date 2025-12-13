@@ -19,9 +19,19 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useSessionStorage, useWindowSize } from "usehooks-ts";
-import { saveChatModelAsCookie } from "@/app/(chat)/actions";
+import {
+  saveChatModelAsCookie,
+  saveThinkingSettingAsCookie,
+} from "@/app/(chat)/actions";
 import { SelectItem } from "@/components/ui/select";
-import { chatModels, supportsAttachments } from "@/lib/ai/models";
+import {
+  chatModels,
+  getModelById,
+  serializeThinkingSetting,
+  supportsAttachments,
+  supportsThinkingConfig,
+  type ThinkingSetting,
+} from "@/lib/ai/models";
 import { myProvider } from "@/lib/ai/providers";
 import type { Attachment, ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
@@ -42,6 +52,7 @@ import {
   ChevronDownIcon,
   CpuIcon,
   PaperclipIcon,
+  SparklesIcon,
   StopIcon,
 } from "./icons";
 import { PreviewAttachment } from "./preview-attachment";
@@ -62,6 +73,8 @@ function PureMultimodalInput({
   className,
   selectedModelId,
   onModelChange,
+  selectedThinkingSetting,
+  onThinkingSettingChange,
   usage,
 }: {
   chatId: string;
@@ -77,6 +90,8 @@ function PureMultimodalInput({
   className?: string;
   selectedModelId: string;
   onModelChange?: (modelId: string) => void;
+  selectedThinkingSetting?: ThinkingSetting;
+  onThinkingSettingChange?: (setting: ThinkingSetting) => void;
   usage?: AppUsage;
 }) {
   const t = useTranslations("common.toasts");
@@ -322,6 +337,13 @@ function PureMultimodalInput({
               onModelChange={onModelChange}
               selectedModelId={selectedModelId}
             />
+            {supportsThinkingConfig(selectedModelId) && (
+              <ThinkingSettingSelector
+                onThinkingSettingChange={onThinkingSettingChange}
+                selectedModelId={selectedModelId}
+                selectedThinkingSetting={selectedThinkingSetting}
+              />
+            )}
           </PromptInputTools>
 
           {status === "submitted" || status === "streaming" ? (
@@ -356,6 +378,14 @@ export const MultimodalInput = memo(
       return false;
     }
     if (prevProps.selectedModelId !== nextProps.selectedModelId) {
+      return false;
+    }
+    if (
+      !equal(
+        prevProps.selectedThinkingSetting,
+        nextProps.selectedThinkingSetting
+      )
+    ) {
       return false;
     }
 
@@ -456,6 +486,124 @@ function PureModelSelectorCompact({
 }
 
 const ModelSelectorCompact = memo(PureModelSelectorCompact);
+
+function PureThinkingSettingSelector({
+  selectedModelId,
+  selectedThinkingSetting,
+  onThinkingSettingChange,
+}: {
+  selectedModelId: string;
+  selectedThinkingSetting?: ThinkingSetting;
+  onThinkingSettingChange?: (setting: ThinkingSetting) => void;
+}) {
+  const model = getModelById(selectedModelId);
+  const thinkingConfig = model?.thinkingConfig;
+
+  const t = useTranslations("thinkingSetting");
+
+  const getCurrentDisplayLabel = useCallback(() => {
+    if (!selectedThinkingSetting || !thinkingConfig) {
+      return t("default");
+    }
+
+    if (
+      thinkingConfig.type === "effort" &&
+      selectedThinkingSetting.type === "effort"
+    ) {
+      return t(selectedThinkingSetting.value);
+    }
+
+    if (
+      thinkingConfig.type === "budget" &&
+      selectedThinkingSetting.type === "budget"
+    ) {
+      const preset = thinkingConfig.presets.find(
+        (p) => p.value === selectedThinkingSetting.value
+      );
+      return preset ? t(preset.label) : t("default");
+    }
+
+    return t("default");
+  }, [selectedThinkingSetting, thinkingConfig, t]);
+
+  const handleValueChange = useCallback(
+    (selectedLabel: string) => {
+      if (!thinkingConfig) {
+        return;
+      }
+
+      let newSetting: ThinkingSetting | undefined;
+
+      if (thinkingConfig.type === "effort") {
+        const matchingValue = thinkingConfig.values.find(
+          (v) => t(v) === selectedLabel
+        );
+        if (matchingValue) {
+          newSetting = { type: "effort", value: matchingValue };
+        }
+      } else {
+        const matchingPreset = thinkingConfig.presets.find(
+          (p) => t(p.label) === selectedLabel
+        );
+        if (matchingPreset) {
+          newSetting = { type: "budget", value: matchingPreset.value };
+        }
+      }
+
+      if (newSetting) {
+        onThinkingSettingChange?.(newSetting);
+        startTransition(() => {
+          saveThinkingSettingAsCookie(
+            selectedModelId,
+            serializeThinkingSetting(newSetting)
+          );
+        });
+      }
+    },
+    [thinkingConfig, onThinkingSettingChange, selectedModelId, t]
+  );
+
+  if (!thinkingConfig) {
+    return null;
+  }
+
+  const displayLabel = getCurrentDisplayLabel();
+
+  return (
+    <PromptInputModelSelect
+      onValueChange={handleValueChange}
+      value={displayLabel}
+    >
+      <Trigger
+        className="flex h-8 items-center gap-2 rounded-lg border-0 bg-background px-2 text-foreground shadow-none transition-colors hover:bg-accent focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+        type="button"
+      >
+        <SparklesIcon size={16} />
+        <span className="font-medium text-xs">{displayLabel}</span>
+        <ChevronDownIcon size={16} />
+      </Trigger>
+      <PromptInputModelSelectContent className="min-w-[180px] max-w-[90vw] p-0">
+        <div className="flex flex-col gap-px">
+          {thinkingConfig.type === "effort"
+            ? thinkingConfig.values.map((value) => (
+                <SelectItem key={value} value={t(value)}>
+                  <div className="truncate font-medium text-xs">{t(value)}</div>
+                </SelectItem>
+              ))
+            : thinkingConfig.presets.map((preset) => (
+                <SelectItem key={preset.value} value={t(preset.label)}>
+                  <div className="truncate font-medium text-xs">
+                    {t(preset.label)}
+                  </div>
+                </SelectItem>
+              ))}
+        </div>
+      </PromptInputModelSelectContent>
+    </PromptInputModelSelect>
+  );
+}
+
+const ThinkingSettingSelector = memo(PureThinkingSettingSelector);
 
 function PureStopButton({
   stop,

@@ -3,7 +3,7 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import useSWR, { useSWRConfig } from "swr";
 import { unstable_serialize } from "swr/infinite";
 import { ChatHeader } from "@/components/chat-header";
@@ -19,6 +19,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useArtifactSelector } from "@/hooks/use-artifact";
 import { useAutoResume } from "@/hooks/use-auto-resume";
+import {
+  getDefaultThinkingSetting,
+  type ThinkingSetting,
+} from "@/lib/ai/models";
 import type { Vote } from "@/lib/db/schema";
 import { ChatSDKError } from "@/lib/errors";
 import type { Attachment, ChatMessage } from "@/lib/types";
@@ -35,6 +39,7 @@ export function Chat({
   id,
   initialMessages,
   initialChatModel,
+  initialThinkingSetting,
   isReadonly,
   autoResume,
   initialLastContext,
@@ -42,6 +47,7 @@ export function Chat({
   id: string;
   initialMessages: ChatMessage[];
   initialChatModel: string;
+  initialThinkingSetting?: ThinkingSetting;
   isReadonly: boolean;
   autoResume: boolean;
   initialLastContext?: AppUsage;
@@ -54,10 +60,24 @@ export function Chat({
   const [showCreditCardAlert, setShowCreditCardAlert] = useState(false);
   const [currentModelId, setCurrentModelId] = useState(initialChatModel);
   const currentModelIdRef = useRef(currentModelId);
+  const [currentThinkingSetting, setCurrentThinkingSetting] = useState<
+    ThinkingSetting | undefined
+  >(initialThinkingSetting);
+  const currentThinkingSettingRef = useRef(currentThinkingSetting);
 
   useEffect(() => {
     currentModelIdRef.current = currentModelId;
   }, [currentModelId]);
+
+  useEffect(() => {
+    currentThinkingSettingRef.current = currentThinkingSetting;
+  }, [currentThinkingSetting]);
+
+  const handleModelChange = useCallback((newModelId: string) => {
+    setCurrentModelId(newModelId);
+    const defaultSetting = getDefaultThinkingSetting(newModelId);
+    setCurrentThinkingSetting(defaultSetting);
+  }, []);
 
   const {
     messages,
@@ -81,6 +101,7 @@ export function Chat({
             id: request.id,
             message: request.messages.at(-1),
             selectedChatModel: currentModelIdRef.current,
+            thinkingSetting: currentThinkingSettingRef.current,
             ...request.body,
           },
         };
@@ -98,7 +119,6 @@ export function Chat({
     onError: (error) => {
       console.error("Error in chat", error);
       if (error instanceof ChatSDKError) {
-        // Check if it's a credit card error
         if (
           error.message?.includes("AI Gateway requires a valid credit card")
         ) {
@@ -169,8 +189,10 @@ export function Chat({
               chatId={id}
               input={input}
               messages={messages}
-              onModelChange={setCurrentModelId}
+              onModelChange={handleModelChange}
+              onThinkingSettingChange={setCurrentThinkingSetting}
               selectedModelId={currentModelId}
+              selectedThinkingSetting={currentThinkingSetting}
               sendMessage={sendMessage}
               setAttachments={setAttachments}
               setInput={setInput}
@@ -191,6 +213,7 @@ export function Chat({
         messages={messages}
         regenerate={regenerate}
         selectedModelId={currentModelId}
+        selectedThinkingSetting={currentThinkingSetting}
         sendMessage={sendMessage}
         setAttachments={setAttachments}
         setInput={setInput}

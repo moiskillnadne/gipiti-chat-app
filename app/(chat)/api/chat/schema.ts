@@ -18,6 +18,21 @@ const partSchema = z.union([textPartSchema, filePartSchema]);
 
 const chatModelIdSchema = z.enum(chatModelIds as [string, ...string[]]);
 
+const thinkingSettingEffortSchema = z.object({
+  type: z.literal("effort"),
+  value: z.string(),
+});
+
+const thinkingSettingBudgetSchema = z.object({
+  type: z.literal("budget"),
+  value: z.number(),
+});
+
+const thinkingSettingSchema = z.union([
+  thinkingSettingEffortSchema,
+  thinkingSettingBudgetSchema,
+]);
+
 export const postRequestBodySchema = z.object({
   id: z.string().uuid(),
   message: z.object({
@@ -26,6 +41,7 @@ export const postRequestBodySchema = z.object({
     parts: z.array(partSchema),
   }),
   selectedChatModel: chatModelIdSchema,
+  thinkingSetting: thinkingSettingSchema.optional(),
 });
 
 export type PostRequestBody = z.infer<typeof postRequestBodySchema>;

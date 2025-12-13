@@ -650,6 +650,15 @@
       "needHelp": "Need help?"
     }
   },
+  "thinkingSetting": {
+    "label": "Thinking",
+    "default": "Default",
+    "none": "None",
+    "medium": "Standard",
+    "high": "Extended",
+    "low": "Low",
+    "off": "Off"
+  },
   "modelList": {
     "grokVision": {
       "name": "Grok Vision",

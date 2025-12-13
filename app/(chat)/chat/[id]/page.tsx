@@ -6,7 +6,9 @@ import { DataStreamHandler } from "@/components/data-stream-handler";
 import {
   chatModelIds,
   DEFAULT_CHAT_MODEL,
+  getDefaultThinkingSetting,
   isVisibleInUI,
+  parseThinkingSettingFromCookie,
 } from "@/lib/ai/models";
 import { getChatById, getMessagesByChatId } from "@/lib/db/queries";
 import { convertToUIMessages } from "@/lib/utils";
@@ -43,13 +45,19 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
   const cookieStore = await cookies();
   const chatModelFromCookie = cookieStore.get("chat-model");
 
-  // Validate cookie value and fall back to default if invalid or hidden from UI
   const validatedModelId =
     chatModelFromCookie?.value &&
     chatModelIds.includes(chatModelFromCookie.value) &&
     isVisibleInUI(chatModelFromCookie.value)
       ? chatModelFromCookie.value
       : DEFAULT_CHAT_MODEL;
+
+  const thinkingCookieValue = cookieStore.get(
+    `thinking-${validatedModelId}`
+  )?.value;
+  const initialThinkingSetting =
+    parseThinkingSettingFromCookie(validatedModelId, thinkingCookieValue) ??
+    getDefaultThinkingSetting(validatedModelId);
 
   return (
     <>
@@ -59,6 +67,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
         initialChatModel={validatedModelId}
         initialLastContext={chat.lastContext ?? undefined}
         initialMessages={uiMessages}
+        initialThinkingSetting={initialThinkingSetting}
         isReadonly={session?.user?.id !== chat.userId}
       />
       <DataStreamHandler />
