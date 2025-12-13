@@ -18,6 +18,7 @@ import { sheetArtifact } from "@/artifacts/sheet/client";
 import { textArtifact } from "@/artifacts/text/client";
 import { useArtifact } from "@/hooks/use-artifact";
 import type { Document, Vote } from "@/lib/db/schema";
+import type { ThinkingEffort } from "@/lib/ai/models";
 import type { Attachment, ChatMessage } from "@/lib/types";
 import { fetcher } from "@/lib/utils";
 import { ArtifactActions } from "./artifact-actions";
@@ -66,6 +67,7 @@ function PureArtifact({
   votes,
   isReadonly,
   selectedModelId,
+  selectedThinkingEffort,
 }: {
   chatId: string;
   input: string;
@@ -81,6 +83,7 @@ function PureArtifact({
   regenerate: UseChatHelpers<ChatMessage>["regenerate"];
   isReadonly: boolean;
   selectedModelId: string;
+  selectedThinkingEffort: ThinkingEffort;
 }) {
   const { artifact, setArtifact, metadata, setMetadata } = useArtifact();
 
@@ -335,6 +338,7 @@ function PureArtifact({
                     input={input}
                     messages={messages}
                     selectedModelId={selectedModelId}
+                    selectedThinkingEffort={selectedThinkingEffort}
                     sendMessage={sendMessage}
                     setAttachments={setAttachments}
                     setInput={setInput}

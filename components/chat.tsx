@@ -204,6 +204,7 @@ export function Chat({
         messages={messages}
         regenerate={regenerate}
         selectedModelId={currentModelId}
+        selectedThinkingEffort={currentThinkingEffort}
         sendMessage={sendMessage}
         setAttachments={setAttachments}
         setInput={setInput}
