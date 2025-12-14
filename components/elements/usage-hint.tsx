@@ -58,6 +58,37 @@ const formatReset = (isoDate?: string | null) => {
   }
 };
 
+const WARNING_THRESHOLD = 80; // Show warning at 80%
+const CRITICAL_THRESHOLD = 95; // Show critical warning at 95%
+
+const getWarningState = (
+  percent: number
+): "normal" | "warning" | "critical" | "exceeded" => {
+  if (percent >= 100) {
+    return "exceeded";
+  }
+  if (percent >= CRITICAL_THRESHOLD) {
+    return "critical";
+  }
+  if (percent >= WARNING_THRESHOLD) {
+    return "warning";
+  }
+  return "normal";
+};
+
+const getWarningColor = (state: ReturnType<typeof getWarningState>) => {
+  switch (state) {
+    case "exceeded":
+      return "text-destructive";
+    case "critical":
+      return "text-orange-600 dark:text-orange-400";
+    case "warning":
+      return "text-yellow-600 dark:text-yellow-400";
+    default:
+      return "text-muted-foreground";
+  }
+};
+
 const InfoRow = ({ label, value }: { label: string; value?: string }) => {
   if (!value) {
     return null;
@@ -100,30 +131,78 @@ export const UsageHint = ({ className, usage }: UsageHintProps) => {
   const roundedPercent = percent.toFixed(1);
   const resetDate = formatReset(data?.subscription?.periodEnd);
 
+  const warningState = getWarningState(percent);
+  const colorClass = getWarningColor(warningState);
+
   return (
     <Popover>
       <PopoverTrigger asChild>
         <button
           className={cn(
-            "group flex cursor-pointer items-center gap-1.5 text-muted-foreground text-xs transition-colors hover:text-foreground",
+            "group flex cursor-pointer items-center gap-1.5 text-xs transition-colors hover:text-foreground",
+            colorClass,
             className
           )}
           type="button"
         >
           <InfoIcon
             aria-hidden="true"
-            className="h-3.5 w-3.5 text-muted-foreground transition-colors group-hover:text-foreground"
+            className={cn(
+              "h-3.5 w-3.5 transition-colors group-hover:text-foreground",
+              colorClass
+            )}
             strokeWidth={1.5}
           />
-          <span>{t("tooltip", { percent: roundedPercent })}</span>
+          <span>
+            {t(`tooltip.${warningState}`, { percent: roundedPercent })}
+          </span>
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-72 space-y-3 p-4">
-        <Progress className="h-2 bg-muted" value={percent} />
+        <Progress
+          className={cn(
+            "h-2",
+            warningState === "exceeded" && "bg-destructive/20",
+            warningState === "critical" &&
+              "bg-orange-200 dark:bg-orange-900/20",
+            warningState === "warning" && "bg-yellow-200 dark:bg-yellow-900/20",
+            warningState === "normal" && "bg-muted"
+          )}
+          value={percent}
+        />
+
+        {warningState !== "normal" && (
+          <div
+            className={cn(
+              "rounded-md p-2 text-xs",
+              warningState === "exceeded" &&
+                "bg-destructive/10 text-destructive",
+              warningState === "critical" &&
+                "bg-orange-100 text-orange-900 dark:bg-orange-900/20 dark:text-orange-300",
+              warningState === "warning" &&
+                "bg-yellow-100 text-yellow-900 dark:bg-yellow-900/20 dark:text-yellow-300"
+            )}
+          >
+            {t(`warning.${warningState}`)}
+          </div>
+        )}
+
         <div className="space-y-1">
           <InfoRow label={t("used")} value={`${roundedPercent}%`} />
           <InfoRow label={t("resetDate")} value={resetDate} />
         </div>
+
+        {warningState === "exceeded" && (
+          <button
+            className="w-full rounded-md bg-primary px-3 py-2 text-primary-foreground text-sm hover:bg-primary/90"
+            onClick={() => {
+              window.location.href = "/subscription";
+            }}
+            type="button"
+          >
+            {t("upgrade")}
+          </button>
+        )}
       </PopoverContent>
     </Popover>
   );

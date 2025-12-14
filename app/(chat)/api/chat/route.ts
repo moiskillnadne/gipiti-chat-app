@@ -19,6 +19,7 @@ import { getUsage } from "tokenlens/helpers";
 import { z } from "zod";
 import { auth, type UserType } from "@/app/(auth)/auth";
 import { entitlementsByUserType } from "@/lib/ai/entitlements";
+import { ensureMessageHasTextPart } from "@/lib/ai/message-validator";
 import {
   DEFAULT_CHAT_MODEL,
   getProviderOptions,
@@ -29,6 +30,7 @@ import {
 } from "@/lib/ai/models";
 import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
 import { myProvider } from "@/lib/ai/providers";
+import { calculateOptimalStepLimit } from "@/lib/ai/step-calculator";
 import { checkTokenQuota, recordTokenUsage } from "@/lib/ai/token-quota";
 import { createDocument } from "@/lib/ai/tools/create-document";
 import { getWeather } from "@/lib/ai/tools/get-weather";
@@ -47,6 +49,7 @@ import {
   updateChatLastContextById,
 } from "@/lib/db/queries";
 import { ChatSDKError } from "@/lib/errors";
+import type { ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
 import { convertToUIMessages, generateUUID } from "@/lib/utils";
 import {
@@ -56,7 +59,7 @@ import {
 import { generateTitleFromUserMessage } from "../../actions";
 import { type PostRequestBody, postRequestBodySchema } from "./schema";
 
-export const maxDuration = 120;
+export const maxDuration = 300;
 
 let globalStreamContext: ResumableStreamContext | null = null;
 
@@ -149,17 +152,11 @@ export async function POST(request: Request) {
     const quotaCheck = await checkTokenQuota(session.user.id);
 
     if (!quotaCheck.allowed) {
-      return new Response(
-        JSON.stringify({
-          error: "quota_exceeded",
-          message: quotaCheck.reason,
-          quota: quotaCheck.quotaInfo,
-        }),
-        {
-          status: 429,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      return new ChatSDKError(
+        "quota_exceeded:chat",
+        JSON.stringify(quotaCheck.quotaInfo), // Pass quota info as cause
+        quotaCheck.reason
+      ).toResponse();
     }
 
     const userType: UserType = session.user.type;
@@ -235,13 +232,33 @@ export async function POST(request: Request) {
       ) &&
       !(thinkingSetting.type === "budget" && thinkingSetting.value === 0);
 
+    const hasWebSearchTool =
+      !(
+        isReasoningModelId(selectedChatModel) &&
+        !supportsAttachments(selectedChatModel)
+      ) && ["webSearch"].length > 0;
+    const hasImageGenerationTool =
+      !(
+        isReasoningModelId(selectedChatModel) &&
+        !supportsAttachments(selectedChatModel)
+      ) && ["generateImage"].length > 0;
+
+    const optimalStepLimit = calculateOptimalStepLimit({
+      modelId: selectedChatModel,
+      thinkingSetting,
+      hasWebSearch: hasWebSearchTool,
+      hasImageGeneration: hasImageGenerationTool,
+    });
+
+    console.info("optimalStepLimit", optimalStepLimit);
+
     const stream = createUIMessageStream({
       execute: ({ writer: dataStream }) => {
         const result = streamText({
           model: myProvider.languageModel(selectedChatModel),
           system: systemPrompt({ selectedChatModel, requestHints }),
           messages: convertToModelMessages(uiMessages),
-          stopWhen: stepCountIs(5),
+          stopWhen: stepCountIs(optimalStepLimit),
           ...(isReasoningModelId(selectedChatModel) &&
             isThinkingEnabled &&
             thinkingSetting?.type === "effort" && {
@@ -261,6 +278,30 @@ export async function POST(request: Request) {
                   "generateImage",
                 ],
           experimental_transform: smoothStream({ chunking: "word" }),
+          prepareStep: ({ steps, stepNumber, messages }) => {
+            // On second-to-last step, disable tools and add completion reminder
+            if (stepNumber >= optimalStepLimit - 1) {
+              const lastStep = steps.at(-1);
+              const hasTextInLastStep =
+                lastStep?.text && lastStep.text.trim().length > 0;
+
+              // If no text yet, add a reminder and disable tools
+              if (!hasTextInLastStep) {
+                messages.push({
+                  role: "assistant" as const,
+                  content:
+                    "Please provide your final answer now based on the information you've gathered. Do not call any more tools.",
+                });
+
+                return {
+                  activeTools: [], // Disable all tools
+                  messages,
+                };
+              }
+            }
+
+            return {};
+          },
           tools: {
             getWeather,
             createDocument: createDocument({ session, dataStream }),
@@ -375,8 +416,20 @@ export async function POST(request: Request) {
       },
       generateId: generateUUID,
       onFinish: async ({ messages }) => {
+        // Validate and fix messages before saving (ensure text parts exist)
+        const validatedMessages = messages.map((msg) => {
+          if (msg.role === "assistant") {
+            return ensureMessageHasTextPart(msg as ChatMessage, {
+              modelId: selectedChatModel,
+              stepCount: messages.length,
+              stepLimit: optimalStepLimit,
+            });
+          }
+          return msg;
+        });
+
         await saveMessages({
-          messages: messages.map((currentMessage) => ({
+          messages: validatedMessages.map((currentMessage) => ({
             id: currentMessage.id,
             role: currentMessage.role,
             parts: currentMessage.parts,

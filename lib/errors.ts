@@ -4,6 +4,7 @@ export type ErrorType =
   | "forbidden"
   | "not_found"
   | "rate_limit"
+  | "quota_exceeded"
   | "offline";
 
 export type Surface =
@@ -94,6 +95,8 @@ export function getMessageByErrorCode(errorCode: ErrorCode): string {
 
     case "rate_limit:chat":
       return "You have exceeded your maximum number of messages for the day. Please try again later.";
+    case "quota_exceeded:chat":
+      return "You have reached your token quota for this billing period. Please wait for your quota to reset or upgrade your plan.";
     case "not_found:chat":
       return "The requested chat was not found. Please check the chat ID and try again.";
     case "forbidden:chat":
@@ -128,6 +131,8 @@ function getStatusCodeByType(type: ErrorType) {
     case "not_found":
       return 404;
     case "rate_limit":
+      return 429;
+    case "quota_exceeded":
       return 429;
     case "offline":
       return 503;

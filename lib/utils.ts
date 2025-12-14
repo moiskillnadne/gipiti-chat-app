@@ -48,6 +48,40 @@ export async function fetchWithErrorHandlers(
   }
 }
 
+/**
+ * Parse quota info from error cause field
+ */
+export function parseQuotaInfo(cause?: string): {
+  quota?: number
+  used?: number
+  remaining?: number
+  percentUsed?: number
+  periodEnd?: Date
+  planName?: string
+  billingPeriod?: string
+} | null {
+  if (!cause) {
+    return null
+  }
+
+  try {
+    const quotaInfo = JSON.parse(cause)
+    return {
+      quota: quotaInfo.quota,
+      used: quotaInfo.usage?.totalTokens,
+      remaining: quotaInfo.remaining,
+      percentUsed: quotaInfo.percentUsed,
+      periodEnd: quotaInfo.subscription?.currentPeriodEnd
+        ? new Date(quotaInfo.subscription.currentPeriodEnd)
+        : undefined,
+      planName: quotaInfo.plan?.displayName,
+      billingPeriod: quotaInfo.subscription?.billingPeriod,
+    }
+  } catch {
+    return null
+  }
+}
+
 export function getLocalStorage(key: string) {
   if (typeof window !== 'undefined') {
     return JSON.parse(localStorage.getItem(key) || '[]');
