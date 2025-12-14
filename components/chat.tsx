@@ -135,7 +135,7 @@ export function Chat({
       if (error instanceof ChatSDKError) {
         // Handle quota exceeded
         if (error.type === "quota_exceeded") {
-          const quotaInfo = parseQuotaInfo(error.cause);
+          const quotaInfo = parseQuotaInfo(error.cause as string);
           setQuotaErrorInfo(quotaInfo);
           setShowQuotaExceededDialog(true);
           return;
