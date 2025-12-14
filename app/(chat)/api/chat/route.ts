@@ -19,6 +19,7 @@ import { getUsage } from "tokenlens/helpers";
 import { z } from "zod";
 import { auth, type UserType } from "@/app/(auth)/auth";
 import { entitlementsByUserType } from "@/lib/ai/entitlements";
+import { ensureMessageHasTextPart } from "@/lib/ai/message-validator";
 import {
   DEFAULT_CHAT_MODEL,
   getProviderOptions,
@@ -29,6 +30,7 @@ import {
 } from "@/lib/ai/models";
 import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
 import { myProvider } from "@/lib/ai/providers";
+import { calculateOptimalStepLimit } from "@/lib/ai/step-calculator";
 import { checkTokenQuota, recordTokenUsage } from "@/lib/ai/token-quota";
 import { createDocument } from "@/lib/ai/tools/create-document";
 import { getWeather } from "@/lib/ai/tools/get-weather";
@@ -47,6 +49,7 @@ import {
   updateChatLastContextById,
 } from "@/lib/db/queries";
 import { ChatSDKError } from "@/lib/errors";
+import type { ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
 import { convertToUIMessages, generateUUID } from "@/lib/utils";
 import {
@@ -235,13 +238,31 @@ export async function POST(request: Request) {
       ) &&
       !(thinkingSetting.type === "budget" && thinkingSetting.value === 0);
 
+    const hasWebSearchTool =
+      !(
+        isReasoningModelId(selectedChatModel) &&
+        !supportsAttachments(selectedChatModel)
+      ) && ["webSearch"].length > 0;
+    const hasImageGenerationTool =
+      !(
+        isReasoningModelId(selectedChatModel) &&
+        !supportsAttachments(selectedChatModel)
+      ) && ["generateImage"].length > 0;
+
+    const optimalStepLimit = calculateOptimalStepLimit({
+      modelId: selectedChatModel,
+      thinkingSetting,
+      hasWebSearch: hasWebSearchTool,
+      hasImageGeneration: hasImageGenerationTool,
+    });
+
     const stream = createUIMessageStream({
       execute: ({ writer: dataStream }) => {
         const result = streamText({
           model: myProvider.languageModel(selectedChatModel),
           system: systemPrompt({ selectedChatModel, requestHints }),
           messages: convertToModelMessages(uiMessages),
-          stopWhen: stepCountIs(5),
+          stopWhen: stepCountIs(optimalStepLimit),
           ...(isReasoningModelId(selectedChatModel) &&
             isThinkingEnabled &&
             thinkingSetting?.type === "effort" && {
@@ -261,6 +282,29 @@ export async function POST(request: Request) {
                   "generateImage",
                 ],
           experimental_transform: smoothStream({ chunking: "word" }),
+          prepareStep: ({ steps }) => {
+            // On last step, disable tools and force completion if no text yet
+            if (steps.length >= optimalStepLimit - 1) {
+              const lastStep = steps.at(-1);
+              const hasTextResponse =
+                lastStep?.text && lastStep.text.trim().length > 0;
+
+              if (!hasTextResponse) {
+                return {
+                  experimental_activeTools: [],
+                  messages: [
+                    {
+                      role: "system" as const,
+                      content:
+                        "You have reached the step limit. Provide your final answer now based on the information gathered. Do NOT call any more tools.",
+                    },
+                  ],
+                };
+              }
+            }
+
+            return {};
+          },
           tools: {
             getWeather,
             createDocument: createDocument({ session, dataStream }),
@@ -375,8 +419,20 @@ export async function POST(request: Request) {
       },
       generateId: generateUUID,
       onFinish: async ({ messages }) => {
+        // Validate and fix messages before saving (ensure text parts exist)
+        const validatedMessages = messages.map((msg) => {
+          if (msg.role === "assistant") {
+            return ensureMessageHasTextPart(msg as ChatMessage, {
+              modelId: selectedChatModel,
+              stepCount: messages.length,
+              stepLimit: optimalStepLimit,
+            });
+          }
+          return msg;
+        });
+
         await saveMessages({
-          messages: messages.map((currentMessage) => ({
+          messages: validatedMessages.map((currentMessage) => ({
             id: currentMessage.id,
             role: currentMessage.role,
             parts: currentMessage.parts,
