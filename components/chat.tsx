@@ -2,7 +2,9 @@
 
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
+import { format } from "date-fns";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import useSWR, { useSWRConfig } from "swr";
 import { unstable_serialize } from "swr/infinite";
@@ -17,6 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Progress } from "@/components/ui/progress";
 import { useArtifactSelector } from "@/hooks/use-artifact";
 import { useAutoResume } from "@/hooks/use-auto-resume";
 import {
@@ -27,7 +30,12 @@ import type { Vote } from "@/lib/db/schema";
 import { ChatSDKError } from "@/lib/errors";
 import type { Attachment, ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
-import { fetcher, fetchWithErrorHandlers, generateUUID } from "@/lib/utils";
+import {
+  fetcher,
+  fetchWithErrorHandlers,
+  generateUUID,
+  parseQuotaInfo,
+} from "@/lib/utils";
 import { Artifact } from "./artifact";
 import { useDataStream } from "./data-stream-provider";
 import { Messages } from "./messages";
@@ -54,10 +62,16 @@ export function Chat({
 }) {
   const { mutate } = useSWRConfig();
   const { setDataStream } = useDataStream();
+  const t = useTranslations("chat");
+  const tCommon = useTranslations("common");
+  const tUsage = useTranslations("usage");
 
   const [input, setInput] = useState<string>("");
   const [usage, setUsage] = useState<AppUsage | undefined>(initialLastContext);
   const [showCreditCardAlert, setShowCreditCardAlert] = useState(false);
+  const [showQuotaExceededDialog, setShowQuotaExceededDialog] = useState(false);
+  const [quotaErrorInfo, setQuotaErrorInfo] =
+    useState<ReturnType<typeof parseQuotaInfo>>(null);
   const [currentModelId, setCurrentModelId] = useState(initialChatModel);
   const currentModelIdRef = useRef(currentModelId);
   const [currentThinkingSetting, setCurrentThinkingSetting] = useState<
@@ -119,6 +133,15 @@ export function Chat({
     onError: (error) => {
       console.error("Error in chat", error);
       if (error instanceof ChatSDKError) {
+        // Handle quota exceeded
+        if (error.type === "quota_exceeded") {
+          const quotaInfo = parseQuotaInfo(error.cause);
+          setQuotaErrorInfo(quotaInfo);
+          setShowQuotaExceededDialog(true);
+          return;
+        }
+
+        // Handle credit card errors
         if (
           error.message?.includes("AI Gateway requires a valid credit card")
         ) {
@@ -248,6 +271,76 @@ export function Chat({
               }}
             >
               Activate
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        onOpenChange={setShowQuotaExceededDialog}
+        open={showQuotaExceededDialog}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("quota.title")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              <div className="space-y-4">
+                <p>{t("quota.description")}</p>
+
+                {quotaErrorInfo && (
+                  <div className="space-y-2 rounded-lg bg-muted p-4">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">
+                        {t("quota.used")}
+                      </span>
+                      <span className="font-medium">
+                        {quotaErrorInfo.used?.toLocaleString()} /{" "}
+                        {quotaErrorInfo.quota?.toLocaleString()}{" "}
+                        {tUsage("tokens")}
+                      </span>
+                    </div>
+
+                    {quotaErrorInfo.percentUsed !== undefined && (
+                      <Progress
+                        className="h-2"
+                        value={quotaErrorInfo.percentUsed}
+                      />
+                    )}
+
+                    {quotaErrorInfo.periodEnd && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">
+                          {t("quota.resetDate")}
+                        </span>
+                        <span className="font-medium">
+                          {format(quotaErrorInfo.periodEnd, "LLL d, yyyy")}
+                        </span>
+                      </div>
+                    )}
+
+                    {quotaErrorInfo.planName && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">
+                          {t("quota.currentPlan")}
+                        </span>
+                        <span className="font-medium">
+                          {quotaErrorInfo.planName}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{tCommon("buttons.close")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                window.location.href = "/subscription";
+              }}
+            >
+              {t("quota.upgradeButton")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

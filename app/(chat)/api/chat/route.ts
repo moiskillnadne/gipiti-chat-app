@@ -152,17 +152,11 @@ export async function POST(request: Request) {
     const quotaCheck = await checkTokenQuota(session.user.id);
 
     if (!quotaCheck.allowed) {
-      return new Response(
-        JSON.stringify({
-          error: "quota_exceeded",
-          message: quotaCheck.reason,
-          quota: quotaCheck.quotaInfo,
-        }),
-        {
-          status: 429,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      return new ChatSDKError(
+        "quota_exceeded:chat",
+        JSON.stringify(quotaCheck.quotaInfo), // Pass quota info as cause
+        quotaCheck.reason
+      ).toResponse();
     }
 
     const userType: UserType = session.user.type;
@@ -256,6 +250,8 @@ export async function POST(request: Request) {
       hasImageGeneration: hasImageGenerationTool,
     });
 
+    console.info("optimalStepLimit", optimalStepLimit);
+
     const stream = createUIMessageStream({
       execute: ({ writer: dataStream }) => {
         const result = streamText({
@@ -282,23 +278,24 @@ export async function POST(request: Request) {
                   "generateImage",
                 ],
           experimental_transform: smoothStream({ chunking: "word" }),
-          prepareStep: ({ steps }) => {
-            // On last step, disable tools and force completion if no text yet
-            if (steps.length >= optimalStepLimit - 1) {
+          prepareStep: ({ steps, stepNumber, messages }) => {
+            // On second-to-last step, disable tools and add completion reminder
+            if (stepNumber >= optimalStepLimit - 1) {
               const lastStep = steps.at(-1);
-              const hasTextResponse =
+              const hasTextInLastStep =
                 lastStep?.text && lastStep.text.trim().length > 0;
 
-              if (!hasTextResponse) {
+              // If no text yet, add a reminder and disable tools
+              if (!hasTextInLastStep) {
+                messages.push({
+                  role: "assistant" as const,
+                  content:
+                    "Please provide your final answer now based on the information you've gathered. Do not call any more tools.",
+                });
+
                 return {
-                  experimental_activeTools: [],
-                  messages: [
-                    {
-                      role: "system" as const,
-                      content:
-                        "You have reached the step limit. Provide your final answer now based on the information gathered. Do NOT call any more tools.",
-                    },
-                  ],
+                  activeTools: [], // Disable all tools
+                  messages,
                 };
               }
             }

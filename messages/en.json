@@ -50,7 +50,8 @@
       "documentError": "An error occurred with the document",
       "documentCreateError": "Error creating document",
       "documentUpdateError": "Error updating document",
-      "sharedChatNotSupported": "Viewing files in shared chats is currently not supported."
+      "sharedChatNotSupported": "Viewing files in shared chats is currently not supported.",
+      "quotaExceeded": "Token quota exceeded for this billing period"
     },
     "accessibility": {
       "scrollToBottom": "Scroll to bottom",
@@ -264,7 +265,8 @@
       "send": "Send",
       "stop": "Stop generating",
       "attachFile": "Attach file",
-      "recording": "Recording..."
+      "recording": "Recording...",
+      "quotaExceeded": "Quota exceeded. Your limit will reset soon."
     },
     "messages": {
       "thinking": "Thinking...",
@@ -342,6 +344,15 @@
         "sources": "Sources",
         "moreCount": "{count} more"
       }
+    },
+    "quota": {
+      "title": "Token Quota Exceeded",
+      "description": "You've reached your token limit for this billing period. Upgrade your plan or wait for the quota to reset.",
+      "used": "Tokens Used",
+      "resetDate": "Quota Resets On",
+      "currentPlan": "Current Plan",
+      "upgradeButton": "Upgrade Plan",
+      "viewDetails": "View Usage Details"
     }
   },
   "metadata": {
@@ -394,7 +405,17 @@
     "upgrade": "Upgrade Plan",
     "tokens": "tokens",
     "used": "Used",
-    "tooltip": "You've used {percent}% of your usage limit"
+    "tooltip": {
+      "normal": "You've used {percent}% of your usage limit",
+      "warning": "You've used {percent}% of your usage limit",
+      "critical": "You've used {percent}% of your usage limit - approaching limit!",
+      "exceeded": "Quota exceeded ({percent}%)"
+    },
+    "warning": {
+      "warning": "You're approaching your token quota limit. Consider upgrading your plan to avoid interruptions.",
+      "critical": "You're very close to your token quota limit! Upgrade now to continue using the service.",
+      "exceeded": "You've exceeded your token quota. Please upgrade your plan or wait for the quota to reset."
+    }
   },
   "errors": {
     "pageNotFound": "Page not found",
@@ -402,7 +423,9 @@
     "unauthorized": "Unauthorized",
     "forbidden": "Forbidden",
     "goBack": "Go back",
-    "goHome": "Go home"
+    "goHome": "Go home",
+    "quotaExceeded": "Token quota exceeded",
+    "quotaExceededDescription": "You have reached your token quota for this billing period."
   },
   "legal": {
     "offer": {
