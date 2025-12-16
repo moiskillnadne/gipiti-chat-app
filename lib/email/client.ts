@@ -25,9 +25,9 @@ export const resendWebhookSecret = process.env.RESEND_WEBHOOK_SECRET;
 
 // Email configuration
 export const emailConfig = {
-  from: "noreply@gipiti.ru",
-  supportEmail: "vitya.ryabkov@gmail.com",
-  forwardTo: process.env.EMAIL_FORWARD_TO ?? "vitya.ryabkov@gmail.com",
+  from: "support@email.gipiti.ru",
+  supportEmail: "support@email.gipiti.ru",
+  forwardTo: "support@email.gipiti.ru",
   appName: "GIPITI",
   appUrl,
 };
