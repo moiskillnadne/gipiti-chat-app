@@ -1,8 +1,8 @@
 "use client";
 
 import { memo } from "react";
-import { ModelSelectorHeader } from "@/components/model-selector-header";
 import { SidebarToggle } from "@/components/sidebar-toggle";
+import { ModelSelector } from "@/components/ui/model-selector";
 
 type PureChatHeaderProps = {
   chatId: string;
@@ -14,7 +14,7 @@ function PureChatHeader(_props: PureChatHeaderProps) {
     <header className="sticky top-0 flex items-center gap-2 bg-background px-2 py-1.5 md:px-2">
       <SidebarToggle />
 
-      <ModelSelectorHeader />
+      <ModelSelector />
     </header>
   );
 }

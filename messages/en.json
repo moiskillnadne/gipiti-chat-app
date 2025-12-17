@@ -684,6 +684,12 @@
     "off": "Off"
   },
   "modelList": {
+    "providers": {
+      "openai": "OpenAI",
+      "google": "Google",
+      "anthropic": "Anthropic",
+      "xai": "X.AI"
+    },
     "grokVision": {
       "name": "Grok Vision",
       "description": "Advanced multimodal model with vision and text capabilities"
