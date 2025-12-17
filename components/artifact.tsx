@@ -17,7 +17,6 @@ import { imageArtifact } from "@/artifacts/image/client";
 import { sheetArtifact } from "@/artifacts/sheet/client";
 import { textArtifact } from "@/artifacts/text/client";
 import { useArtifact } from "@/hooks/use-artifact";
-import type { ThinkingSetting } from "@/lib/ai/models";
 import type { Document, Vote } from "@/lib/db/schema";
 import type { Attachment, ChatMessage } from "@/lib/types";
 import { fetcher } from "@/lib/utils";
@@ -66,8 +65,6 @@ function PureArtifact({
   regenerate,
   votes,
   isReadonly,
-  selectedModelId,
-  selectedThinkingSetting,
 }: {
   chatId: string;
   input: string;
@@ -82,8 +79,6 @@ function PureArtifact({
   sendMessage: UseChatHelpers<ChatMessage>["sendMessage"];
   regenerate: UseChatHelpers<ChatMessage>["regenerate"];
   isReadonly: boolean;
-  selectedModelId: string;
-  selectedThinkingSetting?: ThinkingSetting;
 }) {
   const { artifact, setArtifact, metadata, setMetadata } = useArtifact();
 
@@ -337,8 +332,6 @@ function PureArtifact({
                     className="bg-background dark:bg-muted"
                     input={input}
                     messages={messages}
-                    selectedModelId={selectedModelId}
-                    selectedThinkingSetting={selectedThinkingSetting}
                     sendMessage={sendMessage}
                     setAttachments={setAttachments}
                     setInput={setInput}

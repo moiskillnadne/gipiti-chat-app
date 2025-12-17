@@ -5,7 +5,7 @@ import { DefaultChatTransport } from "ai";
 import { format } from "date-fns";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import useSWR, { useSWRConfig } from "swr";
 import { unstable_serialize } from "swr/infinite";
 import { ChatHeader } from "@/components/chat-header";
@@ -20,12 +20,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
+import { useModelRefs } from "@/contexts/model-context";
 import { useArtifactSelector } from "@/hooks/use-artifact";
 import { useAutoResume } from "@/hooks/use-auto-resume";
-import {
-  getDefaultThinkingSetting,
-  type ThinkingSetting,
-} from "@/lib/ai/models";
 import type { Vote } from "@/lib/db/schema";
 import { ChatSDKError } from "@/lib/errors";
 import type { Attachment, ChatMessage } from "@/lib/types";
@@ -46,16 +43,12 @@ import { toast } from "./toast";
 export function Chat({
   id,
   initialMessages,
-  initialChatModel,
-  initialThinkingSetting,
   isReadonly,
   autoResume,
   initialLastContext,
 }: {
   id: string;
   initialMessages: ChatMessage[];
-  initialChatModel: string;
-  initialThinkingSetting?: ThinkingSetting;
   isReadonly: boolean;
   autoResume: boolean;
   initialLastContext?: AppUsage;
@@ -66,32 +59,15 @@ export function Chat({
   const tCommon = useTranslations("common");
   const tUsage = useTranslations("usage");
 
+  // Use model context for stable refs
+  const { modelIdRef, thinkingSettingRef } = useModelRefs();
+
   const [input, setInput] = useState<string>("");
   const [usage, setUsage] = useState<AppUsage | undefined>(initialLastContext);
   const [showCreditCardAlert, setShowCreditCardAlert] = useState(false);
   const [showQuotaExceededDialog, setShowQuotaExceededDialog] = useState(false);
   const [quotaErrorInfo, setQuotaErrorInfo] =
     useState<ReturnType<typeof parseQuotaInfo>>(null);
-  const [currentModelId, setCurrentModelId] = useState(initialChatModel);
-  const currentModelIdRef = useRef(currentModelId);
-  const [currentThinkingSetting, setCurrentThinkingSetting] = useState<
-    ThinkingSetting | undefined
-  >(initialThinkingSetting);
-  const currentThinkingSettingRef = useRef(currentThinkingSetting);
-
-  useEffect(() => {
-    currentModelIdRef.current = currentModelId;
-  }, [currentModelId]);
-
-  useEffect(() => {
-    currentThinkingSettingRef.current = currentThinkingSetting;
-  }, [currentThinkingSetting]);
-
-  const handleModelChange = useCallback((newModelId: string) => {
-    setCurrentModelId(newModelId);
-    const defaultSetting = getDefaultThinkingSetting(newModelId);
-    setCurrentThinkingSetting(defaultSetting);
-  }, []);
 
   const {
     messages,
@@ -114,8 +90,8 @@ export function Chat({
           body: {
             id: request.id,
             message: request.messages.at(-1),
-            selectedChatModel: currentModelIdRef.current,
-            thinkingSetting: currentThinkingSettingRef.current,
+            selectedChatModel: modelIdRef.current,
+            thinkingSetting: thinkingSettingRef.current,
             ...request.body,
           },
         };
@@ -199,7 +175,6 @@ export function Chat({
           isReadonly={isReadonly}
           messages={messages}
           regenerate={regenerate}
-          selectedModelId={initialChatModel}
           setMessages={setMessages}
           status={status}
           votes={votes}
@@ -212,10 +187,6 @@ export function Chat({
               chatId={id}
               input={input}
               messages={messages}
-              onModelChange={handleModelChange}
-              onThinkingSettingChange={setCurrentThinkingSetting}
-              selectedModelId={currentModelId}
-              selectedThinkingSetting={currentThinkingSetting}
               sendMessage={sendMessage}
               setAttachments={setAttachments}
               setInput={setInput}
@@ -235,8 +206,6 @@ export function Chat({
         isReadonly={isReadonly}
         messages={messages}
         regenerate={regenerate}
-        selectedModelId={currentModelId}
-        selectedThinkingSetting={currentThinkingSetting}
         sendMessage={sendMessage}
         setAttachments={setAttachments}
         setInput={setInput}
