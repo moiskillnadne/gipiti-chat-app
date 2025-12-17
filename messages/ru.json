@@ -730,6 +730,10 @@
       "name": "Gemini 3 Pro",
       "description": "Отличная модель для сложных задач."
     },
+    "gemini3ProImage": {
+      "name": "Gemini 3 Pro Image",
+      "description": "Генерация и редактирование изображений на естественном языке."
+    },
     "opus41": {
       "name": "Opus 4.1",
       "description": "Последняя модель от Anthropic Opus для ежедневных задач."

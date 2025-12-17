@@ -730,6 +730,10 @@
       "name": "Gemini 3 Pro",
       "description": "Latest Google Gemini model with advanced reasoning capabilities."
     },
+    "gemini3ProImage": {
+      "name": "Gemini 3 Pro Image",
+      "description": "Generate and refine images with natural language."
+    },
     "opus41": {
       "name": "Opus 4.1",
       "description": "Latest Anthropic Opus model for daily tasks."

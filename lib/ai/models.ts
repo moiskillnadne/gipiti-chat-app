@@ -5,6 +5,7 @@ export const DEFAULT_CHAT_MODEL: string = "gpt-5.2";
 export type ChatModelCapabilities = {
   reasoning?: boolean;
   attachments?: boolean;
+  imageGeneration?: boolean;
 };
 
 export type ModelProvider = "openai" | "google" | "anthropic" | "xai";
@@ -181,6 +182,18 @@ export const chatModels: ChatModel[] = [
     thinkingConfig: GEMINI3_THINKING_CONFIG,
   },
   {
+    id: "gemini-3-pro-image",
+    name: "gemini3ProImage.name",
+    description: "gemini3ProImage.description",
+    provider: "google",
+    capabilities: {
+      reasoning: false,
+      attachments: false,
+      imageGeneration: true,
+    },
+    showInUI: true,
+  },
+  {
     id: "opus-4.1",
     name: "opus41.name",
     description: "opus41.description",
@@ -219,6 +232,15 @@ const reasoningModelIds = new Set(
 
 export const isReasoningModelId = (modelId: string) =>
   reasoningModelIds.has(modelId);
+
+const imageGenerationModelIds = new Set(
+  chatModels
+    .filter((model) => model.capabilities?.imageGeneration)
+    .map((model) => model.id)
+);
+
+export const isImageGenerationModel = (modelId: string) =>
+  imageGenerationModelIds.has(modelId);
 
 export const supportsAttachments = (modelId: string) => {
   const model = chatModels.find((m) => m.id === modelId);
