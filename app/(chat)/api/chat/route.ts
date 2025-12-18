@@ -350,8 +350,6 @@ export async function POST(request: Request) {
                   ?.usageMetadata as typeof usageMetadata;
                 totalCostUsd = metadata.gateway?.cost?.toString();
 
-                console.log("metadata", metadata);
-
                 // Extract responseId for multi-turn editing
                 if (metadata.generationId) {
                   _responseId = metadata.generationId as unknown as string;
