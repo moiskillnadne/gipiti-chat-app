@@ -7,7 +7,6 @@ import { memo, useState } from "react";
 import type { Vote } from "@/lib/db/schema";
 import type { ChatMessage } from "@/lib/types";
 import { cn, sanitizeText } from "@/lib/utils";
-import { useDataStream } from "./data-stream-provider";
 import { DocumentToolResult } from "./document";
 import { DocumentPreview } from "./document-preview";
 import { MessageContent } from "./elements/message";
@@ -53,11 +52,11 @@ const PurePreviewMessage = ({
   const t = useTranslations("chat.messages");
   const [mode, setMode] = useState<"view" | "edit">("view");
 
+  console.dir(message, { depth: null });
+
   const attachmentsFromMessage = message.parts.filter(
     (part) => part.type === "file"
   );
-
-  useDataStream();
 
   return (
     <motion.div
@@ -131,6 +130,58 @@ const PurePreviewMessage = ({
                   key={key}
                   reasoning={reasoningText}
                 />
+              );
+            }
+
+            if (type === "data-imageGenerationFinish") {
+              const { imageUrl, userPrompt, responseId } = part.data;
+
+              const handleDownload = async (propUrl: string) => {
+                const response = await fetch(propUrl);
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                const filename =
+                  propUrl.split("/").pop() ?? "generated-image.png";
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+              };
+
+              return (
+                <div
+                  className="group/image relative overflow-hidden rounded-lg"
+                  key={responseId}
+                >
+                  <picture>
+                    {/* biome-ignore lint/nursery/useImageSize: "Generated image" */}
+                    <img
+                      alt={userPrompt}
+                      className="max-w-full rounded-lg"
+                      src={imageUrl}
+                    />
+                  </picture>
+                  <button
+                    className="absolute right-2 bottom-2 flex size-8 items-center justify-center rounded-lg bg-black/50 text-white transition-opacity hover:bg-black/70 md:opacity-0 md:group-hover/image:opacity-100"
+                    onClick={() => {
+                      if (imageUrl) {
+                        handleDownload(imageUrl);
+                      } else {
+                        toast({
+                          type: "error",
+                          description: t("downloadError"),
+                        });
+                      }
+                    }}
+                    title={t("download")}
+                    type="button"
+                  >
+                    <DownloadIcon size={16} />
+                  </button>
+                </div>
               );
             }
 

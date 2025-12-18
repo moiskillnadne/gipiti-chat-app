@@ -19,13 +19,10 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useSessionStorage, useWindowSize } from "usehooks-ts";
-import {
-  saveChatModelAsCookie,
-  saveThinkingSettingAsCookie,
-} from "@/app/(chat)/actions";
+import { saveThinkingSettingAsCookie } from "@/app/(chat)/actions";
 import { SelectItem } from "@/components/ui/select";
+import { useModel } from "@/contexts/model-context";
 import {
-  chatModels,
   getModelById,
   serializeThinkingSetting,
   supportsAttachments,
@@ -50,7 +47,6 @@ import { UsageHint } from "./elements/usage-hint";
 import {
   ArrowUpIcon,
   ChevronDownIcon,
-  CpuIcon,
   PaperclipIcon,
   SparklesIcon,
   StopIcon,
@@ -71,10 +67,6 @@ function PureMultimodalInput({
   setMessages,
   sendMessage,
   className,
-  selectedModelId,
-  onModelChange,
-  selectedThinkingSetting,
-  onThinkingSettingChange,
   usage,
 }: {
   chatId: string;
@@ -88,16 +80,16 @@ function PureMultimodalInput({
   setMessages: UseChatHelpers<ChatMessage>["setMessages"];
   sendMessage: UseChatHelpers<ChatMessage>["sendMessage"];
   className?: string;
-  selectedModelId: string;
-  onModelChange?: (modelId: string) => void;
-  selectedThinkingSetting?: ThinkingSetting;
-  onThinkingSettingChange?: (setting: ThinkingSetting) => void;
   usage?: AppUsage;
 }) {
   const t = useTranslations("common.toasts");
   const tInput = useTranslations("chat.input");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
+
+  // Use model context
+  const { currentModelId, currentThinkingSetting, setCurrentThinkingSetting } =
+    useModel();
 
   const resetHeight = useCallback(() => {
     if (textareaRef.current) {
@@ -212,8 +204,8 @@ function PureMultimodalInput({
   );
 
   const _modelResolver = useMemo(() => {
-    return myProvider.languageModel(selectedModelId);
-  }, [selectedModelId]);
+    return myProvider.languageModel(currentModelId);
+  }, [currentModelId]);
 
   const contextProps = useMemo(
     () => ({
@@ -328,20 +320,12 @@ function PureMultimodalInput({
         </div>
         <PromptInputToolbar className="!border-top-0 border-t-0! p-0 shadow-none dark:border-0 dark:border-transparent!">
           <PromptInputTools className="gap-0 sm:gap-0.5">
-            <AttachmentsButton
-              fileInputRef={fileInputRef}
-              selectedModelId={selectedModelId}
-              status={status}
-            />
-            <ModelSelectorCompact
-              onModelChange={onModelChange}
-              selectedModelId={selectedModelId}
-            />
-            {supportsThinkingConfig(selectedModelId) && (
+            <AttachmentsButton fileInputRef={fileInputRef} status={status} />
+            {supportsThinkingConfig(currentModelId) && (
               <ThinkingSettingSelector
-                onThinkingSettingChange={onThinkingSettingChange}
-                selectedModelId={selectedModelId}
-                selectedThinkingSetting={selectedThinkingSetting}
+                onThinkingSettingChange={setCurrentThinkingSetting}
+                selectedModelId={currentModelId}
+                selectedThinkingSetting={currentThinkingSetting}
               />
             )}
           </PromptInputTools>
@@ -377,17 +361,6 @@ export const MultimodalInput = memo(
     if (!equal(prevProps.attachments, nextProps.attachments)) {
       return false;
     }
-    if (prevProps.selectedModelId !== nextProps.selectedModelId) {
-      return false;
-    }
-    if (
-      !equal(
-        prevProps.selectedThinkingSetting,
-        nextProps.selectedThinkingSetting
-      )
-    ) {
-      return false;
-    }
 
     return true;
   }
@@ -396,13 +369,12 @@ export const MultimodalInput = memo(
 function PureAttachmentsButton({
   fileInputRef,
   status,
-  selectedModelId,
 }: {
   fileInputRef: React.MutableRefObject<HTMLInputElement | null>;
   status: UseChatHelpers<ChatMessage>["status"];
-  selectedModelId: string;
 }) {
-  const canAttachFiles = supportsAttachments(selectedModelId);
+  const { currentModelId } = useModel();
+  const canAttachFiles = supportsAttachments(currentModelId);
 
   return (
     <Button
@@ -421,71 +393,6 @@ function PureAttachmentsButton({
 }
 
 const AttachmentsButton = memo(PureAttachmentsButton);
-
-function PureModelSelectorCompact({
-  selectedModelId,
-  onModelChange,
-}: {
-  selectedModelId: string;
-  onModelChange?: (modelId: string) => void;
-}) {
-  const [optimisticModelId, setOptimisticModelId] = useState(selectedModelId);
-
-  const t = useTranslations("modelList");
-
-  useEffect(() => {
-    setOptimisticModelId(selectedModelId);
-  }, [selectedModelId]);
-
-  const selectedModel = chatModels.find(
-    (model) => model.id === optimisticModelId
-  );
-
-  return (
-    <PromptInputModelSelect
-      onValueChange={(modelName) => {
-        const model = chatModels.find((m) => m.name === modelName);
-        if (model) {
-          setOptimisticModelId(model.id);
-          onModelChange?.(model.id);
-          startTransition(() => {
-            saveChatModelAsCookie(model.id);
-          });
-        }
-      }}
-      value={t(selectedModel?.name ?? "")}
-    >
-      <Trigger
-        className="flex h-8 items-center gap-2 rounded-lg border-0 bg-background px-2 text-foreground shadow-none transition-colors hover:bg-accent focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-        type="button"
-      >
-        <CpuIcon size={16} />
-        <span className="font-medium text-xs">
-          {t(selectedModel?.name ?? "")}
-        </span>
-        <ChevronDownIcon size={16} />
-      </Trigger>
-      <PromptInputModelSelectContent className="min-w-[260px] max-w-[90vw] p-0">
-        <div className="flex flex-col gap-px">
-          {chatModels
-            .filter((model) => model.showInUI !== false)
-            .map((model) => (
-              <SelectItem key={model.id} value={model.name}>
-                <div className="truncate font-medium text-xs">
-                  {t(model.name)}
-                </div>
-                <div className="mt-px truncate text-[10px] text-muted-foreground leading-tight">
-                  {t(model.description)}
-                </div>
-              </SelectItem>
-            ))}
-        </div>
-      </PromptInputModelSelectContent>
-    </PromptInputModelSelect>
-  );
-}
-
-const ModelSelectorCompact = memo(PureModelSelectorCompact);
 
 function PureThinkingSettingSelector({
   selectedModelId,

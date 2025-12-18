@@ -328,7 +328,8 @@
     },
     "models": {
       "selectModel": "Выбрать модель",
-      "currentModel": "Текущая модель"
+      "currentModel": "Текущая модель",
+      "imageGenerationModel": "Модель генерации изображений"
     },
     "tools": {
       "error": "Ошибка",
@@ -684,6 +685,12 @@
     "off": "Выкл"
   },
   "modelList": {
+    "providers": {
+      "openai": "OpenAI",
+      "google": "Google",
+      "anthropic": "Anthropic",
+      "xai": "X.AI"
+    },
     "grokVision": {
       "name": "Grok Vision",
       "description": "Средняя модель с маленьким объемом памяти. Очень быстрая и дешевая."
@@ -710,7 +717,7 @@
     },
     "gpt52": {
       "name": "GPT-5.2",
-      "description": "Последняя модель от OpenAI с продвинутыми возможностями рассуждения."
+      "description": "Отличная модель для повседневных и сложных задач."
     },
     "gpt52Pro": {
       "name": "GPT-5.2 Pro",
@@ -722,7 +729,11 @@
     },
     "gemini3Pro": {
       "name": "Gemini 3 Pro",
-      "description": "Последняя модель Google Gemini с продвинутыми возможностями рассуждения."
+      "description": "Отличная модель для сложных задач."
+    },
+    "gemini3ProImage": {
+      "name": "Gemini 3 Pro Image",
+      "description": "Генерация и редактирование изображений на естественном языке."
     },
     "opus41": {
       "name": "Opus 4.1",
@@ -730,7 +741,7 @@
     },
     "opus45": {
       "name": "Opus 4.5",
-      "description": "Последняя модель Anthropic Opus с расширенным контекстом и рассуждениями."
+      "description": "Отличная модель для кодинга и технических задач."
     }
   }
 }

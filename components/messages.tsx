@@ -6,7 +6,6 @@ import { memo, useEffect } from "react";
 import { useMessages } from "@/hooks/use-messages";
 import type { Vote } from "@/lib/db/schema";
 import type { ChatMessage } from "@/lib/types";
-import { useDataStream } from "./data-stream-provider";
 import { Conversation, ConversationContent } from "./elements/conversation";
 import { Greeting } from "./greeting";
 import { PreviewMessage, ThinkingMessage } from "./message";
@@ -20,7 +19,6 @@ type MessagesProps = {
   regenerate: UseChatHelpers<ChatMessage>["regenerate"];
   isReadonly: boolean;
   isArtifactVisible: boolean;
-  selectedModelId: string;
 };
 
 function PureMessages({
@@ -42,7 +40,7 @@ function PureMessages({
     status,
   });
 
-  useDataStream();
+  console.log("messages", messages);
 
   // Find the index of the last assistant message
   const lastAssistantMessageIndex = messages.reduce<number>(
@@ -129,9 +127,6 @@ export const Messages = memo(PureMessages, (prevProps, nextProps) => {
   }
 
   if (prevProps.status !== nextProps.status) {
-    return false;
-  }
-  if (prevProps.selectedModelId !== nextProps.selectedModelId) {
     return false;
   }
   if (prevProps.messages.length !== nextProps.messages.length) {

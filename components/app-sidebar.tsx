@@ -21,6 +21,9 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar";
 import {
@@ -77,47 +80,44 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                   GIPITI
                 </span>
               </Link>
-              <div className="flex flex-row gap-1">
-                {user && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        className="h-8 p-1 md:h-fit md:p-2"
-                        onClick={() => setShowDeleteAllDialog(true)}
-                        type="button"
-                        variant="ghost"
-                      >
-                        <TrashIcon />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent align="end" className="hidden md:block">
-                      {t("deleteAllChats")}
-                    </TooltipContent>
-                  </Tooltip>
-                )}
+              {user && (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
                       className="h-8 p-1 md:h-fit md:p-2"
-                      onClick={() => {
-                        setOpenMobile(false);
-                        router.push("/");
-                        router.refresh();
-                      }}
+                      onClick={() => setShowDeleteAllDialog(true)}
                       type="button"
                       variant="ghost"
                     >
-                      <PlusIcon />
+                      <TrashIcon />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent align="end" className="hidden md:block">
-                    {t("newChat")}
+                    {t("deleteAllChats")}
                   </TooltipContent>
                 </Tooltip>
-              </div>
+              )}
             </div>
           </SidebarMenu>
         </SidebarHeader>
+        <div className="px-2 py-1">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                className="h-10 gap-2"
+                onClick={() => {
+                  setOpenMobile(false);
+                  router.push("/");
+                  router.refresh();
+                }}
+              >
+                <PlusIcon />
+                <span>{t("newChat")}</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+          <SidebarSeparator className="mt-2" />
+        </div>
         <SidebarContent>
           <SidebarHistory user={user} />
         </SidebarContent>
