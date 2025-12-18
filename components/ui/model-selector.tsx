@@ -4,10 +4,15 @@ import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import { useModel } from "@/contexts/model-context";
-import type { ChatModel } from "@/lib/ai/models";
+import { type ChatModel, isImageGenerationModel } from "@/lib/ai/models";
 import { cn } from "@/lib/utils";
 
-import { CheckCircleFillIcon, ChevronDownIcon, CpuIcon } from "../icons";
+import {
+  CheckCircleFillIcon,
+  ChevronDownIcon,
+  CpuIcon,
+  ImageIcon,
+} from "../icons";
 import { Button } from "./button";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { RadioGroup, RadioGroupItem } from "./radio-group";
@@ -23,6 +28,7 @@ export function ModelSelector() {
   const { currentModelId, setModelId, availableModels, getModelById } =
     useModel();
   const t = useTranslations("modelList");
+  const tModels = useTranslations("chat.models");
 
   const currentModel = getModelById(currentModelId);
 
@@ -114,8 +120,16 @@ export function ModelSelector() {
                       value={model.id}
                     />
                     <div className="flex-1">
-                      <div className="font-medium text-sm leading-tight">
+                      <div className="flex items-center gap-1.5 font-medium text-sm leading-tight">
                         {t(model.name)}
+                        {isImageGenerationModel(model.id) && (
+                          <span
+                            className="text-muted-foreground"
+                            title={tModels("imageGenerationModel")}
+                          >
+                            <ImageIcon size={14} />
+                          </span>
+                        )}
                       </div>
                       <div className="mt-0.5 text-muted-foreground text-xs leading-snug">
                         {t(model.description)}

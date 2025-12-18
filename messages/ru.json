@@ -328,7 +328,8 @@
     },
     "models": {
       "selectModel": "Выбрать модель",
-      "currentModel": "Текущая модель"
+      "currentModel": "Текущая модель",
+      "imageGenerationModel": "Модель генерации изображений"
     },
     "tools": {
       "error": "Ошибка",

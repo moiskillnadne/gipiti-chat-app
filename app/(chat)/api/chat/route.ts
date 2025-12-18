@@ -1,3 +1,4 @@
+import { put } from "@vercel/blob";
 import { geolocation } from "@vercel/functions";
 import {
   convertToModelMessages,
@@ -23,6 +24,7 @@ import { ensureMessageHasTextPart } from "@/lib/ai/message-validator";
 import {
   DEFAULT_CHAT_MODEL,
   getProviderOptions,
+  isImageGenerationModel,
   isReasoningModelId,
   isVisibleInUI,
   supportsAttachments,
@@ -41,10 +43,13 @@ import { isProductionEnvironment } from "@/lib/constants";
 import {
   createStreamId,
   deleteChatById,
+  getActiveUserSubscription,
   getChatById,
   getMessageCountByUserId,
   getMessagesByChatId,
+  insertImageGenerationUsageLog,
   saveChat,
+  saveDocument,
   saveMessages,
   updateChatLastContextById,
 } from "@/lib/db/queries";
@@ -97,6 +102,19 @@ export function getStreamContext() {
   }
 
   return globalStreamContext;
+}
+
+// Direct image generation utility
+async function uploadGeneratedImage(
+  base64Data: string,
+  mediaType: string
+): Promise<string> {
+  const buffer = Buffer.from(base64Data, "base64");
+  const extension = mediaType.split("/").at(1) ?? "png";
+  const filename = `generated-${generateUUID()}.${extension}`;
+
+  const { url } = await put(filename, buffer, { access: "public" });
+  return url;
 }
 
 export async function POST(request: Request) {
@@ -252,8 +270,211 @@ export async function POST(request: Request) {
 
     console.info("optimalStepLimit", optimalStepLimit);
 
+    // Check if this is a direct image generation model
+    const isDirectImageGeneration = isImageGenerationModel(selectedChatModel);
+
     const stream = createUIMessageStream({
-      execute: ({ writer: dataStream }) => {
+      execute: async ({ writer: dataStream }) => {
+        if (isDirectImageGeneration) {
+          // Direct image generation with full tool-like behavior
+          const userMessageParts = message.parts;
+          const userPrompt =
+            userMessageParts.find((part) => part.type === "text")?.text ?? null;
+
+          if (!userPrompt) {
+            throw new ChatSDKError("bad_request:api");
+          }
+
+          // Initialize tracking variables
+          const documentId = generateUUID();
+          let imageUrl: string | undefined;
+          let usageMetadata:
+            | {
+                promptTokenCount?: number;
+                candidatesTokenCount?: number;
+                thoughtsTokenCount?: number;
+                totalTokenCount?: number;
+              }
+            | undefined;
+          let totalCostUsd: string | undefined;
+          // ResponseId for future multi-turn editing support
+          let _responseId: string | undefined;
+
+          // Start streaming
+          const result = streamText({
+            model: myProvider.languageModel(selectedChatModel),
+            prompt: userPrompt,
+          });
+
+          // Write initial status
+          dataStream.write({
+            id: documentId,
+            type: "reasoning-start",
+          });
+
+          // Process stream manually
+          for await (const delta of result.fullStream) {
+            console.log("delta", delta);
+
+            if (delta.type === "reasoning-delta") {
+              dataStream.write({
+                id: documentId,
+                type: "reasoning-delta",
+                delta: delta.text,
+              });
+            }
+
+            if (delta.type === "file") {
+              dataStream.write({
+                id: documentId,
+                type: "reasoning-delta",
+                delta: "Uploading image...",
+              });
+
+              const file = delta.file as {
+                base64Data?: string;
+                mediaType: string;
+              };
+              if (file.base64Data) {
+                imageUrl = await uploadGeneratedImage(
+                  file.base64Data,
+                  file.mediaType
+                );
+              }
+            }
+
+            if (delta.type === "finish-step") {
+              const metadata = await result.providerMetadata;
+              if (metadata) {
+                usageMetadata = metadata.google
+                  ?.usageMetadata as typeof usageMetadata;
+                totalCostUsd = metadata.gateway?.cost?.toString();
+
+                console.log("metadata", metadata);
+
+                // Extract responseId for multi-turn editing
+                if (metadata.generationId) {
+                  _responseId = metadata.generationId as unknown as string;
+                }
+              }
+            }
+          }
+
+          // Write final image generation result (non-transient so it persists)
+          if (imageUrl) {
+            dataStream.write({
+              type: "data-imageGenerationFinish",
+              data: {
+                responseId: _responseId,
+                imageUrl,
+                userPrompt,
+                usageMetadata,
+              },
+            });
+          }
+
+          // Save document to database
+          if (imageUrl) {
+            await saveDocument({
+              id: documentId,
+              title: userPrompt,
+              content: imageUrl,
+              kind: "image",
+              userId: session.user.id,
+            });
+          }
+
+          // Update accumulator for merged usage tracking
+          if (usageMetadata) {
+            const inputTokens = usageMetadata.promptTokenCount ?? 0;
+            const outputTokens =
+              (usageMetadata.candidatesTokenCount ?? 0) +
+              (usageMetadata.thoughtsTokenCount ?? 0);
+            const cost = totalCostUsd ? Number.parseFloat(totalCostUsd) : 0;
+
+            imageUsageAccumulator.totalInputTokens += inputTokens;
+            imageUsageAccumulator.totalOutputTokens += outputTokens;
+            imageUsageAccumulator.totalCost += cost;
+            imageUsageAccumulator.generationCount += 1;
+          }
+
+          // Record usage to ImageGenerationUsageLog
+          try {
+            const subscription = await getActiveUserSubscription({
+              userId: session.user.id,
+            });
+
+            let billingPeriodStart: Date;
+            let billingPeriodEnd: Date;
+            let billingPeriodType: "daily" | "weekly" | "monthly" | "annual";
+
+            if (subscription) {
+              billingPeriodStart = subscription.currentPeriodStart;
+              billingPeriodEnd = subscription.currentPeriodEnd;
+              billingPeriodType = subscription.billingPeriod;
+            } else {
+              // Tester plan: use daily period
+              const now = new Date();
+              billingPeriodStart = new Date(now);
+              billingPeriodStart.setHours(0, 0, 0, 0);
+              billingPeriodEnd = new Date(now);
+              billingPeriodEnd.setHours(23, 59, 59, 999);
+              billingPeriodType = "daily";
+            }
+
+            await insertImageGenerationUsageLog({
+              userId: session.user.id,
+              chatId: id,
+              modelId: selectedChatModel,
+              prompt: userPrompt,
+              imageUrl: imageUrl ?? null,
+              success: Boolean(imageUrl),
+              promptTokens: usageMetadata?.promptTokenCount ?? 0,
+              candidatesTokens: usageMetadata?.candidatesTokenCount ?? 0,
+              thoughtsTokens: usageMetadata?.thoughtsTokenCount ?? 0,
+              totalTokens: usageMetadata?.totalTokenCount ?? 0,
+              totalCostUsd: totalCostUsd ?? null,
+              billingPeriodType,
+              billingPeriodStart,
+              billingPeriodEnd,
+            });
+          } catch (err) {
+            console.warn("Failed to record image generation usage", err);
+          }
+
+          // Record token usage for quota tracking
+          if (usageMetadata) {
+            const inputTokens = usageMetadata.promptTokenCount ?? 0;
+            const outputTokens =
+              (usageMetadata.candidatesTokenCount ?? 0) +
+              (usageMetadata.thoughtsTokenCount ?? 0);
+            const directImageUsage: AppUsage = {
+              modelId: selectedChatModel,
+              inputTokens,
+              outputTokens,
+              totalTokens: inputTokens + outputTokens,
+              inputCost: totalCostUsd ? Number.parseFloat(totalCostUsd) : 0,
+              outputCost: 0,
+            };
+
+            try {
+              await recordTokenUsage({
+                userId: session.user.id,
+                chatId: id,
+                messageId: undefined,
+                usage: directImageUsage,
+              });
+            } catch (err) {
+              console.warn(
+                "Failed to record token usage for direct image generation",
+                err
+              );
+            }
+          }
+
+          return;
+        }
+
         const result = streamText({
           model: myProvider.languageModel(selectedChatModel),
           system: systemPrompt({ selectedChatModel, requestHints }),
@@ -377,7 +598,10 @@ export async function POST(request: Request) {
                   imageUsageAccumulator.totalOutputTokens,
                 inputCost: baseCost + imageUsageAccumulator.totalCost,
               } as AppUsage;
-              dataStream.write({ type: "data-usage", data: finalMergedUsage });
+              dataStream.write({
+                type: "data-usage",
+                data: finalMergedUsage,
+              });
 
               // Record token usage for quota tracking
               try {
@@ -401,7 +625,10 @@ export async function POST(request: Request) {
                   (usage.outputTokens ?? 0) +
                   imageUsageAccumulator.totalOutputTokens,
               };
-              dataStream.write({ type: "data-usage", data: finalMergedUsage });
+              dataStream.write({
+                type: "data-usage",
+                data: finalMergedUsage,
+              });
             }
           },
         });

@@ -328,7 +328,8 @@
     },
     "models": {
       "selectModel": "Select Model",
-      "currentModel": "Current Model"
+      "currentModel": "Current Model",
+      "imageGenerationModel": "Image Generation Model"
     },
     "tools": {
       "error": "Error",

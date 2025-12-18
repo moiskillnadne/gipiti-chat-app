@@ -49,6 +49,17 @@ export type CustomUIDataTypes = {
   clear: null;
   finish: null;
   usage: AppUsage;
+  imageGenerationFinish: {
+    responseId: string;
+    imageUrl: string;
+    userPrompt: string;
+    usageMetadata: {
+      promptTokenCount?: number;
+      candidatesTokenCount?: number;
+      thoughtsTokenCount?: number;
+      totalTokenCount?: number;
+    };
+  };
 };
 
 export type ChatMessage = UIMessage<
@@ -62,6 +73,29 @@ export type Attachment = {
   url: string;
   contentType: string;
 };
+
+// Direct image generation message parts (for standalone image models)
+export type ImageGeneratingPart = {
+  type: "image-generating";
+  prompt: string;
+};
+
+export type ImageResultPart = {
+  type: "image-result";
+  imageUrl: string;
+  responseId: string;
+  prompt: string;
+};
+
+export type ImageMetadataPart = {
+  type: "image-metadata";
+  responseId: string;
+};
+
+export type DirectImagePart =
+  | ImageGeneratingPart
+  | ImageResultPart
+  | ImageMetadataPart;
 
 // Payment Intent types
 export type PaymentStatus =
