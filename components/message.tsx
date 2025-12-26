@@ -52,8 +52,6 @@ const PurePreviewMessage = ({
   const t = useTranslations("chat.messages");
   const [mode, setMode] = useState<"view" | "edit">("view");
 
-  console.dir(message, { depth: null });
-
   const attachmentsFromMessage = message.parts.filter(
     (part) => part.type === "file"
   );
@@ -94,7 +92,7 @@ const PurePreviewMessage = ({
               message.role === "user" && mode !== "edit",
           })}
         >
-          {attachmentsFromMessage.length > 0 && (
+          {attachmentsFromMessage.length > 0 && message.role === "user" && (
             <div
               className="flex flex-row justify-end gap-2"
               data-testid={"message-attachments"}

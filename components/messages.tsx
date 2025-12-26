@@ -40,8 +40,6 @@ function PureMessages({
     status,
   });
 
-  console.log("messages", messages);
-
   // Find the index of the last assistant message
   const lastAssistantMessageIndex = messages.reduce<number>(
     (lastIndex, message, index) =>

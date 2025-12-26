@@ -213,6 +213,7 @@ export const generateImageTool = ({
           modelId: IMAGE_MODEL_ID,
           prompt,
           imageUrl: imageUrl ?? null,
+          generationId: null,
           success: Boolean(imageUrl),
           promptTokens: usageMetadata?.promptTokenCount ?? 0,
           candidatesTokens: usageMetadata?.candidatesTokenCount ?? 0,

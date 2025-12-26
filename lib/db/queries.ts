@@ -504,12 +504,14 @@ export async function saveDocument({
   kind,
   content,
   userId,
+  generationId,
 }: {
   id: string;
   title: string;
   kind: ArtifactKind;
   content: string;
   userId: string;
+  generationId?: string | null;
 }) {
   try {
     return await db
@@ -520,6 +522,7 @@ export async function saveDocument({
         kind,
         content,
         userId,
+        generationId: generationId ?? null,
         createdAt: new Date(),
       })
       .returning();
@@ -558,6 +561,23 @@ export async function getDocumentById({ id }: { id: string }) {
     throw new ChatSDKError(
       "bad_request:database",
       "Failed to get document by id"
+    );
+  }
+}
+
+export async function getGenerationIdByDocumentId({ id }: { id: string }) {
+  try {
+    const [selectedDocument] = await db
+      .select({ generationId: document.generationId })
+      .from(document)
+      .where(eq(document.id, id))
+      .orderBy(desc(document.createdAt));
+
+    return selectedDocument?.generationId ?? null;
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to get generationId by document id"
     );
   }
 }
@@ -1021,6 +1041,7 @@ export async function insertImageGenerationUsageLog({
   modelId,
   prompt,
   imageUrl,
+  generationId,
   success,
   promptTokens,
   candidatesTokens,
@@ -1036,6 +1057,7 @@ export async function insertImageGenerationUsageLog({
   modelId: string;
   prompt: string;
   imageUrl: string | null;
+  generationId: string | null;
   success: boolean;
   promptTokens: number;
   candidatesTokens: number;
@@ -1053,6 +1075,7 @@ export async function insertImageGenerationUsageLog({
       modelId,
       prompt,
       imageUrl,
+      generationId,
       success,
       promptTokens,
       candidatesTokens,
