@@ -144,6 +144,7 @@ export const document = pgTable(
     userId: uuid("userId")
       .notNull()
       .references(() => user.id),
+    generationId: varchar("generationId", { length: 256 }),
   },
   (table) => {
     return {
@@ -573,6 +574,7 @@ export const imageGenerationUsageLog = pgTable(
     modelId: varchar("model_id", { length: 128 }).notNull(),
     prompt: text("prompt").notNull(),
     imageUrl: varchar("image_url", { length: 512 }),
+    generationId: varchar("generation_id", { length: 256 }),
     success: boolean("success").notNull().default(true),
 
     // Token usage (from metadata.google.usageMetadata)

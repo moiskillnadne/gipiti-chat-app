@@ -153,7 +153,10 @@ export async function POST(request: Request) {
       message,
       selectedChatModel: requestedChatModel,
       thinkingSetting,
+      previousGenerationId,
     } = requestBody;
+
+    console.log("previousGenerationId", previousGenerationId);
 
     // Transform hidden models to default visible model
     const selectedChatModel = isVisibleInUI(requestedChatModel)
@@ -300,10 +303,15 @@ export async function POST(request: Request) {
           // ResponseId for future multi-turn editing support
           let _responseId: string | undefined;
 
+          const messagesPayloadForImageGeneration =
+            convertToModelMessages(uiMessages);
+
+          console.dir(messagesPayloadForImageGeneration, { depth: null });
+
           // Start streaming
           const result = streamText({
             model: myProvider.languageModel(selectedChatModel),
-            prompt: userPrompt,
+            messages: messagesPayloadForImageGeneration,
           });
 
           // Write initial status
@@ -350,9 +358,30 @@ export async function POST(request: Request) {
                   ?.usageMetadata as typeof usageMetadata;
                 totalCostUsd = metadata.gateway?.cost?.toString();
 
+                // Debug: log full metadata structure
+                console.log(
+                  "Full metadata:",
+                  JSON.stringify(metadata, null, 2)
+                );
+
                 // Extract responseId for multi-turn editing
-                if (metadata.generationId) {
-                  _responseId = metadata.generationId as unknown as string;
+                // Try different possible locations
+                const genId =
+                  (typeof metadata.google?.generationId === "string"
+                    ? metadata.google.generationId
+                    : null) ??
+                  (typeof metadata.gateway?.generationId === "string"
+                    ? metadata.gateway.generationId
+                    : null) ??
+                  (typeof metadata.generationId === "string"
+                    ? metadata.generationId
+                    : null) ??
+                  null;
+
+                console.log("Extracted generationId:", genId);
+
+                if (genId) {
+                  _responseId = genId;
                 }
               }
             }
@@ -369,6 +398,12 @@ export async function POST(request: Request) {
                 usageMetadata,
               },
             });
+
+            dataStream.write({
+              type: "file",
+              mediaType: "image/png",
+              url: imageUrl,
+            });
           }
 
           // Save document to database
@@ -379,6 +414,7 @@ export async function POST(request: Request) {
               content: imageUrl,
               kind: "image",
               userId: session.user.id,
+              generationId: _responseId ?? null,
             });
           }
 
@@ -426,6 +462,7 @@ export async function POST(request: Request) {
               modelId: selectedChatModel,
               prompt: userPrompt,
               imageUrl: imageUrl ?? null,
+              generationId: _responseId ?? null,
               success: Boolean(imageUrl),
               promptTokens: usageMetadata?.promptTokenCount ?? 0,
               candidatesTokens: usageMetadata?.candidatesTokenCount ?? 0,

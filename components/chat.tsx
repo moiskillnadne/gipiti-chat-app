@@ -5,7 +5,7 @@ import { DefaultChatTransport } from "ai";
 import { format } from "date-fns";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useSWR, { useSWRConfig } from "swr";
 import { unstable_serialize } from "swr/infinite";
 import { ChatHeader } from "@/components/chat-header";
@@ -69,6 +69,9 @@ export function Chat({
   const [quotaErrorInfo, setQuotaErrorInfo] =
     useState<ReturnType<typeof parseQuotaInfo>>(null);
 
+  // Use ref to avoid closure issues in prepareSendMessagesRequest
+  const lastGenerationIdRef = useRef<string | undefined>(undefined);
+
   const {
     messages,
     setMessages,
@@ -86,21 +89,42 @@ export function Chat({
       api: "/api/chat",
       fetch: fetchWithErrorHandlers,
       prepareSendMessagesRequest(request) {
-        return {
-          body: {
-            id: request.id,
-            message: request.messages.at(-1),
-            selectedChatModel: modelIdRef.current,
-            thinkingSetting: thinkingSettingRef.current,
-            ...request.body,
-          },
+        console.log(
+          "Preparing request with lastGenerationId:",
+          lastGenerationIdRef.current
+        );
+        const body = {
+          id: request.id,
+          message: request.messages.at(-1),
+          selectedChatModel: modelIdRef.current,
+          thinkingSetting: thinkingSettingRef.current,
+          ...(lastGenerationIdRef.current && {
+            previousGenerationId: lastGenerationIdRef.current,
+          }),
+          ...request.body,
         };
+        console.log("Request body:", body);
+        return { body };
       },
     }),
     onData: (dataPart) => {
       setDataStream((ds) => (ds ? [...ds, dataPart] : []));
       if (dataPart.type === "data-usage") {
         setUsage(dataPart.data);
+      }
+      if (dataPart.type === "data-imageGenerationFinish") {
+        console.log("Image generation finished event received!");
+        console.log("Full dataPart:", JSON.stringify(dataPart, null, 2));
+        const generationId = dataPart.data.responseId;
+        console.log("Extracted generationId:", generationId);
+        console.log("Type of generationId:", typeof generationId);
+
+        if (generationId && typeof generationId === "string") {
+          console.log("Setting lastGenerationId to:", generationId);
+          lastGenerationIdRef.current = generationId;
+        } else {
+          console.warn("GenerationId is invalid:", generationId);
+        }
       }
     },
     onFinish: () => {
