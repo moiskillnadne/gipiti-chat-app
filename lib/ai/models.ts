@@ -1,3 +1,4 @@
+import type { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google";
 import type { SharedV2ProviderOptions } from "@ai-sdk/provider";
 
 export const DEFAULT_CHAT_MODEL: string = "gpt-5.2";
@@ -37,6 +38,7 @@ export type ChatModel = {
   capabilities?: ChatModelCapabilities;
   showInUI?: boolean;
   thinkingConfig?: ThinkingConfig;
+  providerOptions?: SharedV2ProviderOptions;
 };
 
 export type ThinkingSettingEffort = {
@@ -192,6 +194,15 @@ export const chatModels: ChatModel[] = [
       imageGeneration: true,
     },
     showInUI: true,
+    providerOptions: {
+      google: {
+        mediaResolution: "MEDIA_RESOLUTION_HIGH",
+        imageConfig: {
+          imageSize: "2K",
+          aspectRatio: "16:9",
+        },
+      } satisfies GoogleGenerativeAIProviderOptions,
+    },
   },
   {
     id: "opus-4.1",

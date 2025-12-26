@@ -23,6 +23,7 @@ import { entitlementsByUserType } from "@/lib/ai/entitlements";
 import { ensureMessageHasTextPart } from "@/lib/ai/message-validator";
 import {
   DEFAULT_CHAT_MODEL,
+  getModelById,
   getProviderOptions,
   isImageGenerationModel,
   isReasoningModelId,
@@ -312,6 +313,7 @@ export async function POST(request: Request) {
           const result = streamText({
             model: myProvider.languageModel(selectedChatModel),
             messages: messagesPayloadForImageGeneration,
+            providerOptions: getModelById(selectedChatModel)?.providerOptions,
           });
 
           // Write initial status
