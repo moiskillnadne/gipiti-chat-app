@@ -187,8 +187,8 @@ export const chatModels: ChatModel[] = [
     description: "gemini3ProImage.description",
     provider: "google",
     capabilities: {
-      reasoning: false,
-      attachments: false,
+      reasoning: true,
+      attachments: true,
       imageGeneration: true,
     },
     showInUI: true,
