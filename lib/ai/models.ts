@@ -205,6 +205,24 @@ export const chatModels: ChatModel[] = [
     },
   },
   {
+    id: "gpt-image-1.5",
+    name: "gptImage15.name",
+    description: "gptImage15.description",
+    provider: "openai",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+      imageGeneration: true,
+    },
+    showInUI: true,
+    providerOptions: {
+      openai: {
+        imageSize: "1024x1024",
+        imageQuality: "hd",
+      },
+    },
+  },
+  {
     id: "opus-4.1",
     name: "opus41.name",
     description: "opus41.description",

@@ -735,6 +735,10 @@
       "name": "Gemini 3 Pro Image",
       "description": "Генерация и редактирование изображений на естественном языке."
     },
+    "gptImage15": {
+      "name": "GPT Image 1.5",
+      "description": "Генерация высококачественных изображений с помощью новейшей модели OpenAI."
+    },
     "opus41": {
       "name": "Opus 4.1",
       "description": "Последняя модель от Anthropic Opus для ежедневных задач."

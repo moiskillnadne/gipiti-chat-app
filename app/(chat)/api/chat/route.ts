@@ -10,6 +10,7 @@ import {
 } from "ai";
 import { unstable_cache as cache } from "next/cache";
 import { after } from "next/server";
+import OpenAI from "openai";
 import {
   createResumableStreamContext,
   type ResumableStreamContext,
@@ -31,6 +32,12 @@ import {
   supportsAttachments,
   supportsThinkingConfig,
 } from "@/lib/ai/models";
+import {
+  downloadImageAsFile,
+  generateImageGenerationId,
+  isDirectOpenAIModel,
+  openaiClient,
+} from "@/lib/ai/openai-client";
 import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
 import { myProvider } from "@/lib/ai/providers";
 import { calculateOptimalStepLimit } from "@/lib/ai/step-calculator";
@@ -46,6 +53,7 @@ import {
   deleteChatById,
   getActiveUserSubscription,
   getChatById,
+  getDocumentById,
   getMessageCountByUserId,
   getMessagesByChatId,
   insertImageGenerationUsageLog,
@@ -289,6 +297,36 @@ export async function POST(request: Request) {
             throw new ChatSDKError("bad_request:api");
           }
 
+          // Check if this is an edit request
+          let previousImageUrl: string | undefined;
+
+          if (
+            !!requestBody.previousGenerationId &&
+            isDirectOpenAIModel(selectedChatModel)
+          ) {
+            // Fetch the previous document
+            try {
+              const previousDoc = await getDocumentById({
+                id: requestBody.previousGenerationId,
+              });
+
+              if (previousDoc.content) {
+                previousImageUrl = previousDoc.content;
+                console.log(
+                  "Found previous image for editing:",
+                  previousImageUrl
+                );
+              } else {
+                console.warn(
+                  "Previous document not found, generating new image"
+                );
+              }
+            } catch (error) {
+              console.error("Error fetching previous document:", error);
+              // Fall back to new generation if we can't find the previous image
+            }
+          }
+
           // Initialize tracking variables
           const documentId = generateUUID();
           let imageUrl: string | undefined;
@@ -304,86 +342,157 @@ export async function POST(request: Request) {
           // ResponseId for future multi-turn editing support
           let _responseId: string | undefined;
 
-          const messagesPayloadForImageGeneration =
-            convertToModelMessages(uiMessages);
-
-          console.dir(messagesPayloadForImageGeneration, { depth: null });
-
-          // Start streaming
-          const result = streamText({
-            model: myProvider.languageModel(selectedChatModel),
-            messages: messagesPayloadForImageGeneration,
-            providerOptions: getModelById(selectedChatModel)?.providerOptions,
-          });
-
           // Write initial status
           dataStream.write({
             id: documentId,
             type: "reasoning-start",
           });
 
-          // Process stream manually
-          for await (const delta of result.fullStream) {
-            console.log("delta", delta);
-
-            if (delta.type === "reasoning-delta") {
+          // Check if this is gpt-image-1.5 (use direct OpenAI SDK)
+          if (isDirectOpenAIModel(selectedChatModel)) {
+            try {
               dataStream.write({
                 id: documentId,
                 type: "reasoning-delta",
-                delta: delta.text,
+                delta: previousImageUrl
+                  ? "Editing image with OpenAI..."
+                  : "Generating image with OpenAI...",
               });
-            }
 
-            if (delta.type === "file") {
+              let openaiResponse;
+
+              if (previousImageUrl) {
+                // EDIT MODE: Use images.edit() API
+                const imageFile = await downloadImageAsFile(previousImageUrl);
+
+                openaiResponse = await openaiClient.images.edit({
+                  model: "gpt-image-1",
+                  image: imageFile,
+                  prompt: userPrompt,
+                  size: "1024x1024",
+                  n: 1,
+                });
+              } else {
+                // GENERATE MODE: Use images.generate() API
+                openaiResponse = await openaiClient.images.generate({
+                  model: "gpt-image-1.5",
+                  prompt: userPrompt,
+                  size: "1024x1024",
+                  quality: "medium",
+                  n: 1,
+                });
+              }
+
               dataStream.write({
                 id: documentId,
                 type: "reasoning-delta",
                 delta: "Uploading image...",
               });
 
-              const file = delta.file as {
-                base64Data?: string;
-                mediaType: string;
-              };
-              if (file.base64Data) {
-                imageUrl = await uploadGeneratedImage(
-                  file.base64Data,
-                  file.mediaType
-                );
+              const base64Data = openaiResponse.data?.[0]?.b64_json;
+              if (base64Data) {
+                imageUrl = await uploadGeneratedImage(base64Data, "image/png");
               }
+
+              // Generate a unique ID for this generation/edit
+              _responseId = generateImageGenerationId();
+
+              // Track basic usage (OpenAI doesn't return token counts for images)
+              usageMetadata = {
+                promptTokenCount: 0,
+                candidatesTokenCount: 0,
+                thoughtsTokenCount: 0,
+                totalTokenCount: 0,
+              };
+            } catch (error) {
+              if (error instanceof OpenAI.APIError) {
+                console.error("OpenAI API Error:", error);
+                if (error.status === 400) {
+                  throw new ChatSDKError("bad_request:api");
+                }
+                if (error.status === 429) {
+                  throw new ChatSDKError("rate_limit:chat");
+                }
+              }
+              throw error;
             }
+          } else {
+            // Use existing gateway flow for other image generation models
+            const messagesPayloadForImageGeneration =
+              convertToModelMessages(uiMessages);
 
-            if (delta.type === "finish-step") {
-              const metadata = await result.providerMetadata;
-              if (metadata) {
-                usageMetadata = metadata.google
-                  ?.usageMetadata as typeof usageMetadata;
-                totalCostUsd = metadata.gateway?.cost?.toString();
+            console.dir(messagesPayloadForImageGeneration, { depth: null });
 
-                // Debug: log full metadata structure
-                console.log(
-                  "Full metadata:",
-                  JSON.stringify(metadata, null, 2)
-                );
+            // Start streaming
+            const result = streamText({
+              model: myProvider.languageModel(selectedChatModel),
+              messages: messagesPayloadForImageGeneration,
+              providerOptions: getModelById(selectedChatModel)?.providerOptions,
+            });
 
-                // Extract responseId for multi-turn editing
-                // Try different possible locations
-                const genId =
-                  (typeof metadata.google?.generationId === "string"
-                    ? metadata.google.generationId
-                    : null) ??
-                  (typeof metadata.gateway?.generationId === "string"
-                    ? metadata.gateway.generationId
-                    : null) ??
-                  (typeof metadata.generationId === "string"
-                    ? metadata.generationId
-                    : null) ??
-                  null;
+            // Process stream manually
+            for await (const delta of result.fullStream) {
+              console.log("delta", delta);
 
-                console.log("Extracted generationId:", genId);
+              if (delta.type === "reasoning-delta") {
+                dataStream.write({
+                  id: documentId,
+                  type: "reasoning-delta",
+                  delta: delta.text,
+                });
+              }
 
-                if (genId) {
-                  _responseId = genId;
+              if (delta.type === "file") {
+                dataStream.write({
+                  id: documentId,
+                  type: "reasoning-delta",
+                  delta: "Uploading image...",
+                });
+
+                const file = delta.file as {
+                  base64Data?: string;
+                  mediaType: string;
+                };
+                if (file.base64Data) {
+                  imageUrl = await uploadGeneratedImage(
+                    file.base64Data,
+                    file.mediaType
+                  );
+                }
+              }
+
+              if (delta.type === "finish-step") {
+                const metadata = await result.providerMetadata;
+                if (metadata) {
+                  usageMetadata = metadata.google
+                    ?.usageMetadata as typeof usageMetadata;
+                  totalCostUsd = metadata.gateway?.cost?.toString();
+
+                  // Debug: log full metadata structure
+                  console.log(
+                    "Full metadata:",
+                    JSON.stringify(metadata, null, 2)
+                  );
+
+                  // Extract responseId for multi-turn editing
+                  // Try different possible locations
+                  const genId =
+                    (typeof metadata.google?.generationId === "string"
+                      ? metadata.google.generationId
+                      : null) ??
+                    (typeof metadata.gateway?.generationId === "string"
+                      ? metadata.gateway.generationId
+                      : null) ??
+                    (typeof metadata.generationId === "string"
+                      ? metadata.generationId
+                      : null) ??
+                    null;
+
+                  console.log("Extracted generationId:", genId);
+
+                  if (genId) {
+                    _responseId = genId;
+                  }
                 }
               }
             }
@@ -398,6 +507,7 @@ export async function POST(request: Request) {
                 imageUrl,
                 userPrompt,
                 usageMetadata,
+                documentId,
               },
             });
 
@@ -416,7 +526,7 @@ export async function POST(request: Request) {
               content: imageUrl,
               kind: "image",
               userId: session.user.id,
-              generationId: _responseId ?? null,
+              generationId: _responseId ?? generateImageGenerationId(),
             });
           }
 

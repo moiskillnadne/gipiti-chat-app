@@ -46,6 +46,20 @@ This template uses the [Vercel AI Gateway](https://vercel.com/docs/ai-gateway) t
 
 With the [AI SDK](https://ai-sdk.dev/docs/introduction), you can also switch to direct LLM providers like [OpenAI](https://openai.com), [Anthropic](https://anthropic.com), [Cohere](https://cohere.com/), and [many more](https://ai-sdk.dev/providers/ai-sdk-providers) with just a few lines of code.
 
+### Direct OpenAI Integration
+
+For the `gpt-image-1.5` image generation model, this template uses the OpenAI SDK directly (bypassing the AI Gateway) since the model is not yet available through Vercel AI Gateway.
+
+**Required Environment Variable:**
+- `OPENAI_API_KEY` - Your OpenAI API key from [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+
+Add this to your `.env.local` file:
+```env
+OPENAI_API_KEY=sk-...your-key-here...
+```
+
+**Note:** You may need to complete [Organization Verification](https://platform.openai.com/docs/guides/production-best-practices) in the OpenAI console to access `gpt-image-1.5`.
+
 ## Deploy Your Own
 
 You can deploy your own version of the Next.js AI Chatbot to Vercel with one click:
