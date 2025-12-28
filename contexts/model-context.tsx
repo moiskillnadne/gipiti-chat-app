@@ -12,12 +12,16 @@ import {
   useState,
 } from "react";
 import type { UserType } from "@/app/(auth)/auth";
-import { saveChatModelAsCookie } from "@/app/(chat)/actions";
+import {
+  saveChatModelAsCookie,
+  saveThinkingSettingAsCookie,
+} from "@/app/(chat)/actions";
 import { entitlementsByUserType } from "@/lib/ai/entitlements";
 import {
   type ChatModel,
   chatModels,
   getDefaultThinkingSetting,
+  serializeThinkingSetting,
   type ThinkingSetting,
   uiVisibleChatModels,
 } from "@/lib/ai/models";
@@ -29,6 +33,9 @@ type ModelContextValue = {
   getModelById: (id: string) => ChatModel | undefined;
   currentThinkingSetting: ThinkingSetting | undefined;
   setCurrentThinkingSetting: (setting: ThinkingSetting | undefined) => void;
+  isEmptyChat: boolean;
+  setIsEmptyChat: (isEmpty: boolean) => void;
+  persistPendingModelChange: () => void;
 };
 
 const ModelContext = createContext<ModelContextValue | undefined>(undefined);
@@ -46,13 +53,19 @@ export function ModelProvider({
 }) {
   const [currentModelId, setCurrentModelId] = useState(initialModelId);
   const [optimisticModelId, setOptimisticModelId] = useState(initialModelId);
-  const [currentThinkingSetting, setCurrentThinkingSetting] = useState<
+  const [currentThinkingSetting, setCurrentThinkingSettingState] = useState<
     ThinkingSetting | undefined
   >(initialThinkingSetting);
+  const [isEmptyChat, setIsEmptyChat] = useState(false);
 
   // Create refs for stable access in callbacks
   const currentModelIdRef = useRef(currentModelId);
   const currentThinkingSettingRef = useRef(currentThinkingSetting);
+  const pendingModelChangeRef = useRef<string | null>(null);
+  const pendingThinkingSettingChangeRef = useRef<{
+    modelId: string;
+    setting: ThinkingSetting;
+  } | null>(null);
 
   useEffect(() => {
     currentModelIdRef.current = currentModelId;
@@ -78,24 +91,73 @@ export function ModelProvider({
   }, []);
 
   // Handle model change with thinking setting coordination
-  const setModelId = useCallback((newModelId: string) => {
-    setOptimisticModelId(newModelId);
-    setCurrentModelId(newModelId);
+  const setModelId = useCallback(
+    (newModelId: string) => {
+      setOptimisticModelId(newModelId);
+      setCurrentModelId(newModelId);
 
-    // Reset thinking setting to default for new model
-    const defaultSetting = getDefaultThinkingSetting(newModelId);
-    setCurrentThinkingSetting(defaultSetting);
+      // Reset thinking setting to default for new model
+      const defaultSetting = getDefaultThinkingSetting(newModelId);
+      setCurrentThinkingSettingState(defaultSetting);
 
-    // Persist to cookie
-    startTransition(() => {
-      saveChatModelAsCookie(newModelId);
-    });
-  }, []);
+      // Conditionally persist to cookie based on chat state
+      if (isEmptyChat) {
+        pendingModelChangeRef.current = newModelId;
+      } else {
+        startTransition(() => {
+          saveChatModelAsCookie(newModelId);
+        });
+      }
+    },
+    [isEmptyChat]
+  );
+
+  // Handle thinking setting change with conditional persistence
+  const setCurrentThinkingSetting = useCallback(
+    (setting: ThinkingSetting | undefined) => {
+      setCurrentThinkingSettingState(setting);
+
+      // Conditionally persist to cookie based on chat state
+      if (setting && !isEmptyChat) {
+        startTransition(() => {
+          saveThinkingSettingAsCookie(
+            currentModelId,
+            serializeThinkingSetting(setting)
+          );
+        });
+      } else if (setting && isEmptyChat) {
+        pendingThinkingSettingChangeRef.current = {
+          modelId: currentModelId,
+          setting,
+        };
+      }
+    },
+    [isEmptyChat, currentModelId]
+  );
 
   // Sync optimistic state with actual state
   useEffect(() => {
     setOptimisticModelId(currentModelId);
   }, [currentModelId]);
+
+  // Persist any pending changes to cookies
+  const persistPendingModelChange = useCallback(() => {
+    if (pendingModelChangeRef.current) {
+      const modelToSave = pendingModelChangeRef.current;
+      pendingModelChangeRef.current = null;
+      startTransition(() => {
+        saveChatModelAsCookie(modelToSave);
+      });
+    }
+
+    if (pendingThinkingSettingChangeRef.current) {
+      const { modelId, setting } = pendingThinkingSettingChangeRef.current;
+      pendingThinkingSettingChangeRef.current = null;
+      startTransition(() => {
+        saveThinkingSettingAsCookie(modelId, serializeThinkingSetting(setting));
+      });
+    }
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -105,6 +167,9 @@ export function ModelProvider({
       getModelById: getModelByIdFn,
       currentThinkingSetting,
       setCurrentThinkingSetting,
+      isEmptyChat,
+      setIsEmptyChat,
+      persistPendingModelChange,
     }),
     [
       optimisticModelId,
@@ -112,6 +177,9 @@ export function ModelProvider({
       availableModels,
       getModelByIdFn,
       currentThinkingSetting,
+      setCurrentThinkingSetting,
+      isEmptyChat,
+      persistPendingModelChange,
     ]
   );
 

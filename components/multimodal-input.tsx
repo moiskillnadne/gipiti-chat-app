@@ -10,7 +10,6 @@ import {
   type Dispatch,
   memo,
   type SetStateAction,
-  startTransition,
   useCallback,
   useEffect,
   useMemo,
@@ -19,12 +18,10 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useSessionStorage, useWindowSize } from "usehooks-ts";
-import { saveThinkingSettingAsCookie } from "@/app/(chat)/actions";
 import { SelectItem } from "@/components/ui/select";
 import { useModel } from "@/contexts/model-context";
 import {
   getModelById,
-  serializeThinkingSetting,
   supportsAttachments,
   supportsThinkingConfig,
   type ThinkingSetting,
@@ -459,12 +456,6 @@ function PureThinkingSettingSelector({
 
       if (newSetting) {
         onThinkingSettingChange?.(newSetting);
-        startTransition(() => {
-          saveThinkingSettingAsCookie(
-            selectedModelId,
-            serializeThinkingSetting(newSetting)
-          );
-        });
       }
     },
     [thinkingConfig, onThinkingSettingChange, selectedModelId, t]
