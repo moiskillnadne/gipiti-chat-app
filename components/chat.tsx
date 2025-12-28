@@ -20,7 +20,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
-import { useModelRefs } from "@/contexts/model-context";
+import { useModel, useModelRefs } from "@/contexts/model-context";
 import { useArtifactSelector } from "@/hooks/use-artifact";
 import { useAutoResume } from "@/hooks/use-auto-resume";
 import type { Vote } from "@/lib/db/schema";
@@ -61,6 +61,7 @@ export function Chat({
 
   // Use model context for stable refs
   const { modelIdRef, thinkingSettingRef } = useModelRefs();
+  const { setIsEmptyChat, persistPendingModelChange } = useModel();
 
   const [input, setInput] = useState<string>("");
   const [usage, setUsage] = useState<AppUsage | undefined>(initialLastContext);
@@ -129,6 +130,8 @@ export function Chat({
     },
     onFinish: () => {
       mutate(unstable_serialize(getChatHistoryPaginationKey));
+      setIsEmptyChat(false);
+      persistPendingModelChange();
     },
     onError: (error) => {
       console.error("Error in chat", error);
@@ -160,6 +163,10 @@ export function Chat({
   const query = searchParams.get("query");
 
   const [hasAppendedQuery, setHasAppendedQuery] = useState(false);
+
+  useEffect(() => {
+    setIsEmptyChat(initialMessages.length === 0);
+  }, [initialMessages.length, setIsEmptyChat]);
 
   useEffect(() => {
     if (query && !hasAppendedQuery) {
