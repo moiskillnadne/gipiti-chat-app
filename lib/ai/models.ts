@@ -94,6 +94,28 @@ export const chatModels: ChatModel[] = [
     showInUI: false,
   },
   {
+    id: "grok-4.1-reasoning",
+    name: "grok41Reasoning.name",
+    description: "grok41Reasoning.description",
+    provider: "xai",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+  },
+  {
+    id: "grok-4.1-non-reasoning",
+    name: "grok41Fast.name",
+    description: "grok41Fast.description",
+    provider: "xai",
+    capabilities: {
+      reasoning: false,
+      attachments: true,
+    },
+    showInUI: true,
+  },
+  {
     id: "gpt-5",
     name: "gpt5.name",
     description: "gpt5.description",
