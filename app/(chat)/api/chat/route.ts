@@ -298,17 +298,19 @@ export async function POST(request: Request) {
           }
 
           // Check if this is an edit request
-          const isEditRequest = !!requestBody.previousGenerationId;
           let previousImageUrl: string | undefined;
 
-          if (isEditRequest && isDirectOpenAIModel(selectedChatModel)) {
+          if (
+            !!requestBody.previousGenerationId &&
+            isDirectOpenAIModel(selectedChatModel)
+          ) {
             // Fetch the previous document
             try {
               const previousDoc = await getDocumentById({
                 id: requestBody.previousGenerationId,
               });
 
-              if (previousDoc && previousDoc.content) {
+              if (previousDoc.content) {
                 previousImageUrl = previousDoc.content;
                 console.log(
                   "Found previous image for editing:",
