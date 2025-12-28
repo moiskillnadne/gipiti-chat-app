@@ -64,6 +64,7 @@ export const myProvider = isTestEnvironment
         "gemini-3-pro-image": gateway.languageModel(
           "google/gemini-3-pro-image"
         ),
+        "gpt-image-1.5": gateway.languageModel("openai/dall-e-3"), // Fallback only
         "opus-4.1": wrapLanguageModel({
           model: gateway.languageModel("anthropic/claude-opus-4.1"),
           middleware: extractReasoningMiddleware({ tagName: "think" }),
