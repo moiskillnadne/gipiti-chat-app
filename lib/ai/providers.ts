@@ -30,6 +30,13 @@ export const myProvider = isTestEnvironment
           model: gateway.languageModel("xai/grok-3-mini"),
           middleware: extractReasoningMiddleware({ tagName: "think" }),
         }),
+        "grok-4.1-reasoning": wrapLanguageModel({
+          model: gateway.languageModel("xai/grok-4-1-fast-reasoning"),
+          middleware: extractReasoningMiddleware({ tagName: "think" }),
+        }),
+        "grok-4.1-non-reasoning": gateway.languageModel(
+          "xai/grok-4-1-fast-non-reasoning"
+        ),
         "title-model": gateway.languageModel("xai/grok-2-1212"),
         "artifact-model": gateway.languageModel("xai/grok-2-1212"),
         "gpt-5": wrapLanguageModel({

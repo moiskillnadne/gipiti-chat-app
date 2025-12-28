@@ -15,6 +15,8 @@ export const entitlementsByUserType: Record<UserType, Entitlements> = {
     availableChatModelIds: [
       "chat-model",
       "chat-model-reasoning",
+      "grok-4.1-reasoning",
+      "grok-4.1-non-reasoning",
       "gpt-5",
       "gpt-5.1-instant",
       "gpt-5.1-thinking",
