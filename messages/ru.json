@@ -344,6 +344,13 @@
         "resultsCount": "{count, plural, one {# результат} few {# результата} many {# результатов} other {# результатов}}",
         "sources": "Источники",
         "moreCount": "ещё {count}"
+      },
+      "extractUrl": {
+        "extracting": "Чтение контента из {count, plural, one {# URL} few {# URL} many {# URL} other {# URL}}...",
+        "extracted": "Контент извлечён из {count, plural, one {# URL} few {# URL} many {# URL} other {# URL}}",
+        "failed": "{count, plural, one {# не удалось} few {# не удалось} many {# не удалось} other {# не удалось}}",
+        "noResults": "Не удалось извлечь контент",
+        "error": "Ошибка извлечения контента"
       }
     },
     "quota": {
