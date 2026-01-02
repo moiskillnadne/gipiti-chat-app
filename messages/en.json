@@ -351,6 +351,12 @@
         "failed": "{count, plural, one {# failed} other {# failed}}",
         "noResults": "No content could be extracted",
         "error": "Failed to extract content"
+      },
+      "calculator": {
+        "title": "Calculator",
+        "calculating": "Calculating...",
+        "result": "Result",
+        "error": "Invalid expression"
       }
     },
     "quota": {
