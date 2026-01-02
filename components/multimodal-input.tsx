@@ -458,7 +458,7 @@ function PureThinkingSettingSelector({
         onThinkingSettingChange?.(newSetting);
       }
     },
-    [thinkingConfig, onThinkingSettingChange, selectedModelId, t]
+    [thinkingConfig, onThinkingSettingChange, t]
   );
 
   if (!thinkingConfig) {

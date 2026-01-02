@@ -360,7 +360,7 @@ export async function POST(request: Request) {
                   : "Generating image with OpenAI...",
               });
 
-              let openaiResponse;
+              let openaiResponse: OpenAI.Images.ImagesResponse;
 
               if (previousImageUrl) {
                 // EDIT MODE: Use images.edit() API
