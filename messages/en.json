@@ -344,6 +344,13 @@
         "resultsCount": "{count, plural, one {# result} other {# results}}",
         "sources": "Sources",
         "moreCount": "{count} more"
+      },
+      "extractUrl": {
+        "extracting": "Reading content from {count, plural, one {# URL} other {# URLs}}...",
+        "extracted": "Content extracted from {count, plural, one {# URL} other {# URLs}}",
+        "failed": "{count, plural, one {# failed} other {# failed}}",
+        "noResults": "No content could be extracted",
+        "error": "Failed to extract content"
       }
     },
     "quota": {

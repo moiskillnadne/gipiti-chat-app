@@ -24,6 +24,8 @@ import { MessageEditor } from "./message-editor";
 import { MessageReasoning } from "./message-reasoning";
 import { PreviewAttachment } from "./preview-attachment";
 import { toast } from "./toast";
+import { UrlExtractInputPreview } from "./url-extract-input-preview";
+import { UrlExtractResult } from "./url-extract-result";
 import { Weather } from "./weather";
 import { WebSearchInputPreview } from "./web-search-input-preview";
 import { WebSearchResult } from "./web-search-result";
@@ -350,6 +352,26 @@ const PurePreviewMessage = ({
                         responseTime={part.output.responseTime}
                         results={part.output.results}
                       />
+                    ))}
+                </div>
+              );
+            }
+
+            if (type === "tool-extractUrl") {
+              const { state, toolCallId } = part;
+
+              return (
+                <div className="my-2" key={toolCallId}>
+                  {state === "input-available" && (
+                    <UrlExtractInputPreview urls={part.input.urls} />
+                  )}
+                  {state === "output-available" &&
+                    ("error" in part.output ? (
+                      <div className="rounded border p-2 text-red-500">
+                        Error: {String(part.output.error)}
+                      </div>
+                    ) : (
+                      <UrlExtractResult results={part.output.results} />
                     ))}
                 </div>
               );

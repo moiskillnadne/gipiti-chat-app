@@ -43,6 +43,7 @@ import { myProvider } from "@/lib/ai/providers";
 import { calculateOptimalStepLimit } from "@/lib/ai/step-calculator";
 import { checkTokenQuota, recordTokenUsage } from "@/lib/ai/token-quota";
 import { createDocument } from "@/lib/ai/tools/create-document";
+import { extractUrl } from "@/lib/ai/tools/extract-url";
 import { getWeather } from "@/lib/ai/tools/get-weather";
 import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
 import { updateDocument } from "@/lib/ai/tools/update-document";
@@ -359,7 +360,7 @@ export async function POST(request: Request) {
                   : "Generating image with OpenAI...",
               });
 
-              let openaiResponse;
+              let openaiResponse: OpenAI.Images.ImagesResponse;
 
               if (previousImageUrl) {
                 // EDIT MODE: Use images.edit() API
@@ -643,6 +644,7 @@ export async function POST(request: Request) {
                   "updateDocument",
                   "requestSuggestions",
                   "webSearch",
+                  "extractUrl",
                   "generateImage",
                 ],
           experimental_transform: smoothStream({ chunking: "word" }),
@@ -679,6 +681,7 @@ export async function POST(request: Request) {
               dataStream,
             }),
             webSearch: webSearch({ session, chatId: id }),
+            extractUrl: extractUrl({ session, chatId: id }),
             generateImage: generateImage({
               dataStream,
               userId: session.user.id,

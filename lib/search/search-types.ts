@@ -41,6 +41,39 @@ export type TavilyApiResponse = {
   }>;
 };
 
+export type UrlExtractParams = {
+  urls: string[];
+  maxContentLength?: number;
+};
+
+export type UrlExtractResult = {
+  url: string;
+  title: string;
+  content: string;
+  author?: string;
+  publishedDate?: string;
+  success: boolean;
+  error?: string;
+};
+
+export type UrlExtractResponse = {
+  results: UrlExtractResult[];
+  responseTime: number;
+  successCount: number;
+  failedCount: number;
+};
+
+export type TavilyExtractApiResponse = {
+  results: Array<{
+    url: string;
+    raw_content: string;
+  }>;
+  failed_results?: Array<{
+    url: string;
+    error: string;
+  }>;
+};
+
 export type SearchQuotaInfo = {
   limit: number;
   used: number;
