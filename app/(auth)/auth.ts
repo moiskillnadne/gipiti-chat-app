@@ -52,6 +52,7 @@ export const {
           emailVerified: user.emailVerified,
           hasActiveSubscription: subscription !== null,
           isTester: user.isTester,
+          hasUsedTrial: user.trialUsedAt !== null,
         };
       },
     }),
@@ -65,6 +66,7 @@ export const {
         token.hasActiveSubscription = (user.hasActiveSubscription ??
           false) as boolean;
         token.isTester = (user.isTester ?? false) as boolean;
+        token.hasUsedTrial = (user.hasUsedTrial ?? false) as boolean;
       }
 
       // Refresh from database on session update
@@ -82,6 +84,7 @@ export const {
           if (dbUser) {
             token.emailVerified = dbUser.emailVerified as boolean;
             token.isTester = dbUser.isTester as boolean;
+            token.hasUsedTrial = dbUser.trialUsedAt !== null;
           }
         }
 
@@ -105,6 +108,7 @@ export const {
         session.user.emailVerified = token.emailVerified;
         session.user.hasActiveSubscription = token.hasActiveSubscription;
         session.user.isTester = token.isTester;
+        session.user.hasUsedTrial = token.hasUsedTrial;
       }
 
       return session;

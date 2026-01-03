@@ -35,6 +35,7 @@ export const user = pgTable(
     emailVerificationCodeExpiry: timestamp("email_verification_code_expiry"),
     resetPasswordToken: varchar("reset_password_token", { length: 255 }),
     resetPasswordTokenExpiry: timestamp("reset_password_token_expiry"),
+    trialUsedAt: timestamp("trial_used_at"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
@@ -310,6 +311,10 @@ export const userSubscription = pgTable(
     // Cancellation
     cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false).notNull(),
 
+    // Trial
+    isTrial: boolean("is_trial").default(false).notNull(),
+    trialEndsAt: timestamp("trial_ends_at"),
+
     // Meta
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -347,6 +352,9 @@ export const paymentIntent = pgTable(
 
     // Status tracking
     status: paymentIntentStatusEnum("status").notNull().default("pending"),
+
+    // Trial
+    isTrial: boolean("is_trial").default(false).notNull(),
 
     // CloudPayments integration
     externalTransactionId: varchar("external_transaction_id", { length: 128 }),

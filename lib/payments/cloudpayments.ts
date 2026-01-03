@@ -141,3 +141,11 @@ export async function chargeByToken(params: {
     Email: params.email,
   });
 }
+
+export async function voidPayment(params: {
+  transactionId: number;
+}): Promise<CloudPaymentsApiResponse<null>> {
+  return await cloudPaymentsRequest<null>("/payments/void", {
+    TransactionId: params.transactionId,
+  });
+}

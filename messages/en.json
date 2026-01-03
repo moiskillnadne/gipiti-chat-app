@@ -196,6 +196,16 @@
         "period": "/day",
         "description": "Daily billing for testing purposes"
       },
+      "trial": {
+        "badge": "Free Trial",
+        "title": "Start with 3-Day Free Trial",
+        "description": "Try all features free for 3 days. After trial, you'll be charged {price}.",
+        "startButton": "Start Free Trial",
+        "hint": "Card verification only — no charge during trial",
+        "orPayNow": "or pay now",
+        "cardVerification": "Card verification",
+        "alreadyUsed": "You have already used your free trial"
+      },
       "features": {
         "title": "What's included:",
         "tokens": "1M tokens per month",
@@ -238,17 +248,28 @@
         "statusActive": "Active",
         "statusCancelled": "Cancelled",
         "statusPastDue": "Past Due",
+        "statusTrial": "Trial",
         "willCancelAt": "Your access remains until the end of the paid period: {date}",
         "cancelledOn": "You cancelled your subscription on {date}",
+        "trialInfo": {
+          "title": "Trial Period Active",
+          "daysRemaining": "{days} days remaining in your trial",
+          "chargeDate": "Your card will be charged {amount} on {date}"
+        },
         "dangerZone": {
           "title": "Danger Zone",
+          "titleTrial": "Cancel Trial",
           "description": "Permanently cancel your subscription",
+          "descriptionTrial": "Cancel your free trial. Your card will not be charged.",
           "cancelButton": "Cancel Subscription",
           "cancelling": "Cancelling...",
           "confirmTitle": "Cancel Subscription?",
+          "confirmTitleTrial": "Cancel Trial?",
           "confirmDescription": "Are you sure you want to cancel your subscription? You'll retain access until {date}. This action cannot be undone and no refunds will be issued for the current billing period.",
+          "confirmDescriptionTrial": "Are you sure you want to cancel your trial? Your access will end immediately and your card will not be charged.",
           "confirmButton": "Yes, Cancel Subscription",
           "cancelSuccess": "Subscription cancelled successfully. You'll retain access until {date}.",
+          "cancelSuccessTrial": "Trial cancelled successfully. Your card will not be charged.",
           "cancelError": "Failed to cancel subscription. Please try again or contact support."
         }
       }

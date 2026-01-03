@@ -105,7 +105,18 @@ export default async function SubscriptionPage() {
   const subscriptionPriceInRubles =
     SUBSCRIPTION_TIERS[plan.name]?.price.RUB ?? plan.price;
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, isTrial: boolean) => {
+    if (isTrial) {
+      return (
+        <Badge
+          className="w-fit bg-purple-100 text-purple-800"
+          variant="secondary"
+        >
+          {t("statusTrial")}
+        </Badge>
+      );
+    }
+
     if (status === "cancelled") {
       return (
         <Badge className="w-fit" variant="destructive">
@@ -130,6 +141,15 @@ export default async function SubscriptionPage() {
         {t("statusActive")}
       </Badge>
     );
+  };
+
+  const getTrialDaysRemaining = (trialEndsAt: Date | null) => {
+    if (!trialEndsAt) {
+      return 0;
+    }
+    const now = new Date();
+    const diff = trialEndsAt.getTime() - now.getTime();
+    return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
   };
 
   const isCancelled =
@@ -160,7 +180,7 @@ export default async function SubscriptionPage() {
               {t("status")}
             </h3>
             <div className="flex flex-col gap-2">
-              {getStatusBadge(subscription.status)}
+              {getStatusBadge(subscription.status, subscription.isTrial)}
               {subscription.cancelledAt && (
                 <p className="text-muted-foreground text-sm">
                   {t("cancelledOn", {
@@ -170,6 +190,25 @@ export default async function SubscriptionPage() {
               )}
             </div>
           </div>
+
+          {subscription.isTrial && subscription.trialEndsAt && (
+            <div className="rounded-lg border border-purple-200 bg-purple-50 p-4 dark:border-purple-800 dark:bg-purple-950/30">
+              <h3 className="font-semibold text-purple-800 dark:text-purple-200">
+                {t("trialInfo.title")}
+              </h3>
+              <p className="mt-1 text-purple-700 text-sm dark:text-purple-300">
+                {t("trialInfo.daysRemaining", {
+                  days: getTrialDaysRemaining(subscription.trialEndsAt),
+                })}
+              </p>
+              <p className="mt-1 text-purple-600 text-sm dark:text-purple-400">
+                {t("trialInfo.chargeDate", {
+                  date: formatDate(subscription.trialEndsAt),
+                  amount: formatCurrency(subscriptionPriceInRubles.toString()),
+                })}
+              </p>
+            </div>
+          )}
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
@@ -264,14 +303,21 @@ export default async function SubscriptionPage() {
         <Card className="mt-6 border-destructive/50">
           <CardHeader>
             <CardTitle className="text-destructive">
-              {t("dangerZone.title")}
+              {subscription.isTrial
+                ? t("dangerZone.titleTrial")
+                : t("dangerZone.title")}
             </CardTitle>
-            <CardDescription>{t("dangerZone.description")}</CardDescription>
+            <CardDescription>
+              {subscription.isTrial
+                ? t("dangerZone.descriptionTrial")
+                : t("dangerZone.description")}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <CancelSubscriptionButton
               currentPeriodEnd={subscription.currentPeriodEnd}
               isAlreadyCancelled={isCancelled}
+              isTrial={subscription.isTrial}
             />
           </CardContent>
         </Card>

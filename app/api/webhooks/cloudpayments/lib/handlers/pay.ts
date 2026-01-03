@@ -6,6 +6,7 @@ import {
   user,
   userSubscription,
 } from "@/lib/db/schema";
+import { createSubscription, voidPayment } from "@/lib/payments/cloudpayments";
 import type { CloudPaymentsPayWebhook } from "@/lib/payments/cloudpayments-types";
 import {
   calculateNextBillingDate,
@@ -13,6 +14,9 @@ import {
 } from "@/lib/subscription/billing-periods";
 import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 import { parseWebhookData, toNumber } from "./utils";
+
+// TEMPORARY: 5 minutes for testing (normally 3 days)
+const TRIAL_MINUTES = 5;
 
 export async function handlePayWebhook(
   payload: CloudPaymentsPayWebhook
@@ -47,9 +51,11 @@ export async function handlePayWebhook(
   let planName: string | null = null;
   let sessionId: string | null = null;
 
-  const data = parseWebhookData<{ planName?: string; sessionId?: string }>(
-    Data
-  );
+  const data = parseWebhookData<{
+    planName?: string;
+    sessionId?: string;
+    isTrial?: boolean;
+  }>(Data);
 
   if (data?.planName) {
     planName = data.planName;
@@ -58,6 +64,8 @@ export async function handlePayWebhook(
   if (data?.sessionId) {
     sessionId = data.sessionId;
   }
+
+  const isTrial = data?.isTrial === true && amountValue === 1;
 
   let existingSubscription: typeof userSubscription.$inferSelect | null = null;
 
@@ -125,11 +133,40 @@ export async function handlePayWebhook(
     return Response.json({ code: 13 });
   }
 
-  if (amountValue !== tier.price.RUB) {
+  if (!isTrial && amountValue !== tier.price.RUB) {
     console.error(
       `[CloudPayments:Pay] Amount mismatch for plan ${planName}. Expected ${tier.price.RUB}, Received ${amountValue}`
     );
     return Response.json({ code: 13 });
+  }
+
+  if (isTrial) {
+    // Trial is only available to testers until production rollout
+    const [dbUser] = await db
+      .select({ isTester: user.isTester })
+      .from(user)
+      .where(eq(user.id, AccountId))
+      .limit(1);
+
+    if (!dbUser?.isTester) {
+      console.error(
+        `[CloudPayments:Pay] Trial not available for non-tester: ${AccountId}`
+      );
+      return Response.json({ code: 13 });
+    }
+
+    console.log("[CloudPayments:Pay] Processing trial payment for tester");
+    return await handleTrialPayment({
+      accountId: AccountId,
+      token: Token,
+      transactionId: TransactionId,
+      planName,
+      tier,
+      sessionId,
+      cardMask: CardLastFour
+        ? `${CardType ?? "Card"} ****${CardLastFour}`
+        : null,
+    });
   }
 
   try {
@@ -372,6 +409,173 @@ export async function handlePayWebhook(
     return Response.json({ code: 0 });
   } catch (error) {
     console.error("[CloudPayments:Pay] Error processing pay webhook:", error);
+    return Response.json({ code: 13 });
+  }
+}
+
+async function handleTrialPayment({
+  accountId,
+  token,
+  transactionId,
+  planName,
+  tier,
+  sessionId,
+  cardMask,
+}: {
+  accountId: string;
+  token?: string;
+  transactionId: number;
+  planName: string;
+  tier: (typeof SUBSCRIPTION_TIERS)[keyof typeof SUBSCRIPTION_TIERS];
+  sessionId: string | null;
+  cardMask: string | null;
+}): Promise<Response> {
+  try {
+    console.log("[CloudPayments:Pay:Trial] Voiding 1 RUB hold...");
+    const voidResult = await voidPayment({ transactionId });
+    if (!voidResult.Success) {
+      console.error(
+        "[CloudPayments:Pay:Trial] Failed to void payment:",
+        voidResult.Message
+      );
+    }
+
+    const now = new Date();
+    const trialEndsAt = new Date(now.getTime() + TRIAL_MINUTES * 60 * 1000); // TODO: Change back to TRIAL_DAYS after testing
+
+    let recurrentConfig: { interval: "Day" | "Month"; period: number };
+    if (tier.billingPeriod === "daily") {
+      recurrentConfig = { interval: "Day", period: tier.billingPeriodCount };
+    } else if (tier.billingPeriod === "annual") {
+      recurrentConfig = {
+        interval: "Month",
+        period: 12 * tier.billingPeriodCount,
+      };
+    } else {
+      recurrentConfig = { interval: "Month", period: tier.billingPeriodCount };
+    }
+
+    console.log(
+      "[CloudPayments:Pay:Trial] Creating subscription with delayed start..."
+    );
+    const subscriptionResult = await createSubscription({
+      token: token ?? "",
+      accountId,
+      description: tier.displayName.en,
+      amount: tier.price.RUB,
+      currency: "RUB",
+      interval: recurrentConfig.interval,
+      period: recurrentConfig.period,
+      startDate: trialEndsAt.toISOString(),
+      requireConfirmation: false,
+    });
+
+    if (!subscriptionResult.Success) {
+      console.error(
+        "[CloudPayments:Pay:Trial] Failed to create subscription:",
+        subscriptionResult.Message
+      );
+      return Response.json({ code: 13 });
+    }
+
+    const externalSubscriptionId = subscriptionResult.Model.Id;
+    console.log(
+      "[CloudPayments:Pay:Trial] Subscription created:",
+      externalSubscriptionId
+    );
+
+    const plans = await db
+      .select()
+      .from(subscriptionPlan)
+      .where(eq(subscriptionPlan.name, planName))
+      .limit(1);
+
+    let plan = plans[0];
+    if (!plan) {
+      const [newPlan] = await db
+        .insert(subscriptionPlan)
+        .values({
+          name: tier.name,
+          displayName: tier.displayName.en,
+          billingPeriod: tier.billingPeriod,
+          billingPeriodCount: tier.billingPeriodCount,
+          tokenQuota: tier.tokenQuota,
+          features: {
+            maxMessagesPerPeriod: tier.features.maxMessagesPerPeriod,
+            allowedModels: tier.features.allowedModels,
+            hasReasoningModels: tier.features.hasReasoningModels,
+            hasPrioritySupport: tier.features.hasPrioritySupport,
+            maxFileSize: tier.features.maxFileSize,
+            maxConcurrentChats: tier.features.maxConcurrentChats,
+            hasAPIAccess: tier.features.hasAPIAccess,
+          },
+          price: tier.price.USD.toString(),
+          isTesterPlan: tier.isTesterPlan ?? false,
+        })
+        .returning();
+      plan = newPlan;
+    } // TODO: Check it later
+
+    await db
+      .update(userSubscription)
+      .set({ status: "cancelled", cancelledAt: now })
+      .where(
+        and(
+          eq(userSubscription.userId, accountId),
+          eq(userSubscription.status, "active")
+        )
+      );
+
+    await db.insert(userSubscription).values({
+      userId: accountId,
+      planId: plan.id,
+      billingPeriod: tier.billingPeriod,
+      billingPeriodCount: tier.billingPeriodCount,
+      currentPeriodStart: now,
+      currentPeriodEnd: trialEndsAt,
+      nextBillingDate: trialEndsAt,
+      status: "active",
+      externalSubscriptionId,
+      cardToken: token ?? null,
+      cardMask,
+      isTrial: true,
+      trialEndsAt,
+    });
+
+    await db
+      .update(user)
+      .set({ currentPlan: planName, trialUsedAt: now })
+      .where(eq(user.id, accountId));
+
+    if (sessionId) {
+      const intents = await db
+        .select()
+        .from(paymentIntent)
+        .where(
+          and(
+            eq(paymentIntent.sessionId, sessionId),
+            eq(paymentIntent.userId, accountId)
+          )
+        )
+        .limit(1);
+
+      if (intents.length > 0) {
+        await db
+          .update(paymentIntent)
+          .set({
+            status: "succeeded",
+            externalSubscriptionId,
+            externalTransactionId: transactionId.toString(),
+            updatedAt: now,
+          })
+          .where(eq(paymentIntent.id, intents[0].id));
+      }
+    }
+
+    console.log("[CloudPayments:Pay:Trial] Trial activated successfully");
+    return Response.json({ code: 0 });
+  } catch (error) {
+    console.error("[CloudPayments:Pay:Trial] Error:", error);
     return Response.json({ code: 13 });
   }
 }
