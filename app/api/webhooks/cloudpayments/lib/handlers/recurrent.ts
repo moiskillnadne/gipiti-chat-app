@@ -62,6 +62,13 @@ export async function handleRecurrentWebhook(
       subscription.billingPeriodCount
     );
 
+    const wasTrialConversion = subscription.isTrial;
+    if (wasTrialConversion) {
+      console.log(
+        `[CloudPayments:Recurrent] Trial conversion for subscription ${subscription.id}`
+      );
+    }
+
     await db
       .update(userSubscription)
       .set({
@@ -72,6 +79,8 @@ export async function handleRecurrentWebhook(
         lastPaymentDate: now,
         lastPaymentAmount:
           paymentAmount !== null ? paymentAmount.toString() : null,
+        isTrial: false,
+        trialEndsAt: null,
         updatedAt: now,
       })
       .where(eq(userSubscription.id, subscription.id));
