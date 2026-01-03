@@ -28,13 +28,6 @@ export async function POST(request: Request) {
       );
     }
 
-    if (tier.isTesterPlan) {
-      return Response.json(
-        { error: "Trial is not available for tester plans" },
-        { status: 400 }
-      );
-    }
-
     const [dbUser] = await db
       .select({ isTester: user.isTester, trialUsedAt: user.trialUsedAt })
       .from(user)
