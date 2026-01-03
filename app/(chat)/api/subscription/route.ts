@@ -128,16 +128,33 @@ export async function DELETE(_request: Request) {
       }
     }
 
+    const now = new Date();
+
+    if (subscription.isTrial) {
+      await db
+        .update(userSubscription)
+        .set({
+          status: "cancelled",
+          cancelAtPeriodEnd: false,
+          cancelledAt: now,
+          isTrial: false,
+          trialEndsAt: null,
+        })
+        .where(eq(userSubscription.id, subscription.id));
+
+      return Response.json({
+        success: true,
+        message: "Trial cancelled successfully.",
+      });
+    }
+
     await db
       .update(userSubscription)
       .set({
         cancelAtPeriodEnd: true,
-        cancelledAt: new Date(),
+        cancelledAt: now,
       })
       .where(eq(userSubscription.id, subscription.id));
-
-    // Note: currentPlan will be set to null by cron job when period ends
-    // User retains access until currentPeriodEnd
 
     return Response.json({
       success: true,

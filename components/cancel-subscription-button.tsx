@@ -20,11 +20,13 @@ import { Button } from "@/components/ui/button";
 type CancelSubscriptionButtonProps = {
   currentPeriodEnd: Date;
   isAlreadyCancelled: boolean;
+  isTrial?: boolean;
 };
 
 export function CancelSubscriptionButton({
   currentPeriodEnd,
   isAlreadyCancelled,
+  isTrial = false,
 }: CancelSubscriptionButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -49,11 +51,18 @@ export function CancelSubscriptionButton({
       });
 
       if (response.ok) {
-        const formattedDate = formatDate(currentPeriodEnd);
-        toast({
-          type: "success",
-          description: t("cancelSuccess", { date: formattedDate }),
-        });
+        if (isTrial) {
+          toast({
+            type: "success",
+            description: t("cancelSuccessTrial"),
+          });
+        } else {
+          const formattedDate = formatDate(currentPeriodEnd);
+          toast({
+            type: "success",
+            description: t("cancelSuccess", { date: formattedDate }),
+          });
+        }
         setIsOpen(false);
         router.refresh();
       } else {
@@ -84,11 +93,15 @@ export function CancelSubscriptionButton({
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>{t("confirmTitle")}</AlertDialogTitle>
+          <AlertDialogTitle>
+            {isTrial ? t("confirmTitleTrial") : t("confirmTitle")}
+          </AlertDialogTitle>
           <AlertDialogDescription>
-            {t("confirmDescription", {
-              date: formatDate(currentPeriodEnd),
-            })}
+            {isTrial
+              ? t("confirmDescriptionTrial")
+              : t("confirmDescription", {
+                  date: formatDate(currentPeriodEnd),
+                })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
