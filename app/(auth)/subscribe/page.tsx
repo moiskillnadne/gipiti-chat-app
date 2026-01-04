@@ -6,12 +6,10 @@ import { useTranslations } from "next-intl";
 import { Suspense } from "react";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { PaymentLoadingOverlay } from "@/components/payment-loading-overlay";
-import { Button } from "@/components/ui/button";
 import { Loader } from "../../../components/elements/loader";
 import { FeaturesList } from "./components/FeaturesList";
 import { PlanSelector } from "./components/PlanSelector";
 import { TesterPlan } from "./components/TesterPlan";
-import { TrialBanner } from "./components/TrialBanner";
 import { usePayment } from "./hooks/usePayment";
 
 function SupportLink({ text, linkText }: { text: string; linkText: string }) {
@@ -64,9 +62,11 @@ function SubscribePage() {
   // Trial is only available to testers until production rollout
   const canStartTrial = isTester && !hasUsedTrial;
 
-  const { state, selectPlan, subscribe, startTrial, reset } = usePayment({
+  const { state, subscribe, startTrial, reset } = usePayment({
     isTester,
   });
+
+  const handleSubscribe = canStartTrial ? startTrial : subscribe;
 
   return (
     <div className="flex min-h-dvh w-screen items-start justify-center bg-background pt-12 md:items-center md:pt-0">
@@ -87,38 +87,28 @@ function SubscribePage() {
         )}
 
         {/* Plan Selection */}
-        {isTester && !isSessionLoading && <TesterPlan />}
+        {isTester && !isSessionLoading && (
+          <TesterPlan
+            canStartTrial={canStartTrial}
+            isLoading={state.isLoading}
+            onSubscribe={() => handleSubscribe("tester_paid")}
+          />
+        )}
 
         {!isTester && !isSessionLoading && (
           <PlanSelector
-            onPlanChange={selectPlan}
-            selectedPlan={state.selectedPlan}
+            canStartTrial={canStartTrial}
+            isLoading={state.isLoading}
+            loadingPlan={state.loadingPlan}
+            onSubscribe={handleSubscribe}
           />
         )}
 
         {/* Features List */}
         <FeaturesList />
 
-        {/* Trial Banner */}
-        {canStartTrial && !isSessionLoading && (
-          <TrialBanner
-            isLoading={state.isLoading}
-            onStartTrial={startTrial}
-            selectedPlan={state.selectedPlan}
-          />
-        )}
-
-        {/* Subscribe Button */}
+        {/* Footer Links */}
         <div className="flex flex-col items-center gap-4">
-          <Button
-            className="w-full max-w-md bg-blue-600 py-6 text-lg hover:bg-blue-700"
-            disabled={state.isLoading}
-            onClick={subscribe}
-            size="lg"
-          >
-            {state.isLoading ? t("subscribing") : t("subscribeButton")}
-          </Button>
-
           <button
             className="my-2 font-medium text-gray-600 text-sm hover:underline dark:text-zinc-400"
             onClick={() => signOut({ callbackUrl: "/login" })}

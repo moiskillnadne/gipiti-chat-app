@@ -175,21 +175,24 @@
       "welcomeNew": "Welcome! To get started, please choose a subscription plan below.",
       "required": "A subscription is required to access the chat",
       "monthly": {
-        "name": "Monthly",
+        "name": "Start",
         "period": "/month",
-        "description": "Perfect for trying out the service"
+        "description": "Perfect for trying out the service",
+        "subscribeButton": "Start"
       },
       "quarterly": {
-        "name": "Quarterly",
+        "name": "Optimal",
         "period": "/quarter",
         "description": "3 months of access with reasoning models",
-        "badge": "Save 17%"
+        "badge": "Save 17%",
+        "subscribeButton": "Start with 17% discount"
       },
       "annual": {
-        "name": "Annual",
+        "name": "Best",
         "period": "/year",
         "description": "Best value - save 3 months!",
-        "badge": "Save 25%"
+        "badge": "Save 25%",
+        "subscribeButton": "Start with best price"
       },
       "tester": {
         "name": "Tester Plan",
@@ -198,8 +201,10 @@
       },
       "trial": {
         "badge": "Free Trial",
+        "badgeShort": "+ {days} days free",
         "title": "Start with 3-Day Free Trial",
         "description": "Try all features free for 3 days. After trial, you'll be charged {price}.",
+        "descriptionWithPrice": "Try free for {days} days, then {price}",
         "startButton": "Start Free Trial",
         "hint": "Card verification only — no charge during trial",
         "orPayNow": "or pay now",

@@ -137,9 +137,14 @@ export function buildReturnUrl(sessionId: string): string {
 /**
  * Store payment session in localStorage for redirect recovery
  */
-export function storePaymentSession(sessionId: string, expiresAt: string): void {
+export function storePaymentSession(
+  sessionId: string,
+  expiresAt: string,
+  plan: PlanType
+): void {
   localStorage.setItem("payment_session_id", sessionId);
   localStorage.setItem("payment_expires_at", expiresAt);
+  localStorage.setItem("payment_plan", plan);
 }
 
 /**
@@ -148,6 +153,7 @@ export function storePaymentSession(sessionId: string, expiresAt: string): void 
 export function clearPaymentSession(): void {
   localStorage.removeItem("payment_session_id");
   localStorage.removeItem("payment_expires_at");
+  localStorage.removeItem("payment_plan");
 }
 
 /**
@@ -156,10 +162,12 @@ export function clearPaymentSession(): void {
 export function getStoredPaymentSession(): {
   sessionId: string | null;
   expiresAt: string | null;
+  plan: PlanType | null;
 } {
   return {
     sessionId: localStorage.getItem("payment_session_id"),
     expiresAt: localStorage.getItem("payment_expires_at"),
+    plan: localStorage.getItem("payment_plan") as PlanType | null,
   };
 }
 
@@ -170,7 +178,6 @@ export function isPaymentSessionExpired(expiresAt: string | null): boolean {
   if (!expiresAt) {
     return true;
   }
-  
+
   return new Date(expiresAt) < new Date();
 }
-
