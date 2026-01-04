@@ -3,23 +3,15 @@
 import { ChevronUp } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import type { User } from "next-auth";
 import { signOut, useSession } from "next-auth/react";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
-import { useTransition } from "react";
-import { setUserLocale } from "@/app/actions/locale";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -27,9 +19,23 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { type Locale, localeFlags, localeNames, locales } from "@/i18n/config";
 import { LoaderIcon } from "./icons";
 import { toast } from "./toast";
+
+// Temporarily hidden - language selection disabled
+// To re-enable, uncomment the imports and code below:
+// import { useRouter } from "next/navigation";
+// import { useLocale } from "next-intl";
+// import { useTransition } from "react";
+// import { setUserLocale } from "@/app/actions/locale";
+// import {
+//   DropdownMenuRadioGroup,
+//   DropdownMenuRadioItem,
+//   DropdownMenuSub,
+//   DropdownMenuSubContent,
+//   DropdownMenuSubTrigger,
+// } from "@/components/ui/dropdown-menu";
+// import { type Locale, localeFlags, localeNames, locales } from "@/i18n/config";
 
 export function SidebarUserNav({ user }: { user: User }) {
   const t = useTranslations("common");
@@ -37,35 +43,38 @@ export function SidebarUserNav({ user }: { user: User }) {
   const tSupport = useTranslations("legal.support");
   const { status } = useSession();
   const { setTheme, resolvedTheme } = useTheme();
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
-  const currentLocale = useLocale() as Locale;
 
-  const handleLocaleChange = (newLocale: string) => {
-    const locale = newLocale as Locale;
-
-    startTransition(async () => {
-      try {
-        const result = await setUserLocale(locale);
-
-        if (!result.success) {
-          toast({
-            type: "error",
-            description: result.error || "Failed to change language",
-          });
-          return;
-        }
-
-        router.refresh();
-      } catch (error) {
-        console.error("Failed to change locale:", error);
-        toast({
-          type: "error",
-          description: "Failed to change language",
-        });
-      }
-    });
-  };
+  // Temporarily hidden - language selection disabled
+  // To re-enable, uncomment the following:
+  // const router = useRouter();
+  // const [isPending, startTransition] = useTransition();
+  // const currentLocale = useLocale() as Locale;
+  //
+  // const handleLocaleChange = (newLocale: string) => {
+  //   const locale = newLocale as Locale;
+  //
+  //   startTransition(async () => {
+  //     try {
+  //       const result = await setUserLocale(locale);
+  //
+  //       if (!result.success) {
+  //         toast({
+  //           type: "error",
+  //           description: result.error || "Failed to change language",
+  //         });
+  //         return;
+  //       }
+  //
+  //       router.refresh();
+  //     } catch (error) {
+  //       console.error("Failed to change locale:", error);
+  //       toast({
+  //         type: "error",
+  //         description: "Failed to change language",
+  //       });
+  //     }
+  //   });
+  // };
 
   return (
     <SidebarMenu>
@@ -108,6 +117,7 @@ export function SidebarUserNav({ user }: { user: User }) {
             data-testid="user-nav-menu"
             side="top"
           >
+            {/* Temporarily hidden - language selection disabled
             <DropdownMenuSub>
               <DropdownMenuSubTrigger disabled={isPending}>
                 <span className="flex items-center gap-2">
@@ -132,6 +142,7 @@ export function SidebarUserNav({ user }: { user: User }) {
               </DropdownMenuSubContent>
             </DropdownMenuSub>
             <DropdownMenuSeparator />
+            */}
             <DropdownMenuItem
               className="cursor-pointer"
               data-testid="user-nav-item-theme"
