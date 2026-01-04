@@ -75,6 +75,25 @@ export function PlanCard({
         <span className="text-gray-500 dark:text-zinc-400">{t(periodKey)}</span>
       </div>
 
+      {canStartTrial && badge && (
+        <p className="mb-2 flex items-center gap-1.5 font-medium text-emerald-600 text-sm dark:text-emerald-400">
+          <svg
+            className="size-4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M5 13l4 4L19 7"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          {t("trial.discountBenefit", { discount: badge })}
+        </p>
+      )}
+
       <p className="mb-6 flex-1 text-gray-600 text-sm dark:text-zinc-400">
         {canStartTrial
           ? t("trial.descriptionWithPrice", {

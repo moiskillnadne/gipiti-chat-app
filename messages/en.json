@@ -201,7 +201,7 @@
       },
       "trial": {
         "badge": "Free Trial",
-        "badgeShort": "+ {days} days free",
+        "badgeShort": "{days} days free",
         "title": "Start with 3-Day Free Trial",
         "description": "Try all features free for 3 days. After trial, you'll be charged {price}.",
         "descriptionWithPrice": "Try free for {days} days, then {price}",
@@ -209,7 +209,8 @@
         "hint": "Card verification only — no charge during trial",
         "orPayNow": "or pay now",
         "cardVerification": "Card verification",
-        "alreadyUsed": "You have already used your free trial"
+        "alreadyUsed": "You have already used your free trial",
+        "discountBenefit": "{discount}"
       },
       "features": {
         "title": "Compare Plans",
