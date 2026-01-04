@@ -15,8 +15,7 @@ import {
 import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 import { parseWebhookData, toNumber } from "./utils";
 
-// TEMPORARY: 5 minutes for testing (normally 3 days)
-const TRIAL_MINUTES = 5;
+const TRIAL_DAYS = 3;
 
 export async function handlePayWebhook(
   payload: CloudPaymentsPayWebhook
@@ -440,7 +439,9 @@ async function handleTrialPayment({
     }
 
     const now = new Date();
-    const trialEndsAt = new Date(now.getTime() + TRIAL_MINUTES * 60 * 1000); // TODO: Change back to TRIAL_DAYS after testing
+    const trialEndsAt = new Date(
+      now.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000
+    );
 
     let recurrentConfig: { interval: "Day" | "Month"; period: number };
     if (tier.billingPeriod === "daily") {
