@@ -249,6 +249,35 @@
           }
         }
       },
+      "faq": {
+        "title": "Frequently Asked Questions",
+        "items": {
+          "q1": {
+            "question": "How does the trial period work?",
+            "answer": "The trial period allows you to use all features of the service for 3 days for free. After 3 days, if you don't cancel your subscription, you will be charged based on your selected plan.\n\nTo start the trial period, you need to enter your card details. We will make an authorization payment of one ruble and immediately refund it. This way we verify that your payment method is working."
+          },
+          "q2": {
+            "question": "What payment methods do you accept?",
+            "answer": "We accept any cards issued by Russian banks (Mir, Visa, Mastercard). We use CloudPayments as our payment partner.\n\nAll payments are processed securely through CloudPayments. Our service does not receive, store, or process your card data in any way."
+          },
+          "q3": {
+            "question": "Can I cancel my subscription?",
+            "answer": "Yes, you can cancel your subscription at any time."
+          },
+          "q4": {
+            "question": "What happens if I cancel my subscription?",
+            "answer": "Money for the paid subscription is not refunded. You retain access until the end of your paid period or until you use up your limits. No further charges will occur."
+          },
+          "q5": {
+            "question": "What is the difference between the plans?",
+            "answer": "The only difference is the period you pay for and the discount amount.\n\nAll plans provide equal access to all features of the application."
+          },
+          "q6": {
+            "question": "How do limits work in the plans?",
+            "answer": "Our service has no daily or weekly restrictions. You get all features immediately after payment.\n\nIf you have irregular usage patterns, it's more beneficial to purchase the Optimal or Best plans. This way you get all limits at once and can use them at any time."
+          }
+        }
+      },
       "subscribeButton": "Subscribe",
       "subscribing": "Processing...",
       "success": "Subscription activated!",

@@ -7,6 +7,7 @@ import { Suspense } from "react";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { PaymentLoadingOverlay } from "@/components/payment-loading-overlay";
 import { Loader } from "../../../components/elements/loader";
+import { FAQ } from "./components/FAQ";
 import { FeaturesTable } from "./components/FeaturesTable";
 import { PlanSelector } from "./components/PlanSelector";
 import { TesterPlan } from "./components/TesterPlan";
@@ -105,6 +106,9 @@ function SubscribePage() {
 
         {/* Features List */}
         <FeaturesTable />
+
+        {/* FAQ Section */}
+        <FAQ />
 
         {/* Footer Links */}
         <div className="flex flex-col items-center gap-4">
