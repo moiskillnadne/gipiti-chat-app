@@ -1,7 +1,8 @@
 export type Locale = "en" | "ru";
 
 export const locales: Locale[] = ["en", "ru"];
-export const defaultLocale: Locale = "en";
+// Temporarily forced to Russian - was "en"
+export const defaultLocale: Locale = "ru";
 
 export const localeNames: Record<Locale, string> = {
   en: "English",

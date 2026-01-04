@@ -51,7 +51,8 @@ export const db = drizzle(client);
 export async function createUser(
   email: string,
   password: string,
-  preferredLanguage = "en"
+  // Temporarily default to Russian - was "en"
+  preferredLanguage = "ru"
 ) {
   const hashedPassword = generateHashedPassword(password);
 
