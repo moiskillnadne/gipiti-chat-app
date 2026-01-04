@@ -216,7 +216,7 @@ export type CreateSubscriptionParams = {
   token: string;
   accountId: string;
   description: string;
-  email?: string;
+  email: string;
   amount: number;
   currency: string;
   requireConfirmation: boolean;
