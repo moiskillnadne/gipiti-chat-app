@@ -175,21 +175,24 @@
       "welcomeNew": "Welcome! To get started, please choose a subscription plan below.",
       "required": "A subscription is required to access the chat",
       "monthly": {
-        "name": "Monthly",
+        "name": "Start",
         "period": "/month",
-        "description": "Perfect for trying out the service"
+        "description": "Perfect for trying out the service",
+        "subscribeButton": "Start"
       },
       "quarterly": {
-        "name": "Quarterly",
+        "name": "Optimal",
         "period": "/quarter",
         "description": "3 months of access with reasoning models",
-        "badge": "Save 17%"
+        "badge": "Save 17%",
+        "subscribeButton": "Start with 17% discount"
       },
       "annual": {
-        "name": "Annual",
+        "name": "Best",
         "period": "/year",
         "description": "Best value - save 3 months!",
-        "badge": "Save 25%"
+        "badge": "Save 25%",
+        "subscribeButton": "Start with best price"
       },
       "tester": {
         "name": "Tester Plan",
@@ -198,21 +201,83 @@
       },
       "trial": {
         "badge": "Free Trial",
+        "badgeShort": "{days} days free",
         "title": "Start with 3-Day Free Trial",
         "description": "Try all features free for 3 days. After trial, you'll be charged {price}.",
+        "descriptionWithPrice": "Try free for {days} days, then {price}",
         "startButton": "Start Free Trial",
         "hint": "Card verification only — no charge during trial",
         "orPayNow": "or pay now",
         "cardVerification": "Card verification",
-        "alreadyUsed": "You have already used your free trial"
+        "alreadyUsed": "You have already used your free trial",
+        "discountBenefit": "{discount}"
       },
       "features": {
-        "title": "What's included:",
-        "tokens": "1M tokens per month",
-        "messages": "500 messages per period",
-        "models": "Access to all latest reasoning models (ChatGPT, Gemini, Opus)",
-        "search": "Web search using models",
-        "fileSize": "Work with files up to 10MB (Documents, spreadsheets, images)"
+        "title": "Compare Plans",
+        "table": {
+          "feature": "Feature",
+          "tokens": "Tokens",
+          "messages": "Messages",
+          "searches": "Web searches",
+          "models": "Available models",
+          "reasoning": "Adjustable reasoning depth",
+          "imageGeneration": "Image generation",
+          "imageModels": "GPT Image 1.5, Gemini 3 Pro Image (Nano banana pro)",
+          "fileAnalysis": "Document analysis",
+          "fileTypes": "up to 10MB - PDF, JPG, PNG",
+          "modelsList": "ChatGPT 5.2, Gemini 3 Pro, Opus 4.5, Grok 4.1, GPT-Image-1.5, Gemini 3 Pro Image"
+        },
+        "periods": {
+          "monthly": "Monthly",
+          "quarterly": "Quarterly",
+          "annual": "Annual"
+        },
+        "values": {
+          "monthly": {
+            "tokens": "1M",
+            "messages": "500",
+            "searches": "250"
+          },
+          "quarterly": {
+            "tokens": "3M",
+            "messages": "1,500",
+            "searches": "750"
+          },
+          "annual": {
+            "tokens": "12M",
+            "messages": "6,000",
+            "searches": "3,000"
+          }
+        }
+      },
+      "faq": {
+        "title": "Frequently Asked Questions",
+        "items": {
+          "q1": {
+            "question": "How does the trial period work?",
+            "answer": "The trial period allows you to use all features of the service for 3 days for free. After 3 days, if you don't cancel your subscription, you will be charged based on your selected plan.\n\nTo start the trial period, you need to enter your card details. We will make an authorization payment of one ruble and immediately refund it. This way we verify that your payment method is working."
+          },
+          "q2": {
+            "question": "What payment methods do you accept?",
+            "answer": "We accept any cards issued by Russian banks (Mir, Visa, Mastercard). We use CloudPayments as our payment partner.\n\nAll payments are processed securely through CloudPayments. Our service does not receive, store, or process your card data in any way."
+          },
+          "q3": {
+            "question": "Can I cancel my subscription?",
+            "answer": "Yes, you can cancel your subscription at any time."
+          },
+          "q4": {
+            "question": "What happens if I cancel my subscription?",
+            "answer": "Money for the paid subscription is not refunded. You retain access until the end of your paid period or until you use up your limits. No further charges will occur."
+          },
+          "q5": {
+            "question": "What is the difference between the plans?",
+            "answer": "The only difference is the period you pay for and the discount amount.\n\nAll plans provide equal access to all features of the application."
+          },
+          "q6": {
+            "question": "How do limits work in the plans?",
+            "answer": "Our service has no daily or weekly restrictions. You get all features immediately after payment.\n\nIf you have irregular usage patterns, it's more beneficial to purchase the Optimal or Best plans. This way you get all limits at once and can use them at any time."
+          }
+        }
       },
       "subscribeButton": "Subscribe",
       "subscribing": "Processing...",

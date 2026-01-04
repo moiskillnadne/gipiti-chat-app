@@ -8,6 +8,7 @@ export type PlanType =
 
 export type PaymentState = {
   selectedPlan: PlanType;
+  loadingPlan: PlanType | null;
   isLoading: boolean;
   status: PaymentStatus | null;
   error: string | null;
@@ -15,7 +16,7 @@ export type PaymentState = {
 
 export type PaymentAction =
   | { type: "SELECT_PLAN"; plan: PlanType }
-  | { type: "START_PAYMENT" }
+  | { type: "START_PAYMENT"; plan: PlanType }
   | { type: "SET_STATUS"; status: PaymentStatus }
   | { type: "PAYMENT_FAILED"; error: string | null }
   | { type: "PAYMENT_SUCCEEDED" }
@@ -25,6 +26,7 @@ export type PaymentAction =
 export function createInitialState(isTester: boolean): PaymentState {
   return {
     selectedPlan: isTester ? "tester_paid" : "basic_annual",
+    loadingPlan: null,
     isLoading: false,
     status: null,
     error: null,
@@ -46,6 +48,8 @@ export function paymentReducer(
     case "START_PAYMENT": {
       return {
         ...state,
+        selectedPlan: action.plan,
+        loadingPlan: action.plan,
         isLoading: true,
         status: "processing",
         error: null,
@@ -62,6 +66,7 @@ export function paymentReducer(
     case "PAYMENT_FAILED": {
       return {
         ...state,
+        loadingPlan: null,
         isLoading: false,
         status: "failed",
         error: action.error,
@@ -71,6 +76,7 @@ export function paymentReducer(
     case "PAYMENT_SUCCEEDED": {
       return {
         ...state,
+        loadingPlan: null,
         status: "succeeded",
       };
     }
@@ -78,6 +84,7 @@ export function paymentReducer(
     case "WIDGET_CLOSED": {
       return {
         ...state,
+        loadingPlan: null,
         isLoading: false,
         status: null,
       };
@@ -86,6 +93,7 @@ export function paymentReducer(
     case "RESET": {
       return {
         ...state,
+        loadingPlan: null,
         isLoading: false,
         status: null,
         error: null,
@@ -97,4 +105,3 @@ export function paymentReducer(
     }
   }
 }
-

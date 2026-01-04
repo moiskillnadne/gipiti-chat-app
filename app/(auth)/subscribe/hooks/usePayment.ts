@@ -24,7 +24,6 @@ import {
 } from "../utils/payment-utils";
 import {
   createInitialState,
-  type PaymentAction,
   type PaymentState,
   type PlanType,
   paymentReducer,
@@ -36,9 +35,8 @@ export type UsePaymentOptions = {
 
 export type UsePaymentReturn = {
   state: PaymentState;
-  selectPlan: (plan: PlanType) => void;
-  subscribe: () => Promise<void>;
-  startTrial: () => Promise<void>;
+  subscribe: (plan: PlanType) => Promise<void>;
+  startTrial: (plan: PlanType) => Promise<void>;
   reset: () => void;
 };
 
@@ -199,14 +197,15 @@ export function usePayment(options: UsePaymentOptions): UsePaymentReturn {
       clientLog.info("[Payment] SessionId found", { sessionId });
 
       // Check expiration
-      const { expiresAt } = getStoredPaymentSession();
+      const { expiresAt, plan } = getStoredPaymentSession();
       if (isPaymentSessionExpired(expiresAt)) {
         clearPaymentSession();
         return;
       }
 
-      // Resume polling
-      dispatch({ type: "START_PAYMENT" });
+      // Resume polling with stored plan
+      const planToUse = plan ?? (isTester ? "tester_paid" : "basic_annual");
+      dispatch({ type: "START_PAYMENT", plan: planToUse });
       dispatch({ type: "SET_STATUS", status: "verifying" });
       await pollPaymentStatusRef.current(sessionId, 60, abortController.signal);
     };
@@ -219,220 +218,222 @@ export function usePayment(options: UsePaymentOptions): UsePaymentReturn {
     return () => {
       abortController.abort();
     };
-  }, [sessionStatus, session]);
+  }, [sessionStatus, session, isTester]);
 
-  const subscribe = useCallback(async () => {
-    if (!session?.user?.id || !session?.user?.email) {
-      toast({ type: "error", description: t("error") });
-      return;
-    }
-
-    if (typeof window === "undefined" || !window.cp) {
-      toast({ type: "error", description: t("error") });
-      return;
-    }
-
-    const publicId = process.env.NEXT_PUBLIC_CLOUDPAYMENTS_PUBLIC_ID;
-    if (!publicId) {
-      toast({ type: "error", description: t("error") });
-      return;
-    }
-
-    try {
-      dispatch({ type: "START_PAYMENT" });
-
-      // Create payment intent first
-      const intentRes = await fetch("/api/payment/create-intent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planName: state.selectedPlan }),
-      });
-
-      if (!intentRes.ok) {
-        throw new Error("Failed to create payment intent");
+  const subscribe = useCallback(
+    async (plan: PlanType) => {
+      if (!session?.user?.id || !session?.user?.email) {
+        toast({ type: "error", description: t("error") });
+        return;
       }
 
-      const intentData: PaymentIntentResponse = await intentRes.json();
+      if (typeof window === "undefined" || !window.cp) {
+        toast({ type: "error", description: t("error") });
+        return;
+      }
 
-      // Store in localStorage for redirect recovery
-      storePaymentSession(intentData.sessionId, intentData.expiresAt);
+      const publicId = process.env.NEXT_PUBLIC_CLOUDPAYMENTS_PUBLIC_ID;
+      if (!publicId) {
+        toast({ type: "error", description: t("error") });
+        return;
+      }
 
-      const displayName = getPlanDisplayName(state.selectedPlan, locale);
-      const currency = getCurrency();
-      const amount = getAmount(state.selectedPlan, currency);
-      const recurrentConfig = getRecurrentConfig(state.selectedPlan);
-      const receipt = buildReceipt(displayName, amount, session.user.email);
-      const returnUrl = buildReturnUrl(intentData.sessionId);
-      const widgetOptions = createWidgetOptions(locale, session.user.email);
+      try {
+        dispatch({ type: "START_PAYMENT", plan });
 
-      clientLog.info("[Payment] Starting charge", {
-        amount,
-        currency,
-        selectedPlan: state.selectedPlan,
-        sessionId: intentData.sessionId,
-      });
+        // Create payment intent first
+        const intentRes = await fetch("/api/payment/create-intent", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ planName: plan }),
+        });
 
-      const widget: CloudPaymentsWidget = new window.cp.CloudPayments(
-        widgetOptions
-      );
+        if (!intentRes.ok) {
+          throw new Error("Failed to create payment intent");
+        }
 
-      widget.pay(
-        "charge",
-        {
-          publicId,
-          description: displayName,
+        const intentData: PaymentIntentResponse = await intentRes.json();
+
+        // Store in localStorage for redirect recovery
+        storePaymentSession(intentData.sessionId, intentData.expiresAt, plan);
+
+        const displayName = getPlanDisplayName(plan, locale);
+        const currency = getCurrency();
+        const amount = getAmount(plan, currency);
+        const recurrentConfig = getRecurrentConfig(plan);
+        const receipt = buildReceipt(displayName, amount, session.user.email);
+        const returnUrl = buildReturnUrl(intentData.sessionId);
+        const widgetOptions = createWidgetOptions(locale, session.user.email);
+
+        clientLog.info("[Payment] Starting charge", {
           amount,
           currency,
-          accountId: session.user.id,
-          email: session.user.email,
-          skin: "classic",
-          data: {
-            sessionId: intentData.sessionId,
-            planName: state.selectedPlan,
-            CloudPayments: {
-              CustomerReceipt: receipt,
-              recurrent: {
-                ...recurrentConfig,
-                customerReceipt: receipt,
+          selectedPlan: plan,
+          sessionId: intentData.sessionId,
+        });
+
+        const widget: CloudPaymentsWidget = new window.cp.CloudPayments(
+          widgetOptions
+        );
+
+        widget.pay(
+          "charge",
+          {
+            publicId,
+            description: displayName,
+            amount,
+            currency,
+            accountId: session.user.id,
+            email: session.user.email,
+            skin: "classic",
+            data: {
+              sessionId: intentData.sessionId,
+              planName: plan,
+              CloudPayments: {
+                CustomerReceipt: receipt,
+                recurrent: {
+                  ...recurrentConfig,
+                  customerReceipt: receipt,
+                },
               },
             },
+            jsonData: {
+              returnUrl,
+            },
           },
-          jsonData: {
-            returnUrl,
-          },
-        },
-        {
-          onSuccess: async () => {
-            await pollPaymentStatus(intentData.sessionId);
-          },
-          onFail: (reason) => {
-            dispatch({
-              type: "PAYMENT_FAILED",
-              error: typeof reason === "string" ? reason : t("error"),
-            });
-            clearPaymentSession();
-            console.error("[CloudPayments] Payment failed:", reason);
-            toast({ type: "error", description: t("error") });
-          },
-          onComplete: (paymentResult) => {
-            // Widget closed - reset UI state but DON'T clear localStorage
-            // For redirect-based payments (T-Pay, SberPay), the widget closes before
-            // payment completes. localStorage is needed for recovery when user returns.
-            if (!paymentResult?.success) {
-              dispatch({ type: "WIDGET_CLOSED" });
-            }
-          },
-        }
-      );
-    } catch (error) {
-      dispatch({
-        type: "PAYMENT_FAILED",
-        error: error instanceof Error ? error.message : t("error"),
-      });
-      console.error("Error in subscribe:", error);
-      toast({ type: "error", description: t("error") });
-    }
-  }, [session, state.selectedPlan, t, pollPaymentStatus, locale]);
+          {
+            onSuccess: async () => {
+              await pollPaymentStatus(intentData.sessionId);
+            },
+            onFail: (reason) => {
+              dispatch({
+                type: "PAYMENT_FAILED",
+                error: typeof reason === "string" ? reason : t("error"),
+              });
+              clearPaymentSession();
+              console.error("[CloudPayments] Payment failed:", reason);
+              toast({ type: "error", description: t("error") });
+            },
+            onComplete: (paymentResult) => {
+              // Widget closed - reset UI state but DON'T clear localStorage
+              // For redirect-based payments (T-Pay, SberPay), the widget closes before
+              // payment completes. localStorage is needed for recovery when user returns.
+              if (!paymentResult?.success) {
+                dispatch({ type: "WIDGET_CLOSED" });
+              }
+            },
+          }
+        );
+      } catch (error) {
+        dispatch({
+          type: "PAYMENT_FAILED",
+          error: error instanceof Error ? error.message : t("error"),
+        });
+        console.error("Error in subscribe:", error);
+        toast({ type: "error", description: t("error") });
+      }
+    },
+    [session, t, pollPaymentStatus, locale]
+  );
 
-  const startTrial = useCallback(async () => {
-    if (!session?.user?.id || !session?.user?.email) {
-      toast({ type: "error", description: t("error") });
-      return;
-    }
-
-    if (typeof window === "undefined" || !window.cp) {
-      toast({ type: "error", description: t("error") });
-      return;
-    }
-
-    const publicId = process.env.NEXT_PUBLIC_CLOUDPAYMENTS_PUBLIC_ID;
-    if (!publicId) {
-      toast({ type: "error", description: t("error") });
-      return;
-    }
-
-    try {
-      dispatch({ type: "START_PAYMENT" });
-
-      const intentRes = await fetch("/api/payment/create-trial-intent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planName: state.selectedPlan }),
-      });
-
-      if (!intentRes.ok) {
-        const errorData = await intentRes.json();
-        if (errorData.code === "TRIAL_ALREADY_USED") {
-          toast({ type: "error", description: t("trial.alreadyUsed") });
-          dispatch({ type: "RESET" });
-          return;
-        }
-        throw new Error("Failed to create trial intent");
+  const startTrial = useCallback(
+    async (plan: PlanType) => {
+      if (!session?.user?.id || !session?.user?.email) {
+        toast({ type: "error", description: t("error") });
+        return;
       }
 
-      const intentData: PaymentIntentResponse = await intentRes.json();
+      if (typeof window === "undefined" || !window.cp) {
+        toast({ type: "error", description: t("error") });
+        return;
+      }
 
-      storePaymentSession(intentData.sessionId, intentData.expiresAt);
+      const publicId = process.env.NEXT_PUBLIC_CLOUDPAYMENTS_PUBLIC_ID;
+      if (!publicId) {
+        toast({ type: "error", description: t("error") });
+        return;
+      }
 
-      const returnUrl = buildReturnUrl(intentData.sessionId);
-      const widgetOptions = createWidgetOptions(locale, session.user.email);
+      try {
+        dispatch({ type: "START_PAYMENT", plan });
 
-      const widget: CloudPaymentsWidget = new window.cp.CloudPayments(
-        widgetOptions
-      );
+        const intentRes = await fetch("/api/payment/create-trial-intent", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ planName: plan }),
+        });
 
-      widget.pay(
-        "auth",
-        {
-          publicId,
-          description: t("trial.cardVerification"),
-          amount: 1,
-          currency: "RUB",
-          accountId: session.user.id,
-          email: session.user.email,
-          skin: "classic",
-          data: {
-            sessionId: intentData.sessionId,
-            planName: state.selectedPlan,
-            isTrial: true,
-          },
-          jsonData: {
-            returnUrl,
-          },
-        },
-        {
-          onSuccess: async () => {
-            await pollPaymentStatus(intentData.sessionId);
-          },
-          onFail: (reason) => {
-            dispatch({
-              type: "PAYMENT_FAILED",
-              error: typeof reason === "string" ? reason : t("error"),
-            });
-            clearPaymentSession();
-            console.error("[CloudPayments] Trial payment failed:", reason);
-            toast({ type: "error", description: t("error") });
-          },
-          onComplete: (paymentResult) => {
-            if (!paymentResult?.success) {
-              dispatch({ type: "WIDGET_CLOSED" });
-            }
-          },
+        if (!intentRes.ok) {
+          const errorData = await intentRes.json();
+          if (errorData.code === "TRIAL_ALREADY_USED") {
+            toast({ type: "error", description: t("trial.alreadyUsed") });
+            dispatch({ type: "RESET" });
+            return;
+          }
+          throw new Error("Failed to create trial intent");
         }
-      );
-    } catch (error) {
-      dispatch({
-        type: "PAYMENT_FAILED",
-        error: error instanceof Error ? error.message : t("error"),
-      });
-      console.error("Error in startTrial:", error);
-      toast({ type: "error", description: t("error") });
-    }
-  }, [session, state.selectedPlan, t, pollPaymentStatus, locale]);
 
-  const selectPlan = useCallback((plan: PlanType) => {
-    dispatch({ type: "SELECT_PLAN", plan });
-  }, []);
+        const intentData: PaymentIntentResponse = await intentRes.json();
+
+        storePaymentSession(intentData.sessionId, intentData.expiresAt, plan);
+
+        const returnUrl = buildReturnUrl(intentData.sessionId);
+        const widgetOptions = createWidgetOptions(locale, session.user.email);
+
+        const widget: CloudPaymentsWidget = new window.cp.CloudPayments(
+          widgetOptions
+        );
+
+        widget.pay(
+          "auth",
+          {
+            publicId,
+            description: t("trial.cardVerification"),
+            amount: 1,
+            currency: "RUB",
+            accountId: session.user.id,
+            email: session.user.email,
+            skin: "classic",
+            data: {
+              sessionId: intentData.sessionId,
+              planName: plan,
+              isTrial: true,
+            },
+            jsonData: {
+              returnUrl,
+            },
+          },
+          {
+            onSuccess: async () => {
+              await pollPaymentStatus(intentData.sessionId);
+            },
+            onFail: (reason) => {
+              dispatch({
+                type: "PAYMENT_FAILED",
+                error: typeof reason === "string" ? reason : t("error"),
+              });
+              clearPaymentSession();
+              console.error("[CloudPayments] Trial payment failed:", reason);
+              toast({ type: "error", description: t("error") });
+            },
+            onComplete: (paymentResult) => {
+              if (!paymentResult?.success) {
+                dispatch({ type: "WIDGET_CLOSED" });
+              }
+            },
+          }
+        );
+      } catch (error) {
+        dispatch({
+          type: "PAYMENT_FAILED",
+          error: error instanceof Error ? error.message : t("error"),
+        });
+        console.error("Error in startTrial:", error);
+        toast({ type: "error", description: t("error") });
+      }
+    },
+    [session, t, pollPaymentStatus, locale]
+  );
 
   const reset = useCallback(() => {
     dispatch({ type: "RESET" });
@@ -441,7 +442,6 @@ export function usePayment(options: UsePaymentOptions): UsePaymentReturn {
 
   return {
     state,
-    selectPlan,
     subscribe,
     startTrial,
     reset,

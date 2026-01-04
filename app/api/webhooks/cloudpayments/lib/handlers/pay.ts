@@ -141,21 +141,7 @@ export async function handlePayWebhook(
   }
 
   if (isTrial) {
-    // Trial is only available to testers until production rollout
-    const [dbUser] = await db
-      .select({ isTester: user.isTester })
-      .from(user)
-      .where(eq(user.id, AccountId))
-      .limit(1);
-
-    if (!dbUser?.isTester) {
-      console.error(
-        `[CloudPayments:Pay] Trial not available for non-tester: ${AccountId}`
-      );
-      return Response.json({ code: 13 });
-    }
-
-    console.log("[CloudPayments:Pay] Processing trial payment for tester");
+    console.log("[CloudPayments:Pay] Processing trial payment");
     return await handleTrialPayment({
       accountId: AccountId,
       token: Token,
