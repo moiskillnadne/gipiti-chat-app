@@ -86,11 +86,17 @@ export async function GET(request: Request) {
 
       const response: PaymentStatusResponse = {
         status: "expired",
+        hasActivity: true, // Expiration means webhook processing happened
         failureReason: "Payment intent expired after 30 minutes",
       };
 
       return Response.json(response);
     }
+
+    // Determine if there was any activity on this payment intent
+    // Activity means: status changed from pending OR a transaction ID was recorded
+    const hasActivity =
+      intent.status !== "pending" || !!intent.externalTransactionId;
 
     // If succeeded, fetch subscription details
     if (intent.status === "succeeded" && intent.externalSubscriptionId) {
@@ -109,6 +115,7 @@ export async function GET(request: Request) {
         const sub = subscriptions[0];
         const response: PaymentStatusResponse = {
           status: "succeeded",
+          hasActivity: true,
           subscription: {
             id: sub.id,
             planName: intent.planName,
@@ -123,6 +130,7 @@ export async function GET(request: Request) {
     // Return current status
     const response: PaymentStatusResponse = {
       status: intent.status as PaymentStatusResponse["status"],
+      hasActivity,
       failureReason: intent.failureReason || undefined,
     };
 
