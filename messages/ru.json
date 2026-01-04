@@ -205,19 +205,49 @@
         "title": "Начните с 3-дневного пробного периода",
         "description": "Попробуйте все функции бесплатно 3 дня. После пробного периода с вас спишется {price}.",
         "descriptionWithPrice": "Бесплатно {days} дня, затем {price}",
-        "startButton": "Начать бесплатный период",
+        "startButton": "Начать бесплатно",
         "hint": "Только проверка карты — без списания во время пробного периода",
         "orPayNow": "или оплатите сейчас",
         "cardVerification": "Проверка карты",
         "alreadyUsed": "Вы уже использовали бесплатный пробный период"
       },
       "features": {
-        "title": "Что включено:",
-        "tokens": "1М токенов в месяц",
-        "messages": "500 сообщений в период",
-        "models": "Доступ ко всем современным думающим моделям (ChatGPT, Gemini, Opus)",
-        "search": "Веб-поиск при помощи моделей",
-        "fileSize": "Работа с файлами до 10МБ (Документы, таблицы, изображения)"
+        "title": "Сравнение тарифов",
+        "table": {
+          "feature": "Функция",
+          "tokens": "Токены",
+          "messages": "Сообщения",
+          "searches": "Веб-поисков",
+          "models": "Доступные модели",
+          "reasoning": "Настройка глубины размышлений",
+          "imageGeneration": "Генерация изображений",
+          "imageModels": "GPT Image 1.5, Gemini 3 Pro Image (Nano banana pro)",
+          "fileAnalysis": "Анализ документов",
+          "fileTypes": "до 10МБ - PDF, JPG, PNG",
+          "modelsList": "ChatGPT 5.2, Gemini 3 Pro, Opus 4.5, Grok 4.1, GPT-Image-1.5, Gemini 3 Pro Image"
+        },
+        "periods": {
+          "monthly": "Месяц",
+          "quarterly": "Квартал",
+          "annual": "Год"
+        },
+        "values": {
+          "monthly": {
+            "tokens": "1М",
+            "messages": "500",
+            "searches": "250"
+          },
+          "quarterly": {
+            "tokens": "3М",
+            "messages": "1 500",
+            "searches": "750"
+          },
+          "annual": {
+            "tokens": "12М",
+            "messages": "6 000",
+            "searches": "3 000"
+          }
+        }
       },
       "subscribeButton": "Подписаться",
       "subscribing": "Обработка...",

@@ -212,12 +212,42 @@
         "alreadyUsed": "You have already used your free trial"
       },
       "features": {
-        "title": "What's included:",
-        "tokens": "1M tokens per month",
-        "messages": "500 messages per period",
-        "models": "Access to all latest reasoning models (ChatGPT, Gemini, Opus)",
-        "search": "Web search using models",
-        "fileSize": "Work with files up to 10MB (Documents, spreadsheets, images)"
+        "title": "Compare Plans",
+        "table": {
+          "feature": "Feature",
+          "tokens": "Tokens",
+          "messages": "Messages",
+          "searches": "Web searches",
+          "models": "Available models",
+          "reasoning": "Adjustable reasoning depth",
+          "imageGeneration": "Image generation",
+          "imageModels": "GPT Image 1.5, Gemini 3 Pro Image (Nano banana pro)",
+          "fileAnalysis": "Document analysis",
+          "fileTypes": "up to 10MB - PDF, JPG, PNG",
+          "modelsList": "ChatGPT 5.2, Gemini 3 Pro, Opus 4.5, Grok 4.1, GPT-Image-1.5, Gemini 3 Pro Image"
+        },
+        "periods": {
+          "monthly": "Monthly",
+          "quarterly": "Quarterly",
+          "annual": "Annual"
+        },
+        "values": {
+          "monthly": {
+            "tokens": "1M",
+            "messages": "500",
+            "searches": "250"
+          },
+          "quarterly": {
+            "tokens": "3M",
+            "messages": "1,500",
+            "searches": "750"
+          },
+          "annual": {
+            "tokens": "12M",
+            "messages": "6,000",
+            "searches": "3,000"
+          }
+        }
       },
       "subscribeButton": "Subscribe",
       "subscribing": "Processing...",

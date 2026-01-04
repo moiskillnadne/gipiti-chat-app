@@ -7,7 +7,7 @@ import { Suspense } from "react";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { PaymentLoadingOverlay } from "@/components/payment-loading-overlay";
 import { Loader } from "../../../components/elements/loader";
-import { FeaturesList } from "./components/FeaturesList";
+import { FeaturesTable } from "./components/FeaturesTable";
 import { PlanSelector } from "./components/PlanSelector";
 import { TesterPlan } from "./components/TesterPlan";
 import { usePayment } from "./hooks/usePayment";
@@ -59,8 +59,7 @@ function SubscribePage() {
 
   const isTester = session?.user?.isTester ?? false;
   const hasUsedTrial = session?.user?.hasUsedTrial ?? true;
-  // Trial is only available to testers until production rollout
-  const canStartTrial = isTester && !hasUsedTrial;
+  const canStartTrial = !hasUsedTrial;
 
   const { state, subscribe, startTrial, reset } = usePayment({
     isTester,
@@ -105,7 +104,7 @@ function SubscribePage() {
         )}
 
         {/* Features List */}
-        <FeaturesList />
+        <FeaturesTable />
 
         {/* Footer Links */}
         <div className="flex flex-col items-center gap-4">

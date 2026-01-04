@@ -39,14 +39,6 @@ export async function handleCheckWebhook(
 
   const isTrial = data?.isTrial === true && Number(Amount) === 1;
   if (isTrial) {
-    // Trial is only available to testers until production rollout
-    if (!users[0].isTester) {
-      console.error(
-        `[CloudPayments:Check] Trial not available for non-tester: ${AccountId}`
-      );
-      return Response.json({ code: 13 });
-    }
-
     console.log("[CloudPayments:Check] Trial payment - 1 RUB verification");
     return Response.json({ code: 0 });
   }

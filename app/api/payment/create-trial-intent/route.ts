@@ -29,20 +29,12 @@ export async function POST(request: Request) {
     }
 
     const [dbUser] = await db
-      .select({ isTester: user.isTester, trialUsedAt: user.trialUsedAt })
+      .select({ trialUsedAt: user.trialUsedAt })
       .from(user)
       .where(eq(user.id, session.user.id))
       .limit(1);
 
-    // Trial is only available to testers until production rollout
-    if (!dbUser?.isTester) {
-      return Response.json(
-        { error: "Trial is not available", code: "TRIAL_NOT_AVAILABLE" },
-        { status: 403 }
-      );
-    }
-
-    if (dbUser?.trialUsedAt !== null) {
+    if (!dbUser || dbUser.trialUsedAt !== null) {
       return Response.json(
         { error: "Trial already used", code: "TRIAL_ALREADY_USED" },
         { status: 400 }
