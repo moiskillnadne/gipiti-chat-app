@@ -120,6 +120,8 @@ export type PaymentIntentResponse = {
 
 export type PaymentStatusResponse = {
   status: PaymentStatus;
+  /** Indicates if the payment intent has any activity (webhook received or status changed from pending) */
+  hasActivity?: boolean;
   subscription?: {
     id: string;
     planName: string;

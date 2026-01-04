@@ -21,6 +21,7 @@ import {
   getStoredPaymentSession,
   isPaymentSessionExpired,
   storePaymentSession,
+  storeWidgetOpened,
 } from "../utils/payment-utils";
 import {
   createInitialState,
@@ -197,10 +198,79 @@ export function usePayment(options: UsePaymentOptions): UsePaymentReturn {
       clientLog.info("[Payment] SessionId found", { sessionId });
 
       // Check expiration
-      const { expiresAt, plan } = getStoredPaymentSession();
+      const { expiresAt, plan, widgetOpened } = getStoredPaymentSession();
       if (isPaymentSessionExpired(expiresAt)) {
+        clientLog.info("[Payment] Session expired, clearing");
         clearPaymentSession();
         return;
+      }
+
+      // CRITICAL CHECK: If widget was never opened (user refreshed before widget.pay()),
+      // this is a stale session from an incomplete payment flow. Clear it.
+      if (!widgetOpened) {
+        clientLog.info(
+          "[Payment] Widget never opened - user refreshed before widget loaded. Clearing stale session.",
+          { sessionId }
+        );
+        clearPaymentSession();
+        return;
+      }
+
+      clientLog.info(
+        "[Payment] Widget was opened, checking server for activity",
+        {
+          sessionId,
+          widgetOpened,
+        }
+      );
+
+      // Check server-side for any activity on this payment intent
+      try {
+        const res = await fetch(
+          `/api/payment/status?sessionId=${encodeURIComponent(sessionId)}`,
+          { signal: abortController.signal }
+        );
+
+        if (res.ok) {
+          const data: PaymentStatusResponse = await res.json();
+
+          // If no activity and still pending, this is likely a stale session
+          // where the user opened the widget but never completed payment
+          if (!data.hasActivity && data.status === "pending") {
+            clientLog.info(
+              "[Payment] No server activity and status is pending. Clearing stale session.",
+              { sessionId, status: data.status }
+            );
+            clearPaymentSession();
+            return;
+          }
+
+          clientLog.info("[Payment] Server has activity, resuming polling", {
+            sessionId,
+            hasActivity: data.hasActivity,
+            status: data.status,
+          });
+        } else if (res.status === 404) {
+          // If intent not found (404), clear and allow fresh start
+          clientLog.info(
+            "[Payment] Payment intent not found on server, clearing"
+          );
+          clearPaymentSession();
+          return;
+        }
+        // For other non-ok responses, proceed with polling (may recover)
+      } catch (error) {
+        // Ignore abort errors
+        if (error instanceof Error && error.name === "AbortError") {
+          return;
+        }
+        // For network errors, proceed with polling
+        clientLog.info(
+          "[Payment] Network error checking status, proceeding with polling",
+          {
+            error,
+          }
+        );
       }
 
       // Resume polling with stored plan
@@ -324,6 +394,10 @@ export function usePayment(options: UsePaymentOptions): UsePaymentReturn {
             },
           }
         );
+
+        // Mark that widget.pay() was called - this is the checkpoint for session recovery.
+        // If user refreshes before this point, the session will be cleared as stale.
+        storeWidgetOpened();
       } catch (error) {
         dispatch({
           type: "PAYMENT_FAILED",
@@ -423,6 +497,10 @@ export function usePayment(options: UsePaymentOptions): UsePaymentReturn {
             },
           }
         );
+
+        // Mark that widget.pay() was called - this is the checkpoint for session recovery.
+        // If user refreshes before this point, the session will be cleared as stale.
+        storeWidgetOpened();
       } catch (error) {
         dispatch({
           type: "PAYMENT_FAILED",

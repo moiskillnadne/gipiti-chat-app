@@ -154,6 +154,31 @@ export function clearPaymentSession(): void {
   localStorage.removeItem("payment_session_id");
   localStorage.removeItem("payment_expires_at");
   localStorage.removeItem("payment_plan");
+  localStorage.removeItem("payment_widget_opened");
+}
+
+/**
+ * Store the timestamp when widget.pay() was called.
+ * This is used to distinguish between "intent created" and "widget actually opened".
+ */
+export function storeWidgetOpened(): void {
+  localStorage.setItem("payment_widget_opened", new Date().toISOString());
+}
+
+/**
+ * Check if the widget was opened (widget.pay() was called).
+ * Returns the timestamp if set, null otherwise.
+ */
+export function getWidgetOpenedTimestamp(): string | null {
+  return localStorage.getItem("payment_widget_opened");
+}
+
+/**
+ * Check if the widget was opened for the current session.
+ * Used to prevent false verification modals when user refreshes before widget opens.
+ */
+export function hasWidgetOpened(): boolean {
+  return localStorage.getItem("payment_widget_opened") !== null;
 }
 
 /**
@@ -163,11 +188,13 @@ export function getStoredPaymentSession(): {
   sessionId: string | null;
   expiresAt: string | null;
   plan: PlanType | null;
+  widgetOpened: string | null;
 } {
   return {
     sessionId: localStorage.getItem("payment_session_id"),
     expiresAt: localStorage.getItem("payment_expires_at"),
     plan: localStorage.getItem("payment_plan") as PlanType | null,
+    widgetOpened: localStorage.getItem("payment_widget_opened"),
   };
 }
 
