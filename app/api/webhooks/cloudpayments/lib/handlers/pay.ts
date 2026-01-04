@@ -31,6 +31,7 @@ export async function handlePayWebhook(
     CardLastFour,
     CardType,
     TransactionId,
+    Email,
   } = payload;
 
   console.log(
@@ -142,8 +143,18 @@ export async function handlePayWebhook(
 
   if (isTrial) {
     console.log("[CloudPayments:Pay] Processing trial payment");
+
+    const users = await db
+      .select()
+      .from(user)
+      .where(eq(user.id, AccountId))
+      .limit(1);
+
+    const userEmail = Email ?? users.at(0)?.email ?? "";
+
     return await handleTrialPayment({
       accountId: AccountId,
+      email: userEmail,
       token: Token,
       transactionId: TransactionId,
       planName,
@@ -401,6 +412,7 @@ export async function handlePayWebhook(
 
 async function handleTrialPayment({
   accountId,
+  email,
   token,
   transactionId,
   planName,
@@ -409,6 +421,7 @@ async function handleTrialPayment({
   cardMask,
 }: {
   accountId: string;
+  email: string;
   token?: string;
   transactionId: number;
   planName: string;
@@ -446,6 +459,7 @@ async function handleTrialPayment({
     );
     const subscriptionResult = await createSubscription({
       token: token ?? "",
+      email,
       accountId,
       description: tier.displayName.en,
       amount: tier.price.RUB,
