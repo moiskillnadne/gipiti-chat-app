@@ -21,4 +21,3 @@ export function CheckIcon({ className }: CheckIconProps) {
     </svg>
   );
 }
-
