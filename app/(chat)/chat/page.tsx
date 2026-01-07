@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
+import { auth } from "@/app/(auth)/auth";
 import { Chat } from "@/components/chat";
 import { DataStreamHandler } from "@/components/data-stream-handler";
 import { generateUUID } from "@/lib/utils";
-import { auth } from "../(auth)/auth";
 
 export default async function Page() {
   const session = await auth();
@@ -26,3 +26,4 @@ export default async function Page() {
     </>
   );
 }
+

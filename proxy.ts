@@ -77,7 +77,17 @@ export async function proxy(request: NextRequest) {
     "/reset-password",
   ].includes(pathname);
 
-  const isPublicRoute = pathname.startsWith("/legal/");
+  const isPublicRoute = pathname.startsWith("/legal/") || pathname === "/";
+
+  // Redirect authenticated users from landing page to chat
+  if (
+    token &&
+    pathname === "/" &&
+    token.emailVerified &&
+    token.hasActiveSubscription
+  ) {
+    return NextResponse.redirect(new URL("/chat", request.url));
+  }
 
   // Unauthenticated users can only access auth routes and public routes
   if (!token && !isAuthRoute && !isPublicRoute) {
@@ -126,6 +136,7 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     "/",
+    "/chat",
     "/chat/:id",
     "/login",
     "/register",
