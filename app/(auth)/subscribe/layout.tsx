@@ -7,8 +7,7 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
   openGraph: {
     title: "Тарифы GIPITI - выберите подходящий план",
-    description:
-      "Тарифы от 1 999 ₽/месяц. 3 дня бесплатного пробного периода.",
+    description: "Тарифы от 1 999 ₽/месяц. 3 дня бесплатного пробного периода.",
     type: "website",
   },
 };
@@ -20,4 +19,3 @@ export default function SubscribeLayout({
 }) {
   return children;
 }
-
