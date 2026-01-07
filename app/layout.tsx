@@ -11,13 +11,46 @@ import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://chat.vercel.ai"),
-  title: "GIPITI",
+  metadataBase: new URL("https://gipiti.ru"),
+  title: {
+    default: "GIPITI - AI-чат с ChatGPT, Gemini, Claude и Grok",
+    template: "%s | GIPITI",
+  },
   description:
-    "Gipiti is a platform for creating and sharing AI-powered tools.",
+    "GIPITI — платформа с доступом к лучшим AI-моделям: ChatGPT 5.2, Gemini 3 Pro, Claude Opus 4.5 и Grok 4.1. Генерация текста, изображений, анализ документов.",
+  keywords: [
+    "AI чат",
+    "ChatGPT",
+    "Gemini",
+    "Claude",
+    "Grok",
+    "нейросеть",
+    "искусственный интеллект",
+    "генерация текста",
+    "генерация изображений",
+  ],
+  authors: [{ name: "GIPITI" }],
+  creator: "GIPITI",
   icons: {
     icon: "/icon.png",
     apple: "/apple-icon.png",
+  },
+  openGraph: {
+    type: "website",
+    locale: "ru_RU",
+    url: "https://gipiti.ru",
+    siteName: "GIPITI",
+    title: "GIPITI - AI-чат с ChatGPT, Gemini, Claude и Grok",
+    description: "Доступ к лучшим AI-моделям в одном месте",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "GIPITI - AI-чат с ChatGPT, Gemini, Claude и Grok",
+    description: "Доступ к лучшим AI-моделям в одном месте",
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 
