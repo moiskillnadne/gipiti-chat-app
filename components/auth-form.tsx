@@ -36,7 +36,7 @@ export function AuthForm({
         <Input
           autoComplete="email"
           autoFocus
-          className="bg-muted text-md md:text-sm"
+          className="bg-muted"
           defaultValue={defaultEmail}
           id="email"
           name="email"

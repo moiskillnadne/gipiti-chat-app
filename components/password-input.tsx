@@ -103,7 +103,7 @@ export function PasswordInput({
         }}
       >
         <div className="space-y-1 pb-1">
-          <div className="flex items-center justify-between text-sm">
+          <div className="flex items-center justify-between text-base">
             <span className="text-muted-foreground">
               {t("passwordStrength")}
             </span>
@@ -144,7 +144,7 @@ export function PasswordInput({
         }}
       >
         <div className="space-y-1.5 pt-2">
-          <p className="font-medium text-muted-foreground text-sm">
+          <p className="font-medium text-base text-muted-foreground">
             {t("passwordRequirements")}
           </p>
 
@@ -154,7 +154,7 @@ export function PasswordInput({
 
               return (
                 <li
-                  className="flex items-center gap-2 text-sm transition-all duration-200"
+                  className="flex items-center gap-2 text-base transition-all duration-200"
                   key={requirement.id}
                 >
                   <span
