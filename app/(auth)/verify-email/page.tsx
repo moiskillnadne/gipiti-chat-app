@@ -97,9 +97,15 @@ function VerifyEmailPage() {
   });
 
   const handleSessionUpdate = useCallback(async () => {
-    const updatedSession = await updateSession({ emailVerified: true });
-    console.log("Updated session", updatedSession);
-    router.replace("/");
+    try {
+      await updateSession({ emailVerified: true });
+      // Redirect directly to subscribe page
+      router.replace("/subscribe");
+    } catch (error) {
+      console.error("Session update failed:", error);
+      // Fallback: still redirect to subscribe
+      router.replace("/subscribe");
+    }
   }, [updateSession, router]);
 
   // Handle cooldown timer
@@ -109,6 +115,13 @@ function VerifyEmailPage() {
       return () => clearTimeout(timer);
     }
   }, [cooldown]);
+
+  // Redirect already-verified users who somehow landed on this page
+  useEffect(() => {
+    if (session?.user?.emailVerified && !hasHandledSuccess.current) {
+      router.replace("/subscribe");
+    }
+  }, [session?.user?.emailVerified, router]);
 
   // Handle verification result
   useEffect(() => {
@@ -132,6 +145,17 @@ function VerifyEmailPage() {
       return;
     }
 
+    if (
+      verifyState.status === "already_verified" &&
+      !hasHandledSuccess.current
+    ) {
+      hasHandledSuccess.current = true;
+      toast({ type: "success", description: t("alreadyVerified") });
+      // Redirect since email is already verified
+      router.replace("/subscribe");
+      return;
+    }
+
     if (verifyState.status === "success" && !hasHandledSuccess.current) {
       hasHandledSuccess.current = true;
       toast({ type: "success", description: t("success") });
@@ -139,7 +163,14 @@ function VerifyEmailPage() {
       handleSessionUpdate();
       return;
     }
-  }, [verifyState.status, t, tErrors, tNotifications, handleSessionUpdate]);
+  }, [
+    verifyState.status,
+    t,
+    tErrors,
+    tNotifications,
+    handleSessionUpdate,
+    router,
+  ]);
 
   // Handle resend result
   useEffect(() => {

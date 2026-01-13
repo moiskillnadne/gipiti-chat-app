@@ -127,6 +127,7 @@
       "resend": "Resend Code",
       "cooldown": "Resend in {seconds}s",
       "success": "Email verified successfully! Redirecting to login...",
+      "alreadyVerified": "Email already verified! Redirecting...",
       "codeSent": "Verification code sent!",
       "rateLimited": "Please wait before requesting another code",
       "noEmail": "No email address provided",

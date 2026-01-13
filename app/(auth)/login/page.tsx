@@ -78,7 +78,8 @@ function LoginPage() {
     const callbackUrl = searchParams?.get("callbackUrl");
 
     if (!callbackUrl) {
-      return "/";
+      // Default to /chat - middleware will redirect if user needs verification or subscription
+      return "/chat";
     }
 
     if (callbackUrl.startsWith("/")) {
@@ -94,11 +95,11 @@ function LoginPage() {
         }
       } catch (error) {
         console.error("Error parsing callback URL:", error);
-        return "/";
+        return "/chat";
       }
     }
 
-    return "/";
+    return "/chat";
   }, [searchParams]);
 
   useEffect(() => {
@@ -130,7 +131,7 @@ function LoginPage() {
 
     const redirectPath = getRedirectPath();
 
-    updateSession().finally(() => {
+    updateSession().then(() => {
       router.replace(redirectPath);
     });
   }, [

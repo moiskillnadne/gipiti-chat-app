@@ -101,7 +101,7 @@ function RegisterPage() {
 
     // Update session and redirect to home (middleware will redirect to verify-email)
     updateSession().finally(() => {
-      router.replace("/");
+      router.replace("/verify-email");
     });
   }, [
     router,

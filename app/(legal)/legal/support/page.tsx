@@ -20,7 +20,7 @@ export default async function SupportPage() {
     <div className="flex min-h-dvh w-screen items-start justify-center bg-background py-12 md:py-16">
       <div className="w-full max-w-xl px-4">
         <div className="mb-4">
-          <Link href="/">
+          <Link href="/chat">
             <Button className="gap-2" variant="ghost">
               <ChevronLeftIcon size={16} />
               {tCommon("back")}
