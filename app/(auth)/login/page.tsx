@@ -20,7 +20,7 @@ import { type LoginActionState, login } from "../actions";
 
 function SupportLink({ text, linkText }: { text: string; linkText: string }) {
   return (
-    <p className="fixed right-4 bottom-4 z-50 text-gray-500 text-xs dark:text-zinc-500">
+    <p className="fixed right-4 bottom-4 z-50 text-base text-gray-500 dark:text-zinc-500">
       {text}{" "}
       <Link className="hover:underline" href="/legal/support">
         {linkText}
@@ -47,7 +47,7 @@ function LoginPageFallback() {
           <h3 className="font-semibold text-xl dark:text-zinc-50">
             {t("title")}
           </h3>
-          <p className="text-gray-500 text-sm dark:text-zinc-400">
+          <p className="text-base text-gray-500 dark:text-zinc-400">
             {t("subtitle")}
           </p>
         </div>
@@ -149,14 +149,14 @@ function LoginPage() {
           <h3 className="font-semibold text-2xl dark:text-zinc-50">
             {t("title")}
           </h3>
-          <p className="text-gray-500 text-sm dark:text-zinc-400">
+          <p className="text-base text-gray-500 dark:text-zinc-400">
             {t("subtitle")}
           </p>
         </div>
         <AuthForm action={formAction} mode="login">
           <div className="flex items-center justify-end">
             <Link
-              className="text-gray-600 text-sm hover:underline dark:text-zinc-400"
+              className="text-base text-gray-600 hover:underline dark:text-zinc-400"
               href="/forgot-password"
             >
               {t("forgotPasswordLink")}
@@ -165,7 +165,7 @@ function LoginPage() {
           <SubmitButton isSuccessful={isSuccessful}>
             {t("signInButton")}
           </SubmitButton>
-          <p className="mt-4 text-center text-gray-600 text-sm dark:text-zinc-400">
+          <p className="mt-4 text-center text-base text-gray-600 dark:text-zinc-400">
             {t("noAccount")}{" "}
             <Link
               className="font-semibold text-gray-800 hover:underline dark:text-zinc-200"
