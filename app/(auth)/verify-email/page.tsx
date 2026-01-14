@@ -80,6 +80,7 @@ function VerifyEmailPage() {
   const email = session?.user?.email || "";
   const [code, setCode] = useState("");
   const [cooldown, setCooldown] = useState(0);
+  const [isUpdatingSession, setIsUpdatingSession] = useState(false);
   const hasHandledSuccess = useRef(false);
 
   const [verifyState, verifyAction] = useActionState<
@@ -97,14 +98,24 @@ function VerifyEmailPage() {
   });
 
   const handleSessionUpdate = useCallback(async () => {
+    setIsUpdatingSession(true);
     try {
-      await updateSession({ emailVerified: true });
-      // Redirect directly to subscribe page
-      router.replace("/subscribe");
+      const updatedSession = await updateSession({ emailVerified: true });
+      console.log("Session update result:", updatedSession);
+
+      if (!updatedSession?.user?.emailVerified) {
+        console.warn(
+          "Session update did not reflect emailVerified change, redirecting anyway"
+        );
+        setTimeout(() => {
+          setIsUpdatingSession(false);
+          router.replace("/subscribe");
+        }, 1500);
+      }
     } catch (error) {
       console.error("Session update failed:", error);
-      // Fallback: still redirect to subscribe
-      router.replace("/subscribe");
+      setIsUpdatingSession(false);
+      setTimeout(() => router.replace("/subscribe"), 1000);
     }
   }, [updateSession, router]);
 
@@ -119,9 +130,24 @@ function VerifyEmailPage() {
   // Redirect already-verified users who somehow landed on this page
   useEffect(() => {
     if (session?.user?.emailVerified && !hasHandledSuccess.current) {
+      hasHandledSuccess.current = true;
+      console.log("Session emailVerified detected, redirecting to /subscribe");
+      setIsUpdatingSession(false);
       router.replace("/subscribe");
     }
   }, [session?.user?.emailVerified, router]);
+
+  // Safety timeout: if updating for too long, redirect anyway
+  useEffect(() => {
+    if (isUpdatingSession) {
+      const timeout = setTimeout(() => {
+        console.warn("Session update timeout - redirecting anyway");
+        setIsUpdatingSession(false);
+        router.replace("/subscribe");
+      }, 5000);
+      return () => clearTimeout(timeout);
+    }
+  }, [isUpdatingSession, router]);
 
   // Handle verification result
   useEffect(() => {
@@ -263,6 +289,8 @@ function VerifyEmailPage() {
     );
   }
 
+  console.log("verifyState", verifyState);
+
   return (
     <div className="flex h-dvh w-screen items-start justify-center bg-background pt-12 md:items-center md:pt-0">
       <div className="flex w-full max-w-md flex-col gap-8 overflow-hidden rounded-2xl">
@@ -283,7 +311,7 @@ function VerifyEmailPage() {
           className="flex flex-col items-center gap-6 px-4 sm:px-16"
         >
           <InputOTP
-            disabled={verifyState.status === "in_progress"}
+            disabled={verifyState.status === "in_progress" || isUpdatingSession}
             maxLength={6}
             onChange={setCode}
             onComplete={handleCodeComplete}
@@ -308,7 +336,11 @@ function VerifyEmailPage() {
           <p className="text-muted-foreground text-sm">{t("noCode")}</p>
           <Button
             className="w-full"
-            disabled={cooldown > 0 || resendState.status === "in_progress"}
+            disabled={
+              cooldown > 0 ||
+              resendState.status === "in_progress" ||
+              isUpdatingSession
+            }
             onClick={handleResend}
             variant="outline"
           >
@@ -316,7 +348,8 @@ function VerifyEmailPage() {
           </Button>
 
           <button
-            className="mt-2 font-semibold text-gray-800 hover:underline dark:text-zinc-200"
+            className="mt-2 font-semibold text-gray-800 hover:underline disabled:cursor-not-allowed disabled:opacity-50 dark:text-zinc-200"
+            disabled={isUpdatingSession}
             onClick={() => signOut({ callbackUrl: "/login" })}
             type="button"
           >
