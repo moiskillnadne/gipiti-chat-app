@@ -21,15 +21,13 @@ export function AuthForm({
   mode?: "login" | "register";
 }) {
   const t = useTranslations(mode === "login" ? "auth.login" : "auth.register");
+  const [email, setEmail] = useState(defaultEmail);
   const [password, setPassword] = useState("");
 
   return (
     <Form action={action} className="flex flex-col gap-4 px-4 sm:px-16">
       <div className="flex flex-col gap-2">
-        <Label
-          className="font-normal text-zinc-600 dark:text-zinc-400"
-          htmlFor="email"
-        >
+        <Label className="font-normal" htmlFor="email-display">
           {t("email")}
         </Label>
 
@@ -37,13 +35,17 @@ export function AuthForm({
           autoComplete="email"
           autoFocus
           className="bg-muted"
-          defaultValue={defaultEmail}
-          id="email"
-          name="email"
+          id="email-display"
+          name="email-display"
+          onChange={(e) => setEmail(e.target.value)}
           placeholder={t("emailPlaceholder")}
           required
           type="email"
+          value={email}
         />
+
+        {/* Hidden input to submit email with form */}
+        <input name="email" type="hidden" value={email} />
       </div>
 
       <div className="flex flex-col gap-2">

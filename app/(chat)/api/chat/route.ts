@@ -209,9 +209,14 @@ export async function POST(request: Request) {
         return new ChatSDKError("forbidden:chat").toResponse();
       }
     } else {
+      const t0 = performance.now();
       const title = await generateTitleFromUserMessage({
         message,
       });
+      const t1 = performance.now();
+      console.log("Time taken to generate title:", t1 - t0, "milliseconds");
+
+      console.log("title", title);
 
       await saveChat({
         id,

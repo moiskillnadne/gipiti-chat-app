@@ -49,9 +49,9 @@ export function PasswordInput({
   const shouldShowStrength = showRequirements && value.length > 0;
 
   return (
-    <div className="space-y-2">
+    <div className="flex flex-col gap-2">
       {label && (
-        <Label htmlFor={id}>
+        <Label className="font-normal" htmlFor={id}>
           {label}
           {required && <span className="ml-1 text-red-500">*</span>}
         </Label>

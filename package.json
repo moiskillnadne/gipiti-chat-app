@@ -16,7 +16,8 @@
     "db:pull": "drizzle-kit pull",
     "db:check": "drizzle-kit check",
     "db:up": "drizzle-kit up",
-    "test": "export PLAYWRIGHT=True && pnpm exec playwright test"
+    "test": "export PLAYWRIGHT=True && pnpm exec playwright test",
+    "models:list": "tsx scripts/fetch-gateway-models.ts"
   },
   "dependencies": {
     "@ai-sdk/gateway": "^1.0.15",
