@@ -155,6 +155,7 @@ export type VerifyEmailActionState = {
     | "failed"
     | "invalid_code"
     | "expired_code"
+    | "already_verified"
     | "invalid_data";
 };
 
@@ -175,7 +176,12 @@ export const verifyEmail = async (
     const foundUser = await getUserByVerificationCode({ hashedCode });
 
     if (!foundUser) {
-      console.error("[VerifyEmail]User not found");
+      // Check if email is already verified (code was already used successfully)
+      const [existingUser] = await getUserByEmail(validatedData.email);
+      if (existingUser?.emailVerified) {
+        return { status: "already_verified" };
+      }
+      console.error("[VerifyEmail] User not found");
       return { status: "invalid_code" };
     }
 

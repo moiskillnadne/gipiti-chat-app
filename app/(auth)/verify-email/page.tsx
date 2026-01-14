@@ -13,7 +13,9 @@ import {
   useRef,
   useState,
 } from "react";
-import { LanguageSwitcher } from "@/components/language-switcher";
+
+import { AuthPageHeader } from "@/components/auth-page-header";
+import { AuthPageLayout } from "@/components/auth-page-layout";
 import { SubmitButton } from "@/components/submit-button";
 import { toast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
@@ -29,17 +31,6 @@ import {
   verifyEmail,
 } from "../actions";
 
-function SupportLink({ text, linkText }: { text: string; linkText: string }) {
-  return (
-    <p className="fixed right-4 bottom-4 z-50 text-gray-500 text-xs dark:text-zinc-500">
-      {text}{" "}
-      <Link className="hover:underline" href="/legal/support">
-        {linkText}
-      </Link>
-    </p>
-  );
-}
-
 export default function Page() {
   return (
     <Suspense fallback={<VerifyEmailPageFallback />}>
@@ -52,18 +43,9 @@ function VerifyEmailPageFallback() {
   const t = useTranslations("auth.verification");
 
   return (
-    <div className="flex h-dvh w-screen items-start justify-center bg-background pt-12 md:items-center md:pt-0">
-      <div className="flex w-full max-w-md flex-col gap-12 overflow-hidden rounded-2xl">
-        <div className="flex flex-col items-center justify-center gap-2 px-4 text-center sm:px-16">
-          <h3 className="font-semibold text-xl dark:text-zinc-50">
-            {t("title")}
-          </h3>
-          <p className="text-gray-500 text-sm dark:text-zinc-400">
-            {t("subtitle")}
-          </p>
-        </div>
-      </div>
-    </div>
+    <AuthPageLayout>
+      <AuthPageHeader subtitle={t("subtitle")} title={t("title")} />
+    </AuthPageLayout>
   );
 }
 
@@ -73,36 +55,47 @@ function VerifyEmailPage() {
   const tErrors = useTranslations("auth.errors");
   const tNotifications = useTranslations("common.notifications");
   const tNav = useTranslations("common.navigation");
-  const tSupport = useTranslations("legal.support");
   const router = useRouter();
   const { data: session, status, update: updateSession } = useSession();
 
   const email = session?.user?.email || "";
   const [code, setCode] = useState("");
   const [cooldown, setCooldown] = useState(0);
+  const [isUpdatingSession, setIsUpdatingSession] = useState(false);
   const hasHandledSuccess = useRef(false);
 
   const [verifyState, verifyAction] = useActionState<
     VerifyEmailActionState,
     FormData
-  >(verifyEmail, {
-    status: "idle",
-  });
+  >(verifyEmail, { status: "idle" });
 
   const [resendState, resendAction] = useActionState<
     ResendVerificationActionState,
     FormData
-  >(resendVerificationCode, {
-    status: "idle",
-  });
+  >(resendVerificationCode, { status: "idle" });
 
   const handleSessionUpdate = useCallback(async () => {
-    const updatedSession = await updateSession({ emailVerified: true });
-    console.log("Updated session", updatedSession);
-    router.replace("/");
+    setIsUpdatingSession(true);
+    try {
+      const updatedSession = await updateSession({ emailVerified: true });
+      console.log("Session update result:", updatedSession);
+
+      if (!updatedSession?.user?.emailVerified) {
+        console.warn(
+          "Session update did not reflect emailVerified change, redirecting anyway"
+        );
+        setTimeout(() => {
+          setIsUpdatingSession(false);
+          router.replace("/subscribe");
+        }, 1500);
+      }
+    } catch (error) {
+      console.error("Session update failed:", error);
+      setIsUpdatingSession(false);
+      setTimeout(() => router.replace("/subscribe"), 1000);
+    }
   }, [updateSession, router]);
 
-  // Handle cooldown timer
   useEffect(() => {
     if (cooldown > 0) {
       const timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
@@ -110,7 +103,26 @@ function VerifyEmailPage() {
     }
   }, [cooldown]);
 
-  // Handle verification result
+  useEffect(() => {
+    if (session?.user?.emailVerified && !hasHandledSuccess.current) {
+      hasHandledSuccess.current = true;
+      console.log("Session emailVerified detected, redirecting to /subscribe");
+      setIsUpdatingSession(false);
+      router.replace("/subscribe");
+    }
+  }, [session?.user?.emailVerified, router]);
+
+  useEffect(() => {
+    if (isUpdatingSession) {
+      const timeout = setTimeout(() => {
+        console.warn("Session update timeout - redirecting anyway");
+        setIsUpdatingSession(false);
+        router.replace("/subscribe");
+      }, 5000);
+      return () => clearTimeout(timeout);
+    }
+  }, [isUpdatingSession, router]);
+
   useEffect(() => {
     if (verifyState.status === "invalid_code") {
       toast({ type: "error", description: tErrors("invalidCode") });
@@ -132,16 +144,30 @@ function VerifyEmailPage() {
       return;
     }
 
+    if (
+      verifyState.status === "already_verified" &&
+      !hasHandledSuccess.current
+    ) {
+      hasHandledSuccess.current = true;
+      toast({ type: "success", description: t("alreadyVerified") });
+      router.replace("/subscribe");
+      return;
+    }
+
     if (verifyState.status === "success" && !hasHandledSuccess.current) {
       hasHandledSuccess.current = true;
       toast({ type: "success", description: t("success") });
-
       handleSessionUpdate();
-      return;
     }
-  }, [verifyState.status, t, tErrors, tNotifications, handleSessionUpdate]);
+  }, [
+    verifyState.status,
+    t,
+    tErrors,
+    tNotifications,
+    handleSessionUpdate,
+    router,
+  ]);
 
-  // Handle resend result
   useEffect(() => {
     if (resendState.status === "rate_limited") {
       setCooldown(resendState.cooldownSeconds || 60);
@@ -197,109 +223,97 @@ function VerifyEmailPage() {
     [email, verifyAction]
   );
 
-  // Show loading state while session is being fetched
   if (status === "loading") {
     return <VerifyEmailPageFallback />;
   }
 
   if (!email) {
     return (
-      <div className="flex h-dvh w-screen items-start justify-center bg-background pt-12 md:items-center md:pt-0">
-        <div className="flex w-full max-w-md flex-col gap-12 overflow-hidden rounded-2xl">
-          <div className="flex flex-col items-center justify-center gap-2 px-4 text-center sm:px-16">
-            <h3 className="font-semibold text-2xl dark:text-zinc-50">
-              {t("title")}
-            </h3>
-            <p className="text-gray-500 text-sm dark:text-zinc-400">
-              {t("noEmail")}
-            </p>
-            <Link
-              className="mt-4 font-semibold text-gray-800 hover:underline dark:text-zinc-200"
-              href="/register"
-            >
-              {t("backToRegister")}
-            </Link>
-          </div>
-        </div>
-        <div className="fixed bottom-4 left-4 z-50">
-          <LanguageSwitcher />
-        </div>
-        <SupportLink
-          linkText={tSupport("linkText")}
-          text={tSupport("needHelp")}
-        />
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex h-dvh w-screen items-start justify-center bg-background pt-12 md:items-center md:pt-0">
-      <div className="flex w-full max-w-md flex-col gap-8 overflow-hidden rounded-2xl">
+      <AuthPageLayout>
         <div className="flex flex-col items-center justify-center gap-2 px-4 text-center sm:px-16">
           <h3 className="font-semibold text-2xl dark:text-zinc-50">
             {t("title")}
           </h3>
           <p className="text-gray-500 text-sm dark:text-zinc-400">
-            {t("subtitle")}
+            {t("noEmail")}
           </p>
-          <p className="mt-2 text-muted-foreground text-sm">
-            {t("sentTo")} <strong>{email}</strong>
-          </p>
+          <Link
+            className="mt-4 font-semibold text-gray-800 hover:underline dark:text-zinc-200"
+            href="/register"
+          >
+            {t("backToRegister")}
+          </Link>
         </div>
+      </AuthPageLayout>
+    );
+  }
 
-        <form
-          action={handleVerify}
-          className="flex flex-col items-center gap-6 px-4 sm:px-16"
+  console.log("verifyState", verifyState);
+
+  return (
+    <AuthPageLayout>
+      <div className="flex flex-col items-center justify-center gap-2 px-4 text-center sm:px-16">
+        <h3 className="font-semibold text-2xl dark:text-zinc-50">
+          {t("title")}
+        </h3>
+        <p className="text-gray-500 text-sm dark:text-zinc-400">
+          {t("subtitle")}
+        </p>
+        <p className="mt-2 text-muted-foreground text-sm">
+          {t("sentTo")} <strong>{email}</strong>
+        </p>
+      </div>
+
+      <form
+        action={handleVerify}
+        className="flex flex-col items-center gap-6 px-4 sm:px-16"
+      >
+        <InputOTP
+          disabled={verifyState.status === "in_progress" || isUpdatingSession}
+          maxLength={6}
+          onChange={setCode}
+          onComplete={handleCodeComplete}
+          value={code}
         >
-          <InputOTP
-            disabled={verifyState.status === "in_progress"}
-            maxLength={6}
-            onChange={setCode}
-            onComplete={handleCodeComplete}
-            value={code}
-          >
-            <InputOTPGroup>
-              <InputOTPSlot index={0} />
-              <InputOTPSlot index={1} />
-              <InputOTPSlot index={2} />
-              <InputOTPSlot index={3} />
-              <InputOTPSlot index={4} />
-              <InputOTPSlot index={5} />
-            </InputOTPGroup>
-          </InputOTP>
+          <InputOTPGroup>
+            <InputOTPSlot index={0} />
+            <InputOTPSlot index={1} />
+            <InputOTPSlot index={2} />
+            <InputOTPSlot index={3} />
+            <InputOTPSlot index={4} />
+            <InputOTPSlot index={5} />
+          </InputOTPGroup>
+        </InputOTP>
 
-          <SubmitButton isSuccessful={verifyState.status === "success"}>
-            {t("verifyButton")}
-          </SubmitButton>
-        </form>
+        <SubmitButton isSuccessful={verifyState.status === "success"}>
+          {t("verifyButton")}
+        </SubmitButton>
+      </form>
 
-        <div className="flex flex-col items-center gap-4 px-4 sm:px-16">
-          <p className="text-muted-foreground text-sm">{t("noCode")}</p>
-          <Button
-            className="w-full"
-            disabled={cooldown > 0 || resendState.status === "in_progress"}
-            onClick={handleResend}
-            variant="outline"
-          >
-            {cooldown > 0 ? t("cooldown", { seconds: cooldown }) : t("resend")}
-          </Button>
+      <div className="flex flex-col items-center gap-4 px-4 sm:px-16">
+        <p className="text-muted-foreground text-sm">{t("noCode")}</p>
+        <Button
+          className="w-full"
+          disabled={
+            cooldown > 0 ||
+            resendState.status === "in_progress" ||
+            isUpdatingSession
+          }
+          onClick={handleResend}
+          variant="outline"
+        >
+          {cooldown > 0 ? t("cooldown", { seconds: cooldown }) : t("resend")}
+        </Button>
 
-          <button
-            className="mt-2 font-semibold text-gray-800 hover:underline dark:text-zinc-200"
-            onClick={() => signOut({ callbackUrl: "/login" })}
-            type="button"
-          >
-            {tNav("signOut")}
-          </button>
-        </div>
+        <button
+          className="mt-2 font-semibold text-gray-800 hover:underline disabled:cursor-not-allowed disabled:opacity-50 dark:text-zinc-200"
+          disabled={isUpdatingSession}
+          onClick={() => signOut({ callbackUrl: "/login" })}
+          type="button"
+        >
+          {tNav("signOut")}
+        </button>
       </div>
-      <div className="fixed bottom-4 left-4 z-50">
-        <LanguageSwitcher />
-      </div>
-      <SupportLink
-        linkText={tSupport("linkText")}
-        text={tSupport("needHelp")}
-      />
-    </div>
+    </AuthPageLayout>
   );
 }

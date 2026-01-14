@@ -63,7 +63,8 @@ export function usePayment(options: UsePaymentOptions): UsePaymentReturn {
 
   const handleSessionUpdate = useCallback(async () => {
     await updateSession({ hasActiveSubscription: true });
-    router.replace("/");
+    // Redirect directly to chat instead of relying on middleware
+    router.replace("/chat");
   }, [updateSession, router]);
 
   // Poll payment status using the payment intent system

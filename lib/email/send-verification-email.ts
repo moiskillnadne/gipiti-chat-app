@@ -98,6 +98,10 @@ export async function sendVerificationEmail({
       };
     }
 
+    console.info(
+      `[SendVerificationEmail] Verification email sent successfully to ${email}`
+    );
+
     return {
       success: true,
     };
