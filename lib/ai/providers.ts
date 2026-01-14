@@ -25,7 +25,7 @@ export const myProvider = isTestEnvironment
     })()
   : customProvider({
       languageModels: {
-        "chat-model": gateway.languageModel("xai/grok-2-vision-1212"),
+        "chat-model": gateway.languageModel("xai/grok-2-vision"),
         "chat-model-reasoning": wrapLanguageModel({
           model: gateway.languageModel("xai/grok-3-mini"),
           middleware: extractReasoningMiddleware({ tagName: "think" }),
@@ -37,8 +37,8 @@ export const myProvider = isTestEnvironment
         "grok-4.1-non-reasoning": gateway.languageModel(
           "xai/grok-4-1-fast-non-reasoning"
         ),
-        "title-model": gateway.languageModel("xai/grok-2-1212"),
-        "artifact-model": gateway.languageModel("xai/grok-2-1212"),
+        "title-model": gateway.languageModel("amazon/nova-micro"),
+        "artifact-model": gateway.languageModel("xai/grok-2-vision"),
         "gpt-5": wrapLanguageModel({
           model: gateway.languageModel("openai/gpt-5"),
           middleware: extractReasoningMiddleware({ tagName: "think" }),
