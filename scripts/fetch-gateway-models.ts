@@ -191,7 +191,7 @@ const main = async () => {
     const gatewayModels: GatewayModel[] = models.map((m) => ({
       id: m.id,
       name: m.name,
-      description: m.description,
+      description: m.description ?? undefined,
       modelType: m.modelType as ModelType,
       pricing: m.pricing
         ? {
