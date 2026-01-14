@@ -16,6 +16,7 @@ import {
 
 import { AuthPageHeader } from "@/components/auth-page-header";
 import { AuthPageLayout } from "@/components/auth-page-layout";
+import { Loader } from "@/components/elements/loader";
 import { SubmitButton } from "@/components/submit-button";
 import { toast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
@@ -45,6 +46,7 @@ function VerifyEmailPageFallback() {
   return (
     <AuthPageLayout>
       <AuthPageHeader subtitle={t("subtitle")} title={t("title")} />
+      <Loader size={30} />
     </AuthPageLayout>
   );
 }

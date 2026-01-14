@@ -9,6 +9,7 @@ import { Suspense, useActionState, useEffect, useState } from "react";
 import { AuthForm } from "@/components/auth-form";
 import { AuthPageHeader } from "@/components/auth-page-header";
 import { AuthPageLayout } from "@/components/auth-page-layout";
+import { Loader } from "@/components/elements/loader";
 import { SubmitButton } from "@/components/submit-button";
 import { toast } from "@/components/toast";
 import { type RegisterActionState, register } from "../actions";
@@ -27,6 +28,7 @@ function RegisterPageFallback() {
   return (
     <AuthPageLayout>
       <AuthPageHeader subtitle={t("subtitle")} title={t("title")} />
+      <Loader size={30} />
     </AuthPageLayout>
   );
 }
