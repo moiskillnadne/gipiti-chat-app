@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { Suspense, useActionState, useEffect, useState } from "react";
 
-import { LanguageSwitcher } from "@/components/language-switcher";
+import { AuthPageHeader } from "@/components/auth-page-header";
+import { AuthPageLayout } from "@/components/auth-page-layout";
 import { SubmitButton } from "@/components/submit-button";
 import { toast } from "@/components/toast";
 import { Input } from "@/components/ui/input";
@@ -16,17 +17,6 @@ import {
   type ForgotPasswordActionState,
   requestPasswordReset,
 } from "../actions";
-
-function SupportLink({ text, linkText }: { text: string; linkText: string }) {
-  return (
-    <p className="fixed right-4 bottom-4 z-50 text-gray-500 text-xs dark:text-zinc-500">
-      {text}{" "}
-      <Link className="hover:underline" href="/legal/support">
-        {linkText}
-      </Link>
-    </p>
-  );
-}
 
 export default function Page() {
   return (
@@ -40,25 +30,15 @@ function ForgotPasswordPageFallback() {
   const t = useTranslations("auth.forgotPassword");
 
   return (
-    <div className="flex h-dvh w-screen items-start justify-center bg-background pt-12 md:items-center md:pt-0">
-      <div className="flex w-full max-w-md flex-col gap-12 overflow-hidden rounded-2xl">
-        <div className="flex flex-col items-center justify-center gap-2 px-4 text-center sm:px-16">
-          <h3 className="font-semibold text-xl dark:text-zinc-50">
-            {t("title")}
-          </h3>
-          <p className="text-gray-500 text-sm dark:text-zinc-400">
-            {t("subtitle")}
-          </p>
-        </div>
-      </div>
-    </div>
+    <AuthPageLayout>
+      <AuthPageHeader subtitle={t("subtitle")} title={t("title")} />
+    </AuthPageLayout>
   );
 }
 
 function ForgotPasswordPage() {
   const t = useTranslations("auth.forgotPassword");
   const tErrors = useTranslations("auth.errors");
-  const tSupport = useTranslations("legal.support");
   const router = useRouter();
   const locale = useLocale();
 
@@ -68,9 +48,7 @@ function ForgotPasswordPage() {
   const [state, formAction] = useActionState<
     ForgotPasswordActionState,
     FormData
-  >(requestPasswordReset, {
-    status: "idle",
-  });
+  >(requestPasswordReset, { status: "idle" });
 
   useEffect(() => {
     if (isSuccessful) {
@@ -114,7 +92,6 @@ function ForgotPasswordPage() {
       description: t("success"),
     });
 
-    // Redirect to login after 3 seconds
     setTimeout(() => {
       router.push("/login");
     }, 3000);
@@ -127,63 +104,43 @@ function ForgotPasswordPage() {
   };
 
   return (
-    <div className="flex h-dvh w-screen items-start justify-center bg-background pt-12 md:items-center md:pt-0">
-      <div className="flex w-full max-w-md flex-col gap-12 overflow-hidden rounded-2xl">
-        <div className="flex flex-col items-center justify-center gap-2 px-4 text-center sm:px-16">
-          <h3 className="font-semibold text-2xl dark:text-zinc-50">
-            {t("title")}
-          </h3>
-          <p className="text-gray-500 text-sm dark:text-zinc-400">
-            {t("subtitle")}
-          </p>
+    <AuthPageLayout>
+      <AuthPageHeader subtitle={t("subtitle")} title={t("title")} />
+
+      <Form action={handleSubmit} className="flex flex-col gap-4 px-4 sm:px-16">
+        <div className="flex flex-col gap-2">
+          <Label
+            className="font-normal text-zinc-600 dark:text-zinc-400"
+            htmlFor="email"
+          >
+            {t("emailLabel")}
+          </Label>
+
+          <Input
+            autoComplete="email"
+            autoFocus
+            className="bg-muted text-md md:text-sm"
+            defaultValue={email}
+            disabled={isSuccessful}
+            id="email"
+            name="email"
+            placeholder={t("emailPlaceholder")}
+            required
+            type="email"
+          />
         </div>
 
-        <Form
-          action={handleSubmit}
-          className="flex flex-col gap-4 px-4 sm:px-16"
-        >
-          <div className="flex flex-col gap-2">
-            <Label
-              className="font-normal text-zinc-600 dark:text-zinc-400"
-              htmlFor="email"
-            >
-              {t("emailLabel")}
-            </Label>
+        <SubmitButton isSuccessful={isSuccessful}>{t("submit")}</SubmitButton>
 
-            <Input
-              autoComplete="email"
-              autoFocus
-              className="bg-muted text-md md:text-sm"
-              defaultValue={email}
-              disabled={isSuccessful}
-              id="email"
-              name="email"
-              placeholder={t("emailPlaceholder")}
-              required
-              type="email"
-            />
-          </div>
-
-          <SubmitButton isSuccessful={isSuccessful}>{t("submit")}</SubmitButton>
-
-          <p className="mt-4 text-center text-gray-600 text-sm dark:text-zinc-400">
-            <Link
-              className="font-semibold text-gray-800 hover:underline dark:text-zinc-200"
-              href="/login"
-            >
-              {t("backToLogin")}
-            </Link>
-          </p>
-        </Form>
-      </div>
-
-      <div className="fixed bottom-4 left-4 z-50">
-        <LanguageSwitcher />
-      </div>
-      <SupportLink
-        linkText={tSupport("linkText")}
-        text={tSupport("needHelp")}
-      />
-    </div>
+        <p className="mt-4 text-center text-gray-600 text-sm dark:text-zinc-400">
+          <Link
+            className="font-semibold text-gray-800 hover:underline dark:text-zinc-200"
+            href="/login"
+          >
+            {t("backToLogin")}
+          </Link>
+        </p>
+      </Form>
+    </AuthPageLayout>
   );
 }

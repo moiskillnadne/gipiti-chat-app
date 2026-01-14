@@ -71,8 +71,11 @@ export const {
 
       // Refresh from database on session update
       if (trigger === "update") {
-        console.log("JWT callback triggered with update, session data:", session);
-        
+        console.log(
+          "JWT callback triggered with update, session data:",
+          session
+        );
+
         if (token.id) {
           // Check subscription status from database
           const subscription = await getActiveUserSubscription({
@@ -93,14 +96,17 @@ export const {
 
         // Also allow updating directly from session data
         if (session?.emailVerified !== undefined) {
-          console.log("Updating token.emailVerified from session:", session.emailVerified);
+          console.log(
+            "Updating token.emailVerified from session:",
+            session.emailVerified
+          );
           token.emailVerified = session.emailVerified as boolean;
         }
         if (session?.hasActiveSubscription !== undefined) {
           token.hasActiveSubscription =
             session.hasActiveSubscription as boolean;
         }
-        
+
         console.log("Final token.emailVerified:", token.emailVerified);
       }
 

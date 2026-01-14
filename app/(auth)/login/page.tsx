@@ -13,21 +13,11 @@ import {
 } from "react";
 
 import { AuthForm } from "@/components/auth-form";
-import { LanguageSwitcher } from "@/components/language-switcher";
+import { AuthPageHeader } from "@/components/auth-page-header";
+import { AuthPageLayout } from "@/components/auth-page-layout";
 import { SubmitButton } from "@/components/submit-button";
 import { toast } from "@/components/toast";
 import { type LoginActionState, login } from "../actions";
-
-function SupportLink({ text, linkText }: { text: string; linkText: string }) {
-  return (
-    <p className="fixed right-4 bottom-4 z-50 text-gray-500 text-xs dark:text-zinc-500">
-      {text}{" "}
-      <Link className="hover:underline" href="/legal/support">
-        {linkText}
-      </Link>
-    </p>
-  );
-}
 
 export default function Page() {
   return (
@@ -41,25 +31,15 @@ function LoginPageFallback() {
   const t = useTranslations("auth.login");
 
   return (
-    <div className="flex h-dvh w-screen items-start justify-center bg-background pt-12 md:items-center md:pt-0">
-      <div className="flex w-full max-w-md flex-col gap-12 overflow-hidden rounded-2xl">
-        <div className="flex flex-col items-center justify-center gap-2 px-4 text-center sm:px-16">
-          <h3 className="font-semibold text-xl dark:text-zinc-50">
-            {t("title")}
-          </h3>
-          <p className="text-gray-500 text-sm dark:text-zinc-400">
-            {t("subtitle")}
-          </p>
-        </div>
-      </div>
-    </div>
+    <AuthPageLayout>
+      <AuthPageHeader subtitle={t("subtitle")} title={t("title")} />
+    </AuthPageLayout>
   );
 }
 
 function LoginPage() {
   const t = useTranslations("auth.login");
   const tErrors = useTranslations("auth.errors");
-  const tSupport = useTranslations("legal.support");
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -78,7 +58,6 @@ function LoginPage() {
     const callbackUrl = searchParams?.get("callbackUrl");
 
     if (!callbackUrl) {
-      // Default to /chat - middleware will redirect if user needs verification or subscription
       return "/chat";
     }
 
@@ -144,47 +123,31 @@ function LoginPage() {
   ]);
 
   return (
-    <div className="flex h-dvh w-screen items-start justify-center bg-background pt-12 md:items-center md:pt-0">
-      <div className="flex w-full max-w-md flex-col gap-12 overflow-hidden rounded-2xl">
-        <div className="flex flex-col items-center justify-center gap-2 px-4 text-center sm:px-16">
-          <h3 className="font-semibold text-2xl dark:text-zinc-50">
-            {t("title")}
-          </h3>
-          <p className="text-gray-500 text-sm dark:text-zinc-400">
-            {t("subtitle")}
-          </p>
+    <AuthPageLayout>
+      <AuthPageHeader subtitle={t("subtitle")} title={t("title")} />
+      <AuthForm action={formAction} mode="login">
+        <div className="flex items-center justify-end">
+          <Link
+            className="text-gray-600 text-sm hover:underline dark:text-zinc-400"
+            href="/forgot-password"
+          >
+            {t("forgotPasswordLink")}
+          </Link>
         </div>
-        <AuthForm action={formAction} mode="login">
-          <div className="flex items-center justify-end">
-            <Link
-              className="text-gray-600 text-sm hover:underline dark:text-zinc-400"
-              href="/forgot-password"
-            >
-              {t("forgotPasswordLink")}
-            </Link>
-          </div>
-          <SubmitButton isSuccessful={isSuccessful}>
-            {t("signInButton")}
-          </SubmitButton>
-          <p className="mt-4 text-center text-gray-600 text-sm dark:text-zinc-400">
-            {t("noAccount")}{" "}
-            <Link
-              className="font-semibold text-gray-800 hover:underline dark:text-zinc-200"
-              href="/register"
-            >
-              {t("signUpLink")}
-            </Link>{" "}
-            {t("signUpLinkSuffix")}
-          </p>
-        </AuthForm>
-      </div>
-      <div className="fixed bottom-4 left-4 z-50">
-        <LanguageSwitcher />
-      </div>
-      <SupportLink
-        linkText={tSupport("linkText")}
-        text={tSupport("needHelp")}
-      />
-    </div>
+        <SubmitButton isSuccessful={isSuccessful}>
+          {t("signInButton")}
+        </SubmitButton>
+        <p className="mt-4 text-center text-gray-600 text-sm dark:text-zinc-400">
+          {t("noAccount")}{" "}
+          <Link
+            className="font-semibold text-gray-800 hover:underline dark:text-zinc-200"
+            href="/register"
+          >
+            {t("signUpLink")}
+          </Link>{" "}
+          {t("signUpLinkSuffix")}
+        </p>
+      </AuthForm>
+    </AuthPageLayout>
   );
 }
