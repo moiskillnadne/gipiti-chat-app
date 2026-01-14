@@ -24,6 +24,8 @@ const baseURL = `http://localhost:${PORT}`;
  */
 export default defineConfig({
   testDir: "./tests",
+  globalSetup: "./tests/global-setup.ts",
+  globalTeardown: "./tests/global-teardown.ts",
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */

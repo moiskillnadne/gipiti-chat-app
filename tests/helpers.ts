@@ -1,82 +1,152 @@
-import fs from "node:fs";
-import path from "node:path";
-import {
-  type APIRequestContext,
-  type Browser,
-  type BrowserContext,
-  expect,
-  type Page,
-} from "@playwright/test";
-import { generateId } from "ai";
-import { getUnixTime } from "date-fns";
-import { ChatPage } from "./pages/chat";
+import type { Page } from "@playwright/test"
+import { TIMEOUTS } from "./fixtures"
 
-export type UserContext = {
-  context: BrowserContext;
-  page: Page;
-  request: APIRequestContext;
-};
+/**
+ * Wait for a toast notification to appear
+ */
+export async function waitForToast(page: Page, text?: string): Promise<void> {
+  const toastSelector = "[data-sonner-toast]"
 
-export async function createAuthenticatedContext({
-  browser,
-  name,
-}: {
-  browser: Browser;
-  name: string;
-}): Promise<UserContext> {
-  const directory = path.join(__dirname, "../playwright/.sessions");
-
-  if (!fs.existsSync(directory)) {
-    fs.mkdirSync(directory, { recursive: true });
+  if (text) {
+    await page.locator(toastSelector).filter({ hasText: text }).waitFor({
+      state: "visible",
+      timeout: TIMEOUTS.toast,
+    })
+  } else {
+    await page.locator(toastSelector).first().waitFor({
+      state: "visible",
+      timeout: TIMEOUTS.toast,
+    })
   }
-
-  const storageFile = path.join(directory, `${name}.json`);
-
-  const context = await browser.newContext();
-  const page = await context.newPage();
-
-  const email = `test-${name}@playwright.com`;
-  const password = generateId();
-
-  await page.goto("http://localhost:3000/register");
-  await page.getByPlaceholder("user@acme.com").click();
-  await page.getByPlaceholder("user@acme.com").fill(email);
-  await page.getByLabel("Password").click();
-  await page.getByLabel("Password").fill(password);
-  await page.getByRole("button", { name: "Sign Up" }).click();
-
-  const toast = page
-    .getByTestId("toast")
-    .filter({ hasText: "Account created successfully!" })
-    .last();
-
-  await expect(toast).toContainText("Account created successfully!");
-
-  const chatPage = new ChatPage(page);
-  await chatPage.createNewChat();
-  await chatPage.chooseModelFromSelector("chat-model-reasoning");
-  await expect(chatPage.getSelectedModel()).resolves.toEqual("Grok Reasoning");
-
-  await page.waitForTimeout(1000);
-  await context.storageState({ path: storageFile });
-  await page.close();
-
-  const newContext = await browser.newContext({ storageState: storageFile });
-  const newPage = await newContext.newPage();
-
-  return {
-    context: newContext,
-    page: newPage,
-    request: newContext.request,
-  };
 }
 
-export function generateRandomTestUser() {
-  const email = `test-${getUnixTime(new Date())}@playwright.com`;
-  const password = generateId();
+/**
+ * Wait for toast to disappear
+ */
+export async function waitForToastToDisappear(page: Page): Promise<void> {
+  await page.locator("[data-sonner-toast]").waitFor({
+    state: "hidden",
+    timeout: TIMEOUTS.toast,
+  })
+}
 
-  return {
-    email,
-    password,
-  };
+/**
+ * Get all visible toast messages
+ */
+export async function getToastMessages(page: Page): Promise<string[]> {
+  const toasts = page.locator("[data-sonner-toast]")
+  const count = await toasts.count()
+  const messages: string[] = []
+
+  for (let i = 0; i < count; i++) {
+    const text = await toasts.nth(i).textContent()
+    if (text) messages.push(text)
+  }
+
+  return messages
+}
+
+/**
+ * Dismiss all visible toasts by clicking their close buttons
+ */
+export async function dismissAllToasts(page: Page): Promise<void> {
+  const closeButtons = page.locator("[data-sonner-toast] button[aria-label='Close']")
+  const count = await closeButtons.count()
+
+  for (let i = 0; i < count; i++) {
+    await closeButtons.nth(i).click()
+  }
+}
+
+/**
+ * Wait for navigation to complete
+ */
+export async function waitForNavigation(
+  page: Page,
+  urlPattern: string | RegExp
+): Promise<void> {
+  await page.waitForURL(urlPattern, { timeout: TIMEOUTS.navigation })
+}
+
+/**
+ * Check if an element has a specific attribute value
+ */
+export async function hasAttribute(
+  page: Page,
+  selector: string,
+  attribute: string,
+  value: string
+): Promise<boolean> {
+  const element = page.locator(selector)
+  const attrValue = await element.getAttribute(attribute)
+  return attrValue === value
+}
+
+/**
+ * Get the current locale from cookie
+ */
+export async function getCurrentLocale(page: Page): Promise<string> {
+  const cookies = await page.context().cookies()
+  const localeCookie = cookies.find((c) => c.name === "NEXT_LOCALE")
+  return localeCookie?.value ?? "en"
+}
+
+/**
+ * Set the locale via cookie
+ */
+export async function setLocale(page: Page, locale: string): Promise<void> {
+  await page.context().addCookies([
+    {
+      name: "NEXT_LOCALE",
+      value: locale,
+      domain: "localhost",
+      path: "/",
+    },
+  ])
+}
+
+/**
+ * Clear all cookies and local storage
+ */
+export async function clearBrowserState(page: Page): Promise<void> {
+  await page.context().clearCookies()
+  await page.evaluate(() => localStorage.clear())
+}
+
+/**
+ * Get session cookies (for checking if user is logged in)
+ */
+export async function getSessionCookie(page: Page): Promise<string | null> {
+  const cookies = await page.context().cookies()
+  const sessionCookie = cookies.find(
+    (c) => c.name.includes("authjs.session-token") || c.name.includes("next-auth.session-token")
+  )
+  return sessionCookie?.value ?? null
+}
+
+/**
+ * Wait for button to be enabled
+ */
+export async function waitForButtonEnabled(
+  page: Page,
+  selector: string
+): Promise<void> {
+  await page.locator(selector).waitFor({ state: "visible" })
+  await page.waitForFunction(
+    (sel) => {
+      const button = document.querySelector(sel)
+      return button && !button.hasAttribute("disabled")
+    },
+    selector,
+    { timeout: TIMEOUTS.formSubmission }
+  )
+}
+
+/**
+ * Check if form is in loading state (button disabled with spinner)
+ */
+export async function isFormLoading(page: Page): Promise<boolean> {
+  const submitButton = page.locator("button[type='submit'], button[type='button']").first()
+  const isDisabled = await submitButton.getAttribute("aria-disabled")
+  return isDisabled === "true"
 }

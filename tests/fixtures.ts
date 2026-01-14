@@ -1,50 +1,58 @@
-import { expect as baseExpect, test as baseTest } from "@playwright/test";
-import { getUnixTime } from "date-fns";
-import { createAuthenticatedContext, type UserContext } from "./helpers";
+/**
+ * Test fixtures and constants for Playwright E2E tests
+ */
 
-type Fixtures = {
-  adaContext: UserContext;
-  babbageContext: UserContext;
-  curieContext: UserContext;
+/** Test user with valid credentials (created in global-setup) */
+export const TEST_USER = {
+  email: "test@example.com",
+  password: "TestPassword123!",
 };
 
-export const test = baseTest.extend<object, Fixtures>({
-  adaContext: [
-    async ({ browser }, use, workerInfo) => {
-      const ada = await createAuthenticatedContext({
-        browser,
-        name: `ada-${workerInfo.workerIndex}-${getUnixTime(new Date())}`,
-      });
+/** Invalid user for testing failed authentication */
+export const INVALID_USER = {
+  email: "nonexistent@example.com",
+  password: "WrongPassword123!",
+};
 
-      await use(ada);
-      await ada.context.close();
-    },
-    { scope: "worker" },
+/** Test data for validation scenarios */
+export const VALIDATION_DATA = {
+  invalidEmails: [
+    "not-an-email",
+    "missing@domain",
+    "@nodomain.com",
+    "spaces in@email.com",
+    "",
   ],
-  babbageContext: [
-    async ({ browser }, use, workerInfo) => {
-      const babbage = await createAuthenticatedContext({
-        browser,
-        name: `babbage-${workerInfo.workerIndex}-${getUnixTime(new Date())}`,
-      });
-
-      await use(babbage);
-      await babbage.context.close();
-    },
-    { scope: "worker" },
+  validEmails: [
+    "user@example.com",
+    "test.user@domain.org",
+    "user+tag@example.com",
   ],
-  curieContext: [
-    async ({ browser }, use, workerInfo) => {
-      const curie = await createAuthenticatedContext({
-        browser,
-        name: `curie-${workerInfo.workerIndex}-${getUnixTime(new Date())}`,
-      });
+  emptyPassword: "",
+  longEmail: `${"a".repeat(50)}@example.com`,
+  longPassword: "A".repeat(100) + "a1!",
+  specialCharsPassword: "Test!@#$%^&*()_+-=[]{}|;':\",./<>?123",
+  whitespaceEmail: "  test@example.com  ",
+};
 
-      await use(curie);
-      await curie.context.close();
-    },
-    { scope: "worker" },
-  ],
-});
+/** URLs used in tests */
+export const TEST_URLS = {
+  login: "/login",
+  register: "/register",
+  chat: "/chat",
+  forgotPassword: "/forgot-password",
+  settings: "/settings",
+};
 
-export const expect = baseExpect;
+/** External URLs for security tests */
+export const EXTERNAL_URLS = {
+  malicious: "https://malicious-site.com",
+  xssAttempt: "javascript:alert('xss')",
+};
+
+/** Timeouts for various operations */
+export const TIMEOUTS = {
+  navigation: 10_000,
+  toast: 5000,
+  formSubmission: 15_000,
+};
