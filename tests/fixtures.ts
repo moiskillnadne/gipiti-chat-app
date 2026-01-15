@@ -30,7 +30,7 @@ export const VALIDATION_DATA = {
   ],
   emptyPassword: "",
   longEmail: `${"a".repeat(50)}@example.com`,
-  longPassword: "A".repeat(100) + "a1!",
+  longPassword: `${"A".repeat(100)}a1!`,
   specialCharsPassword: "Test!@#$%^&*()_+-=[]{}|;':\",./<>?123",
   whitespaceEmail: "  test@example.com  ",
 };

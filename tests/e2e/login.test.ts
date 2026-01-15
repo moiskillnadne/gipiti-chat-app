@@ -14,6 +14,10 @@ import {
 } from "../helpers";
 import { LoginPage } from "../pages/auth";
 
+const CHAT_OR_LOGIN_URL_REGEX = /\/(chat|login)/;
+const SUCCESS_REDIRECT_URL_REGEX = /\/(chat|verify-email|subscribe)/;
+const CHAT_OR_SUBSCRIBE_URL_REGEX = /\/(chat|subscribe)/;
+
 test.describe("Login Page", () => {
   let loginPage: LoginPage;
 
@@ -75,7 +79,9 @@ test.describe("Login Page", () => {
   // 2. Form Validation (5 tests)
   // ==========================================================================
   test.describe("Form Validation", () => {
-    test("empty email shows browser validation error", async ({ page }) => {
+    test("empty email shows browser validation error", async ({
+      page: _page,
+    }) => {
       await loginPage.fillPassword(TEST_USER.password);
       await loginPage.clickSubmit();
 
@@ -121,7 +127,9 @@ test.describe("Login Page", () => {
 
       // Should either redirect or show error (both indicate form was submitted)
       await Promise.race([
-        page.waitForURL(/\/(chat|login)/, { timeout: TIMEOUTS.navigation }),
+        page.waitForURL(CHAT_OR_LOGIN_URL_REGEX, {
+          timeout: TIMEOUTS.navigation,
+        }),
         waitForToast(page),
       ]);
     });
@@ -168,7 +176,7 @@ test.describe("Login Page", () => {
       const label = await toggleButton.getAttribute("aria-label");
 
       expect(label).toBeTruthy();
-      expect(label!.length).toBeGreaterThan(0);
+      expect(label?.length).toBeGreaterThan(0);
     });
 
     test("password strength meter is not shown on login", async ({ page }) => {
@@ -190,7 +198,7 @@ test.describe("Login Page", () => {
       await loginPage.waitForLoginSuccess();
 
       // Should redirect to chat, verify-email, or subscribe page
-      expect(page.url()).toMatch(/\/(chat|verify-email|subscribe)/);
+      expect(page.url()).toMatch(SUCCESS_REDIRECT_URL_REGEX);
     });
 
     test("session cookie is established after login", async ({ page }) => {
@@ -207,7 +215,7 @@ test.describe("Login Page", () => {
       await loginPage.login(TEST_USER.email, TEST_USER.password);
 
       // User may be redirected to subscribe if no subscription
-      await page.waitForURL(/\/(chat|subscribe)/, {
+      await page.waitForURL(CHAT_OR_SUBSCRIBE_URL_REGEX, {
         timeout: TIMEOUTS.formSubmission,
       });
     });
@@ -222,13 +230,15 @@ test.describe("Login Page", () => {
       await loginPage.login(TEST_USER.email, TEST_USER.password);
 
       // Should redirect to internal route, not the malicious URL
-      await page.waitForURL(/\/(chat|subscribe)/, {
+      await page.waitForURL(CHAT_OR_SUBSCRIBE_URL_REGEX, {
         timeout: TIMEOUTS.formSubmission,
       });
       expect(page.url()).not.toContain("malicious");
     });
 
-    test("button shows loading state during submission", async ({ page }) => {
+    test("button shows loading state during submission", async ({
+      page: _page,
+    }) => {
       await loginPage.fillEmail(TEST_USER.email);
       await loginPage.fillPassword(TEST_USER.password);
 
@@ -245,7 +255,9 @@ test.describe("Login Page", () => {
       expect(ariaDisabled === "true" || disabled !== null).toBe(true);
     });
 
-    test("button is disabled after successful submission", async ({ page }) => {
+    test("button is disabled after successful submission", async ({
+      page: _page,
+    }) => {
       await loginPage.login(TEST_USER.email, TEST_USER.password);
 
       // Button should be disabled during redirect
@@ -364,7 +376,7 @@ test.describe("Login Page", () => {
       expect(type).toBe("button");
     });
 
-    test("screen reader output announces loading", async ({ page }) => {
+    test("screen reader output announces loading", async ({ page: _page }) => {
       await loginPage.fillEmail(TEST_USER.email);
       await loginPage.fillPassword(TEST_USER.password);
       await loginPage.clickSubmit();
@@ -403,7 +415,7 @@ test.describe("Login Page", () => {
         .locator("button");
       const label = await toggleButton.getAttribute("aria-label");
       expect(label).not.toBeNull();
-      expect(label!.length).toBeGreaterThan(0);
+      expect(label?.length).toBeGreaterThan(0);
     });
 
     test("submit button has aria-live region", async ({ page }) => {
@@ -431,7 +443,9 @@ test.describe("Login Page", () => {
 
       // Should trigger form submission (redirect or error)
       await Promise.race([
-        page.waitForURL(/\/(chat|login)/, { timeout: TIMEOUTS.navigation }),
+        page.waitForURL(CHAT_OR_LOGIN_URL_REGEX, {
+          timeout: TIMEOUTS.navigation,
+        }),
         waitForToast(page),
       ]);
     });
@@ -467,7 +481,7 @@ test.describe("Login Page", () => {
       await loginPage.login(TEST_USER.email, TEST_USER.password);
 
       // Should redirect to internal route, not the malicious URL
-      await page.waitForURL(/\/(chat|subscribe)/, {
+      await page.waitForURL(CHAT_OR_SUBSCRIBE_URL_REGEX, {
         timeout: TIMEOUTS.formSubmission,
       });
       expect(page.url()).not.toContain("malicious");
@@ -480,7 +494,7 @@ test.describe("Login Page", () => {
       await loginPage.login(TEST_USER.email, TEST_USER.password);
 
       // User may be redirected to subscribe if no subscription
-      await page.waitForURL(/\/(chat|subscribe)/, {
+      await page.waitForURL(CHAT_OR_SUBSCRIBE_URL_REGEX, {
         timeout: TIMEOUTS.formSubmission,
       });
     });
@@ -493,7 +507,7 @@ test.describe("Login Page", () => {
       await loginPage.login(TEST_USER.email, TEST_USER.password);
 
       // Should redirect to internal route, not execute javascript
-      await page.waitForURL(/\/(chat|subscribe)/, {
+      await page.waitForURL(CHAT_OR_SUBSCRIBE_URL_REGEX, {
         timeout: TIMEOUTS.formSubmission,
       });
     });
@@ -567,11 +581,13 @@ test.describe("Login Page", () => {
   // ==========================================================================
   test.describe("Edge Cases", () => {
     test("handles whitespace in email gracefully", async ({ page }) => {
-      await loginPage.login("  " + TEST_USER.email + "  ", TEST_USER.password);
+      await loginPage.login(`  ${TEST_USER.email}  `, TEST_USER.password);
 
       // Should either work or show validation error
       await Promise.race([
-        page.waitForURL(/\/(chat|login)/, { timeout: TIMEOUTS.navigation }),
+        page.waitForURL(CHAT_OR_LOGIN_URL_REGEX, {
+          timeout: TIMEOUTS.navigation,
+        }),
         waitForToast(page),
       ]);
     });
@@ -599,7 +615,7 @@ test.describe("Login Page", () => {
       expect(value).toBe(VALIDATION_DATA.specialCharsPassword);
     });
 
-    test("handles rapid form submissions", async ({ page }) => {
+    test("handles rapid form submissions", async ({ page: _page }) => {
       await loginPage.fillEmail(TEST_USER.email);
       await loginPage.fillPassword(TEST_USER.password);
 

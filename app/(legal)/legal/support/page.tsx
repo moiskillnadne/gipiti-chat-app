@@ -1,7 +1,6 @@
 import { ChevronLeftIcon } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { LanguageSwitcher } from "@/components/language-switcher";
 import { Button } from "@/components/ui/button";
 
 export async function generateMetadata() {
@@ -61,10 +60,6 @@ export default async function SupportPage() {
             {t("email")}
           </a>
         </div>
-      </div>
-
-      <div className="fixed bottom-4 left-4 z-50">
-        <LanguageSwitcher />
       </div>
     </div>
   );

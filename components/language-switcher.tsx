@@ -18,10 +18,6 @@ import {
 import { type Locale, localeFlags, localeNames, locales } from "@/i18n/config";
 
 export function LanguageSwitcher() {
-  // Temporarily hidden - language selection disabled
-  // Remove this return statement to re-enable the language switcher
-  return null;
-
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const currentLocale = useLocale() as Locale;

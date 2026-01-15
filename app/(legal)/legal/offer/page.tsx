@@ -1,5 +1,4 @@
 import { getTranslations } from "next-intl/server";
-import { LanguageSwitcher } from "@/components/language-switcher";
 
 export async function generateMetadata() {
   const t = await getTranslations("legal.offer");
@@ -196,10 +195,6 @@ export default async function OfferPage() {
             </div>
           </section>
         </div>
-      </div>
-
-      <div className="fixed bottom-4 left-4 z-50">
-        <LanguageSwitcher />
       </div>
     </div>
   );

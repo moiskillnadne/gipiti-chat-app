@@ -4,15 +4,15 @@ import { getUpstashClient, isUpstashConfigured } from "@/lib/redis";
 
 type CheckStatus = "up" | "down";
 
-interface HealthCheck {
+type HealthCheck = {
   status: CheckStatus;
   latency?: number;
   error?: string;
   configured?: string[];
   missing?: string[];
-}
+};
 
-interface HealthResponse {
+type HealthResponse = {
   status: "healthy" | "degraded" | "unhealthy";
   timestamp: string;
   version: string;
@@ -21,7 +21,7 @@ interface HealthResponse {
     redis: HealthCheck;
     environment: HealthCheck;
   };
-}
+};
 
 const REQUIRED_ENV_VARS = ["POSTGRES_URL"];
 const OPTIONAL_ENV_VARS = [

@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { CheckIcon } from "./CheckIcon";
+import { CheckIcon } from "./check-icon";
 
 type Period = "monthly" | "quarterly" | "annual";
 

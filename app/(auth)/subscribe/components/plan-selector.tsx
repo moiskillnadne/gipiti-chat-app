@@ -4,7 +4,7 @@ import { useLocale, useTranslations } from "next-intl";
 import type { Locale } from "@/i18n/config";
 import type { PlanType } from "../hooks/payment-reducer";
 import { formatPrice } from "../utils/payment-utils";
-import { PlanCard } from "./PlanCard";
+import { PlanCard } from "./plan-card";
 
 type PlanSelectorProps = {
   onSubscribe: (plan: PlanType) => void;

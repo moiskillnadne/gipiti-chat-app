@@ -13,7 +13,7 @@
     "rules": {
       "suspicious": {
         /* Needs more work to fix */
-        "noExplicitAny": "off",
+        "noExplicitAny": "warn",
 
         /* Allow for Tailwind @ rules */
         "noUnknownAtRules": "off",
