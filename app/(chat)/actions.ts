@@ -2,6 +2,7 @@
 
 import { generateText, type UIMessage } from "ai";
 import { cookies } from "next/headers";
+import { type Locale, localeNames } from "@/i18n/config";
 import { myProvider } from "@/lib/ai/providers";
 import {
   deleteMessagesByChatIdAfterTimestamp,
@@ -30,16 +31,21 @@ export async function getThinkingSettingCookie(
 
 export async function generateTitleFromUserMessage({
   message,
+  preferredLanguage = "en",
 }: {
   message: UIMessage;
+  preferredLanguage?: Locale;
 }) {
+  const languageName = localeNames[preferredLanguage] || "English";
+
   const { text: title } = await generateText({
     model: myProvider.languageModel("title-model"),
     system: `\n
     - you will generate a short title based on the first message a user begins a conversation with
     - ensure it is not more than 80 characters long
     - the title should be a summary of the user's message
-    - do not use quotes or colons`,
+    - do not use quotes or colons
+    - IMPORTANT: Generate the title in ${languageName}`,
     prompt: JSON.stringify(message),
   });
 
