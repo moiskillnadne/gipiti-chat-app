@@ -1,5 +1,6 @@
 import type { DefaultSession, DefaultUser } from "next-auth";
 import type { DefaultJWT } from "next-auth/jwt";
+import type { Locale } from "@/i18n/config";
 
 export type UserType = "regular";
 
@@ -12,6 +13,7 @@ declare module "next-auth" {
       hasActiveSubscription: boolean;
       isTester: boolean;
       hasUsedTrial: boolean;
+      preferredLanguage: Locale;
     } & DefaultSession["user"];
   }
 
@@ -23,6 +25,7 @@ declare module "next-auth" {
     hasActiveSubscription: boolean;
     isTester: boolean;
     hasUsedTrial: boolean;
+    preferredLanguage: Locale;
   }
 }
 
@@ -34,6 +37,7 @@ declare module "next-auth/jwt" {
     hasActiveSubscription: boolean;
     isTester: boolean;
     hasUsedTrial: boolean;
+    preferredLanguage: Locale;
   }
 }
 
