@@ -24,8 +24,12 @@ export const {
   secret: getAuthSecret(),
   providers: [
     Credentials({
-      credentials: {},
-      async authorize({ email, password }: CredentialsType) {
+      credentials: {
+        email: { label: "email", type: "email" },
+        password: { label: "password", type: "password" },
+      },
+      async authorize(credentials) {
+        const { email, password } = credentials as CredentialsType;
         const users = await getUserByEmail(email);
 
         if (users.length === 0) {
