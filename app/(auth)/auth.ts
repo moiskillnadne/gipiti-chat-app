@@ -9,6 +9,11 @@ import { authConfig } from "./auth.config";
 
 export type { UserType } from "@/types/next-auth";
 
+type CredentialsType = {
+  email: string;
+  password: string;
+};
+
 export const {
   handlers: { GET, POST },
   auth,
@@ -19,8 +24,12 @@ export const {
   secret: getAuthSecret(),
   providers: [
     Credentials({
-      credentials: {},
-      async authorize({ email, password }: any) {
+      credentials: {
+        email: { label: "email", type: "email" },
+        password: { label: "password", type: "password" },
+      },
+      async authorize(credentials) {
+        const { email, password } = credentials as CredentialsType;
         const users = await getUserByEmail(email);
 
         if (users.length === 0) {

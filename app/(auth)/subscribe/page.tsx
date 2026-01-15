@@ -4,14 +4,13 @@ import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { Suspense } from "react";
-import { LanguageSwitcher } from "@/components/language-switcher";
+import { Loader } from "@/components/elements/loader";
 import { PaymentLoadingOverlay } from "@/components/payment-loading-overlay";
-import { Loader } from "../../../components/elements/loader";
-import { FAQ } from "./components/FAQ";
-import { FeaturesTable } from "./components/FeaturesTable";
-import { PlanSelector } from "./components/PlanSelector";
-import { TesterPlan } from "./components/TesterPlan";
-import { usePayment } from "./hooks/usePayment";
+import { FAQ } from "./components/faq";
+import { FeaturesTable } from "./components/features-table";
+import { PlanSelector } from "./components/plan-selector";
+import { TesterPlan } from "./components/tester-plan";
+import { usePayment } from "./hooks/use-payment";
 
 function SupportLink({ text, linkText }: { text: string; linkText: string }) {
   return (
@@ -147,9 +146,6 @@ function SubscribePage() {
       </div>
 
       {/* Fixed UI Elements */}
-      <div className="fixed bottom-4 left-4 z-50">
-        <LanguageSwitcher />
-      </div>
       <SupportLink
         linkText={tSupport("linkText")}
         text={tSupport("needHelp")}

@@ -87,16 +87,6 @@ const filterModels = (
   });
 };
 
-const formatTokenCount = (tokens: number): string => {
-  if (tokens >= 1_000_000) {
-    return `${(tokens / 1_000_000).toFixed(1)}M`;
-  }
-  if (tokens >= 1000) {
-    return `${(tokens / 1000).toFixed(0)}K`;
-  }
-  return String(tokens);
-};
-
 const formatPrice = (price: string | undefined): string => {
   if (!price) {
     return "N/A";

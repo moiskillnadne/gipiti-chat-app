@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { Suspense, useActionState, useEffect, useState } from "react";
 
-import { LanguageSwitcher } from "@/components/language-switcher";
 import { PasswordInput } from "@/components/password-input";
 import { SubmitButton } from "@/components/submit-button";
 import { toast } from "@/components/toast";
@@ -155,9 +154,6 @@ function ResetPasswordPage() {
             </Link>
           </div>
         </div>
-        <div className="fixed bottom-4 left-4 z-50">
-          <LanguageSwitcher />
-        </div>
         <SupportLink
           linkText={tSupport("linkText")}
           text={tSupport("needHelp")}
@@ -273,10 +269,6 @@ function ResetPasswordPage() {
             </Link>
           </p>
         </Form>
-      </div>
-
-      <div className="fixed bottom-4 left-4 z-50">
-        <LanguageSwitcher />
       </div>
       <SupportLink
         linkText={tSupport("linkText")}
