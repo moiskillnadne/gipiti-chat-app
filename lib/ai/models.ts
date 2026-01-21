@@ -116,6 +116,17 @@ export const chatModels: ChatModel[] = [
     showInUI: true,
   },
   {
+    id: "grok-code-fast-1",
+    name: "grokCodeFast1.name",
+    description: "grokCodeFast1.description",
+    provider: "xai",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+  },
+  {
     id: "gpt-5",
     name: "gpt5.name",
     description: "gpt5.description",

@@ -807,6 +807,10 @@
       "name": "Grok 4.1 Fast",
       "description": "Ultra-fast xAI model optimized for simple queries with 2M token context."
     },
+    "grokCodeFast1": {
+      "name": "Grok 1 Code Fast",
+      "description": "xAI's specialized fast model optimized for code generation and programming tasks."
+    },
     "gpt5": {
       "name": "GPT-5",
       "description": "Latest OpenAI GPT model for complex problems."
