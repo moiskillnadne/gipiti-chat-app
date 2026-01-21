@@ -80,5 +80,9 @@ export const myProvider = isTestEnvironment
           model: gateway.languageModel("anthropic/claude-opus-4.5"),
           middleware: extractReasoningMiddleware({ tagName: "think" }),
         }),
+        "sonnet-4.5": wrapLanguageModel({
+          model: gateway.languageModel("anthropic/claude-sonnet-4.5"),
+          middleware: extractReasoningMiddleware({ tagName: "think" }),
+        }),
       },
     });

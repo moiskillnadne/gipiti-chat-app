@@ -854,6 +854,10 @@
     "opus45": {
       "name": "Opus 4.5",
       "description": "Latest Anthropic Opus model with extended context and reasoning."
+    },
+    "sonnet45": {
+      "name": "Sonnet 4.5",
+      "description": "Anthropic's balanced model with fast reasoning and excellent code generation."
     }
   }
 }
