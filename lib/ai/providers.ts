@@ -37,6 +37,10 @@ export const myProvider = isTestEnvironment
         "grok-4.1-non-reasoning": gateway.languageModel(
           "xai/grok-4-1-fast-non-reasoning"
         ),
+        "grok-code-fast-1": wrapLanguageModel({
+          model: gateway.languageModel("xai/grok-code-fast-1"),
+          middleware: extractReasoningMiddleware({ tagName: "think" }),
+        }),
         "title-model": gateway.languageModel("amazon/nova-micro"),
         "artifact-model": gateway.languageModel("xai/grok-2-vision"),
         "gpt-5": wrapLanguageModel({
