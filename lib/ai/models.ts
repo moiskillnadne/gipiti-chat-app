@@ -183,6 +183,18 @@ export const chatModels: ChatModel[] = [
     showInUI: false,
   },
   {
+    id: "gpt-codex-5.2",
+    name: "gptCodex52.name",
+    description: "gptCodex52.description",
+    provider: "openai",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+    thinkingConfig: GPT52_THINKING_CONFIG,
+  },
+  {
     id: "gemini-2.5-pro",
     name: "gemini25Pro.name",
     description: "gemini25Pro.description",
@@ -342,7 +354,12 @@ export const REASONING_SUMMARY = ["auto", "concise", "detailed"] as const;
 export type ReasoningSummary = (typeof REASONING_SUMMARY)[number];
 export const DEFAULT_REASONING_SUMMARY: ReasoningSummary = "auto";
 
-export const openaiModelIds = ["gpt-5.2", "gpt-5.2-pro", "gpt-5-mini"] as const;
+export const openaiModelIds = [
+  "gpt-5.2",
+  "gpt-5.2-pro",
+  "gpt-5-mini",
+  "gpt-codex-5.2",
+] as const;
 export type OpenAIModelId = (typeof openaiModelIds)[number];
 
 export const isOpenAIModel = (modelId: string) => {
