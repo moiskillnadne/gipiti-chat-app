@@ -64,18 +64,20 @@ function detectRequiredHandlers(code: string): string[] {
 
 type Metadata = {
   outputs: ConsoleOutput[];
+  language: string;
 };
 
 export const codeArtifact = new Artifact<"code", Metadata>({
   kind: "code",
   description:
-    "Useful for code generation; Code execution is only available for python code.",
+    "Code generation with syntax highlighting for multiple languages. Execution available for Python only.",
   initialize: ({ setMetadata }) => {
-    setMetadata({
-      outputs: [],
-    });
+    setMetadata((existing) => ({
+      outputs: existing?.outputs ?? [],
+      language: existing?.language,
+    }));
   },
-  onStreamPart: ({ streamPart, setArtifact }) => {
+  onStreamPart: ({ streamPart, setArtifact, setMetadata }) => {
     if (streamPart.type === "data-codeDelta") {
       setArtifact((draftArtifact) => ({
         ...draftArtifact,
@@ -83,15 +85,24 @@ export const codeArtifact = new Artifact<"code", Metadata>({
         status: "streaming",
       }));
     }
+
+    if (streamPart.type === "data-codeLanguage") {
+      setMetadata((metadata) => ({
+        ...metadata,
+        language: streamPart.data,
+      }));
+    }
   },
   content: ({ metadata, setMetadata, ...props }) => {
+    const isPython = metadata?.language === "python";
+
     return (
       <>
         <div className="px-1">
-          <CodeEditor {...props} />
+          <CodeEditor {...props} language={metadata?.language} />
         </div>
 
-        {metadata?.outputs && (
+        {metadata?.outputs && isPython && (
           <Console
             consoleOutputs={metadata.outputs}
             setConsoleOutputs={() => {
@@ -110,6 +121,7 @@ export const codeArtifact = new Artifact<"code", Metadata>({
       icon: <PlayIcon size={18} />,
       label: "Run",
       description: "Execute code",
+      isVisible: ({ metadata }) => metadata?.language === "python",
       onClick: async ({ content, setMetadata }) => {
         const runId = generateUUID();
         const outputContent: ConsoleOutputContent[] = [];

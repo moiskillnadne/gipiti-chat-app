@@ -49,9 +49,13 @@ function PureArtifactActions({
     setMetadata,
   };
 
+  const visibleActions = artifactDefinition.actions.filter(
+    (action) => !action.isVisible || action.isVisible(actionContext)
+  );
+
   return (
     <div className="flex flex-row gap-1">
-      {artifactDefinition.actions.map((action) => (
+      {visibleActions.map((action) => (
         <Tooltip key={action.description}>
           <TooltipTrigger asChild>
             <Button
@@ -105,7 +109,9 @@ export const ArtifactActions = memo(
     if (prevProps.artifact.content !== nextProps.artifact.content) {
       return false;
     }
-
+    if (prevProps.metadata !== nextProps.metadata) {
+      return false;
+    }
     return true;
   }
 );

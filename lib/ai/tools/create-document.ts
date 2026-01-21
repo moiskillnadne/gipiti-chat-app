@@ -16,12 +16,18 @@ type CreateDocumentProps = {
 export const createDocument = ({ session, dataStream }: CreateDocumentProps) =>
   tool({
     description:
-      "Create a document for a writing or content creation activities. This tool will call other functions that will generate the contents of the document based on the title and kind.",
+      "Create a document for writing or content creation activities. For code artifacts, you MUST specify the 'language' parameter with the programming language (e.g., 'javascript', 'typescript', 'python', 'java', 'go', 'rust'). The language determines syntax highlighting and execution capabilities.",
     inputSchema: z.object({
       title: z.string(),
       kind: z.enum(artifactKinds),
+      language: z
+        .string()
+        .optional()
+        .describe(
+          "Programming language for code artifacts (e.g., python, javascript, typescript, java, go, rust, c, cpp, html, css, sql, json, yaml, markdown). Defaults to python if not specified."
+        ),
     }),
-    execute: async ({ title, kind }) => {
+    execute: async ({ title, kind, language }) => {
       const id = generateUUID();
 
       dataStream.write({
@@ -57,11 +63,14 @@ export const createDocument = ({ session, dataStream }: CreateDocumentProps) =>
         throw new Error(`No document handler found for kind: ${kind}`);
       }
 
+      console.log(language);
+
       await documentHandler.onCreateDocument({
         id,
         title,
         dataStream,
         session,
+        language,
       });
 
       dataStream.write({ type: "data-finish", data: null, transient: true });

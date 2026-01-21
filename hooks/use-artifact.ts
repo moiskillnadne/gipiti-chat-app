@@ -67,15 +67,12 @@ export function useArtifact() {
     [setLocalArtifact]
   );
 
+  // Use a static key for metadata to avoid losing state when documentId changes during streaming
+  // The metadata (language, outputs, etc.) belongs to the current artifact session
   const { data: localArtifactMetadata, mutate: setLocalArtifactMetadata } =
-    useSWR<any>(
-      () =>
-        artifact.documentId ? `artifact-metadata-${artifact.documentId}` : null,
-      null,
-      {
-        fallbackData: null,
-      }
-    );
+    useSWR<any>("artifact-metadata", null, {
+      fallbackData: null,
+    });
 
   return useMemo(
     () => ({
