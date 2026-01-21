@@ -815,6 +815,10 @@
       "name": "GPT-5 Mini",
       "description": "Самая маленькая модель от OpenAI для быстрых задач."
     },
+    "gptCodex52": {
+      "name": "GPT-Codex 5.2",
+      "description": "Специализированная модель OpenAI для кода с продвинутой генерацией и рассуждениями."
+    },
     "gpt51Instant": {
       "name": "GPT-5.1 Instant",
       "description": "Самая быстрая модель от OpenAI для быстрых задач."
