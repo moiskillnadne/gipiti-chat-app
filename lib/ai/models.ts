@@ -354,7 +354,12 @@ export const REASONING_SUMMARY = ["auto", "concise", "detailed"] as const;
 export type ReasoningSummary = (typeof REASONING_SUMMARY)[number];
 export const DEFAULT_REASONING_SUMMARY: ReasoningSummary = "auto";
 
-export const openaiModelIds = ["gpt-5.2", "gpt-5.2-pro", "gpt-5-mini", "gpt-codex-5.2"] as const;
+export const openaiModelIds = [
+  "gpt-5.2",
+  "gpt-5.2-pro",
+  "gpt-5-mini",
+  "gpt-codex-5.2",
+] as const;
 export type OpenAIModelId = (typeof openaiModelIds)[number];
 
 export const isOpenAIModel = (modelId: string) => {
