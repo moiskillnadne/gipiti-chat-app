@@ -89,63 +89,65 @@ export function ModelSelector() {
         align="start"
         className="w-[320px] rounded-2xl p-0 shadow-lg"
       >
-        <RadioGroup
-          className="gap-0"
-          onValueChange={handleModelChange}
-          value={currentModelId}
-        >
-          {groupedModels.map((group, groupIndex) => (
-            <div key={group.provider}>
-              {groupIndex > 0 && <div className="border-border border-t" />}
-              <div className="px-3 py-2">
-                <div className="font-semibold text-muted-foreground text-xs uppercase tracking-wide">
-                  {group.providerLabel}
+        <div className="max-h-[400px] overflow-y-scroll">
+          <RadioGroup
+            className="gap-0"
+            onValueChange={handleModelChange}
+            value={currentModelId}
+          >
+            {groupedModels.map((group, groupIndex) => (
+              <div key={group.provider}>
+                {groupIndex > 0 && <div className="border-border border-t" />}
+                <div className="px-3 py-2">
+                  <div className="font-semibold text-muted-foreground text-xs uppercase tracking-wide">
+                    {group.providerLabel}
+                  </div>
                 </div>
+                {group.models.map((model) => {
+                  const isSelected = currentModelId === model.id;
+                  return (
+                    <label
+                      className={cn(
+                        "group flex min-h-[44px] cursor-pointer items-start gap-3 px-3 py-2.5 transition-colors hover:bg-accent",
+                        isSelected && "bg-accent/50"
+                      )}
+                      data-testid={`model-option-${model.id}`}
+                      htmlFor={`model-${model.id}`}
+                      key={model.id}
+                    >
+                      <RadioGroupItem
+                        className="sr-only"
+                        id={`model-${model.id}`}
+                        value={model.id}
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-1.5 font-medium text-sm leading-tight">
+                          {t(model.name)}
+                          {isImageGenerationModel(model.id) && (
+                            <span
+                              className="text-muted-foreground"
+                              title={tModels("imageGenerationModel")}
+                            >
+                              <ImageIcon size={14} />
+                            </span>
+                          )}
+                        </div>
+                        <div className="mt-0.5 text-muted-foreground text-xs leading-snug">
+                          {t(model.description)}
+                        </div>
+                      </div>
+                      {isSelected && (
+                        <span className="mt-0.5 flex-shrink-0 text-primary">
+                          <CheckCircleFillIcon size={18} />
+                        </span>
+                      )}
+                    </label>
+                  );
+                })}
               </div>
-              {group.models.map((model) => {
-                const isSelected = currentModelId === model.id;
-                return (
-                  <label
-                    className={cn(
-                      "group flex min-h-[44px] cursor-pointer items-start gap-3 px-3 py-2.5 transition-colors hover:bg-accent",
-                      isSelected && "bg-accent/50"
-                    )}
-                    data-testid={`model-option-${model.id}`}
-                    htmlFor={`model-${model.id}`}
-                    key={model.id}
-                  >
-                    <RadioGroupItem
-                      className="sr-only"
-                      id={`model-${model.id}`}
-                      value={model.id}
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-1.5 font-medium text-sm leading-tight">
-                        {t(model.name)}
-                        {isImageGenerationModel(model.id) && (
-                          <span
-                            className="text-muted-foreground"
-                            title={tModels("imageGenerationModel")}
-                          >
-                            <ImageIcon size={14} />
-                          </span>
-                        )}
-                      </div>
-                      <div className="mt-0.5 text-muted-foreground text-xs leading-snug">
-                        {t(model.description)}
-                      </div>
-                    </div>
-                    {isSelected && (
-                      <span className="mt-0.5 flex-shrink-0 text-primary">
-                        <CheckCircleFillIcon size={18} />
-                      </span>
-                    )}
-                  </label>
-                );
-              })}
-            </div>
-          ))}
-        </RadioGroup>
+            ))}
+          </RadioGroup>
+        </div>
       </PopoverContent>
     </Popover>
   );
