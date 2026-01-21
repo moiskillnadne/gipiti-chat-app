@@ -20,9 +20,22 @@ export function DataStreamHandler() {
     lastProcessedIndex.current = dataStream.length - 1;
 
     for (const delta of newDeltas) {
+      // Determine target artifact kind from stream part type prefix
+      // This handles cases where artifact.kind state is stale during batched updates
+      let targetKind = artifact.kind;
+      if (delta.type.startsWith("data-code")) {
+        targetKind = "code";
+      } else if (delta.type.startsWith("data-text")) {
+        targetKind = "text";
+      } else if (delta.type.startsWith("data-sheet")) {
+        targetKind = "sheet";
+      } else if (delta.type.startsWith("data-image")) {
+        targetKind = "image";
+      }
+
       const artifactDefinition = artifactDefinitions.find(
         (currentArtifactDefinition) =>
-          currentArtifactDefinition.kind === artifact.kind
+          currentArtifactDefinition.kind === targetKind
       );
 
       if (artifactDefinition?.onStreamPart) {
@@ -61,6 +74,8 @@ export function DataStreamHandler() {
             };
 
           case "data-clear":
+            // Also clear metadata when starting a new artifact
+            setMetadata(null);
             return {
               ...draftArtifact,
               content: "",

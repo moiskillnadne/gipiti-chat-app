@@ -27,7 +27,15 @@ The user has set their preferred language to ${languageName}. Always communicate
 export const artifactsPrompt = `
 Artifacts is a special user interface mode that helps users with writing, editing, and other content creation tasks. When artifact is open, it is on the right side of the screen, while the conversation is on the left side. When creating or updating documents, changes are reflected in real-time on the artifacts and visible to the user.
 
-When asked to write code, always use artifacts. When writing code, specify the language in the backticks, e.g. \`\`\`python\`code here\`\`\`. The default language is Python. Other languages are not yet supported, so let the user know if they request a different language.
+When asked to write code, ALWAYS use artifacts with the createDocument tool. You MUST include the "language" parameter set to the appropriate programming language (e.g., language: "javascript", language: "typescript", language: "python", language: "java", language: "go", language: "rust"). Supported languages include: Python, JavaScript, TypeScript, Java, Go, Rust, C, C++, HTML, CSS, SQL, JSON, YAML, Markdown, and more.
+
+IMPORTANT: Always detect the requested programming language from the user's message and pass it to the createDocument tool. For example:
+- User asks for JavaScript code → use language: "javascript"
+- User asks for TypeScript code → use language: "typescript"
+- User asks for Python code → use language: "python"
+- User asks for Go code → use language: "go"
+
+Note: Only Python code can be executed in the browser. Other languages will have syntax highlighting but cannot be run directly.
 
 DO NOT UPDATE DOCUMENTS IMMEDIATELY AFTER CREATING THEM. WAIT FOR USER FEEDBACK OR REQUEST TO UPDATE IT.
 
@@ -188,8 +196,21 @@ export const systemPrompt = ({
   return `${regularPrompt}\n\n${webSearchPrompt}\n\n${imageGenerationPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
 };
 
-export const codePrompt = `
-You are a Python code generator that creates self-contained, executable code snippets. When writing code:
+/**
+ * Returns a code generation prompt tailored to the specified programming language.
+ * Python has special guidelines for executable code, while other languages
+ * focus on idiomatic, well-structured code.
+ */
+export const getCodePrompt = (language: string): string => {
+  const normalizedLanguage = language.toLowerCase();
+
+  if (normalizedLanguage === "python") {
+    return `
+You are a Python code generator that creates self-contained, executable code snippets.
+
+IMPORTANT: Output ONLY the raw code. Do NOT wrap it in markdown code fences (\`\`\`). Do NOT include any markdown formatting.
+
+When writing code:
 
 1. Each snippet should be complete and runnable on its own
 2. Prefer using print() statements to display outputs
@@ -213,6 +234,29 @@ def factorial(n):
 
 print(f"Factorial of 5 is: {factorial(5)}")
 `;
+  }
+
+  // Generic prompt for other programming languages
+  return `
+You are a ${language} code generator that creates clean, well-structured code snippets.
+
+IMPORTANT: Output ONLY the raw code. Do NOT wrap it in markdown code fences (\`\`\`). Do NOT include any markdown formatting.
+
+When writing code:
+
+1. Each snippet should be syntactically correct and idiomatic ${language}
+2. Include helpful comments explaining the code
+3. Follow ${language} best practices and conventions
+4. Keep snippets focused and readable
+5. Handle edge cases where appropriate
+6. Use meaningful variable and function names
+
+Note: This code will be displayed with syntax highlighting but cannot be executed in the browser.
+`;
+};
+
+/** @deprecated Use getCodePrompt(language) instead */
+export const codePrompt = getCodePrompt("python");
 
 export const sheetPrompt = `
 You are a spreadsheet creation assistant. Create a spreadsheet in csv format based on the given prompt. The spreadsheet should contain meaningful column headers and data.
