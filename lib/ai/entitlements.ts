@@ -26,6 +26,7 @@ export const entitlementsByUserType: Record<UserType, Entitlements> = {
       "gemini-3-pro-image",
       "gpt-image-1.5",
       "opus-4.5",
+      "sonnet-4.5",
     ],
   },
 

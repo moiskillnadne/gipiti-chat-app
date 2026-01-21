@@ -267,6 +267,18 @@ export const chatModels: ChatModel[] = [
     showInUI: true,
     thinkingConfig: OPUS_THINKING_CONFIG,
   },
+  {
+    id: "sonnet-4.5",
+    name: "sonnet45.name",
+    description: "sonnet45.description",
+    provider: "anthropic",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+    thinkingConfig: OPUS_THINKING_CONFIG,
+  },
 ];
 
 export const chatModelIds = chatModels.map((model) => model.id);
@@ -377,7 +389,11 @@ export const getGoogleProviderOptions = (
   };
 };
 
-export const anthropicModelIds = ["opus-4.1", "opus-4.5"] as const;
+export const anthropicModelIds = [
+  "opus-4.1",
+  "opus-4.5",
+  "sonnet-4.5",
+] as const;
 export type AnthropicModelId = (typeof anthropicModelIds)[number];
 
 export const isAnthropicModel = (modelId: string) => {
