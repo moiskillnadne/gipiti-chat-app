@@ -1,15 +1,39 @@
+import type { FC } from "react";
+import { getModelById, type ModelProvider } from "@/lib/ai/models";
 import { cn } from "@/lib/utils";
-import { SparklesIcon } from "./icons";
+import {
+  LogoAnthropic,
+  LogoGoogle,
+  LogoOpenAI,
+  LogoXai,
+  SparklesIcon,
+} from "./icons";
 
 type AssistantIconProps = {
   isLoading?: boolean;
   className?: string;
+  modelId?: string;
+};
+
+type IconComponentProps = { size?: number };
+
+const providerIconMap: Record<ModelProvider, FC<IconComponentProps>> = {
+  openai: LogoOpenAI,
+  google: LogoGoogle,
+  anthropic: LogoAnthropic,
+  xai: LogoXai,
 };
 
 export const AssistantIcon = ({
   isLoading = false,
   className,
+  modelId,
 }: AssistantIconProps) => {
+  const model = modelId ? getModelById(modelId) : undefined;
+  const provider = model?.provider;
+
+  const IconComponent = provider ? providerIconMap[provider] : SparklesIcon;
+
   return (
     <div
       className={cn(
@@ -20,7 +44,7 @@ export const AssistantIcon = ({
         className
       )}
     >
-      <SparklesIcon size={14} />
+      <IconComponent size={14} />
     </div>
   );
 };

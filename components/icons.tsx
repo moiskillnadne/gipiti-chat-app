@@ -226,21 +226,35 @@ export const LogoGoogle = ({ size = 16 }: { size?: number }) => {
   );
 };
 
-export const LogoAnthropic = () => {
+export const LogoAnthropic = ({ size = 16 }: { size?: number }) => {
   return (
     <svg
-      height="18px"
+      height={size}
       style={{ color: "currentcolor", fill: "currentcolor" }}
       viewBox="0 0 92.2 65"
-      width="18px"
-      x="0px"
+      width={size}
       xmlns="http://www.w3.org/2000/svg"
-      xmlnsXlink="http://www.w3.org/1999/xlink"
-      y="0px"
     >
       <path
         d="M66.5,0H52.4l25.7,65h14.1L66.5,0z M25.7,0L0,65h14.4l5.3-13.6h26.9L51.8,65h14.4L40.5,0C40.5,0,25.7,0,25.7,0z
 		M24.3,39.3l8.8-22.8l8.8,22.8H24.3z"
+      />
+    </svg>
+  );
+};
+
+export const LogoXai = ({ size = 16 }: { size?: number }) => {
+  return (
+    <svg
+      height={size}
+      style={{ color: "currentcolor" }}
+      viewBox="0 0 24 24"
+      width={size}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M2.30927 22.9999L12 10.3076L21.6907 22.9999H17.9411L12 15.3691L6.05893 22.9999H2.30927ZM6.55228 1H10.0988L18.4999 12.8245L16.7489 15.3076L6.55228 1ZM13.6699 1H17.2164L21.6907 7.00003H18.1442L13.6699 1ZM2.30927 7.00003L6.78359 1H10.33L5.85572 7.00003H2.30927Z"
+        fill="currentColor"
       />
     </svg>
   );

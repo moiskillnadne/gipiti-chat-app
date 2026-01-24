@@ -249,6 +249,7 @@ export async function POST(request: Request) {
           parts: message.parts,
           attachments: [],
           createdAt: new Date(),
+          modelId: null,
         },
       ],
     });
@@ -297,6 +298,12 @@ export async function POST(request: Request) {
 
     const stream = createUIMessageStream({
       execute: async ({ writer: dataStream }) => {
+        // Send modelId immediately so client can display correct provider icon
+        dataStream.write({
+          type: "data-modelId",
+          data: selectedChatModel,
+        });
+
         if (isDirectImageGeneration) {
           // Direct image generation with full tool-like behavior
           const userMessageParts = message.parts;
@@ -824,6 +831,7 @@ export async function POST(request: Request) {
             createdAt: new Date(),
             attachments: [],
             chatId: id,
+            modelId: currentMessage.role === "assistant" ? selectedChatModel : null,
           })),
         });
 
