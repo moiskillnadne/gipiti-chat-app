@@ -18,7 +18,8 @@ import {
   ToolInput,
   ToolOutput,
 } from "./elements/tool";
-import { DownloadIcon, SparklesIcon } from "./icons";
+import { AssistantIcon } from "./assistant-icon";
+import { DownloadIcon } from "./icons";
 import { MessageActions } from "./message-actions";
 import { MessageEditor } from "./message-editor";
 import { MessageReasoning } from "./message-reasoning";
@@ -72,11 +73,7 @@ const PurePreviewMessage = ({
           "justify-start": message.role === "assistant",
         })}
       >
-        {message.role === "assistant" && (
-          <div className="-mt-1 flex size-8 shrink-0 items-center justify-center rounded-full bg-background ring-1 ring-border">
-            <SparklesIcon size={14} />
-          </div>
-        )}
+        {message.role === "assistant" && <AssistantIcon isLoading={isLoading} />}
 
         <div
           className={cn("flex flex-col", {
@@ -501,9 +498,7 @@ export const ThinkingMessage = () => {
       transition={{ duration: 0.2 }}
     >
       <div className="flex items-start justify-start gap-3">
-        <div className="-mt-1 flex size-8 shrink-0 items-center justify-center rounded-full bg-background ring-1 ring-border">
-          <SparklesIcon size={14} />
-        </div>
+        <AssistantIcon isLoading={true} />
 
         <div className="flex w-full flex-col gap-2 md:gap-4">
           <div className="p-0 text-muted-foreground text-sm">
