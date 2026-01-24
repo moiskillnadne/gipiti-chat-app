@@ -18,7 +18,8 @@ import {
   ToolInput,
   ToolOutput,
 } from "./elements/tool";
-import { DownloadIcon, SparklesIcon } from "./icons";
+import { AssistantIcon } from "./assistant-icon";
+import { DownloadIcon } from "./icons";
 import { MessageActions } from "./message-actions";
 import { MessageEditor } from "./message-editor";
 import { MessageReasoning } from "./message-reasoning";
@@ -29,6 +30,25 @@ import { UrlExtractResult } from "./url-extract-result";
 import { Weather } from "./weather";
 import { WebSearchInputPreview } from "./web-search-input-preview";
 import { WebSearchResult } from "./web-search-result";
+
+/**
+ * Extract modelId from message - checks metadata first (DB messages),
+ * then falls back to message parts (streaming messages).
+ */
+const getModelIdFromMessage = (message: ChatMessage): string | undefined => {
+  // First check metadata (for messages loaded from DB)
+  if (message.metadata?.modelId) {
+    return message.metadata.modelId;
+  }
+  // Then check message parts (for streaming messages)
+  const modelIdPart = message.parts.find(
+    (part) => part.type === "data-modelId"
+  );
+  if (modelIdPart && "data" in modelIdPart) {
+    return modelIdPart.data as string;
+  }
+  return undefined;
+};
 
 const PurePreviewMessage = ({
   chatId,
@@ -73,9 +93,7 @@ const PurePreviewMessage = ({
         })}
       >
         {message.role === "assistant" && (
-          <div className="-mt-1 flex size-8 shrink-0 items-center justify-center rounded-full bg-background ring-1 ring-border">
-            <SparklesIcon size={14} />
-          </div>
+          <AssistantIcon isLoading={isLoading} modelId={getModelIdFromMessage(message)} />
         )}
 
         <div
@@ -475,6 +493,9 @@ export const PreviewMessage = memo(
     if (!equal(prevProps.message.parts, nextProps.message.parts)) {
       return false;
     }
+    if (!equal(prevProps.message.metadata, nextProps.message.metadata)) {
+      return false;
+    }
     if (!equal(prevProps.vote, nextProps.vote)) {
       return false;
     }
@@ -486,7 +507,11 @@ export const PreviewMessage = memo(
   }
 );
 
-export const ThinkingMessage = () => {
+type ThinkingMessageProps = {
+  modelId?: string;
+};
+
+export const ThinkingMessage = ({ modelId }: ThinkingMessageProps) => {
   const t = useTranslations("chat.messages");
   const role = "assistant";
 
@@ -501,9 +526,7 @@ export const ThinkingMessage = () => {
       transition={{ duration: 0.2 }}
     >
       <div className="flex items-start justify-start gap-3">
-        <div className="-mt-1 flex size-8 shrink-0 items-center justify-center rounded-full bg-background ring-1 ring-border">
-          <SparklesIcon size={14} />
-        </div>
+        <AssistantIcon isLoading={true} modelId={modelId} />
 
         <div className="flex w-full flex-col gap-2 md:gap-4">
           <div className="p-0 text-muted-foreground text-sm">

@@ -332,3 +332,29 @@
 .animate-caret-blink {
   animation: caret-blink 1.25s ease-out infinite;
 }
+
+/* ========================================
+   Assistant Icon Loading Animations
+   ======================================== */
+
+/* Pulsing Glow Effect */
+@keyframes assistant-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 hsl(217.2 91.2% 59.8% / 0);
+  }
+  50% {
+    box-shadow: 0 0 12px 3px hsl(217.2 91.2% 59.8% / 0.4);
+  }
+}
+
+.animate-assistant-glow {
+  animation: assistant-glow 1.5s ease-in-out infinite;
+}
+
+/* Accessibility: Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .animate-assistant-glow {
+    animation: none;
+    box-shadow: 0 0 8px 2px hsl(217.2 91.2% 59.8% / 0.3);
+  }
+}

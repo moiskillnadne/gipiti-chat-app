@@ -3,6 +3,7 @@ import equal from "fast-deep-equal";
 import { AnimatePresence } from "framer-motion";
 import { ArrowDownIcon } from "lucide-react";
 import { memo, useEffect } from "react";
+import { useModel } from "@/contexts/model-context";
 import { useMessages } from "@/hooks/use-messages";
 import type { Vote } from "@/lib/db/schema";
 import type { ChatMessage } from "@/lib/types";
@@ -30,6 +31,7 @@ function PureMessages({
   regenerate,
   isReadonly,
 }: MessagesProps) {
+  const { currentModelId } = useModel();
   const {
     containerRef: messagesContainerRef,
     endRef: messagesEndRef,
@@ -95,7 +97,9 @@ function PureMessages({
           ))}
 
           <AnimatePresence mode="wait">
-            {status === "submitted" && <ThinkingMessage key="thinking" />}
+            {status === "submitted" && (
+              <ThinkingMessage key="thinking" modelId={currentModelId} />
+            )}
           </AnimatePresence>
 
           <div
