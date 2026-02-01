@@ -831,7 +831,8 @@ export async function POST(request: Request) {
             createdAt: new Date(),
             attachments: [],
             chatId: id,
-            modelId: currentMessage.role === "assistant" ? selectedChatModel : null,
+            modelId:
+              currentMessage.role === "assistant" ? selectedChatModel : null,
           })),
         });
 
