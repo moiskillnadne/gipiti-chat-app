@@ -115,9 +115,9 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
     },
     billingPeriod: "monthly",
     billingPeriodCount: 1,
-    tokenQuota: 1_000_000, // 1M tokens per month
+    tokenQuota: 2_000_000, // 2M tokens per month
     features: {
-      maxMessagesPerPeriod: 500,
+      maxMessagesPerPeriod: 1000,
       allowedModels: [
         "gpt-5.1-instant",
         "gpt-5.1-thinking",
@@ -152,9 +152,9 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
     },
     billingPeriod: "monthly",
     billingPeriodCount: 3,
-    tokenQuota: 3_000_000, // 3M tokens per quarter (1M/month equivalent)
+    tokenQuota: 6_000_000, // 6M tokens per quarter (2M/month equivalent)
     features: {
-      maxMessagesPerPeriod: 1500,
+      maxMessagesPerPeriod: 3000,
       allowedModels: [
         "gpt-5.1-instant",
         "gpt-5.1-thinking",
@@ -188,9 +188,9 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
     },
     billingPeriod: "annual",
     billingPeriodCount: 1,
-    tokenQuota: 12_000_000, // 12M tokens per year (1M/month equivalent)
+    tokenQuota: 24_000_000, // 24M tokens per year (2M/month equivalent)
     features: {
-      maxMessagesPerPeriod: 6000,
+      maxMessagesPerPeriod: 12_000,
       allowedModels: [
         "gpt-5.1-instant",
         "gpt-5.1-thinking",

@@ -169,6 +169,13 @@
       "when": 1769260425109,
       "tag": "0023_open_victor_mancha",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1769904000000,
+      "tag": "0024_double_subscription_limits",
+      "breakpoints": true
     }
   ]
 }
