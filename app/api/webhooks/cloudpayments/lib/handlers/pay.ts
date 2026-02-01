@@ -324,6 +324,8 @@ export async function handlePayWebhook(
         cardMask,
         lastPaymentDate: now,
         lastPaymentAmount: amountValue.toFixed(2),
+        cancelAtPeriodEnd: false,
+        cancelledAt: null,
       });
     }
 
@@ -541,6 +543,8 @@ async function handleTrialPayment({
       cardMask,
       isTrial: true,
       trialEndsAt,
+      cancelAtPeriodEnd: false,
+      cancelledAt: null,
     });
 
     await db

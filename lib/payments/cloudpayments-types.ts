@@ -148,8 +148,14 @@ export type CloudPaymentsRecurrentWebhook = CloudPaymentsWebhookPayload & {
   Status: "Active" | "Cancelled" | "PastDue" | "Rejected" | "Expired";
 };
 export type CloudPaymentsCancelWebhook = {
-  Id: string;
-  AccountId: string;
+  Id?: string; // Subscription ID (only present for subscription cancellations)
+  AccountId?: string; // User ID
+  TransactionId?: number; // Present for transaction cancellations (voided payments)
+  Amount?: number;
+  OperationType?: string;
+  Email?: string;
+  DateTime?: string;
+  Data?: string;
 };
 
 export type CloudPaymentsWebhookResponse = {
