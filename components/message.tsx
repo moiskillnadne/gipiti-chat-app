@@ -138,7 +138,7 @@ const PurePreviewMessage = ({
               const reasoningText = part.text ?? "";
               const hasReasoningText = reasoningText.trim().length > 0;
 
-              if (!hasReasoningText && !isLoading) {
+              if (!hasReasoningText) {
                 return null;
               }
 
