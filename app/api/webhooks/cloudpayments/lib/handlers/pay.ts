@@ -280,6 +280,8 @@ export async function handlePayWebhook(
           cardMask: cardMask ?? existingSubscription.cardMask,
           lastPaymentDate: now,
           lastPaymentAmount: amountValue.toFixed(2),
+          isTrial: false,
+          trialEndsAt: null,
           updatedAt: now,
         })
         .where(eq(userSubscription.id, existingSubscription.id));

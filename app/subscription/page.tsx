@@ -105,8 +105,16 @@ export default async function SubscriptionPage() {
   const subscriptionPriceInRubles =
     SUBSCRIPTION_TIERS[plan.name]?.price.RUB ?? plan.price;
 
-  const getStatusBadge = (status: string, isTrial: boolean) => {
-    if (isTrial) {
+  const getStatusBadge = (
+    status: string,
+    isTrial: boolean,
+    trialEndsAt: Date | null
+  ) => {
+    // Check if trial has expired (trialEndsAt is in the past)
+    const isTrialExpired = trialEndsAt && new Date() > trialEndsAt;
+
+    // Show "Trial" only if trial is active AND not expired
+    if (isTrial && !isTrialExpired) {
       return (
         <Badge
           className="w-fit bg-purple-100 text-purple-800"
@@ -180,7 +188,11 @@ export default async function SubscriptionPage() {
               {t("status")}
             </h3>
             <div className="flex flex-col gap-2">
-              {getStatusBadge(subscription.status, subscription.isTrial)}
+              {getStatusBadge(
+                subscription.status,
+                subscription.isTrial,
+                subscription.trialEndsAt
+              )}
               {subscription.cancelledAt && (
                 <p className="text-muted-foreground text-sm">
                   {t("cancelledOn", {
@@ -191,24 +203,28 @@ export default async function SubscriptionPage() {
             </div>
           </div>
 
-          {subscription.isTrial && subscription.trialEndsAt && (
-            <div className="rounded-lg border border-purple-200 bg-purple-50 p-4 dark:border-purple-800 dark:bg-purple-950/30">
-              <h3 className="font-semibold text-purple-800 dark:text-purple-200">
-                {t("trialInfo.title")}
-              </h3>
-              <p className="mt-1 text-purple-700 text-sm dark:text-purple-300">
-                {t("trialInfo.daysRemaining", {
-                  days: getTrialDaysRemaining(subscription.trialEndsAt),
-                })}
-              </p>
-              <p className="mt-1 text-purple-600 text-sm dark:text-purple-400">
-                {t("trialInfo.chargeDate", {
-                  date: formatDate(subscription.trialEndsAt),
-                  amount: formatCurrency(subscriptionPriceInRubles.toString()),
-                })}
-              </p>
-            </div>
-          )}
+          {subscription.isTrial &&
+            subscription.trialEndsAt &&
+            new Date() < subscription.trialEndsAt && (
+              <div className="rounded-lg border border-purple-200 bg-purple-50 p-4 dark:border-purple-800 dark:bg-purple-950/30">
+                <h3 className="font-semibold text-purple-800 dark:text-purple-200">
+                  {t("trialInfo.title")}
+                </h3>
+                <p className="mt-1 text-purple-700 text-sm dark:text-purple-300">
+                  {t("trialInfo.daysRemaining", {
+                    days: getTrialDaysRemaining(subscription.trialEndsAt),
+                  })}
+                </p>
+                <p className="mt-1 text-purple-600 text-sm dark:text-purple-400">
+                  {t("trialInfo.chargeDate", {
+                    date: formatDate(subscription.trialEndsAt),
+                    amount: formatCurrency(
+                      subscriptionPriceInRubles.toString()
+                    ),
+                  })}
+                </p>
+              </div>
+            )}
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
