@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { CancellationFeedbackDialog } from "@/components/cancellation-feedback-dialog";
 import { toast } from "@/components/toast";
 import {
   AlertDialog,
@@ -13,7 +14,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 
@@ -23,13 +23,20 @@ type CancelSubscriptionButtonProps = {
   isTrial?: boolean;
 };
 
+type FeedbackData = {
+  reasons: string[];
+  additionalFeedback: string;
+};
+
 export function CancelSubscriptionButton({
   currentPeriodEnd,
   isAlreadyCancelled,
   isTrial = false,
 }: CancelSubscriptionButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [feedbackData, setFeedbackData] = useState<FeedbackData | null>(null);
   const router = useRouter();
   const t = useTranslations("auth.subscription.management.dangerZone");
   const tCommon = useTranslations("common.buttons");
@@ -42,12 +49,24 @@ export function CancelSubscriptionButton({
     }).format(new Date(date));
   };
 
+  const handleFeedbackSubmit = (data: FeedbackData) => {
+    setFeedbackData(data);
+    setIsFeedbackOpen(false);
+    setIsConfirmOpen(true);
+  };
+
   const handleCancel = async () => {
     setIsLoading(true);
 
     try {
       const response = await fetch("/api/subscription", {
         method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          feedback: feedbackData,
+        }),
       });
 
       if (response.ok) {
@@ -63,7 +82,8 @@ export function CancelSubscriptionButton({
             description: t("cancelSuccess", { date: formattedDate }),
           });
         }
-        setIsOpen(false);
+        setIsConfirmOpen(false);
+        setFeedbackData(null);
         router.refresh();
       } else {
         toast({
@@ -81,45 +101,60 @@ export function CancelSubscriptionButton({
     }
   };
 
+  const handleConfirmClose = () => {
+    setIsConfirmOpen(false);
+    setFeedbackData(null);
+  };
+
   return (
-    <AlertDialog onOpenChange={setIsOpen} open={isOpen}>
-      <AlertDialogTrigger asChild>
-        <Button
-          disabled={isAlreadyCancelled || isLoading}
-          variant="destructive"
-        >
-          {t("cancelButton")}
-        </Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>
-            {isTrial ? t("confirmTitleTrial") : t("confirmTitle")}
-          </AlertDialogTitle>
-          <AlertDialogDescription>
-            {isTrial
-              ? t("confirmDescriptionTrial")
-              : t("confirmDescription", {
-                  date: formatDate(currentPeriodEnd),
-                })}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={isLoading}>
-            {tCommon("cancel")}
-          </AlertDialogCancel>
-          <AlertDialogAction
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            disabled={isLoading}
-            onClick={(e) => {
-              e.preventDefault();
-              handleCancel();
-            }}
-          >
-            {isLoading ? t("cancelling") : t("confirmButton")}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <>
+      <Button
+        disabled={isAlreadyCancelled || isLoading}
+        onClick={() => setIsFeedbackOpen(true)}
+        variant="destructive"
+      >
+        {t("cancelButton")}
+      </Button>
+
+      <CancellationFeedbackDialog
+        isLoading={isLoading}
+        isOpen={isFeedbackOpen}
+        isTrial={isTrial}
+        onOpenChange={setIsFeedbackOpen}
+        onSubmit={handleFeedbackSubmit}
+      />
+
+      <AlertDialog onOpenChange={handleConfirmClose} open={isConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {isTrial ? t("confirmTitleTrial") : t("confirmTitle")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {isTrial
+                ? t("confirmDescriptionTrial")
+                : t("confirmDescription", {
+                    date: formatDate(currentPeriodEnd),
+                  })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isLoading}>
+              {tCommon("cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={isLoading}
+              onClick={(e) => {
+                e.preventDefault();
+                handleCancel();
+              }}
+            >
+              {isLoading ? t("cancelling") : t("confirmButton")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

@@ -621,3 +621,42 @@ export const imageGenerationUsageLog = pgTable(
 export type ImageGenerationUsageLog = InferSelectModel<
   typeof imageGenerationUsageLog
 >;
+
+// Cancellation Feedback - tracks why users cancel subscriptions
+export const cancellationFeedback = pgTable(
+  "CancellationFeedback",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+
+    // User context
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    subscriptionId: uuid("subscription_id")
+      .notNull()
+      .references(() => userSubscription.id, { onDelete: "cascade" }),
+
+    // Feedback data
+    reasons: jsonb("reasons").$type<string[]>().notNull(),
+    additionalFeedback: text("additional_feedback"),
+
+    // Context at cancellation time
+    planName: varchar("plan_name", { length: 64 }),
+    billingPeriod: billingPeriodEnum("billing_period"),
+    subscriptionDurationDays: integer("subscription_duration_days"),
+    wasTrial: boolean("was_trial").default(false).notNull(),
+
+    // Meta
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index("cancellation_feedback_user_id_idx").on(table.userId),
+    createdAtIdx: index("cancellation_feedback_created_at_idx").on(
+      table.createdAt
+    ),
+  })
+);
+
+export type CancellationFeedback = InferSelectModel<
+  typeof cancellationFeedback
+>;

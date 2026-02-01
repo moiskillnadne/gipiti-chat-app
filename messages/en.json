@@ -336,7 +336,30 @@
           "confirmButton": "Yes, Cancel Subscription",
           "cancelSuccess": "Subscription cancelled successfully. You'll retain access until {date}.",
           "cancelSuccessTrial": "Trial cancelled successfully. Your card will not be charged.",
-          "cancelError": "Failed to cancel subscription. Please try again or contact support."
+          "cancelError": "Failed to cancel subscription. Please try again or contact support.",
+          "feedback": {
+            "title": "Help us improve",
+            "titleTrial": "Before you go...",
+            "description": "We'd love to understand why you're cancelling. Your feedback helps us improve.",
+            "descriptionTrial": "We'd appreciate knowing why the trial didn't work out for you.",
+            "reasons": {
+              "tooExpensive": "Too expensive / Price is too high",
+              "notUsingEnough": "Not using it enough",
+              "missingFeatures": "Missing features I need",
+              "technicalIssues": "Technical issues / Bugs",
+              "foundAlternative": "Found a better alternative",
+              "temporaryPause": "Temporary - will resubscribe later",
+              "poorPerformance": "Poor performance / Slow responses",
+              "poorResponseQuality": "AI responses don't meet my needs"
+            },
+            "additionalFeedbackLabel": "Additional feedback (optional)",
+            "additionalFeedbackPlaceholder": "Tell us more about your experience or what we could improve...",
+            "validation": {
+              "selectOrWrite": "Please select at least one reason or provide feedback in the text field"
+            },
+            "continueButton": "Continue to Cancel",
+            "backButton": "Go Back"
+          }
         }
       }
     }
