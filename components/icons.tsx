@@ -887,7 +887,10 @@ export const ChevronDownIcon = ({ size = 16 }: { size?: number }) => (
 export const SparklesIcon = ({
   size = 16,
   className,
-}: { size?: number; className?: string }) => (
+}: {
+  size?: number;
+  className?: string;
+}) => (
   <svg
     className={className}
     height={size}

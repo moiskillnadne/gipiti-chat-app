@@ -7,6 +7,7 @@ import { memo, useState } from "react";
 import type { Vote } from "@/lib/db/schema";
 import type { ChatMessage } from "@/lib/types";
 import { cn, sanitizeText } from "@/lib/utils";
+import { AssistantIcon } from "./assistant-icon";
 import { DocumentToolResult } from "./document";
 import { DocumentPreview } from "./document-preview";
 import { MessageContent } from "./elements/message";
@@ -18,7 +19,6 @@ import {
   ToolInput,
   ToolOutput,
 } from "./elements/tool";
-import { AssistantIcon } from "./assistant-icon";
 import { DownloadIcon } from "./icons";
 import { MessageActions } from "./message-actions";
 import { MessageEditor } from "./message-editor";
@@ -47,7 +47,7 @@ const getModelIdFromMessage = (message: ChatMessage): string | undefined => {
   if (modelIdPart && "data" in modelIdPart) {
     return modelIdPart.data as string;
   }
-  return undefined;
+  return;
 };
 
 const PurePreviewMessage = ({
@@ -93,7 +93,10 @@ const PurePreviewMessage = ({
         })}
       >
         {message.role === "assistant" && (
-          <AssistantIcon isLoading={isLoading} modelId={getModelIdFromMessage(message)} />
+          <AssistantIcon
+            isLoading={isLoading}
+            modelId={getModelIdFromMessage(message)}
+          />
         )}
 
         <div
