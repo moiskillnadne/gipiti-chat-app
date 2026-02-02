@@ -1,8 +1,8 @@
 type TokenUnit = "K" | "M";
 
-interface FormatOptions {
+type FormatOptions = {
   maxUnit?: TokenUnit;
-}
+};
 
 /**
  * Format token balance for display (client-safe)
@@ -21,8 +21,8 @@ export function formatTokenBalance(
   if (tokens >= 1_000_000 && maxUnit !== "K") {
     return `${(tokens / 1_000_000).toFixed(1)}M`;
   }
-  if (tokens >= 1_000) {
-    const k = tokens / 1_000;
+  if (tokens >= 1000) {
+    const k = tokens / 1000;
     // For large K values, use locale formatting for readability (1,970K)
     return `${k >= 100 ? Math.round(k).toLocaleString() : Math.round(k)}K`;
   }

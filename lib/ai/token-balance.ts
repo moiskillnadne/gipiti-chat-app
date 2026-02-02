@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, gt, sql } from "drizzle-orm";
+import { and, desc, eq, gt, gte, sql } from "drizzle-orm";
 import { db } from "@/lib/db/queries";
 import {
   subscriptionPlan,
@@ -11,7 +11,7 @@ import { isPeriodExpired } from "../subscription/billing-periods";
 /**
  * Result of a balance check operation
  */
-interface BalanceCheckResult {
+type BalanceCheckResult = {
   allowed: boolean;
   balance: number;
   reason?: string;
@@ -21,28 +21,28 @@ interface BalanceCheckResult {
     currentPeriodEnd: Date;
     billingPeriod: string;
   };
-}
+};
 
 /**
  * Result of a balance modification operation
  */
-interface BalanceModificationResult {
+type BalanceModificationResult = {
   success: boolean;
   newBalance: number;
   transactionId: string;
   previousBalance?: number;
-}
+};
 
 /**
  * Metadata for balance transactions
  */
-interface TransactionMetadata {
+type TransactionMetadata = {
   modelId?: string;
   chatId?: string;
   planName?: string;
   subscriptionId?: string;
   previousBalance?: number;
-}
+};
 
 /**
  * Get user's current token balance and subscription info
@@ -98,17 +98,18 @@ export async function getUserBalance(userId: string): Promise<{
     .orderBy(desc(userSubscription.currentPeriodEnd))
     .limit(1);
 
-  const subscriptionInfo = subscriptions.length > 0
-    ? {
-        id: subscriptions[0].subscription.id,
-        planId: subscriptions[0].plan.id,
-        planName: subscriptions[0].plan.name,
-        displayName: subscriptions[0].plan.displayName,
-        tokenQuota: subscriptions[0].plan.tokenQuota,
-        currentPeriodEnd: subscriptions[0].subscription.currentPeriodEnd,
-        billingPeriod: subscriptions[0].subscription.billingPeriod,
-      }
-    : null;
+  const subscriptionInfo =
+    subscriptions.length > 0
+      ? {
+          id: subscriptions[0].subscription.id,
+          planId: subscriptions[0].plan.id,
+          planName: subscriptions[0].plan.name,
+          displayName: subscriptions[0].plan.displayName,
+          tokenQuota: subscriptions[0].plan.tokenQuota,
+          currentPeriodEnd: subscriptions[0].subscription.currentPeriodEnd,
+          billingPeriod: subscriptions[0].subscription.billingPeriod,
+        }
+      : null;
 
   return {
     balance: tokenBalance,
@@ -121,7 +122,9 @@ export async function getUserBalance(userId: string): Promise<{
  * Check if user has sufficient token balance
  * This is the pre-flight check before making an API call
  */
-export async function checkBalance(userId: string): Promise<BalanceCheckResult> {
+export async function checkBalance(
+  userId: string
+): Promise<BalanceCheckResult> {
   // Get user balance and subscription info
   const balanceInfo = await getUserBalance(userId);
 
@@ -148,18 +151,23 @@ export async function checkBalance(userId: string): Promise<BalanceCheckResult> 
       )
       .limit(1);
 
-    if (expiredSubs.length > 0 && isPeriodExpired(expiredSubs[0].currentPeriodEnd)) {
+    if (
+      expiredSubs.length > 0 &&
+      isPeriodExpired(expiredSubs[0].currentPeriodEnd)
+    ) {
       return {
         allowed: false,
         balance: balanceInfo.balance,
-        reason: "Your subscription has expired. Please renew to continue using the service.",
+        reason:
+          "Your subscription has expired. Please renew to continue using the service.",
       };
     }
 
     return {
       allowed: false,
       balance: balanceInfo.balance,
-      reason: "No active subscription found. Please subscribe to a plan to continue using the service.",
+      reason:
+        "No active subscription found. Please subscribe to a plan to continue using the service.",
     };
   }
 
@@ -513,8 +521,8 @@ export function formatTokenBalance(tokens: number): string {
   if (tokens >= 1_000_000) {
     return `${(tokens / 1_000_000).toFixed(1)}M`;
   }
-  if (tokens >= 1_000) {
-    return `${Math.round(tokens / 1_000)}K`;
+  if (tokens >= 1000) {
+    return `${Math.round(tokens / 1000)}K`;
   }
   return tokens.toLocaleString();
 }

@@ -119,7 +119,8 @@ export const UsageHint = ({ className, usage }: UsageHintProps) => {
 
   // Use balance-based system (primary)
   const balance = data?.balance?.current ?? null;
-  const tokenQuota = data?.subscription?.tokenQuota ?? data?.quota?.total ?? null;
+  const tokenQuota =
+    data?.subscription?.tokenQuota ?? data?.quota?.total ?? null;
 
   // Fallback to old quota system if balance not available
   const totalTokens = tokenQuota ?? undefined;
@@ -145,7 +146,10 @@ export const UsageHint = ({ className, usage }: UsageHintProps) => {
   };
 
   // If no data available, don't render
-  if (balance === null && (totalTokens === undefined || usedTokens === undefined)) {
+  if (
+    balance === null &&
+    (totalTokens === undefined || usedTokens === undefined)
+  ) {
     return null;
   }
 
@@ -156,7 +160,11 @@ export const UsageHint = ({ className, usage }: UsageHintProps) => {
     percent = percentFromBalance(balance, tokenQuota);
   } else if (data?.quota?.percentUsed) {
     percent = Number.parseFloat(data.quota.percentUsed);
-  } else if (usedTokens !== undefined && totalTokens !== undefined && totalTokens > 0) {
+  } else if (
+    usedTokens !== undefined &&
+    totalTokens !== undefined &&
+    totalTokens > 0
+  ) {
     percent = percentFromQuota(usedTokens, totalTokens);
   } else {
     percent = 0;

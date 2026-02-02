@@ -1,9 +1,9 @@
 "use client";
 
+import { ExternalLinkIcon } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import useSWR from "swr";
-import { ExternalLinkIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,23 +14,23 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { fetcher } from "@/lib/utils";
 import { formatTokenBalance } from "@/lib/format-tokens";
+import { fetcher } from "@/lib/utils";
 
-interface UsageSummary {
+type UsageSummary = {
   quota: number;
   balance: number;
   spent: number;
   remaining: number;
-}
+};
 
-interface TransactionsApiResponse {
+type TransactionsApiResponse = {
   summary: UsageSummary | null;
-}
+};
 
-interface TokenUsageSummaryProps {
+type TokenUsageSummaryProps = {
   showHistoryButton?: boolean;
-}
+};
 
 export function TokenUsageSummary({
   showHistoryButton = true,
@@ -63,7 +63,7 @@ export function TokenUsageSummary({
         <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <Progress value={percentUsed} className="h-3" />
+        <Progress className="h-3" value={percentUsed} />
 
         <div className="grid gap-4 md:grid-cols-3">
           <div className="space-y-1">
@@ -94,7 +94,7 @@ export function TokenUsageSummary({
 
         {showHistoryButton && (
           <Link href="/subscription/usage">
-            <Button variant="outline" className="w-full gap-2">
+            <Button className="w-full gap-2" variant="outline">
               {t("seeFullHistory")}
               <ExternalLinkIcon className="h-4 w-4" />
             </Button>
@@ -116,7 +116,7 @@ function TokenUsageSummarySkeleton() {
         <Skeleton className="h-3 w-full" />
         <div className="grid gap-4 md:grid-cols-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="space-y-1">
+            <div className="space-y-1" key={i}>
               <Skeleton className="h-4 w-16" />
               <Skeleton className="h-6 w-20" />
             </div>

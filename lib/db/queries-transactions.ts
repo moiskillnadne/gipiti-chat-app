@@ -1,10 +1,10 @@
 import "server-only";
 import { count, desc, eq, sql } from "drizzle-orm";
+import { getUserBalance } from "@/lib/ai/token-balance";
 import { db } from "@/lib/db/queries";
 import { chat, tokenBalanceTransaction, user } from "@/lib/db/schema";
-import { getUserBalance } from "@/lib/ai/token-balance";
 
-interface TransactionWithChat {
+type TransactionWithChat = {
   id: string;
   type: "credit" | "debit" | "reset" | "adjustment";
   amount: number;
@@ -20,19 +20,19 @@ interface TransactionWithChat {
   } | null;
   createdAt: Date;
   chatTitle: string | null;
-}
+};
 
-interface TransactionsResult {
+type TransactionsResult = {
   transactions: TransactionWithChat[];
   total: number;
-}
+};
 
-interface UsageSummary {
+type UsageSummary = {
   quota: number;
   balance: number;
   spent: number;
   remaining: number;
-}
+};
 
 /**
  * Get paginated balance transactions with chat titles

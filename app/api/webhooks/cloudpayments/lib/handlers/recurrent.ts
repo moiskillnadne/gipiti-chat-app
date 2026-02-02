@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
+import { resetBalance } from "@/lib/ai/token-balance";
 import { db } from "@/lib/db/queries";
 import { subscriptionPlan, userSubscription } from "@/lib/db/schema";
-import { resetBalance } from "@/lib/ai/token-balance";
 import type { CloudPaymentsRecurrentWebhook } from "@/lib/payments/cloudpayments-types";
 import {
   calculateNextBillingDate,

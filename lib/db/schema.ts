@@ -39,7 +39,9 @@ export const user = pgTable(
     trialUsedAt: timestamp("trial_used_at"),
 
     // Token balance system
-    tokenBalance: bigint("token_balance", { mode: "number" }).notNull().default(0),
+    tokenBalance: bigint("token_balance", { mode: "number" })
+      .notNull()
+      .default(0),
     lastBalanceResetAt: timestamp("last_balance_reset_at"),
 
     createdAt: timestamp("created_at").notNull().defaultNow(),

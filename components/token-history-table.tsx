@@ -1,23 +1,23 @@
 "use client";
 
-import { useState } from "react";
 import { format } from "date-fns";
-import { useTranslations } from "next-intl";
-import useSWR from "swr";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
+import useSWR from "swr";
+import { ModelBadge } from "@/components/model-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { fetcher } from "@/lib/utils";
 import { formatTokenBalance } from "@/lib/format-tokens";
-import { ModelBadge } from "@/components/model-badge";
+import { fetcher } from "@/lib/utils";
 
-interface TransactionMetadata {
+type TransactionMetadata = {
   modelId?: string;
   chatId?: string;
-}
+};
 
-interface Transaction {
+type Transaction = {
   id: string;
   type: "credit" | "debit" | "reset" | "adjustment";
   amount: number;
@@ -26,13 +26,13 @@ interface Transaction {
   chatTitle: string | null;
   description: string | null;
   metadata: TransactionMetadata | null;
-}
+};
 
-interface TransactionsApiResponse {
+type TransactionsApiResponse = {
   transactions: Transaction[];
   total: number;
   hasMore: boolean;
-}
+};
 
 const PAGE_SIZE = 20;
 
@@ -77,6 +77,8 @@ export function TokenHistoryTable() {
         );
       case "adjustment":
         return <Badge variant="outline">{t("types.adjustment")}</Badge>;
+      default:
+        return null;
     }
   };
 
@@ -107,16 +109,16 @@ export function TokenHistoryTable() {
             {transactions.length === 0 ? (
               <tr>
                 <td
-                  colSpan={5}
                   className="px-4 py-8 text-center text-muted-foreground"
+                  colSpan={5}
                 >
                   {t("empty")}
                 </td>
               </tr>
             ) : (
               transactions.map((tx) => (
-                <tr key={tx.id} className="hover:bg-muted/30">
-                  <td className="px-4 py-3 whitespace-nowrap">
+                <tr className="hover:bg-muted/30" key={tx.id}>
+                  <td className="whitespace-nowrap px-4 py-3">
                     {format(new Date(tx.createdAt), "MMM d, yyyy HH:mm")}
                   </td>
                   <td className="px-4 py-3">{getTypeBadge(tx.type)}</td>
@@ -158,18 +160,18 @@ export function TokenHistoryTable() {
           </p>
           <div className="flex gap-2">
             <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page === 0}
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              size="sm"
+              variant="outline"
             >
               <ChevronLeftIcon className="h-4 w-4" />
             </Button>
             <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => p + 1)}
               disabled={!data?.hasMore}
+              onClick={() => setPage((p) => p + 1)}
+              size="sm"
+              variant="outline"
             >
               <ChevronRightIcon className="h-4 w-4" />
             </Button>
@@ -194,7 +196,7 @@ function TableSkeleton() {
           </div>
         </div>
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="border-t px-4 py-3">
+          <div className="border-t px-4 py-3" key={i}>
             <div className="flex gap-8">
               <Skeleton className="h-4 w-24" />
               <Skeleton className="h-4 w-16" />
