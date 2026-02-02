@@ -14,8 +14,14 @@ import type { AppUsage } from "@/lib/usage";
 import { cn, fetcher } from "@/lib/utils";
 
 type UsageApiResponse = {
+  balance?: {
+    current?: number | null;
+    formatted?: string | null;
+    lastResetAt?: string | null;
+  };
   subscription?: {
     periodEnd?: string | null;
+    tokenQuota?: number | null;
   };
   quota?: {
     total?: number | null;
@@ -111,26 +117,54 @@ export const UsageHint = ({ className, usage }: UsageHintProps) => {
 
   const t = useTranslations("usage");
 
-  const totalTokens = data?.quota?.total ?? undefined;
+  // Use balance-based system (primary)
+  const balance = data?.balance?.current ?? null;
+  const tokenQuota = data?.subscription?.tokenQuota ?? data?.quota?.total ?? null;
+
+  // Fallback to old quota system if balance not available
+  const totalTokens = tokenQuota ?? undefined;
   const usedTokens = data?.quota?.used ?? usage?.totalTokens ?? undefined;
 
-  if (
-    totalTokens === undefined ||
-    totalTokens === null ||
-    usedTokens === undefined ||
-    usedTokens === null ||
-    totalTokens <= 0
-  ) {
+  // Calculate percentage from balance (for progress bar and warnings)
+  const percentFromBalance = (
+    currentBalance: number | null,
+    quota: number | null
+  ): number => {
+    if (
+      currentBalance === null ||
+      quota === null ||
+      !Number.isFinite(currentBalance) ||
+      !Number.isFinite(quota) ||
+      quota <= 0
+    ) {
+      return 0;
+    }
+    // Percent USED = (quota - balance) / quota * 100
+    const used = quota - currentBalance;
+    return Math.min(100, Math.max(0, (used / quota) * 100));
+  };
+
+  // If no data available, don't render
+  if (balance === null && (totalTokens === undefined || usedTokens === undefined)) {
     return null;
   }
 
-  const percentRaw = data?.quota?.percentUsed
-    ? Number.parseFloat(data.quota.percentUsed)
-    : percentFromQuota(usedTokens, totalTokens);
-  const percent = Number.isFinite(percentRaw) ? Math.min(100, percentRaw) : 0;
-  const roundedPercent = percent.toFixed(1);
-  const resetDate = formatReset(data?.subscription?.periodEnd);
+  // Calculate percent used (for warning states and progress bar)
+  let percent: number;
+  if (balance !== null && tokenQuota !== null) {
+    // New balance-based calculation
+    percent = percentFromBalance(balance, tokenQuota);
+  } else if (data?.quota?.percentUsed) {
+    percent = Number.parseFloat(data.quota.percentUsed);
+  } else if (usedTokens !== undefined && totalTokens !== undefined && totalTokens > 0) {
+    percent = percentFromQuota(usedTokens, totalTokens);
+  } else {
+    percent = 0;
+  }
 
+  percent = Number.isFinite(percent) ? Math.min(100, percent) : 0;
+
+  const resetDate = formatReset(data?.subscription?.periodEnd);
   const warningState = getWarningState(percent);
   const colorClass = getWarningColor(warningState);
 
@@ -154,7 +188,7 @@ export const UsageHint = ({ className, usage }: UsageHintProps) => {
             strokeWidth={1.5}
           />
           <span>
-            {t(`tooltip.${warningState}`, { percent: roundedPercent })}
+            {t(`tooltip.${warningState}`, { percent: percent.toFixed(1) })}
           </span>
         </button>
       </PopoverTrigger>
@@ -188,7 +222,7 @@ export const UsageHint = ({ className, usage }: UsageHintProps) => {
         )}
 
         <div className="space-y-1">
-          <InfoRow label={t("used")} value={`${roundedPercent}%`} />
+          <InfoRow label={t("used")} value={`${percent.toFixed(1)}%`} />
           <InfoRow label={t("resetDate")} value={resetDate} />
         </div>
 

@@ -183,6 +183,13 @@
       "when": 1769956425340,
       "tag": "0025_cynical_galactus",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1770018796589,
+      "tag": "0026_shallow_maverick",
+      "breakpoints": true
     }
   ]
 }

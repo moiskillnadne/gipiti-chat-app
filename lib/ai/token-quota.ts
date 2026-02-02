@@ -9,6 +9,12 @@ import {
 import type { AppUsage } from "@/lib/usage";
 import { isPeriodExpired } from "../subscription/billing-periods";
 import type { BillingPeriod } from "../subscription/subscription-tiers";
+import {
+  checkBalance,
+  deductBalance,
+  getUserBalance,
+  InsufficientBalanceError,
+} from "./token-balance";
 
 /**
  * Get user's current subscription and quota information
@@ -86,44 +92,57 @@ export async function getUserQuotaInfo(userId: string) {
 }
 
 /**
- * Check if user has available quota
+ * Check if user has available quota (balance-based)
+ * Uses the new token balance system
  */
 export async function checkTokenQuota(userId: string): Promise<{
   allowed: boolean;
   reason?: string;
   quotaInfo?: Awaited<ReturnType<typeof getUserQuotaInfo>>;
+  balanceInfo?: {
+    balance: number;
+    subscription?: {
+      id: string;
+      planName: string;
+      currentPeriodEnd: Date;
+      billingPeriod: string;
+    };
+  };
 }> {
-  const quotaInfo = await getUserQuotaInfo(userId);
+  // Use the new balance-based check
+  const balanceCheck = await checkBalance(userId);
 
-  if (!quotaInfo) {
+  if (!balanceCheck.allowed) {
+    // Also get quota info for backward compatibility with error responses
+    const quotaInfo = await getUserQuotaInfo(userId);
+
     return {
       allowed: false,
-      reason:
-        "No active subscription found. Please subscribe to a plan to continue using the service.",
-    };
-  }
-
-  if (quotaInfo.isExceeded) {
-    const periodLabel = quotaInfo.plan.billingPeriod;
-    return {
-      allowed: false,
-      reason: `Token quota exceeded for this ${periodLabel} period. Used ${quotaInfo.usage.totalTokens.toLocaleString()} / ${quotaInfo.quota.toLocaleString()} tokens. ${
-        periodLabel === "daily"
-          ? "Your quota will reset tomorrow."
-          : `Your quota will reset on ${quotaInfo.subscription.currentPeriodEnd.toLocaleDateString()}.`
-      }`,
+      reason: balanceCheck.reason,
       quotaInfo,
+      balanceInfo: {
+        balance: balanceCheck.balance,
+        subscription: balanceCheck.subscription,
+      },
     };
   }
+
+  // Get full quota info for the response (for backward compatibility)
+  const quotaInfo = await getUserQuotaInfo(userId);
 
   return {
     allowed: true,
     quotaInfo,
+    balanceInfo: {
+      balance: balanceCheck.balance,
+      subscription: balanceCheck.subscription,
+    },
   };
 }
 
 /**
  * Record token usage after API call completes
+ * Now uses the balance-based system to deduct tokens
  */
 export async function recordTokenUsage({
   userId,
@@ -135,7 +154,10 @@ export async function recordTokenUsage({
   chatId?: string;
   messageId?: string;
   usage: AppUsage;
-}) {
+}): Promise<{
+  newBalance: number;
+  transactionId?: string;
+}> {
   const quotaInfo = await getUserQuotaInfo(userId);
 
   if (!quotaInfo) {
@@ -150,7 +172,33 @@ export async function recordTokenUsage({
     8
   );
 
-  // Insert into usage log
+  // 1. Deduct from user's token balance atomically
+  let deductResult: { newBalance: number; transactionId: string } | undefined;
+  try {
+    deductResult = await deductBalance({
+      userId,
+      amount: totalTokens,
+      referenceType: "usage",
+      referenceId: messageId,
+      metadata: {
+        modelId: usage.modelId,
+        chatId,
+        subscriptionId: subscription.id,
+      },
+    });
+  } catch (error) {
+    if (error instanceof InsufficientBalanceError) {
+      // Log the attempt but continue - the balance was already 0
+      console.warn(
+        `[recordTokenUsage] Insufficient balance for user ${userId}: ${error.message}`
+      );
+      deductResult = { newBalance: 0, transactionId: "" };
+    } else {
+      throw error;
+    }
+  }
+
+  // 2. Insert into usage log for analytics (keep for historical tracking)
   await db.insert(tokenUsageLog).values({
     userId,
     subscriptionId: subscription.id,
@@ -170,7 +218,7 @@ export async function recordTokenUsage({
     billingPeriodEnd: subscription.currentPeriodEnd,
   });
 
-  // Update aggregate usage
+  // 3. Update aggregate usage (keep for historical analytics)
   await updateUserTokenUsage({
     userId,
     subscriptionId: subscription.id,
@@ -179,6 +227,11 @@ export async function recordTokenUsage({
     billingPeriodType: subscription.billingPeriod,
     usage,
   });
+
+  return {
+    newBalance: deductResult?.newBalance ?? 0,
+    transactionId: deductResult?.transactionId,
+  };
 }
 
 /**

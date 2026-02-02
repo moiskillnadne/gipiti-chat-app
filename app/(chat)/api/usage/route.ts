@@ -1,5 +1,6 @@
 import { and, desc, eq, gte, lte } from "drizzle-orm";
 import { auth } from "@/app/(auth)/auth";
+import { getUserBalance, formatTokenBalance } from "@/lib/ai/token-balance";
 import { getUserQuotaInfo } from "@/lib/ai/token-quota";
 import { db } from "@/lib/db/queries";
 import { type TokenUsageLog, tokenUsageLog } from "@/lib/db/schema";
@@ -13,7 +14,10 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const period = searchParams.get("period") || "current"; // "current", "all", "YYYY-MM"
 
-  // Get quota info
+  // Get balance info (new balance-based system)
+  const balanceInfo = await getUserBalance(session.user.id);
+
+  // Get quota info (for backward compatibility and additional details)
   const quotaInfo = await getUserQuotaInfo(session.user.id);
 
   if (!quotaInfo) {
@@ -54,13 +58,21 @@ export async function GET(request: Request) {
   }
 
   return Response.json({
+    // New balance-based info (primary)
+    balance: {
+      current: balanceInfo?.balance ?? 0,
+      formatted: formatTokenBalance(balanceInfo?.balance ?? 0),
+      lastResetAt: balanceInfo?.lastResetAt,
+    },
     subscription: {
       plan: quotaInfo.plan.name,
       displayName: quotaInfo.plan.displayName,
       periodStart: quotaInfo.subscription.currentPeriodStart,
       periodEnd: quotaInfo.subscription.currentPeriodEnd,
       billingPeriod: quotaInfo.subscription.billingPeriod,
+      tokenQuota: quotaInfo.plan.tokenQuota,
     },
+    // Keep quota info for backward compatibility
     quota: {
       total: quotaInfo.quota,
       used: quotaInfo.usage.totalTokens,
