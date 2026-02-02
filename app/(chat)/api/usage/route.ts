@@ -1,6 +1,6 @@
 import { and, desc, eq, gte, lte } from "drizzle-orm";
 import { auth } from "@/app/(auth)/auth";
-import { getUserBalance, formatTokenBalance } from "@/lib/ai/token-balance";
+import { formatTokenBalance, getUserBalance } from "@/lib/ai/token-balance";
 import { getUserQuotaInfo } from "@/lib/ai/token-quota";
 import { db } from "@/lib/db/queries";
 import { type TokenUsageLog, tokenUsageLog } from "@/lib/db/schema";

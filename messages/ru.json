@@ -361,6 +361,35 @@
             "backButton": "Вернуться"
           }
         }
+      },
+      "usage": {
+        "title": "Использование токенов",
+        "description": "Отслеживайте потребление токенов в текущем периоде",
+        "quota": "Квота",
+        "spent": "Потрачено",
+        "remaining": "Осталось",
+        "seeFullHistory": "Полная история"
+      },
+      "history": {
+        "title": "История транзакций",
+        "backToSubscription": "К подписке",
+        "empty": "Транзакций пока нет",
+        "columns": {
+          "date": "Дата",
+          "type": "Тип",
+          "model": "Модель",
+          "chat": "Чат / Описание",
+          "tokens": "Токены"
+        },
+        "types": {
+          "credit": "Пополнение",
+          "debit": "Списание",
+          "reset": "Сброс",
+          "adjustment": "Корректировка"
+        },
+        "pagination": {
+          "showing": "Показано {start}-{end} из {total}"
+        }
       }
     }
   },

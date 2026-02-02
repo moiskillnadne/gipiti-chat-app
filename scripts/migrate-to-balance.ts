@@ -26,12 +26,12 @@ config({
   path: ".env.local",
 });
 
-interface MigrationStats {
+type MigrationStats = {
   total: number;
   migrated: number;
   skipped: number;
   failed: number;
-}
+};
 
 async function main() {
   console.log("🔄 Starting token balance migration...\n");
@@ -61,7 +61,9 @@ async function main() {
       .from(userSubscription)
       .where(eq(userSubscription.status, "active"));
 
-    console.log(`📊 Found ${activeSubscriptions.length} active subscriptions\n`);
+    console.log(
+      `📊 Found ${activeSubscriptions.length} active subscriptions\n`
+    );
     stats.total = activeSubscriptions.length;
 
     for (const sub of activeSubscriptions) {
@@ -154,16 +156,20 @@ async function main() {
     }
 
     // Summary
-    console.log("\n" + "=".repeat(50));
+    console.log(`\n${"=".repeat(50)}`);
     console.log("📈 Migration Summary:");
     console.log(`   Total subscriptions: ${stats.total}`);
     console.log(`   Successfully migrated: ${stats.migrated}`);
-    console.log(`   Skipped (already migrated or missing plan): ${stats.skipped}`);
+    console.log(
+      `   Skipped (already migrated or missing plan): ${stats.skipped}`
+    );
     console.log(`   Failed: ${stats.failed}`);
     console.log("=".repeat(50));
 
     if (stats.failed > 0) {
-      console.log("\n⚠️ Some migrations failed. Please review the errors above.");
+      console.log(
+        "\n⚠️ Some migrations failed. Please review the errors above."
+      );
     } else {
       console.log("\n🎉 Migration completed successfully!");
     }

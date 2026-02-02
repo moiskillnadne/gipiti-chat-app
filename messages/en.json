@@ -361,6 +361,35 @@
             "backButton": "Go Back"
           }
         }
+      },
+      "usage": {
+        "title": "Token Usage",
+        "description": "Monitor your token consumption this billing period",
+        "quota": "Quota",
+        "spent": "Spent",
+        "remaining": "Remaining",
+        "seeFullHistory": "See full history"
+      },
+      "history": {
+        "title": "Transaction History",
+        "backToSubscription": "Back to Subscription",
+        "empty": "No transactions yet",
+        "columns": {
+          "date": "Date",
+          "type": "Type",
+          "model": "Model",
+          "chat": "Chat / Description",
+          "tokens": "Tokens"
+        },
+        "types": {
+          "credit": "Credit",
+          "debit": "Debit",
+          "reset": "Reset",
+          "adjustment": "Adjustment"
+        },
+        "pagination": {
+          "showing": "Showing {start}-{end} of {total}"
+        }
       }
     }
   },

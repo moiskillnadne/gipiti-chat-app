@@ -1,4 +1,5 @@
 import { and, eq } from "drizzle-orm";
+import { resetBalance } from "@/lib/ai/token-balance";
 import { db } from "@/lib/db/queries";
 import {
   paymentIntent,
@@ -6,7 +7,6 @@ import {
   user,
   userSubscription,
 } from "@/lib/db/schema";
-import { resetBalance } from "@/lib/ai/token-balance";
 import { createSubscription, voidPayment } from "@/lib/payments/cloudpayments";
 import type { CloudPaymentsPayWebhook } from "@/lib/payments/cloudpayments-types";
 import {
