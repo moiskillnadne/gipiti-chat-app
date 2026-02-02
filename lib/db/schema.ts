@@ -37,6 +37,11 @@ export const user = pgTable(
     resetPasswordToken: varchar("reset_password_token", { length: 255 }),
     resetPasswordTokenExpiry: timestamp("reset_password_token_expiry"),
     trialUsedAt: timestamp("trial_used_at"),
+
+    // Token balance system
+    tokenBalance: bigint("token_balance", { mode: "number" }).notNull().default(0),
+    lastBalanceResetAt: timestamp("last_balance_reset_at"),
+
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
@@ -659,4 +664,70 @@ export const cancellationFeedback = pgTable(
 
 export type CancellationFeedback = InferSelectModel<
   typeof cancellationFeedback
+>;
+
+// Token Balance Transaction Type enum
+export const tokenBalanceTransactionTypeEnum = pgEnum(
+  "token_balance_transaction_type",
+  ["credit", "debit", "reset", "adjustment"]
+);
+
+// Token Balance Transaction (audit trail for balance changes)
+export const tokenBalanceTransaction = pgTable(
+  "TokenBalanceTransaction",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+
+    // User reference
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+
+    // Transaction type
+    type: tokenBalanceTransactionTypeEnum("type").notNull(),
+
+    // Amount (positive for credit/reset, negative for debit)
+    amount: bigint("amount", { mode: "number" }).notNull(),
+
+    // Balance after this transaction
+    balanceAfter: bigint("balance_after", { mode: "number" }).notNull(),
+
+    // Reference to what caused this transaction
+    referenceType: varchar("reference_type", { length: 32 }), // "payment" | "usage" | "subscription_reset" | "admin" | "migration"
+    referenceId: varchar("reference_id", { length: 128 }), // e.g., payment intent ID, usage log ID
+
+    // Optional description
+    description: text("description"),
+
+    // Metadata for additional context
+    metadata: jsonb("metadata").$type<{
+      modelId?: string;
+      chatId?: string;
+      planName?: string;
+      subscriptionId?: string;
+      previousBalance?: number;
+    }>(),
+
+    // Meta
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index("token_balance_transaction_user_id_idx").on(table.userId),
+    typeIdx: index("token_balance_transaction_type_idx").on(table.type),
+    createdAtIdx: index("token_balance_transaction_created_at_idx").on(
+      table.createdAt
+    ),
+    userCreatedIdx: index("token_balance_transaction_user_created_idx").on(
+      table.userId,
+      table.createdAt
+    ),
+    referenceIdx: index("token_balance_transaction_reference_idx").on(
+      table.referenceType,
+      table.referenceId
+    ),
+  })
+);
+
+export type TokenBalanceTransaction = InferSelectModel<
+  typeof tokenBalanceTransaction
 >;

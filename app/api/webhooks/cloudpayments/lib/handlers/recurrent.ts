@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/queries";
-import { userSubscription } from "@/lib/db/schema";
+import { subscriptionPlan, userSubscription } from "@/lib/db/schema";
+import { resetBalance } from "@/lib/ai/token-balance";
 import type { CloudPaymentsRecurrentWebhook } from "@/lib/payments/cloudpayments-types";
 import {
   calculateNextBillingDate,
@@ -84,6 +85,36 @@ export async function handleRecurrentWebhook(
         updatedAt: now,
       })
       .where(eq(userSubscription.id, subscription.id));
+
+    // Reset token balance to plan quota on successful recurring payment
+    try {
+      const plans = await db
+        .select()
+        .from(subscriptionPlan)
+        .where(eq(subscriptionPlan.id, subscription.planId))
+        .limit(1);
+
+      const plan = plans[0];
+      if (plan) {
+        await resetBalance({
+          userId: AccountId,
+          newBalance: plan.tokenQuota,
+          reason: "subscription_reset",
+          referenceId: Id,
+          planName: plan.name,
+          subscriptionId: subscription.id,
+        });
+        console.log(
+          `[CloudPayments:Recurrent] Token balance reset to ${plan.tokenQuota} for user ${AccountId}`
+        );
+      }
+    } catch (balanceError) {
+      console.error(
+        "[CloudPayments:Recurrent] Failed to reset token balance:",
+        balanceError
+      );
+      // Continue - balance reset failure shouldn't cause webhook to fail
+    }
 
     return Response.json({ code: 0 });
   }

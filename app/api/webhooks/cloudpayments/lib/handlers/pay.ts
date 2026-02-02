@@ -6,6 +6,7 @@ import {
   user,
   userSubscription,
 } from "@/lib/db/schema";
+import { resetBalance } from "@/lib/ai/token-balance";
 import { createSubscription, voidPayment } from "@/lib/payments/cloudpayments";
 import type { CloudPaymentsPayWebhook } from "@/lib/payments/cloudpayments-types";
 import {
@@ -336,6 +337,26 @@ export async function handlePayWebhook(
       .set({ currentPlan: planName })
       .where(eq(user.id, AccountId));
 
+    // Reset token balance to plan quota on successful payment
+    try {
+      await resetBalance({
+        userId: AccountId,
+        newBalance: tier.tokenQuota,
+        reason: "payment",
+        referenceId: transactionId ?? undefined,
+        planName,
+      });
+      console.log(
+        `[CloudPayments:Pay] Token balance reset to ${tier.tokenQuota} for user ${AccountId}`
+      );
+    } catch (balanceError) {
+      console.error(
+        "[CloudPayments:Pay] Failed to reset token balance:",
+        balanceError
+      );
+      // Continue processing - balance reset failure shouldn't block subscription
+    }
+
     const amountString = amountValue.toFixed(2);
 
     const upsertPaymentIntent = async (session: string) => {
@@ -553,6 +574,26 @@ async function handleTrialPayment({
       .update(user)
       .set({ currentPlan: planName, trialUsedAt: now })
       .where(eq(user.id, accountId));
+
+    // Reset token balance to plan quota for trial users
+    try {
+      await resetBalance({
+        userId: accountId,
+        newBalance: tier.tokenQuota,
+        reason: "payment",
+        referenceId: `trial_${externalSubscriptionId}`,
+        planName,
+      });
+      console.log(
+        `[CloudPayments:Pay:Trial] Token balance reset to ${tier.tokenQuota} for user ${accountId}`
+      );
+    } catch (balanceError) {
+      console.error(
+        "[CloudPayments:Pay:Trial] Failed to reset token balance:",
+        balanceError
+      );
+      // Continue processing - balance reset failure shouldn't block trial activation
+    }
 
     if (sessionId) {
       const intents = await db
