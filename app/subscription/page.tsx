@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { auth } from "@/app/(auth)/auth";
 import { CancelSubscriptionButton } from "@/components/cancel-subscription-button";
+import { TokenUsageSummary } from "@/components/token-usage-summary";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -299,6 +300,8 @@ export default async function SubscriptionPage() {
           </div>
         </CardContent>
       </Card>
+
+      <TokenUsageSummary />
 
       {subscription.cancelAtPeriodEnd && subscription.currentPeriodEnd && (
         <Card className="mt-6 border-destructive/50 bg-destructive/5">
