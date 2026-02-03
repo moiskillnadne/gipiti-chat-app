@@ -1,4 +1,5 @@
 import { and, eq, lte } from "drizzle-orm";
+import { resetBalance } from "@/lib/ai/token-balance";
 import { db } from "@/lib/db/queries";
 import { subscriptionPlan, userSubscription } from "@/lib/db/schema";
 import {
@@ -42,6 +43,7 @@ export async function GET(request: Request) {
   );
 
   let renewed = 0;
+  let balancesReset = 0;
 
   // Renew each subscription based on its billing period and count
   for (const { subscription: sub, plan } of expiredSubscriptions) {
@@ -76,15 +78,38 @@ export async function GET(request: Request) {
     );
 
     renewed++;
+
+    // Reset token balance to plan quota
+    try {
+      await resetBalance({
+        userId: sub.userId,
+        newBalance: plan.tokenQuota,
+        reason: "subscription_reset",
+        referenceId: sub.id,
+        planName: plan.name,
+        subscriptionId: sub.id,
+      });
+      console.log(
+        `[Cron:ResetQuotas] Token balance reset to ${plan.tokenQuota} for user ${sub.userId}`
+      );
+      balancesReset++;
+    } catch (balanceError) {
+      console.error(
+        `[Cron:ResetQuotas] Failed to reset balance for user ${sub.userId}:`,
+        balanceError
+      );
+      // Continue processing other users
+    }
   }
 
   console.log(
-    `[Cron:ResetQuotas] Completed: ${renewed} tester subscriptions renewed`
+    `[Cron:ResetQuotas] Completed: ${renewed} subscriptions renewed, ${balancesReset} balances reset`
   );
 
   return Response.json({
     renewed,
+    balancesReset,
     timestamp: now.toISOString(),
-    message: `Renewed ${renewed} tester subscriptions.`,
+    message: `Renewed ${renewed} subscriptions, reset ${balancesReset} balances.`,
   });
 }
