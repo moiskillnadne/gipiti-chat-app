@@ -40,6 +40,7 @@ import {
 } from "@/lib/ai/openai-client";
 import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
 import { myProvider } from "@/lib/ai/providers";
+import { ReasoningSummarizer } from "@/lib/ai/reasoning-summarizer";
 import { calculateOptimalStepLimit } from "@/lib/ai/step-calculator";
 import { checkTokenQuota, recordTokenUsage } from "@/lib/ai/token-quota";
 import { calculator } from "@/lib/ai/tools/calculator";
@@ -800,6 +801,33 @@ export async function POST(request: Request) {
             }
           },
         });
+
+        // Process reasoning stream in background and generate summaries
+        if (isReasoningModelId(selectedChatModel) && isThinkingEnabled) {
+          const summarizer = new ReasoningSummarizer(preferredLanguage);
+
+          (async () => {
+            try {
+              for await (const part of result.fullStream) {
+                if (part.type === "reasoning-delta" && "text" in part) {
+                  summarizer.addChunk(part.text);
+
+                  if (summarizer.shouldGenerateSummary()) {
+                    const summary = await summarizer.generateSummary();
+                    if (summary) {
+                      dataStream.write({
+                        type: "data-reasoningSummary",
+                        data: summary,
+                      });
+                    }
+                  }
+                }
+              }
+            } catch (error) {
+              console.warn("Reasoning summarization error:", error);
+            }
+          })();
+        }
 
         result.consumeStream();
 

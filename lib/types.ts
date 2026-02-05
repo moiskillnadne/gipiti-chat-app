@@ -69,6 +69,7 @@ export type CustomUIDataTypes = {
       totalTokenCount?: number;
     };
   };
+  reasoningSummary: string;
 };
 
 export type ChatMessage = UIMessage<

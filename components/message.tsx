@@ -3,11 +3,12 @@ import type { UseChatHelpers } from "@ai-sdk/react";
 import equal from "fast-deep-equal";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
-import { memo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import type { Vote } from "@/lib/db/schema";
 import type { ChatMessage } from "@/lib/types";
 import { cn, sanitizeText } from "@/lib/utils";
 import { AssistantIcon } from "./assistant-icon";
+import { useDataStream } from "./data-stream-provider";
 import { DocumentToolResult } from "./document";
 import { DocumentPreview } from "./document-preview";
 import { MessageContent } from "./elements/message";
@@ -73,6 +74,17 @@ const PurePreviewMessage = ({
 }) => {
   const t = useTranslations("chat.messages");
   const [mode, setMode] = useState<"view" | "edit">("view");
+  const { dataStream } = useDataStream();
+
+  // Extract the latest reasoning summary from the data stream
+  const reasoningSummary = useMemo(() => {
+    const summaryParts = dataStream.filter(
+      (part) => part.type === "data-reasoningSummary"
+    );
+    return summaryParts.length > 0
+      ? (summaryParts[summaryParts.length - 1].data as string)
+      : null;
+  }, [dataStream]);
 
   const attachmentsFromMessage = message.parts.filter(
     (part) => part.type === "file"
@@ -138,10 +150,8 @@ const PurePreviewMessage = ({
             const key = `message-${message.id}-part-${index}`;
 
             if (type === "reasoning") {
-              const reasoningText = part.text ?? "";
-              const hasReasoningText = reasoningText.trim().length > 0;
-
-              if (!hasReasoningText) {
+              // Only show reasoning summary during streaming
+              if (!isLoading) {
                 return null;
               }
 
@@ -149,7 +159,7 @@ const PurePreviewMessage = ({
                 <MessageReasoning
                   isLoading={isLoading}
                   key={key}
-                  reasoning={reasoningText}
+                  summary={reasoningSummary}
                 />
               );
             }
