@@ -7,6 +7,7 @@ import { getLocale, getMessages } from "next-intl/server";
 import { Toaster } from "sonner";
 import { ErrorLogger } from "@/components/error-logger";
 import { ThemeProvider } from "@/components/theme-provider";
+import { YandexMetrika } from "@/components/yandex-metrika";
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 
@@ -129,6 +130,7 @@ export default async function RootLayout({
           </ThemeProvider>
         </NextIntlClientProvider>
         <Analytics />
+        <YandexMetrika />
       </body>
     </html>
   );
