@@ -39,9 +39,9 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
     },
     billingPeriod: "daily",
     billingPeriodCount: 1,
-    tokenQuota: 100_000, // 100K tokens per day
+    tokenQuota: 200_000, // 200K tokens per day
     features: {
-      maxMessagesPerPeriod: 50, // 50 messages per day
+      maxMessagesPerPeriod: 100, // 100 messages per day
       allowedModels: [
         "gpt-5.1-instant",
         "gpt-5.1-thinking",
@@ -77,9 +77,9 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
     },
     billingPeriod: "daily",
     billingPeriodCount: 1,
-    tokenQuota: 100_000,
+    tokenQuota: 200_000, // 200K tokens per day
     features: {
-      maxMessagesPerPeriod: 50,
+      maxMessagesPerPeriod: 100, // 100 messages per day
       allowedModels: [
         "gpt-5.1-instant",
         "gpt-5.1-thinking",
@@ -115,9 +115,9 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
     },
     billingPeriod: "monthly",
     billingPeriodCount: 1,
-    tokenQuota: 2_000_000, // 2M tokens per month
+    tokenQuota: 3_000_000, // 3M tokens per month
     features: {
-      maxMessagesPerPeriod: 1000,
+      maxMessagesPerPeriod: 1500,
       allowedModels: [
         "gpt-5.1-instant",
         "gpt-5.1-thinking",
@@ -152,9 +152,9 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
     },
     billingPeriod: "monthly",
     billingPeriodCount: 3,
-    tokenQuota: 6_000_000, // 6M tokens per quarter (2M/month equivalent)
+    tokenQuota: 9_000_000, // 9M tokens per quarter (3M/month equivalent)
     features: {
-      maxMessagesPerPeriod: 3000,
+      maxMessagesPerPeriod: 4500,
       allowedModels: [
         "gpt-5.1-instant",
         "gpt-5.1-thinking",
@@ -188,9 +188,9 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
     },
     billingPeriod: "annual",
     billingPeriodCount: 1,
-    tokenQuota: 24_000_000, // 24M tokens per year (2M/month equivalent)
+    tokenQuota: 36_000_000, // 36M tokens per year (3M/month equivalent)
     features: {
-      maxMessagesPerPeriod: 12_000,
+      maxMessagesPerPeriod: 18_000,
       allowedModels: [
         "gpt-5.1-instant",
         "gpt-5.1-thinking",
