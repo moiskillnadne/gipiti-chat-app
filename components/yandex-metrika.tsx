@@ -1,3 +1,5 @@
+/** biome-ignore-all lint/performance/noImgElement: <explanation> */
+/** biome-ignore-all lint/nursery/useImageSize: <explanation> */
 "use client";
 
 import Script from "next/script";
@@ -23,11 +25,10 @@ export function YandexMetrika() {
       />
       <noscript>
         <div>
-          {/** biome-ignore lint/nursery/useImageSize: <just analytics> */}
           <img
             alt=""
             src="https://mc.yandex.ru/watch/106642682"
-            style="position:absolute; left:-9999px;"
+            style={{ position: "absolute", left: "-9999px" }}
           />
         </div>
       </noscript>
