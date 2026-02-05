@@ -147,11 +147,17 @@ export async function handleRecurrentWebhook(
   }
 
   if (Status === "Rejected" || Status === "Expired") {
+    console.warn(
+      `[CloudPayments:Recurrent] Payment failed with status ${Status} for subscription ${subscription.id}, user ${AccountId}. Preserving access until period end.`
+    );
+
     await db
       .update(userSubscription)
       .set({
-        // Disable access immediately for hard failures.
-        status: "cancelled",
+        // Keep access until period end, then cleanup cron will finalize.
+        // This handles both card failures AND infrastructure issues (SSL errors, etc.)
+        status: "active",
+        cancelAtPeriodEnd: true,
         cancelledAt: subscription.cancelledAt ?? now,
         updatedAt: now,
       })
