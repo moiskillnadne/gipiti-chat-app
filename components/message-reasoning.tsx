@@ -1,37 +1,35 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import {
-  Reasoning,
-  ReasoningContent,
-  ReasoningTrigger,
-} from "./elements/reasoning";
+import { BrainIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
 
 type MessageReasoningProps = {
   isLoading: boolean;
-  reasoning: string;
+  summary: string | null;
 };
 
 export function MessageReasoning({
   isLoading,
-  reasoning,
+  summary,
 }: MessageReasoningProps) {
-  const [hasBeenStreaming, setHasBeenStreaming] = useState(isLoading);
+  const t = useTranslations("chat.messages");
 
-  useEffect(() => {
-    if (isLoading) {
-      setHasBeenStreaming(true);
-    }
-  }, [isLoading]);
+  // Only show during streaming
+  if (!isLoading) {
+    return null;
+  }
 
   return (
-    <Reasoning
+    <div
+      className={cn(
+        "flex items-center gap-2 text-muted-foreground text-sm",
+        "fade-in-0 slide-in-from-top-2 animate-in duration-200"
+      )}
       data-testid="message-reasoning"
-      defaultOpen={hasBeenStreaming}
-      isStreaming={isLoading}
     >
-      <ReasoningTrigger />
-      <ReasoningContent>{reasoning}</ReasoningContent>
-    </Reasoning>
+      <BrainIcon className="size-4 animate-pulse" />
+      <span className="italic">{summary || t("thinking")}</span>
+    </div>
   );
 }
