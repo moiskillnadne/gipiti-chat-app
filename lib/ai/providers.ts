@@ -41,7 +41,7 @@ export const myProvider = isTestEnvironment
           model: gateway.languageModel("xai/grok-code-fast-1"),
           middleware: extractReasoningMiddleware({ tagName: "think" }),
         }),
-        "title-model": gateway.languageModel("amazon/nova-micro"),
+        "title-model": gateway.languageModel("google/gemini-2.5-flash-lite"),
         "artifact-model": gateway.languageModel("xai/grok-2-vision"),
         "gpt-5": wrapLanguageModel({
           model: gateway.languageModel("openai/gpt-5"),

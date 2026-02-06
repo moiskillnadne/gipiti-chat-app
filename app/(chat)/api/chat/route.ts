@@ -26,6 +26,7 @@ import {
   DEFAULT_CHAT_MODEL,
   getModelById,
   getProviderOptions,
+  isAutoReasoning,
   isImageGenerationModel,
   isReasoningModelId,
   isVisibleInUI,
@@ -433,7 +434,7 @@ export async function POST(request: Request) {
           } else {
             // Use existing gateway flow for other image generation models
             const messagesPayloadForImageGeneration =
-              convertToModelMessages(uiMessages);
+              await convertToModelMessages(uiMessages);
 
             console.dir(messagesPayloadForImageGeneration, { depth: null });
 
@@ -616,6 +617,15 @@ export async function POST(request: Request) {
               totalTokens: inputTokens + outputTokens,
               inputCost: totalCostUsd ? Number.parseFloat(totalCostUsd) : 0,
               outputCost: 0,
+              inputTokenDetails: {
+                noCacheTokens: undefined,
+                cacheReadTokens: undefined,
+                cacheWriteTokens: undefined,
+              },
+              outputTokenDetails: {
+                textTokens: undefined,
+                reasoningTokens: undefined,
+              },
             };
 
             try {
@@ -639,11 +649,12 @@ export async function POST(request: Request) {
         const result = streamText({
           model: myProvider.languageModel(selectedChatModel),
           system: systemPrompt({ selectedChatModel, requestHints }),
-          messages: convertToModelMessages(uiMessages),
+          messages: await convertToModelMessages(uiMessages),
           stopWhen: stepCountIs(optimalStepLimit),
           ...(isReasoningModelId(selectedChatModel) &&
             isThinkingEnabled &&
-            thinkingSetting?.type === "effort" && {
+            thinkingSetting?.type === "effort" &&
+            !isAutoReasoning(thinkingSetting) && {
               reasoningEffort: thinkingSetting.value,
             }),
           providerOptions,

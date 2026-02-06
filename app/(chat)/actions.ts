@@ -1,5 +1,6 @@
 "use server";
 
+import type { GatewayProviderOptions } from "@ai-sdk/gateway";
 import { generateText, type UIMessage } from "ai";
 import { cookies } from "next/headers";
 import { myProvider } from "@/lib/ai/providers";
@@ -42,6 +43,11 @@ export async function generateTitleFromUserMessage({
     - do not use quotes or colons
     - IMPORTANT: Generate the title in the same language as the user's message`,
     prompt: JSON.stringify(message),
+    providerOptions: {
+      gateway: {
+        models: ["openai/gpt-4.1-nano", "anthropic/claude-3-haiku"],
+      } satisfies GatewayProviderOptions,
+    },
   });
 
   return title;

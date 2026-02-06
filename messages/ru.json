@@ -830,6 +830,7 @@
   "thinkingSetting": {
     "label": "Размышление",
     "default": "По умолчанию",
+    "auto": "Авто",
     "none": "Нет",
     "medium": "Обычное",
     "high": "Глубокое",

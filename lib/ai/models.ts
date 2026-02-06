@@ -55,19 +55,19 @@ export type ThinkingSetting = ThinkingSettingEffort | ThinkingSettingBudget;
 
 const GPT52_THINKING_CONFIG: ThinkingEffortConfig = {
   type: "effort",
-  values: ["none", "medium", "high"] as const,
+  values: ["auto", "none", "medium", "high"] as const,
   default: "medium",
 };
 
 const GEMINI3_THINKING_CONFIG: ThinkingEffortConfig = {
   type: "effort",
-  values: ["low", "high"] as const,
+  values: ["auto", "low", "high"] as const,
   default: "low",
 };
 
 const OPUS_THINKING_CONFIG: ThinkingEffortConfig = {
   type: "effort",
-  values: ["low", "medium", "high"] as const,
+  values: ["auto", "low", "medium", "high"] as const,
   default: "high",
 };
 
@@ -442,12 +442,30 @@ export const getAnthropicProviderOptions = (
   };
 };
 
+export const isAutoReasoning = (
+  thinkingSetting?: ThinkingSetting
+): boolean => {
+  return thinkingSetting?.type === "effort" && thinkingSetting.value === "auto";
+};
+
 export const getProviderOptions = (
   modelId: string,
   thinkingSetting?: ThinkingSetting
 ): SharedV2ProviderOptions => {
   const model = getModelById(modelId);
   if (!model?.provider || !model.thinkingConfig || !thinkingSetting) {
+    return {};
+  }
+
+  // Auto mode: let the model decide reasoning depth by omitting effort params
+  if (isAutoReasoning(thinkingSetting)) {
+    if (model.provider === "google") {
+      return {
+        google: {
+          thinkingConfig: { includeThoughts: true },
+        },
+      };
+    }
     return {};
   }
 
