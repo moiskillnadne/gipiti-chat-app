@@ -129,7 +129,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
         "opus-4.6",
         "sonnet-4.5",
       ],
-      hasReasoningModels: false,
+      hasReasoningModels: true,
       hasPrioritySupport: false,
       maxFileSize: 10 * 1024 * 1024, // 10MB
       maxConcurrentChats: 5,

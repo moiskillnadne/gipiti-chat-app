@@ -191,8 +191,8 @@
       "annual": {
         "name": "Best",
         "period": "/year",
-        "description": "Best value - save 3 months!",
-        "badge": "Save 25%",
+        "description": "Best value - save 4.5 months!",
+        "badge": "Save 37%",
         "subscribeButton": "Start with best price"
       },
       "tester": {
@@ -235,18 +235,18 @@
         },
         "values": {
           "monthly": {
-            "tokens": "1M",
-            "messages": "500",
+            "tokens": "3M",
+            "messages": "1,500",
             "searches": "250"
           },
           "quarterly": {
-            "tokens": "3M",
-            "messages": "1,500",
+            "tokens": "9M",
+            "messages": "4,500",
             "searches": "750"
           },
           "annual": {
-            "tokens": "12M",
-            "messages": "6,000",
+            "tokens": "36M",
+            "messages": "18,000",
             "searches": "3,000"
           }
         }

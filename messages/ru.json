@@ -235,18 +235,18 @@
         },
         "values": {
           "monthly": {
-            "tokens": "1М",
-            "messages": "500",
+            "tokens": "3М",
+            "messages": "1 500",
             "searches": "250"
           },
           "quarterly": {
-            "tokens": "3М",
-            "messages": "1 500",
+            "tokens": "9М",
+            "messages": "4 500",
             "searches": "750"
           },
           "annual": {
-            "tokens": "12М",
-            "messages": "6 000",
+            "tokens": "36М",
+            "messages": "18 000",
             "searches": "3 000"
           }
         }

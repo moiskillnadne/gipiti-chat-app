@@ -73,19 +73,19 @@ const features = [
 ];
 
 const plans = [
-  { name: "Старт", price: "1 999", period: "месяц", tokens: "1M токенов" },
+  { name: "Старт", price: "1 999", period: "месяц", tokens: "3M токенов" },
   {
     name: "Оптимальный",
     price: "4 999",
     period: "квартал",
-    tokens: "3M токенов",
+    tokens: "9M токенов",
     badge: "Экономия 17%",
   },
   {
     name: "Лучший",
     price: "14 999",
     period: "год",
-    tokens: "12M токенов",
+    tokens: "36M токенов",
     badge: "Экономия 37%",
   },
 ];
