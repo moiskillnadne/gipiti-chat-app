@@ -226,7 +226,7 @@
           "imageModels": "GPT Image 1.5, Gemini 3 Pro Image (Nano banana pro)",
           "fileAnalysis": "Анализ документов",
           "fileTypes": "до 10МБ - PDF, JPG, PNG",
-          "modelsList": "ChatGPT 5.2, Gemini 3 Pro, Opus 4.5, Grok 4.1, GPT-Image-1.5, Gemini 3 Pro Image"
+          "modelsList": "ChatGPT 5.2, Gemini 3 Pro, Opus 4.6, Grok 4.1, GPT-Image-1.5, Gemini 3 Pro Image"
         },
         "periods": {
           "monthly": "Месяц",
@@ -911,9 +911,9 @@
       "name": "Opus 4.1",
       "description": "Последняя модель от Anthropic Opus для ежедневных задач."
     },
-    "opus45": {
-      "name": "Opus 4.5",
-      "description": "Отличная модель для кодинга и технических задач."
+    "opus46": {
+      "name": "Opus 4.6",
+      "description": "Новейшая модель Anthropic Opus с расширенным контекстом и рассуждениями."
     },
     "sonnet45": {
       "name": "Sonnet 4.5",

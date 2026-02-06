@@ -279,9 +279,9 @@ export const chatModels: ChatModel[] = [
     showInUI: false,
   },
   {
-    id: "opus-4.5",
-    name: "opus45.name",
-    description: "opus45.description",
+    id: "opus-4.6",
+    name: "opus46.name",
+    description: "opus46.description",
     provider: "anthropic",
     capabilities: {
       reasoning: true,
@@ -419,7 +419,7 @@ export const getGoogleProviderOptions = (
 
 export const anthropicModelIds = [
   "opus-4.1",
-  "opus-4.5",
+  "opus-4.6",
   "sonnet-4.5",
 ] as const;
 export type AnthropicModelId = (typeof anthropicModelIds)[number];

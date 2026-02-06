@@ -50,7 +50,7 @@ Access the most powerful AI models from leading providers:
 | Provider | Models | Capabilities |
 |----------|--------|--------------|
 | **OpenAI** | GPT-5.2, GPT-5.2 Pro, GPT Codex 5.2, GPT Image 1.5 | Reasoning, Code Generation, Image Creation |
-| **Anthropic** | Claude Opus 4.5, Claude Sonnet 4.5, Claude Opus 4.1 | Extended Thinking, File Analysis |
+| **Anthropic** | Claude Opus 4.6, Claude Sonnet 4.5, Claude Opus 4.1 | Extended Thinking, File Analysis |
 | **Google** | Gemini 3 Pro, Gemini 2.5 Pro | Reasoning, Image Generation |
 | **xAI** | Grok-4.1 Reasoning, Grok-4.1 Fast, Grok Code Fast | Fast Responses, Code Generation |
 
