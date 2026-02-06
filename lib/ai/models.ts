@@ -53,22 +53,25 @@ export type ThinkingSettingBudget = {
 
 export type ThinkingSetting = ThinkingSettingEffort | ThinkingSettingBudget;
 
+export const FALLBACK_THINKING_EFFORT = "auto" as const;
+export const THINKING_COOKIE_PREFIX = "thinking-v2" as const;
+
 const GPT52_THINKING_CONFIG: ThinkingEffortConfig = {
   type: "effort",
   values: ["auto", "none", "medium", "high"] as const,
-  default: "medium",
+  default: "auto",
 };
 
 const GEMINI3_THINKING_CONFIG: ThinkingEffortConfig = {
   type: "effort",
   values: ["auto", "low", "high"] as const,
-  default: "low",
+  default: "auto",
 };
 
 const OPUS_THINKING_CONFIG: ThinkingEffortConfig = {
   type: "effort",
   values: ["auto", "low", "medium", "high"] as const,
-  default: "high",
+  default: "auto",
 };
 
 export const chatModels: ChatModel[] = [
@@ -442,9 +445,7 @@ export const getAnthropicProviderOptions = (
   };
 };
 
-export const isAutoReasoning = (
-  thinkingSetting?: ThinkingSetting
-): boolean => {
+export const isAutoReasoning = (thinkingSetting?: ThinkingSetting): boolean => {
   return thinkingSetting?.type === "effort" && thinkingSetting.value === "auto";
 };
 
@@ -513,7 +514,7 @@ export const parseThinkingSettingFromCookie = (
     if (model.thinkingConfig.values.includes(cookieValue)) {
       return { type: "effort", value: cookieValue };
     }
-    return { type: "effort", value: model.thinkingConfig.default };
+    return { type: "effort", value: FALLBACK_THINKING_EFFORT };
   }
 
   const numValue = Number.parseInt(cookieValue, 10);
@@ -528,4 +529,46 @@ export const parseThinkingSettingFromCookie = (
 
 export const serializeThinkingSetting = (setting: ThinkingSetting): string => {
   return String(setting.value);
+};
+
+/**
+ * Validates a thinking setting against the model's thinking config.
+ * Returns a sanitized setting, falling back to "auto" for effort models
+ * or the config default for budget models when the input is invalid.
+ */
+export const validateThinkingSetting = (
+  modelId: string,
+  thinkingSetting: ThinkingSetting | undefined
+): ThinkingSetting | undefined => {
+  const model = getModelById(modelId);
+  if (!model?.thinkingConfig) {
+    return;
+  }
+
+  const config = model.thinkingConfig;
+
+  if (!thinkingSetting) {
+    if (config.type === "effort") {
+      return { type: "effort", value: FALLBACK_THINKING_EFFORT };
+    }
+    return { type: "budget", value: config.default };
+  }
+
+  if (config.type === "effort") {
+    if (thinkingSetting.type !== "effort") {
+      return { type: "effort", value: FALLBACK_THINKING_EFFORT };
+    }
+    if (!config.values.includes(thinkingSetting.value)) {
+      return { type: "effort", value: FALLBACK_THINKING_EFFORT };
+    }
+    return thinkingSetting;
+  }
+
+  if (thinkingSetting.type !== "budget") {
+    return { type: "budget", value: config.default };
+  }
+  if (!config.presets.some((p) => p.value === thinkingSetting.value)) {
+    return { type: "budget", value: config.default };
+  }
+  return thinkingSetting;
 };

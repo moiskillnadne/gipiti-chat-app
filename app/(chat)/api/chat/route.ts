@@ -32,6 +32,7 @@ import {
   isVisibleInUI,
   supportsAttachments,
   supportsThinkingConfig,
+  validateThinkingSetting,
 } from "@/lib/ai/models";
 import {
   downloadImageAsFile,
@@ -164,7 +165,7 @@ export async function POST(request: Request) {
       id,
       message,
       selectedChatModel: requestedChatModel,
-      thinkingSetting,
+      thinkingSetting: rawThinkingSetting,
       previousGenerationId,
     } = requestBody;
 
@@ -174,6 +175,12 @@ export async function POST(request: Request) {
     const selectedChatModel = isVisibleInUI(requestedChatModel)
       ? requestedChatModel
       : DEFAULT_CHAT_MODEL;
+
+    // Validate thinking setting against the model's config
+    const thinkingSetting = validateThinkingSetting(
+      selectedChatModel,
+      rawThinkingSetting
+    );
 
     const session = await auth();
 

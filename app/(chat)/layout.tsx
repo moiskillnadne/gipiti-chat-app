@@ -10,6 +10,7 @@ import {
   getDefaultThinkingSetting,
   isVisibleInUI,
   parseThinkingSettingFromCookie,
+  THINKING_COOKIE_PREFIX,
 } from "@/lib/ai/models";
 import { auth } from "../(auth)/auth";
 
@@ -31,7 +32,7 @@ export default async function Layout({
       : DEFAULT_CHAT_MODEL;
 
   const thinkingCookieValue = cookieStore.get(
-    `thinking-${validatedModelId}`
+    `${THINKING_COOKIE_PREFIX}-${validatedModelId}`
   )?.value;
   const initialThinkingSetting =
     parseThinkingSettingFromCookie(validatedModelId, thinkingCookieValue) ??
