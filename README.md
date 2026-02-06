@@ -120,7 +120,6 @@ Choose the plan that fits your needs:
 
 | Plan | Price | Tokens | Best For |
 |------|-------|--------|----------|
-| **Tester** | Free | 100K/day | Try it out |
 | **Basic Monthly** | $19.99/mo | 2M/month | Regular users |
 | **Basic Quarterly** | $49.99 | 6M/3 months | Power users |
 | **Basic Annual** | $149.99/yr | 24M/year | Best value |
