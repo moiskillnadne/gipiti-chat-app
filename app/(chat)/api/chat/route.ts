@@ -212,7 +212,6 @@ export async function POST(request: Request) {
       const t0 = performance.now();
       const title = await generateTitleFromUserMessage({
         message,
-        preferredLanguage: session.user.preferredLanguage || "en",
       });
       const t1 = performance.now();
       console.log("Time taken to generate title:", t1 - t0, "milliseconds");
@@ -230,14 +229,12 @@ export async function POST(request: Request) {
     const uiMessages = [...convertToUIMessages(messagesFromDb), message];
 
     const { longitude, latitude, city, country } = geolocation(request);
-    const preferredLanguage = session.user.preferredLanguage || "en";
 
     const requestHints: RequestHints = {
       longitude,
       latitude,
       city,
       country,
-      preferredLanguage,
     };
 
     await saveMessages({

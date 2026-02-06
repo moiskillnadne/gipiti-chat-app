@@ -1,28 +1,7 @@
 import type { Geo } from "@vercel/functions";
 import type { ArtifactKind } from "@/components/artifact";
-import { type Locale, localeNames } from "@/i18n/config";
 
 import { isReasoningModelId, supportsAttachments } from "./models";
-
-/**
- * Returns a language instruction for the LLM based on the user's preferred language.
- * This instruction tells the model to respond entirely in the specified language.
- */
-export const getLanguageInstruction = (languageCode: Locale): string => {
-  const languageName = localeNames[languageCode] || "English";
-
-  return `
-LANGUAGE REQUIREMENT:
-You MUST respond entirely in ${languageName}. This includes:
-- All conversational responses and explanations
-- Your thinking process (inside <think></think> tags)
-- Any titles, labels, or metadata you generate
-- Error messages or clarifications
-- Tool call descriptions and summaries
-
-The user has set their preferred language to ${languageName}. Always communicate in this language regardless of the language used in the user's message.
-`;
-};
 
 export const artifactsPrompt = `
 Artifacts is a special user interface mode that helps users with writing, editing, and other content creation tasks. When artifact is open, it is on the right side of the screen, while the conversation is on the left side. When creating or updating documents, changes are reflected in real-time on the artifacts and visible to the user.
@@ -161,7 +140,6 @@ export type RequestHints = {
   longitude: Geo["longitude"];
   city: Geo["city"];
   country: Geo["country"];
-  preferredLanguage: Locale;
 };
 
 export const getRequestPromptFromHints = (requestHints: RequestHints) => `\
@@ -171,7 +149,7 @@ About the origin of user's request:
 - city: ${requestHints.city}
 - country: ${requestHints.country}
 
-${getLanguageInstruction(requestHints.preferredLanguage)}`;
+Respond in the same language as the user's message.`;
 
 export const systemPrompt = ({
   selectedChatModel,
