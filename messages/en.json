@@ -191,8 +191,8 @@
       "annual": {
         "name": "Best",
         "period": "/year",
-        "description": "Best value - save 3 months!",
-        "badge": "Save 25%",
+        "description": "Best value - save 4.5 months!",
+        "badge": "Save 37%",
         "subscribeButton": "Start with best price"
       },
       "tester": {
@@ -226,7 +226,7 @@
           "imageModels": "GPT Image 1.5, Gemini 3 Pro Image (Nano banana pro)",
           "fileAnalysis": "Document analysis",
           "fileTypes": "up to 10MB - PDF, JPG, PNG",
-          "modelsList": "ChatGPT 5.2, Gemini 3 Pro, Opus 4.5, Grok 4.1, GPT-Image-1.5, Gemini 3 Pro Image"
+          "modelsList": "ChatGPT 5.2, Gemini 3 Pro, Opus 4.6, Grok 4.1, GPT-Image-1.5, Gemini 3 Pro Image"
         },
         "periods": {
           "monthly": "Monthly",
@@ -235,18 +235,18 @@
         },
         "values": {
           "monthly": {
-            "tokens": "1M",
-            "messages": "500",
+            "tokens": "3M",
+            "messages": "1,500",
             "searches": "250"
           },
           "quarterly": {
-            "tokens": "3M",
-            "messages": "1,500",
+            "tokens": "9M",
+            "messages": "4,500",
             "searches": "750"
           },
           "annual": {
-            "tokens": "12M",
-            "messages": "6,000",
+            "tokens": "36M",
+            "messages": "18,000",
             "searches": "3,000"
           }
         }
@@ -911,8 +911,8 @@
       "name": "Opus 4.1",
       "description": "Latest Anthropic Opus model for daily tasks."
     },
-    "opus45": {
-      "name": "Opus 4.5",
+    "opus46": {
+      "name": "Opus 4.6",
       "description": "Latest Anthropic Opus model with extended context and reasoning."
     },
     "sonnet45": {

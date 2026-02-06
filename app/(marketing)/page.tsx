@@ -14,7 +14,7 @@ import Script from "next/script";
 export const metadata: Metadata = {
   title: "GIPITI - AI-чат с ChatGPT, Gemini, Claude и Grok",
   description:
-    "GIPITI — платформа с доступом к лучшим AI-моделям: ChatGPT 5.2, Gemini 3 Pro, Claude Opus 4.5 и Grok 4.1. Генерация текста, изображений, анализ документов.",
+    "GIPITI — платформа с доступом к лучшим AI-моделям: ChatGPT 5.2, Gemini 3 Pro, Claude Opus 4.6 и Grok 4.1. Генерация текста, изображений, анализ документов.",
   alternates: {
     canonical: "https://gipiti.ru",
   },
@@ -32,7 +32,7 @@ const models = [
     color: "from-blue-500 to-indigo-600",
   },
   {
-    name: "Claude Opus 4.5",
+    name: "Claude Opus 4.6",
     provider: "Anthropic",
     color: "from-orange-500 to-amber-600",
   },
@@ -73,19 +73,19 @@ const features = [
 ];
 
 const plans = [
-  { name: "Старт", price: "1 999", period: "месяц", tokens: "1M токенов" },
+  { name: "Старт", price: "1 999", period: "месяц", tokens: "3M токенов" },
   {
     name: "Оптимальный",
     price: "4 999",
     period: "квартал",
-    tokens: "3M токенов",
+    tokens: "9M токенов",
     badge: "Экономия 17%",
   },
   {
     name: "Лучший",
     price: "14 999",
     period: "год",
-    tokens: "12M токенов",
+    tokens: "36M токенов",
     badge: "Экономия 37%",
   },
 ];
@@ -109,7 +109,7 @@ export default function LandingPage() {
     featureList: [
       "Доступ к ChatGPT 5.2",
       "Доступ к Gemini 3 Pro",
-      "Доступ к Claude Opus 4.5",
+      "Доступ к Claude Opus 4.6",
       "Доступ к Grok 4.1",
       "Генерация изображений",
       "Анализ документов",
