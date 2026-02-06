@@ -830,6 +830,7 @@
   "thinkingSetting": {
     "label": "Thinking",
     "default": "Default",
+    "auto": "Auto",
     "none": "None",
     "medium": "Standard",
     "high": "Extended",

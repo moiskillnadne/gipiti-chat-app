@@ -1,7 +1,9 @@
 "use server";
 
+import type { GatewayProviderOptions } from "@ai-sdk/gateway";
 import { generateText, type UIMessage } from "ai";
 import { cookies } from "next/headers";
+import { THINKING_COOKIE_PREFIX } from "@/lib/ai/models";
 import { myProvider } from "@/lib/ai/providers";
 import {
   deleteMessagesByChatIdAfterTimestamp,
@@ -18,14 +20,7 @@ export async function saveThinkingSettingAsCookie(
   value: string
 ) {
   const cookieStore = await cookies();
-  cookieStore.set(`thinking-${modelId}`, value);
-}
-
-export async function getThinkingSettingCookie(
-  modelId: string
-): Promise<string | undefined> {
-  const cookieStore = await cookies();
-  return cookieStore.get(`thinking-${modelId}`)?.value;
+  cookieStore.set(`${THINKING_COOKIE_PREFIX}-${modelId}`, value);
 }
 
 export async function generateTitleFromUserMessage({
@@ -42,6 +37,11 @@ export async function generateTitleFromUserMessage({
     - do not use quotes or colons
     - IMPORTANT: Generate the title in the same language as the user's message`,
     prompt: JSON.stringify(message),
+    providerOptions: {
+      gateway: {
+        models: ["openai/gpt-4.1-nano", "anthropic/claude-3-haiku"],
+      } satisfies GatewayProviderOptions,
+    },
   });
 
   return title;

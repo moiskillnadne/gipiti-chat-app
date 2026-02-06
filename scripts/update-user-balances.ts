@@ -41,7 +41,10 @@ async function main() {
       currentBalance: user.tokenBalance,
     })
     .from(userSubscription)
-    .innerJoin(subscriptionPlan, eq(userSubscription.planId, subscriptionPlan.id))
+    .innerJoin(
+      subscriptionPlan,
+      eq(userSubscription.planId, subscriptionPlan.id)
+    )
     .innerJoin(user, eq(userSubscription.userId, user.id))
     .where(eq(userSubscription.status, "active"));
 

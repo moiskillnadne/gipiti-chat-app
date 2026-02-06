@@ -26,6 +26,7 @@ export const calculateOptimalStepLimit = (
   // Add bonus steps for reasoning models based on effort level
   if (isReasoningModelId(modelId) && thinkingSetting?.type === "effort") {
     const effortBonus: Record<string, number> = {
+      auto: 3,
       none: 0,
       low: 1,
       medium: 3,
