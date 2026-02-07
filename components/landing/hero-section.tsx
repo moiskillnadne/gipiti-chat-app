@@ -2,15 +2,16 @@
 
 import { motion } from "framer-motion";
 import { SparklesIcon } from "lucide-react";
+import Image from "next/image";
 
 import { ChatMockup } from "./chat-mockup";
 import { FadeIn } from "./fade-in";
 
-const providerColors = [
-  "bg-emerald-500",
-  "bg-blue-500",
-  "bg-orange-500",
-  "bg-violet-500",
+const profilePhotos = [
+  "/images/profile-photo-1.jpeg",
+  "/images/profile-photo-2.jpeg",
+  "/images/profile-photo-3.jpeg",
+  "/images/profile-photo-4.jpeg",
 ];
 
 export const HeroSection = () => (
@@ -81,10 +82,14 @@ export const HeroSection = () => (
       <FadeIn delay={0.5}>
         <div className="mt-10 flex items-center justify-center gap-3">
           <div className="-space-x-2 flex">
-            {providerColors.map((color) => (
-              <div
-                className={`size-8 rounded-full border-2 border-zinc-950 ${color}`}
-                key={color}
+            {profilePhotos.map((src, index) => (
+              <Image
+                alt={`User ${index + 1}`}
+                className="rounded-full border-2 border-zinc-950 object-cover"
+                height={32}
+                key={src}
+                src={src}
+                width={32}
               />
             ))}
           </div>
