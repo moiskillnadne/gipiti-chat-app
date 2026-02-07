@@ -1211,12 +1211,12 @@ export async function getTextStyleById({
 export async function createTextStyle({
   userId,
   name,
-  examples,
+  examples = [],
   isDefault = false,
 }: {
   userId: string;
   name: string;
-  examples: string[];
+  examples?: string[];
   isDefault?: boolean;
 }): Promise<TextStyle> {
   try {

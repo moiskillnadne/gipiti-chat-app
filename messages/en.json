@@ -944,6 +944,14 @@
     "saveError": "Failed to save style",
     "deleteError": "Failed to delete style",
     "deleteConfirmTitle": "Delete style?",
-    "deleteConfirmDescription": "Are you sure you want to delete \"{name}\"? This action cannot be undone."
+    "deleteConfirmDescription": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
+    "styleTitle": "Style: {name}",
+    "editExample": "Edit example",
+    "deleteExample": "Delete example",
+    "deleteExampleConfirm": "Delete this example?",
+    "exampleSaved": "Example saved",
+    "exampleDeleted": "Example deleted",
+    "noExamplesYet": "No examples yet",
+    "noExamplesDescription": "Add text examples to teach the AI your writing style."
   }
 }

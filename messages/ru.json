@@ -944,6 +944,14 @@
     "saveError": "Не удалось сохранить стиль",
     "deleteError": "Не удалось удалить стиль",
     "deleteConfirmTitle": "Удалить стиль?",
-    "deleteConfirmDescription": "Вы уверены, что хотите удалить \"{name}\"? Это действие нельзя отменить."
+    "deleteConfirmDescription": "Вы уверены, что хотите удалить \"{name}\"? Это действие нельзя отменить.",
+    "styleTitle": "Стиль: {name}",
+    "editExample": "Редактировать пример",
+    "deleteExample": "Удалить пример",
+    "deleteExampleConfirm": "Удалить этот пример?",
+    "exampleSaved": "Пример сохранён",
+    "exampleDeleted": "Пример удалён",
+    "noExamplesYet": "Примеров пока нет",
+    "noExamplesDescription": "Добавьте примеры текста, чтобы научить ИИ вашему стилю письма."
   }
 }
