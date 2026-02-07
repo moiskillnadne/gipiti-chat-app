@@ -68,7 +68,7 @@ export const PainPointsSection = () => (
       >
         {painPoints.map((point) => (
           <motion.div
-            className="group rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 transition-all hover:border-red-500/30 hover:shadow-lg hover:shadow-red-500/5"
+            className="group rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 transition-[border-color,box-shadow] hover:border-red-500/30 hover:shadow-lg hover:shadow-red-500/5"
             key={point.title}
             variants={staggerItem}
             whileHover={{ scale: 1.02, y: -4 }}

@@ -69,7 +69,7 @@ export const BenefitsSection = () => (
       >
         {benefits.map((benefit) => (
           <motion.div
-            className="group rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 transition-all hover:border-emerald-500/30 hover:shadow-emerald-500/5 hover:shadow-lg"
+            className="group rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 transition-[border-color,box-shadow] hover:border-emerald-500/30 hover:shadow-emerald-500/5 hover:shadow-lg"
             key={benefit.title}
             variants={staggerItem}
             whileHover={{ scale: 1.02, y: -4 }}

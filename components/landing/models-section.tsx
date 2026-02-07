@@ -87,7 +87,7 @@ export const ModelsSection = () => (
       >
         {models.map((model) => (
           <motion.div
-            className={`group relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 shadow-lg transition-all ${model.hoverBorder} ${model.hoverShadow}`}
+            className={`group relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 shadow-lg transition-[border-color,box-shadow] ${model.hoverBorder} ${model.hoverShadow}`}
             key={model.name}
             variants={staggerItem}
             whileHover={{ y: -4 }}

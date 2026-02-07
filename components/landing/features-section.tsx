@@ -74,7 +74,7 @@ export const FeaturesSection = () => (
       >
         {features.map((feature) => (
           <motion.div
-            className="group rounded-2xl border border-zinc-800 bg-zinc-900/30 p-6 backdrop-blur-sm transition-all hover:border-indigo-500/30"
+            className="group rounded-2xl border border-zinc-800 bg-zinc-900/30 p-6 backdrop-blur-sm transition-[border-color,box-shadow] hover:border-indigo-500/30"
             key={feature.title}
             variants={staggerItem}
             whileHover={{ y: -4 }}
