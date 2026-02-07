@@ -359,3 +359,40 @@
     box-shadow: 0 0 8px 2px hsl(217.2 91.2% 59.8% / 0.3);
   }
 }
+
+/* ========================================
+   Landing Page Animations
+   ======================================== */
+
+/* Shimmer effect for hero badge */
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.animate-shimmer {
+  background-size: 200% auto;
+  animation: shimmer 3s linear infinite;
+}
+
+/* Gradient border rotation for pricing card */
+@keyframes gradient-rotate {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient-border {
+  background-size: 300% 300%;
+  animation: gradient-rotate 4s ease infinite;
+}
