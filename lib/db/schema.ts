@@ -735,3 +735,27 @@ export const tokenBalanceTransaction = pgTable(
 export type TokenBalanceTransaction = InferSelectModel<
   typeof tokenBalanceTransaction
 >;
+
+// ============================================================================
+// TEXT STYLE TABLE
+// ============================================================================
+
+export const textStyle = pgTable(
+  "TextStyle",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    name: varchar("name", { length: 128 }).notNull(),
+    examples: jsonb("examples").$type<string[]>().notNull(),
+    isDefault: boolean("is_default").default(false).notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index("text_style_user_id_idx").on(table.userId),
+  })
+);
+
+export type TextStyle = InferSelectModel<typeof textStyle>;

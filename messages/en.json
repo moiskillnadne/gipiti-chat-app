@@ -920,5 +920,30 @@
       "name": "Sonnet 4.5",
       "description": "Anthropic's balanced model with fast reasoning and excellent code generation."
     }
+  },
+  "textStyles": {
+    "noStyle": "No style",
+    "noStyleDescription": "AI responds in its default voice",
+    "manageStyles": "Manage styles",
+    "exampleCount": "{count, plural, one {# example} other {# examples}}",
+    "title": "Writing Styles",
+    "createStyle": "Create style",
+    "editStyle": "Edit style",
+    "deleteStyle": "Delete style",
+    "noStylesYet": "No styles yet",
+    "noStylesDescription": "Create a writing style by providing text examples. The AI will mirror your tone and voice.",
+    "styleName": "Style name",
+    "styleNamePlaceholder": "e.g. Casual, Technical, Formal...",
+    "examples": "Examples",
+    "examplePlaceholder": "Paste or write a text example in this style...",
+    "addExample": "Add example",
+    "setAsDefault": "Set as default style",
+    "defaultBadge": "Default",
+    "saveSuccess": "Style saved successfully",
+    "deleteSuccess": "Style deleted successfully",
+    "saveError": "Failed to save style",
+    "deleteError": "Failed to delete style",
+    "deleteConfirmTitle": "Delete style?",
+    "deleteConfirmDescription": "Are you sure you want to delete \"{name}\"? This action cannot be undone."
   }
 }

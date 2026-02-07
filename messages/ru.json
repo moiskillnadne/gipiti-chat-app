@@ -920,5 +920,30 @@
       "name": "Sonnet 4.5",
       "description": "Сбалансированная модель Anthropic с быстрым рассуждением и отличной генерацией кода."
     }
+  },
+  "textStyles": {
+    "noStyle": "Без стиля",
+    "noStyleDescription": "ИИ отвечает своим стандартным голосом",
+    "manageStyles": "Управление стилями",
+    "exampleCount": "{count, plural, one {# пример} few {# примера} other {# примеров}}",
+    "title": "Стили письма",
+    "createStyle": "Создать стиль",
+    "editStyle": "Редактировать стиль",
+    "deleteStyle": "Удалить стиль",
+    "noStylesYet": "Стилей пока нет",
+    "noStylesDescription": "Создайте стиль письма, предоставив примеры текста. ИИ будет отражать ваш тон и голос.",
+    "styleName": "Название стиля",
+    "styleNamePlaceholder": "напр. Разговорный, Технический, Формальный...",
+    "examples": "Примеры",
+    "examplePlaceholder": "Вставьте или напишите пример текста в этом стиле...",
+    "addExample": "Добавить пример",
+    "setAsDefault": "Установить как стиль по умолчанию",
+    "defaultBadge": "По умолчанию",
+    "saveSuccess": "Стиль успешно сохранён",
+    "deleteSuccess": "Стиль успешно удалён",
+    "saveError": "Не удалось сохранить стиль",
+    "deleteError": "Не удалось удалить стиль",
+    "deleteConfirmTitle": "Удалить стиль?",
+    "deleteConfirmDescription": "Вы уверены, что хотите удалить \"{name}\"? Это действие нельзя отменить."
   }
 }

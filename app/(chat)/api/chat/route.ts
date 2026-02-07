@@ -40,7 +40,11 @@ import {
   isDirectOpenAIModel,
   openaiClient,
 } from "@/lib/ai/openai-client";
-import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
+import {
+  type RequestHints,
+  systemPrompt,
+  type TextStyleInput,
+} from "@/lib/ai/prompts";
 import { myProvider } from "@/lib/ai/providers";
 import { calculateOptimalStepLimit } from "@/lib/ai/step-calculator";
 import { checkTokenQuota, recordTokenUsage } from "@/lib/ai/token-quota";
@@ -60,6 +64,7 @@ import {
   getDocumentById,
   getMessageCountByUserId,
   getMessagesByChatId,
+  getTextStyleById,
   insertImageGenerationUsageLog,
   saveChat,
   saveDocument,
@@ -167,6 +172,7 @@ export async function POST(request: Request) {
       selectedChatModel: requestedChatModel,
       thinkingSetting: rawThinkingSetting,
       previousGenerationId,
+      selectedTextStyleId,
     } = requestBody;
 
     console.log("previousGenerationId", previousGenerationId);
@@ -653,9 +659,22 @@ export async function POST(request: Request) {
           return;
         }
 
+        // Fetch text style if selected
+        let textStyle: TextStyleInput | null = null;
+        if (selectedTextStyleId) {
+          const style = await getTextStyleById({ id: selectedTextStyleId });
+          if (style && style.userId === session.user.id) {
+            textStyle = { name: style.name, examples: style.examples };
+          }
+        }
+
         const result = streamText({
           model: myProvider.languageModel(selectedChatModel),
-          system: systemPrompt({ selectedChatModel, requestHints }),
+          system: systemPrompt({
+            selectedChatModel,
+            requestHints,
+            textStyle,
+          }),
           messages: await convertToModelMessages(uiMessages),
           stopWhen: stepCountIs(optimalStepLimit),
           ...(isReasoningModelId(selectedChatModel) &&

@@ -4,6 +4,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { DataStreamProvider } from "@/components/data-stream-provider";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { ModelProvider } from "@/contexts/model-context";
+import { StyleProvider } from "@/contexts/style-context";
 import {
   chatModelIds,
   DEFAULT_CHAT_MODEL,
@@ -39,6 +40,7 @@ export default async function Layout({
     getDefaultThinkingSetting(validatedModelId);
 
   const userType = session?.user?.type ?? "regular";
+  const textStyleId = cookieStore.get("chat-text-style")?.value ?? null;
 
   return (
     <>
@@ -52,10 +54,12 @@ export default async function Layout({
           initialThinkingSetting={initialThinkingSetting}
           userType={userType}
         >
-          <SidebarProvider defaultOpen={!isCollapsed}>
-            <AppSidebar user={session?.user} />
-            <SidebarInset>{children}</SidebarInset>
-          </SidebarProvider>
+          <StyleProvider initialStyleId={textStyleId}>
+            <SidebarProvider defaultOpen={!isCollapsed}>
+              <AppSidebar user={session?.user} />
+              <SidebarInset>{children}</SidebarInset>
+            </SidebarProvider>
+          </StyleProvider>
         </ModelProvider>
       </DataStreamProvider>
     </>

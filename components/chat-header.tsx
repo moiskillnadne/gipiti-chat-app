@@ -2,6 +2,7 @@
 
 import { memo } from "react";
 import { SidebarToggle } from "@/components/sidebar-toggle";
+import { StyleSelector } from "@/components/style-selector";
 import { ModelSelector } from "@/components/ui/model-selector";
 
 type PureChatHeaderProps = {
@@ -15,6 +16,7 @@ function PureChatHeader(_props: PureChatHeaderProps) {
       <SidebarToggle />
 
       <ModelSelector />
+      <StyleSelector />
     </header>
   );
 }
