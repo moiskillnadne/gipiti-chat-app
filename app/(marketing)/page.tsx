@@ -8,11 +8,14 @@ import {
   LanguagesIcon,
   MessageSquareIcon,
   PiggyBankIcon,
+  RocketIcon,
   SearchIcon,
   ShieldAlertIcon,
   ShuffleIcon,
+  SlidersHorizontalIcon,
   SparklesIcon,
   TrendingUpIcon,
+  UserPlusIcon,
   WalletIcon,
   ZapIcon,
 } from "lucide-react";
@@ -142,22 +145,34 @@ const features = [
   },
 ];
 
-const plans = [
-  { name: "Старт", price: "1 999", period: "месяц", tokens: "3M токенов" },
+const steps = [
   {
-    name: "Оптимальный",
-    price: "4 999",
-    period: "квартал",
-    tokens: "9M токенов",
-    badge: "Экономия 17%",
-    isHighlighted: true,
+    step: 1,
+    icon: UserPlusIcon,
+    title: "Зарегистрируйтесь",
+    description: "Создайте аккаунт за 30 секунд — нужен только email и пароль.",
   },
   {
-    name: "Лучший",
-    price: "14 999",
-    period: "год",
-    tokens: "36M токенов",
-    badge: "Экономия 37%",
+    step: 2,
+    icon: CreditCardIcon,
+    title: "Выберите тариф",
+    description:
+      "Подберите подходящий план и начните с 3-х дневного пробного периода.",
+  },
+  {
+    step: 3,
+    icon: SlidersHorizontalIcon,
+    title: "Выберите модель",
+    description:
+      "Переключайтесь между ChatGPT, Gemini, Claude и Grok в один клик.",
+  },
+  {
+    step: 4,
+    icon: RocketIcon,
+    title: "Решайте задачи",
+    description:
+      "Генерируйте тексты, анализируйте документы, " +
+      "создавайте изображения и многое другое.",
   },
 ];
 
@@ -191,17 +206,17 @@ const faqItems = [
       "запросов потребуется активная подписка.",
   },
   {
-    question: "В чём разница между тарифами?",
+    question: "Что входит в подписку?",
     answer:
-      "Тарифы отличаются количеством токенов и периодом подписки. Чем " +
-      "длиннее период, тем больше экономия. Все тарифы включают доступ ко " +
-      "всем AI-моделям и функциям платформы.",
+      "Подписка включает доступ ко всем AI-моделям (ChatGPT, Gemini, Claude, Grok), " +
+      "генерацию изображений, анализ документов, поиск в интернете и режим рассуждений. " +
+      "Вы получаете 3M токенов в месяц для всех функций.",
   },
   {
-    question: "Как работают лимиты в тарифах?",
+    question: "Как работают лимиты?",
     answer:
-      "Каждый тариф включает определённое количество токенов на период " +
-      "подписки. Токены расходуются на ваши запросы и ответы AI. В личном " +
+      "Подписка включает 3M токенов в месяц. " +
+      "Токены расходуются на ваши запросы и ответы AI. В личном " +
       "кабинете вы всегда можете отслеживать текущий расход.",
   },
 ];
@@ -216,11 +231,9 @@ export default function LandingPage() {
     description: "AI-чат платформа с доступом к ChatGPT, Gemini, Claude и Grok",
     url: "https://gipiti.ru",
     offers: {
-      "@type": "AggregateOffer",
-      lowPrice: "1999",
-      highPrice: "14999",
+      "@type": "Offer",
+      price: "1999",
       priceCurrency: "RUB",
-      offerCount: "3",
     },
     featureList: [
       "Доступ к ChatGPT 5.2",
@@ -432,58 +445,55 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Pricing Section */}
-        <section className="px-4 py-20" id="pricing">
-          <div className="mx-auto max-w-5xl">
+        {/* How It Works Section */}
+        <section className="px-4 py-20">
+          <div className="mx-auto max-w-6xl">
             <h2 className="mb-4 text-center font-bold text-3xl text-white md:text-4xl">
-              Простые и понятные тарифы
+              Как это работает
             </h2>
             <p className="mx-auto mb-12 max-w-2xl text-center text-zinc-400">
-              Выберите план, который подходит именно вам. 3 дня бесплатного
-              пробного периода для всех тарифов.
+              Начните использовать AI за 4 простых шага
             </p>
 
-            <div className="grid gap-6 md:grid-cols-3">
-              {plans.map((plan) => (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+              {steps.map((item) => (
                 <div
-                  className={`relative rounded-2xl border p-6 transition-all ${
-                    plan.isHighlighted
-                      ? "border-indigo-500/50 bg-gradient-to-b from-indigo-500/10 to-transparent"
-                      : "border-zinc-800 bg-zinc-900/50"
-                  }`}
-                  key={plan.name}
+                  className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 transition-all hover:border-zinc-700"
+                  key={item.step}
                 >
-                  {plan.badge ? (
-                    <div className="-top-3 absolute right-4 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-3 py-1 text-white text-xs">
-                      {plan.badge}
-                    </div>
-                  ) : null}
-                  <h3 className="mb-2 font-semibold text-lg text-white">
-                    {plan.name}
-                  </h3>
-                  <div className="mb-4">
-                    <span className="font-bold text-4xl text-white">
-                      {plan.price}
-                    </span>
-                    <span className="text-zinc-400"> ₽/{plan.period}</span>
+                  <div className="mb-4 flex size-10 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 font-bold text-lg text-white">
+                    {item.step}
                   </div>
-                  <p className="text-sm text-zinc-400">{plan.tokens}</p>
+                  <div className="mb-4 inline-flex rounded-xl bg-zinc-800 p-3">
+                    <item.icon className="size-6 text-indigo-400" />
+                  </div>
+                  <h3 className="mb-2 font-semibold text-lg text-white">
+                    {item.title}
+                  </h3>
+                  <p className="text-sm text-zinc-400">{item.description}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="px-4 py-20">
+        {/* Pricing Section */}
+        <section className="px-4 py-20" id="pricing">
           <div className="mx-auto max-w-4xl rounded-3xl border border-zinc-800 bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 p-12 text-center">
             <h2 className="mb-4 font-bold text-3xl text-white md:text-4xl">
-              Готовы начать?
+              Простой и понятный тариф
             </h2>
             <p className="mx-auto mb-8 max-w-xl text-zinc-400">
-              Присоединяйтесь к тысячам пользователей, которые уже используют
-              GIPITI для работы с AI
+              Все AI-модели и функции в одной подписке. 3 дня бесплатного
+              пробного периода.
             </p>
+
+            <div className="mb-8">
+              <span className="font-bold text-5xl text-white">1 999</span>
+              <span className="text-xl text-zinc-400"> ₽/месяц</span>
+            </div>
+            <p className="mb-8 text-sm text-zinc-400">3M токенов в месяц</p>
+
             <Link
               className="inline-flex rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-8 py-4 font-semibold text-lg text-white transition-all hover:opacity-90"
               href="/register"
