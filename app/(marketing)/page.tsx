@@ -1,5 +1,6 @@
 import {
   BrainIcon,
+  ChevronDownIcon,
   FileTextIcon,
   ImageIcon,
   MessageSquareIcon,
@@ -80,6 +81,7 @@ const plans = [
     period: "квартал",
     tokens: "9M токенов",
     badge: "Экономия 17%",
+    isHighlighted: true,
   },
   {
     name: "Лучший",
@@ -87,6 +89,51 @@ const plans = [
     period: "год",
     tokens: "36M токенов",
     badge: "Экономия 37%",
+  },
+];
+
+const faqItems = [
+  {
+    question: "Как работает пробный период?",
+    answer:
+      "После регистрации вы получаете 3 дня бесплатного доступа ко всем " +
+      "функциям платформы. По окончании пробного периода вы можете выбрать " +
+      "подходящий тариф для продолжения использования.",
+  },
+  {
+    question: "Какие платежные средства вы принимаете?",
+    answer:
+      "Мы принимаем оплату банковскими картами Visa, MasterCard и МИР, а " +
+      "также через СБП (Систему быстрых платежей). Все платежи обрабатываются " +
+      "через безопасный шлюз.",
+  },
+  {
+    question: "Могу ли я отменить подписку?",
+    answer:
+      "Да, вы можете отменить подписку в любой момент в настройках аккаунта. " +
+      "Отмена вступает в силу по окончании текущего оплаченного периода.",
+  },
+  {
+    question: "Что будет если я отменю подписку?",
+    answer:
+      "После отмены подписка продолжает действовать до конца оплаченного " +
+      "периода — вы пользуетесь сервисом без ограничений. Когда период " +
+      "закончится, аккаунт и история чатов сохранятся, но для новых " +
+      "запросов потребуется активная подписка.",
+  },
+  {
+    question: "В чём разница между тарифами?",
+    answer:
+      "Тарифы отличаются количеством токенов и периодом подписки. Чем " +
+      "длиннее период, тем больше экономия. Все тарифы включают доступ ко " +
+      "всем AI-моделям и функциям платформы.",
+  },
+  {
+    question: "Как работают лимиты в тарифах?",
+    answer:
+      "Каждый тариф включает определённое количество токенов на период " +
+      "подписки. Токены расходуются на ваши запросы и ответы AI. В личном " +
+      "кабинете вы всегда можете отслеживать текущий расход.",
   },
 ];
 
@@ -117,12 +164,31 @@ export default function LandingPage() {
     ],
   };
 
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqItems.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
+  };
+
   return (
     <>
       <Script
         // biome-ignore lint/security/noDangerouslySetInnerHtml: <It's fine here for SEO>
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         id="json-ld"
+        type="application/ld+json"
+      />
+      <Script
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: <It's fine here for SEO>
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        id="faq-json-ld"
         type="application/ld+json"
       />
 
@@ -139,12 +205,6 @@ export default function LandingPage() {
                 href="/login"
               >
                 Войти
-              </Link>
-              <Link
-                className="rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-2 font-medium text-white transition-all hover:opacity-90"
-                href="/register"
-              >
-                Начать бесплатно
               </Link>
             </div>
           </nav>
@@ -171,12 +231,6 @@ export default function LandingPage() {
             </p>
 
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Link
-                className="w-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-8 py-4 font-semibold text-lg text-white transition-all hover:opacity-90 sm:w-auto"
-                href="/register"
-              >
-                Попробовать бесплатно
-              </Link>
               <Link
                 className="w-full rounded-full border border-zinc-700 bg-zinc-900 px-8 py-4 font-semibold text-lg text-zinc-300 transition-all hover:bg-zinc-800 sm:w-auto"
                 href="#pricing"
@@ -263,10 +317,10 @@ export default function LandingPage() {
             </p>
 
             <div className="grid gap-6 md:grid-cols-3">
-              {plans.map((plan, index) => (
+              {plans.map((plan) => (
                 <div
                   className={`relative rounded-2xl border p-6 transition-all ${
-                    index === 1
+                    plan.isHighlighted
                       ? "border-indigo-500/50 bg-gradient-to-b from-indigo-500/10 to-transparent"
                       : "border-zinc-800 bg-zinc-900/50"
                   }`}
@@ -286,17 +340,7 @@ export default function LandingPage() {
                     </span>
                     <span className="text-zinc-400"> ₽/{plan.period}</span>
                   </div>
-                  <p className="mb-6 text-sm text-zinc-400">{plan.tokens}</p>
-                  <Link
-                    className={`block w-full rounded-full py-3 text-center font-medium transition-all ${
-                      index === 1
-                        ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:opacity-90"
-                        : "border border-zinc-700 bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
-                    }`}
-                    href="/subscribe"
-                  >
-                    Выбрать план
-                  </Link>
+                  <p className="text-sm text-zinc-400">{plan.tokens}</p>
                 </div>
               ))}
             </div>
@@ -317,8 +361,33 @@ export default function LandingPage() {
               className="inline-flex rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-8 py-4 font-semibold text-lg text-white transition-all hover:opacity-90"
               href="/register"
             >
-              Начать бесплатно
+              Начать 3-ех дневный пробный период
             </Link>
+          </div>
+        </section>
+
+        {/* FAQ Section */}
+        <section className="px-4 py-20">
+          <div className="mx-auto max-w-3xl">
+            <h2 className="mb-12 text-center font-bold text-3xl text-white md:text-4xl">
+              Часто задаваемые вопросы
+            </h2>
+            <div className="space-y-4">
+              {faqItems.map((item) => (
+                <details
+                  className="group rounded-2xl border border-zinc-800 bg-zinc-900/50 transition-all open:border-zinc-700"
+                  key={item.question}
+                >
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-5 text-white [&::-webkit-details-marker]:hidden">
+                    <span className="font-medium">{item.question}</span>
+                    <ChevronDownIcon className="size-5 shrink-0 text-zinc-400 transition-transform group-open:rotate-180" />
+                  </summary>
+                  <p className="px-6 pb-5 text-sm text-zinc-400 leading-relaxed">
+                    {item.answer}
+                  </p>
+                </details>
+              ))}
+            </div>
           </div>
         </section>
 
