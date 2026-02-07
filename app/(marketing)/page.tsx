@@ -111,7 +111,7 @@ export default function LandingPage() {
         type="application/ld+json"
       />
 
-      <div className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-900 to-zinc-950">
+      <div className="min-h-screen bg-zinc-950">
         <LandingNav />
         <HeroSection />
         <PainPointsSection />

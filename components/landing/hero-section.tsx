@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { SparklesIcon } from "lucide-react";
 import Image from "next/image";
 
@@ -16,23 +15,27 @@ const profilePhotos = [
 
 export const HeroSection = () => (
   <section className="relative overflow-hidden px-4 pt-32 pb-20">
-    {/* Background layers */}
-    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-900/20 via-transparent to-transparent" />
-    <motion.div
-      animate={{
-        x: [0, 30, -20, 0],
-        y: [0, -20, 30, 0],
-        scale: [1, 1.1, 0.95, 1],
-      }}
-      className="-translate-x-1/2 absolute top-1/4 left-1/2 size-[600px] rounded-full bg-indigo-500/5 blur-3xl"
-      transition={{
-        duration: 20,
-        repeat: Number.POSITIVE_INFINITY,
-        ease: "linear",
-      }}
-    />
+    {/* Background video */}
+    <video
+      autoPlay
+      className="absolute inset-0 size-full object-cover"
+      loop
+      muted
+      playsInline
+    >
+      <source src="/videos/background-5s.mp4" type="video/mp4" />
+    </video>
 
-    <div className="relative mx-auto max-w-5xl text-center">
+    {/* Dark overlay for readability */}
+    <div className="absolute inset-0 bg-black/60" />
+
+    {/* Bottom fade for smooth transition to next section */}
+    <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-zinc-950" />
+
+    {/* Decorative layers */}
+    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-900/20 via-transparent to-transparent" />
+
+    <div className="relative z-10 mx-auto max-w-5xl text-center">
       {/* Animated badge */}
       <FadeIn delay={0.1}>
         <div className="mb-6 inline-flex animate-shimmer items-center gap-2 rounded-full border border-indigo-500/30 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/10 px-4 py-2 text-indigo-300 text-sm">
