@@ -139,7 +139,6 @@ export async function checkBalance(
   // Check for active subscription
   if (!balanceInfo.subscription) {
     // Check if there's a cancelled subscription with expired period
-    const now = new Date();
     const expiredSubs = await db
       .select()
       .from(userSubscription)
@@ -271,7 +270,7 @@ export async function deductBalance({
           .where(eq(user.id, userId));
 
         // Record partial deduction transaction
-        const [transaction] = await tx
+        const [partialTransaction] = await tx
           .insert(tokenBalanceTransaction)
           .values({
             userId,
@@ -291,7 +290,7 @@ export async function deductBalance({
         return {
           success: true,
           newBalance: 0,
-          transactionId: transaction.id,
+          transactionId: partialTransaction.id,
           previousBalance: currentBalance,
         };
       }
@@ -501,8 +500,8 @@ export async function getBalanceTransactions({
  * Custom error class for insufficient balance scenarios
  */
 export class InsufficientBalanceError extends Error {
-  public readonly currentBalance: number;
-  public readonly requestedAmount: number;
+  readonly currentBalance: number;
+  readonly requestedAmount: number;
 
   constructor(currentBalance: number, requestedAmount: number) {
     super(

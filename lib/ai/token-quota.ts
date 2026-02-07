@@ -12,7 +12,6 @@ import type { BillingPeriod } from "../subscription/subscription-tiers";
 import {
   checkBalance,
   deductBalance,
-  getUserBalance,
   InsufficientBalanceError,
 } from "./token-balance";
 
@@ -273,7 +272,13 @@ async function updateUserTokenUsage({
     const record = existing[0];
     const currentModelBreakdown = (record.modelBreakdown || {}) as Record<
       string,
-      any
+      {
+        inputTokens: number;
+        outputTokens: number;
+        totalTokens: number;
+        cost: number;
+        requestCount: number;
+      }
     >;
     const modelId = usage.modelId || "unknown";
     const currentModelData = currentModelBreakdown[modelId] || {

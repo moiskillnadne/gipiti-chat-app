@@ -1,5 +1,5 @@
-/** biome-ignore-all lint/performance/noImgElement: <explanation> */
-/** biome-ignore-all lint/nursery/useImageSize: <explanation> */
+/** biome-ignore-all lint/performance/noImgElement: Yandex Metrika tracking pixel requires img element */
+/** biome-ignore-all lint/nursery/useImageSize: Yandex Metrika tracking pixel dimensions not needed */
 "use client";
 
 import Script from "next/script";

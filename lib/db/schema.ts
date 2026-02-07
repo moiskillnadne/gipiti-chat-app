@@ -259,6 +259,8 @@ export const subscriptionPlan = pgTable(
       maxFileSize?: number;
       maxConcurrentChats?: number;
       hasAPIAccess?: boolean;
+      searchQuota?: number;
+      searchDepthAllowed?: string;
     }>(),
 
     // Pricing (for display/reference)
