@@ -1,10 +1,22 @@
 import {
   BrainIcon,
+  ChevronDownIcon,
+  CreditCardIcon,
   FileTextIcon,
+  GlobeIcon,
   ImageIcon,
+  LanguagesIcon,
   MessageSquareIcon,
+  PiggyBankIcon,
+  RocketIcon,
   SearchIcon,
+  ShieldAlertIcon,
+  ShuffleIcon,
+  SlidersHorizontalIcon,
   SparklesIcon,
+  TrendingUpIcon,
+  UserPlusIcon,
+  WalletIcon,
   ZapIcon,
 } from "lucide-react";
 import type { Metadata } from "next";
@@ -37,6 +49,67 @@ const models = [
     color: "from-orange-500 to-amber-600",
   },
   { name: "Grok 4.1", provider: "xAI", color: "from-violet-500 to-purple-600" },
+];
+
+const painPoints = [
+  {
+    icon: ShieldAlertIcon,
+    title: "Региональные ограничения",
+    description:
+      "Множество AI-сервисов заблокированы или недоступны в России. " +
+      "Приходится использовать VPN и сталкиваться с блокировками аккаунтов.",
+  },
+  {
+    icon: CreditCardIcon,
+    title: "Нужна зарубежная карта",
+    description:
+      "Для оплаты иностранных AI-сервисов требуется международная карта, " +
+      "которую сложно получить из-за санкций.",
+  },
+  {
+    icon: ShuffleIcon,
+    title: "Множество разных сервисов",
+    description:
+      "Для доступа к разным моделям приходится регистрироваться " +
+      "и оплачивать несколько платформ — ChatGPT, Claude, Gemini.",
+  },
+  {
+    icon: TrendingUpIcon,
+    title: "Дорогие подписки",
+    description:
+      "Отдельная подписка на каждый AI-сервис в валюте обходится дорого. " +
+      "Суммарная стоимость может достигать десятков тысяч рублей.",
+  },
+];
+
+const benefits = [
+  {
+    icon: GlobeIcon,
+    title: "Без VPN и ограничений",
+    description:
+      "Пользуйтесь из любой точки мира без региональных блокировок. " +
+      "VPN не нужен — просто откройте сайт и начните работать.",
+  },
+  {
+    icon: WalletIcon,
+    title: "Оплата российскими картами",
+    description:
+      "Платите в рублях картами Visa, MasterCard, МИР или через СБП. " +
+      "Никаких зарубежных карт и валютных конвертаций.",
+  },
+  {
+    icon: LanguagesIcon,
+    title: "Полная поддержка на русском",
+    description:
+      "Интерфейс, поддержка и документация полностью на русском языке.",
+  },
+  {
+    icon: PiggyBankIcon,
+    title: "Дешевле, чем 5 подписок",
+    description:
+      "Все ведущие AI-модели в одной подписке — значительно выгоднее, " +
+      "чем платить за каждый сервис отдельно.",
+  },
 ];
 
 const features = [
@@ -72,21 +145,79 @@ const features = [
   },
 ];
 
-const plans = [
-  { name: "Старт", price: "1 999", period: "месяц", tokens: "3M токенов" },
+const steps = [
   {
-    name: "Оптимальный",
-    price: "4 999",
-    period: "квартал",
-    tokens: "9M токенов",
-    badge: "Экономия 17%",
+    step: 1,
+    icon: UserPlusIcon,
+    title: "Зарегистрируйтесь",
+    description: "Создайте аккаунт за 30 секунд — нужен только email и пароль.",
   },
   {
-    name: "Лучший",
-    price: "14 999",
-    period: "год",
-    tokens: "36M токенов",
-    badge: "Экономия 37%",
+    step: 2,
+    icon: CreditCardIcon,
+    title: "Выберите тариф",
+    description:
+      "Подберите подходящий план и начните с 3-х дневного пробного периода.",
+  },
+  {
+    step: 3,
+    icon: SlidersHorizontalIcon,
+    title: "Выберите модель",
+    description:
+      "Переключайтесь между ChatGPT, Gemini, Claude и Grok в один клик.",
+  },
+  {
+    step: 4,
+    icon: RocketIcon,
+    title: "Решайте задачи",
+    description:
+      "Генерируйте тексты, анализируйте документы, " +
+      "создавайте изображения и многое другое.",
+  },
+];
+
+const faqItems = [
+  {
+    question: "Как работает пробный период?",
+    answer:
+      "После регистрации вы получаете 3 дня бесплатного доступа ко всем " +
+      "функциям платформы. По окончании пробного периода вы можете выбрать " +
+      "подходящий тариф для продолжения использования.",
+  },
+  {
+    question: "Какие платежные средства вы принимаете?",
+    answer:
+      "Мы принимаем оплату банковскими картами Visa, MasterCard и МИР, а " +
+      "также через СБП (Систему быстрых платежей). Все платежи обрабатываются " +
+      "через безопасный шлюз.",
+  },
+  {
+    question: "Могу ли я отменить подписку?",
+    answer:
+      "Да, вы можете отменить подписку в любой момент в настройках аккаунта. " +
+      "Отмена вступает в силу по окончании текущего оплаченного периода.",
+  },
+  {
+    question: "Что будет если я отменю подписку?",
+    answer:
+      "После отмены подписка продолжает действовать до конца оплаченного " +
+      "периода — вы пользуетесь сервисом без ограничений. Когда период " +
+      "закончится, аккаунт и история чатов сохранятся, но для новых " +
+      "запросов потребуется активная подписка.",
+  },
+  {
+    question: "Что входит в подписку?",
+    answer:
+      "Подписка включает доступ ко всем AI-моделям (ChatGPT, Gemini, Claude, Grok), " +
+      "генерацию изображений, анализ документов, поиск в интернете и режим рассуждений. " +
+      "Вы получаете 3M токенов в месяц для всех функций.",
+  },
+  {
+    question: "Как работают лимиты?",
+    answer:
+      "Подписка включает 3M токенов в месяц. " +
+      "Токены расходуются на ваши запросы и ответы AI. В личном " +
+      "кабинете вы всегда можете отслеживать текущий расход.",
   },
 ];
 
@@ -100,11 +231,9 @@ export default function LandingPage() {
     description: "AI-чат платформа с доступом к ChatGPT, Gemini, Claude и Grok",
     url: "https://gipiti.ru",
     offers: {
-      "@type": "AggregateOffer",
-      lowPrice: "1999",
-      highPrice: "14999",
+      "@type": "Offer",
+      price: "1999",
       priceCurrency: "RUB",
-      offerCount: "3",
     },
     featureList: [
       "Доступ к ChatGPT 5.2",
@@ -117,12 +246,31 @@ export default function LandingPage() {
     ],
   };
 
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqItems.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
+  };
+
   return (
     <>
       <Script
         // biome-ignore lint/security/noDangerouslySetInnerHtml: <It's fine here for SEO>
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         id="json-ld"
+        type="application/ld+json"
+      />
+      <Script
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: <It's fine here for SEO>
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        id="faq-json-ld"
         type="application/ld+json"
       />
 
@@ -139,12 +287,6 @@ export default function LandingPage() {
                 href="/login"
               >
                 Войти
-              </Link>
-              <Link
-                className="rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-2 font-medium text-white transition-all hover:opacity-90"
-                href="/register"
-              >
-                Начать бесплатно
               </Link>
             </div>
           </nav>
@@ -172,17 +314,69 @@ export default function LandingPage() {
 
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Link
-                className="w-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-8 py-4 font-semibold text-lg text-white transition-all hover:opacity-90 sm:w-auto"
-                href="/register"
-              >
-                Попробовать бесплатно
-              </Link>
-              <Link
                 className="w-full rounded-full border border-zinc-700 bg-zinc-900 px-8 py-4 font-semibold text-lg text-zinc-300 transition-all hover:bg-zinc-800 sm:w-auto"
                 href="#pricing"
               >
                 Посмотреть тарифы
               </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Pain Points Section */}
+        <section className="px-4 py-20">
+          <div className="mx-auto max-w-6xl">
+            <h2 className="mb-4 text-center font-bold text-3xl text-white md:text-4xl">
+              Знакомые проблемы?
+            </h2>
+            <p className="mx-auto mb-12 max-w-2xl text-center text-zinc-400">
+              Доступ к современным AI-моделям в России — это целый квест
+            </p>
+
+            <div className="grid gap-6 md:grid-cols-2">
+              {painPoints.map((point) => (
+                <div
+                  className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 transition-all hover:border-zinc-700"
+                  key={point.title}
+                >
+                  <div className="mb-4 inline-flex rounded-xl bg-red-500/10 p-3">
+                    <point.icon className="size-6 text-red-400" />
+                  </div>
+                  <h3 className="mb-2 font-semibold text-lg text-white">
+                    {point.title}
+                  </h3>
+                  <p className="text-sm text-zinc-400">{point.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Benefits Section */}
+        <section className="px-4 py-20">
+          <div className="mx-auto max-w-6xl">
+            <h2 className="mb-4 text-center font-bold text-3xl text-white md:text-4xl">
+              Как GIPITI решает эти проблемы
+            </h2>
+            <p className="mx-auto mb-12 max-w-2xl text-center text-zinc-400">
+              Простой доступ к лучшим AI-моделям без лишних сложностей
+            </p>
+
+            <div className="grid gap-6 md:grid-cols-2">
+              {benefits.map((benefit) => (
+                <div
+                  className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 transition-all hover:border-zinc-700"
+                  key={benefit.title}
+                >
+                  <div className="mb-4 inline-flex rounded-xl bg-emerald-500/10 p-3">
+                    <benefit.icon className="size-6 text-emerald-400" />
+                  </div>
+                  <h3 className="mb-2 font-semibold text-lg text-white">
+                    {benefit.title}
+                  </h3>
+                  <p className="text-sm text-zinc-400">{benefit.description}</p>
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -251,74 +445,86 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Pricing Section */}
-        <section className="px-4 py-20" id="pricing">
-          <div className="mx-auto max-w-5xl">
+        {/* How It Works Section */}
+        <section className="px-4 py-20">
+          <div className="mx-auto max-w-6xl">
             <h2 className="mb-4 text-center font-bold text-3xl text-white md:text-4xl">
-              Простые и понятные тарифы
+              Как это работает
             </h2>
             <p className="mx-auto mb-12 max-w-2xl text-center text-zinc-400">
-              Выберите план, который подходит именно вам. 3 дня бесплатного
-              пробного периода для всех тарифов.
+              Начните использовать AI за 4 простых шага
             </p>
 
-            <div className="grid gap-6 md:grid-cols-3">
-              {plans.map((plan, index) => (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+              {steps.map((item) => (
                 <div
-                  className={`relative rounded-2xl border p-6 transition-all ${
-                    index === 1
-                      ? "border-indigo-500/50 bg-gradient-to-b from-indigo-500/10 to-transparent"
-                      : "border-zinc-800 bg-zinc-900/50"
-                  }`}
-                  key={plan.name}
+                  className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 transition-all hover:border-zinc-700"
+                  key={item.step}
                 >
-                  {plan.badge ? (
-                    <div className="-top-3 absolute right-4 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-3 py-1 text-white text-xs">
-                      {plan.badge}
-                    </div>
-                  ) : null}
-                  <h3 className="mb-2 font-semibold text-lg text-white">
-                    {plan.name}
-                  </h3>
-                  <div className="mb-4">
-                    <span className="font-bold text-4xl text-white">
-                      {plan.price}
-                    </span>
-                    <span className="text-zinc-400"> ₽/{plan.period}</span>
+                  <div className="mb-4 flex size-10 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 font-bold text-lg text-white">
+                    {item.step}
                   </div>
-                  <p className="mb-6 text-sm text-zinc-400">{plan.tokens}</p>
-                  <Link
-                    className={`block w-full rounded-full py-3 text-center font-medium transition-all ${
-                      index === 1
-                        ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:opacity-90"
-                        : "border border-zinc-700 bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
-                    }`}
-                    href="/subscribe"
-                  >
-                    Выбрать план
-                  </Link>
+                  <div className="mb-4 inline-flex rounded-xl bg-zinc-800 p-3">
+                    <item.icon className="size-6 text-indigo-400" />
+                  </div>
+                  <h3 className="mb-2 font-semibold text-lg text-white">
+                    {item.title}
+                  </h3>
+                  <p className="text-sm text-zinc-400">{item.description}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="px-4 py-20">
+        {/* Pricing Section */}
+        <section className="px-4 py-20" id="pricing">
           <div className="mx-auto max-w-4xl rounded-3xl border border-zinc-800 bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 p-12 text-center">
             <h2 className="mb-4 font-bold text-3xl text-white md:text-4xl">
-              Готовы начать?
+              Простой и понятный тариф
             </h2>
             <p className="mx-auto mb-8 max-w-xl text-zinc-400">
-              Присоединяйтесь к тысячам пользователей, которые уже используют
-              GIPITI для работы с AI
+              Все AI-модели и функции в одной подписке. 3 дня бесплатного
+              пробного периода.
             </p>
+
+            <div className="mb-8">
+              <span className="font-bold text-5xl text-white">1 999</span>
+              <span className="text-xl text-zinc-400"> ₽/месяц</span>
+            </div>
+            <p className="mb-8 text-sm text-zinc-400">3M токенов в месяц</p>
+
             <Link
               className="inline-flex rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-8 py-4 font-semibold text-lg text-white transition-all hover:opacity-90"
               href="/register"
             >
-              Начать бесплатно
+              Начать 3-ех дневный пробный период
             </Link>
+          </div>
+        </section>
+
+        {/* FAQ Section */}
+        <section className="px-4 py-20">
+          <div className="mx-auto max-w-3xl">
+            <h2 className="mb-12 text-center font-bold text-3xl text-white md:text-4xl">
+              Часто задаваемые вопросы
+            </h2>
+            <div className="space-y-4">
+              {faqItems.map((item) => (
+                <details
+                  className="group rounded-2xl border border-zinc-800 bg-zinc-900/50 transition-all open:border-zinc-700"
+                  key={item.question}
+                >
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-5 text-white [&::-webkit-details-marker]:hidden">
+                    <span className="font-medium">{item.question}</span>
+                    <ChevronDownIcon className="size-5 shrink-0 text-zinc-400 transition-transform group-open:rotate-180" />
+                  </summary>
+                  <p className="px-6 pb-5 text-sm text-zinc-400 leading-relaxed">
+                    {item.answer}
+                  </p>
+                </details>
+              ))}
+            </div>
           </div>
         </section>
 
