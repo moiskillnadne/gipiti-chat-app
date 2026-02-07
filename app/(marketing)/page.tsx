@@ -3,13 +3,17 @@ import {
   ChevronDownIcon,
   CreditCardIcon,
   FileTextIcon,
+  GlobeIcon,
   ImageIcon,
+  LanguagesIcon,
   MessageSquareIcon,
+  PiggyBankIcon,
   SearchIcon,
   ShieldAlertIcon,
   ShuffleIcon,
   SparklesIcon,
   TrendingUpIcon,
+  WalletIcon,
   ZapIcon,
 } from "lucide-react";
 import type { Metadata } from "next";
@@ -72,6 +76,36 @@ const painPoints = [
     description:
       "Отдельная подписка на каждый AI-сервис в валюте обходится дорого. " +
       "Суммарная стоимость может достигать десятков тысяч рублей.",
+  },
+];
+
+const benefits = [
+  {
+    icon: GlobeIcon,
+    title: "Без VPN и ограничений",
+    description:
+      "Пользуйтесь из любой точки мира без региональных блокировок. " +
+      "VPN не нужен — просто откройте сайт и начните работать.",
+  },
+  {
+    icon: WalletIcon,
+    title: "Оплата российскими картами",
+    description:
+      "Платите в рублях картами Visa, MasterCard, МИР или через СБП. " +
+      "Никаких зарубежных карт и валютных конвертаций.",
+  },
+  {
+    icon: LanguagesIcon,
+    title: "Полная поддержка на русском",
+    description:
+      "Интерфейс, поддержка и документация полностью на русском языке.",
+  },
+  {
+    icon: PiggyBankIcon,
+    title: "Дешевле, чем 5 подписок",
+    description:
+      "Все ведущие AI-модели в одной подписке — значительно выгоднее, " +
+      "чем платить за каждый сервис отдельно.",
   },
 ];
 
@@ -299,6 +333,35 @@ export default function LandingPage() {
                     {point.title}
                   </h3>
                   <p className="text-sm text-zinc-400">{point.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Benefits Section */}
+        <section className="px-4 py-20">
+          <div className="mx-auto max-w-6xl">
+            <h2 className="mb-4 text-center font-bold text-3xl text-white md:text-4xl">
+              Как GIPITI решает эти проблемы
+            </h2>
+            <p className="mx-auto mb-12 max-w-2xl text-center text-zinc-400">
+              Простой доступ к лучшим AI-моделям без лишних сложностей
+            </p>
+
+            <div className="grid gap-6 md:grid-cols-2">
+              {benefits.map((benefit) => (
+                <div
+                  className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 transition-all hover:border-zinc-700"
+                  key={benefit.title}
+                >
+                  <div className="mb-4 inline-flex rounded-xl bg-emerald-500/10 p-3">
+                    <benefit.icon className="size-6 text-emerald-400" />
+                  </div>
+                  <h3 className="mb-2 font-semibold text-lg text-white">
+                    {benefit.title}
+                  </h3>
+                  <p className="text-sm text-zinc-400">{benefit.description}</p>
                 </div>
               ))}
             </div>
