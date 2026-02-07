@@ -7,7 +7,6 @@ import {
   PiggyBankIcon,
   WalletIcon,
 } from "lucide-react";
-import Link from "next/link";
 import type { ElementType } from "react";
 
 import { FadeIn, staggerContainer, staggerItem } from "./fade-in";
@@ -90,13 +89,13 @@ export const BenefitsSection = () => (
       {/* Inline CTA */}
       <FadeIn delay={0.3}>
         <div className="mt-10 text-center">
-          <Link
+          <a
             className="inline-flex items-center gap-2 text-indigo-400 transition-colors hover:text-indigo-300"
-            href="/register"
+            href="#pricing"
           >
             Попробовать бесплатно
             <span aria-hidden="true">&rarr;</span>
-          </Link>
+          </a>
         </div>
       </FadeIn>
     </div>

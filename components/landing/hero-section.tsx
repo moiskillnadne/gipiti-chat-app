@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import { SparklesIcon } from "lucide-react";
-import Link from "next/link";
 
 import { ChatMockup } from "./chat-mockup";
 import { FadeIn } from "./fade-in";
@@ -63,12 +62,12 @@ export const HeroSection = () => (
       {/* Dual CTAs */}
       <FadeIn delay={0.4}>
         <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <Link
+          <a
             className="inline-flex w-full items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-8 py-4 font-semibold text-lg text-white shadow-indigo-500/25 shadow-lg transition-all hover:shadow-indigo-500/30 hover:shadow-xl sm:w-auto"
-            href="/register"
+            href="#pricing"
           >
             Попробовать бесплатно
-          </Link>
+          </a>
           <a
             className="inline-flex w-full items-center justify-center rounded-full border border-zinc-700 bg-zinc-900/50 px-8 py-4 font-semibold text-lg text-zinc-300 transition-all hover:border-zinc-600 hover:bg-zinc-800/50 sm:w-auto"
             href="#pricing"

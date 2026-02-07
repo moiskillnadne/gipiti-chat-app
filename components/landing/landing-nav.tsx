@@ -64,12 +64,12 @@ export const LandingNav = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.2 }}
           >
-            <Link
+            <a
               className="hidden rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-5 py-2 font-medium text-sm text-white transition-all hover:shadow-indigo-500/25 hover:shadow-lg sm:inline-flex"
-              href="/register"
+              href="#pricing"
             >
               Попробовать бесплатно
-            </Link>
+            </a>
           </motion.div>
         </div>
       </nav>

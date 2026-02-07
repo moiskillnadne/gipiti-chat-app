@@ -27,13 +27,13 @@ export const LandingFooter = () => (
             Единая платформа для общения с лучшими AI-моделями. Доступно из
             России, оплата в рублях.
           </p>
-          <Link
+          <a
             className="mt-4 inline-flex items-center gap-2 text-indigo-400 text-sm transition-colors hover:text-indigo-300"
-            href="/register"
+            href="#pricing"
           >
             Попробовать бесплатно
             <span aria-hidden="true">&rarr;</span>
-          </Link>
+          </a>
         </div>
 
         {/* Product column */}

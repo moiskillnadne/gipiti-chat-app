@@ -102,7 +102,7 @@ export default async function RootLayout({
 
   return (
     <html
-      className={`${rubik.variable} ${geistMono.variable}`}
+      className={`${rubik.variable} ${geistMono.variable} scroll-smooth`}
       lang={locale}
       suppressHydrationWarning
     >
