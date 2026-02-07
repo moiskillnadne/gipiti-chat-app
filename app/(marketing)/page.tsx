@@ -1,11 +1,15 @@
 import {
   BrainIcon,
   ChevronDownIcon,
+  CreditCardIcon,
   FileTextIcon,
   ImageIcon,
   MessageSquareIcon,
   SearchIcon,
+  ShieldAlertIcon,
+  ShuffleIcon,
   SparklesIcon,
+  TrendingUpIcon,
   ZapIcon,
 } from "lucide-react";
 import type { Metadata } from "next";
@@ -38,6 +42,37 @@ const models = [
     color: "from-orange-500 to-amber-600",
   },
   { name: "Grok 4.1", provider: "xAI", color: "from-violet-500 to-purple-600" },
+];
+
+const painPoints = [
+  {
+    icon: ShieldAlertIcon,
+    title: "Региональные ограничения",
+    description:
+      "Множество AI-сервисов заблокированы или недоступны в России. " +
+      "Приходится использовать VPN и сталкиваться с блокировками аккаунтов.",
+  },
+  {
+    icon: CreditCardIcon,
+    title: "Нужна зарубежная карта",
+    description:
+      "Для оплаты иностранных AI-сервисов требуется международная карта, " +
+      "которую сложно получить из-за санкций.",
+  },
+  {
+    icon: ShuffleIcon,
+    title: "Множество разных сервисов",
+    description:
+      "Для доступа к разным моделям приходится регистрироваться " +
+      "и оплачивать несколько платформ — ChatGPT, Claude, Gemini.",
+  },
+  {
+    icon: TrendingUpIcon,
+    title: "Дорогие подписки",
+    description:
+      "Отдельная подписка на каждый AI-сервис в валюте обходится дорого. " +
+      "Суммарная стоимость может достигать десятков тысяч рублей.",
+  },
 ];
 
 const features = [
@@ -237,6 +272,35 @@ export default function LandingPage() {
               >
                 Посмотреть тарифы
               </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Pain Points Section */}
+        <section className="px-4 py-20">
+          <div className="mx-auto max-w-6xl">
+            <h2 className="mb-4 text-center font-bold text-3xl text-white md:text-4xl">
+              Знакомые проблемы?
+            </h2>
+            <p className="mx-auto mb-12 max-w-2xl text-center text-zinc-400">
+              Доступ к современным AI-моделям в России — это целый квест
+            </p>
+
+            <div className="grid gap-6 md:grid-cols-2">
+              {painPoints.map((point) => (
+                <div
+                  className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 transition-all hover:border-zinc-700"
+                  key={point.title}
+                >
+                  <div className="mb-4 inline-flex rounded-xl bg-red-500/10 p-3">
+                    <point.icon className="size-6 text-red-400" />
+                  </div>
+                  <h3 className="mb-2 font-semibold text-lg text-white">
+                    {point.title}
+                  </h3>
+                  <p className="text-sm text-zinc-400">{point.description}</p>
+                </div>
+              ))}
             </div>
           </div>
         </section>
