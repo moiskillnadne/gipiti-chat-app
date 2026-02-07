@@ -47,7 +47,7 @@ const AnimatedCounter = ({
   const ref = useRef<HTMLSpanElement>(null);
   const motionVal = useMotionValue(0);
   const rounded = useTransform(motionVal, (latest) => Math.round(latest));
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const isInView = useInView(ref, { once: true, margin: "-100px 0px" });
 
   useEffect(() => {
     if (isInView) {
