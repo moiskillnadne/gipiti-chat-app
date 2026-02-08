@@ -1,11 +1,29 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { GlobeIcon } from "lucide-react";
+import Image from "next/image";
 
-type ChatMessage = {
+import { PdfIcon } from "@/components/icons";
+
+type MockAttachment = {
+  name: string;
+  contentType: string;
+};
+
+type MockToolCall = {
+  type: "webSearch";
+  query: string;
+  domains: string[];
+};
+
+export type ChatMessage = {
   role: "user" | "assistant";
   content: string;
   model?: string;
+  attachment?: MockAttachment;
+  imageUrl?: string;
+  toolCalls?: MockToolCall[];
 };
 
 type ChatMockupProps = {
@@ -73,10 +91,54 @@ export const ChatMockup = ({
                   : "bg-zinc-800 text-zinc-300"
               }`}
             >
+              {msg.attachment && (
+                <div className="mb-2 flex items-center gap-2 rounded-lg border border-indigo-400/20 bg-indigo-500/10 px-3 py-2">
+                  <PdfIcon size={20} />
+                  <span className="truncate text-indigo-200 text-xs">
+                    {msg.attachment.name}
+                  </span>
+                </div>
+              )}
+
+              {msg.toolCalls?.map((tool) => (
+                <div className="mb-3" key={tool.query}>
+                  <div className="mb-2 flex items-center gap-2 text-sm text-zinc-400">
+                    <GlobeIcon className="size-4 shrink-0" />
+                    <span>Поиск: {tool.query}</span>
+                  </div>
+                  <div className="mb-2 flex flex-wrap gap-1.5">
+                    {tool.domains.map((domain) => (
+                      <span
+                        className="rounded-full bg-zinc-700/50 px-2.5 py-1 text-xs text-zinc-400"
+                        key={domain}
+                      >
+                        {domain}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+
               {msg.content}
               {msg.model && (
                 <div className="mt-2 text-xs text-zinc-500">{msg.model}</div>
               )}
+
+              {msg.imageUrl === "placeholder" ? (
+                <div className="mt-3 flex aspect-video w-full items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500">
+                  <span className="text-sm text-white/60">AI Generated</span>
+                </div>
+              ) : msg.imageUrl ? (
+                <div className="mt-3 overflow-hidden rounded-lg">
+                  <Image
+                    alt="Generated image"
+                    className="w-full rounded-lg"
+                    height={500}
+                    src={msg.imageUrl}
+                    width={500}
+                  />
+                </div>
+              ) : null}
             </div>
           </motion.div>
         ))}

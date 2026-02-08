@@ -3,17 +3,13 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 
-import { ChatMockup } from "./chat-mockup";
+import { type ChatMessage, ChatMockup } from "./chat-mockup";
 import { FadeIn } from "./fade-in";
 
 type DemoTab = {
   id: string;
   label: string;
-  messages: Array<{
-    role: "user" | "assistant";
-    content: string;
-    model?: string;
-  }>;
+  messages: ChatMessage[];
   modelBadge: string;
 };
 
@@ -43,6 +39,10 @@ const demoTabs: DemoTab[] = [
       {
         role: "user",
         content: "Проанализируй этот контракт и найди ключевые условия",
+        attachment: {
+          name: "Договор_поставки_2025.pdf",
+          contentType: "application/pdf",
+        },
       },
       {
         role: "assistant",
@@ -63,8 +63,8 @@ const demoTabs: DemoTab[] = [
       },
       {
         role: "assistant",
-        content:
-          "Вот логотип для вашего стартапа: минималистичная геометрическая форма из пересекающихся линий, образующих символ бесконечности. Использованы градиенты от индиго к пурпурному на тёмном фоне.",
+        content: "Вот логотип для вашего стартапа в минималистичном стиле:",
+        imageUrl: "placeholder",
         model: "Gemini 3 Pro",
       },
     ],
@@ -82,6 +82,18 @@ const demoTabs: DemoTab[] = [
         role: "assistant",
         content:
           "За последнюю неделю: OpenAI представила новую архитектуру GPT-5.2 с улучшенным рассуждением, Google выпустила Gemini 3 с нативной поддержкой мультимодальности, а Anthropic объявила о запуске Claude Opus 4.6 с расширенным контекстным окном.",
+        toolCalls: [
+          {
+            type: "webSearch",
+            query: "AI новости за неделю 2025",
+            domains: [
+              "openai.com",
+              "deepmind.google",
+              "anthropic.com",
+              "reuters.com",
+            ],
+          },
+        ],
         model: "Grok 4.1",
       },
     ],
