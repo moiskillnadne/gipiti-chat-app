@@ -55,17 +55,17 @@ const demoTabs: DemoTab[] = [
   {
     id: "images",
     label: "Генерация изображений",
-    modelBadge: "Gemini 3 Pro",
+    modelBadge: "Gemini 3 Pro Nano Banana",
     messages: [
       {
         role: "user",
-        content: "Создай логотип для tech-стартапа в минималистичном стиле",
+        content: "Создай необычное изображение человека, парящего над цветочным полем",
       },
       {
         role: "assistant",
-        content: "Вот логотип для вашего стартапа в минималистичном стиле:",
-        imageUrl: "placeholder",
-        model: "Gemini 3 Pro",
+        content: "Вот необычное изображение человека, парящего над цветочным полем:",
+        imageUrl: "/images/generated-photo-sample.jpeg",
+        model: "Gemini 3 Pro Nano Banana",
       },
     ],
   },
