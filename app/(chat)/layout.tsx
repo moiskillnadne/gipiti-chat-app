@@ -4,6 +4,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { DataStreamProvider } from "@/components/data-stream-provider";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { ModelProvider } from "@/contexts/model-context";
+import { ProjectProvider } from "@/contexts/project-context";
 import { StyleProvider } from "@/contexts/style-context";
 import {
   chatModelIds,
@@ -41,6 +42,7 @@ export default async function Layout({
 
   const userType = session?.user?.type ?? "regular";
   const textStyleId = cookieStore.get("chat-text-style")?.value ?? null;
+  const projectId = cookieStore.get("chat-project")?.value ?? null;
 
   return (
     <>
@@ -55,10 +57,12 @@ export default async function Layout({
           userType={userType}
         >
           <StyleProvider initialStyleId={textStyleId}>
-            <SidebarProvider defaultOpen={!isCollapsed}>
-              <AppSidebar user={session?.user} />
-              <SidebarInset>{children}</SidebarInset>
-            </SidebarProvider>
+            <ProjectProvider initialProjectId={projectId}>
+              <SidebarProvider defaultOpen={!isCollapsed}>
+                <AppSidebar user={session?.user} />
+                <SidebarInset>{children}</SidebarInset>
+              </SidebarProvider>
+            </ProjectProvider>
           </StyleProvider>
         </ModelProvider>
       </DataStreamProvider>

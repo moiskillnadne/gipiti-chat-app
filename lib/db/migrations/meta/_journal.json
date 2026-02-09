@@ -197,6 +197,13 @@
       "when": 1770456254895,
       "tag": "0027_tough_titanium_man",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1770652470758,
+      "tag": "0028_steady_kat_farrell",
+      "breakpoints": true
     }
   ]
 }

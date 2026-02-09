@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
 import { useModel, useModelRefs } from "@/contexts/model-context";
+import { useProjectRef } from "@/contexts/project-context";
 import { useStyleRef } from "@/contexts/style-context";
 import { useArtifactSelector } from "@/hooks/use-artifact";
 import { useAutoResume } from "@/hooks/use-auto-resume";
@@ -64,6 +65,7 @@ export function Chat({
   const { modelIdRef, thinkingSettingRef } = useModelRefs();
   const { setIsEmptyChat, persistPendingModelChange } = useModel();
   const { styleIdRef } = useStyleRef();
+  const { projectIdRef } = useProjectRef();
 
   const [input, setInput] = useState<string>("");
   const [usage, setUsage] = useState<AppUsage | undefined>(initialLastContext);
@@ -106,6 +108,9 @@ export function Chat({
           }),
           ...(styleIdRef.current && {
             selectedTextStyleId: styleIdRef.current,
+          }),
+          ...(projectIdRef.current && {
+            selectedProjectId: projectIdRef.current,
           }),
           ...request.body,
         };

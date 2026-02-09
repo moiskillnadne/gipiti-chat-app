@@ -41,6 +41,7 @@ import {
   openaiClient,
 } from "@/lib/ai/openai-client";
 import {
+  type ProjectContextInput,
   type RequestHints,
   systemPrompt,
   type TextStyleInput,
@@ -64,6 +65,7 @@ import {
   getDocumentById,
   getMessageCountByUserId,
   getMessagesByChatId,
+  getProjectById,
   getTextStyleById,
   insertImageGenerationUsageLog,
   saveChat,
@@ -154,7 +156,7 @@ export async function POST(request: Request) {
           {
             code: "bad_request:api",
             message:
-              "Your message is too long. Please reduce it to 3000 characters or less.",
+              "Your message is too long. Please reduce it to 10000 characters or less.",
             cause: `Current length: ${received} characters`,
           },
           { status: 400 }
@@ -173,6 +175,7 @@ export async function POST(request: Request) {
       thinkingSetting: rawThinkingSetting,
       previousGenerationId,
       selectedTextStyleId,
+      selectedProjectId,
     } = requestBody;
 
     console.log("previousGenerationId", previousGenerationId);
@@ -668,12 +671,25 @@ export async function POST(request: Request) {
           }
         }
 
+        // Fetch project context if selected
+        let projectContext: ProjectContextInput | null = null;
+        if (selectedProjectId) {
+          const proj = await getProjectById({ id: selectedProjectId });
+          if (proj && proj.userId === session.user.id) {
+            projectContext = {
+              name: proj.name,
+              contextEntries: proj.contextEntries,
+            };
+          }
+        }
+
         const result = streamText({
           model: myProvider.languageModel(selectedChatModel),
           system: systemPrompt({
             selectedChatModel,
             requestHints,
             textStyle,
+            projectContext,
           }),
           messages: await convertToModelMessages(uiMessages),
           stopWhen: stepCountIs(optimalStepLimit),

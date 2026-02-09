@@ -56,6 +56,15 @@ export async function saveTextStyleAsCookie(styleId: string | null) {
   }
 }
 
+export async function saveProjectAsCookie(projectId: string | null) {
+  const cookieStore = await cookies();
+  if (projectId) {
+    cookieStore.set("chat-project", projectId);
+  } else {
+    cookieStore.delete("chat-project");
+  }
+}
+
 export async function deleteTrailingMessages({ id }: { id: string }) {
   const [message] = await getMessageById({ id });
 

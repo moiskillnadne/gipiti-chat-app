@@ -4,7 +4,7 @@ import { chatModelIds } from "@/lib/ai/models";
 
 const textPartSchema = z.object({
   type: z.enum(["text"]),
-  text: z.string().min(1).max(3000),
+  text: z.string().min(1).max(10_000),
 });
 
 const filePartSchema = z.object({
@@ -44,6 +44,7 @@ export const postRequestBodySchema = z.object({
   thinkingSetting: thinkingSettingSchema.optional(),
   previousGenerationId: z.string().optional(),
   selectedTextStyleId: z.string().uuid().optional(),
+  selectedProjectId: z.string().uuid().optional(),
 });
 
 export type PostRequestBody = z.infer<typeof postRequestBodySchema>;
