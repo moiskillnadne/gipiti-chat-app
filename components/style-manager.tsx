@@ -89,10 +89,10 @@ export function StyleManager() {
   };
 
   return (
-    <div className="mx-auto flex h-dvh max-w-2xl flex-col px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
+    <div className="flex h-dvh flex-col px-4 py-8">
+      <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Button onClick={() => router.back()} size="sm" variant="ghost">
+          <Button onClick={() => router.push("/")} size="sm" variant="ghost">
             {tCommon("buttons.back")}
           </Button>
           <h1 className="font-semibold text-xl">{t("title")}</h1>
@@ -103,6 +103,9 @@ export function StyleManager() {
           </Button>
         )}
       </div>
+      <p className="mb-6 text-muted-foreground text-sm">
+        {t("pageDescription")}
+      </p>
 
       {/* Create Form */}
       {isCreateOpen && (
@@ -162,11 +165,19 @@ export function StyleManager() {
       {/* Style List */}
       <div className="space-y-3">
         {styles.map((style) => (
-          <button
+          // biome-ignore lint/a11y/useSemanticElements: can't use <button> — contains nested <Button> (delete) which is invalid HTML
+          <div
             className="flex w-full cursor-pointer items-center justify-between rounded-lg border p-4 text-left transition-colors hover:bg-muted/50"
             key={style.id}
             onClick={() => router.push(`/styles/${style.id}`)}
-            type="button"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                router.push(`/styles/${style.id}`);
+              }
+            }}
+            role="button"
+            tabIndex={0}
           >
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
@@ -194,7 +205,7 @@ export function StyleManager() {
             >
               <TrashIcon size={16} />
             </Button>
-          </button>
+          </div>
         ))}
       </div>
 

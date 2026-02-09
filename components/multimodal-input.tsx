@@ -4,6 +4,7 @@ import type { UseChatHelpers } from "@ai-sdk/react";
 import { Trigger } from "@radix-ui/react-select";
 import type { UIMessage } from "ai";
 import equal from "fast-deep-equal";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import {
   type ChangeEvent,
@@ -20,6 +21,7 @@ import { toast } from "sonner";
 import { useSessionStorage, useWindowSize } from "usehooks-ts";
 import { SelectItem } from "@/components/ui/select";
 import { useModel } from "@/contexts/model-context";
+import { useStyle } from "@/contexts/style-context";
 import {
   getModelById,
   supportsAttachments,
@@ -43,14 +45,18 @@ import {
 import { UsageHint } from "./elements/usage-hint";
 import {
   ArrowUpIcon,
+  CheckCircleFillIcon,
   ChevronDownIcon,
   PaperclipIcon,
+  PenIcon,
   SparklesIcon,
   StopIcon,
 } from "./icons";
 import { PreviewAttachment } from "./preview-attachment";
 import { SuggestedActions } from "./suggested-actions";
 import { Button } from "./ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 
 function PureMultimodalInput({
   chatId,
@@ -325,6 +331,7 @@ function PureMultimodalInput({
                 selectedThinkingSetting={currentThinkingSetting}
               />
             )}
+            <InputStyleSelector />
           </PromptInputTools>
 
           {status === "submitted" || status === "streaming" ? (
@@ -502,6 +509,151 @@ function PureThinkingSettingSelector({
 }
 
 const ThinkingSettingSelector = memo(PureThinkingSettingSelector);
+
+function PureInputStyleSelector() {
+  const [open, setOpen] = useState(false);
+  const { currentStyleId, setStyleId, styles, isLoading } = useStyle();
+  const t = useTranslations("textStyles");
+
+  const currentStyle = styles.find((s) => s.id === currentStyleId);
+  const hasStyles = !isLoading && styles.length > 0;
+
+  const handleStyleChange = (value: string) => {
+    setStyleId(value === "none" ? null : value);
+    setOpen(false);
+  };
+
+  return (
+    <Popover onOpenChange={setOpen} open={open}>
+      <PopoverTrigger asChild>
+        <button
+          className={cn(
+            "flex h-8 items-center gap-2 rounded-lg border-0",
+            "bg-background px-2 text-foreground shadow-none",
+            "transition-colors hover:bg-accent",
+            "focus:outline-none focus:ring-0",
+            "focus-visible:ring-0 focus-visible:ring-offset-0"
+          )}
+          data-testid="input-style-selector-trigger"
+          type="button"
+        >
+          <PenIcon size={16} />
+          <span className="font-medium text-xs">
+            {currentStyle?.name ?? t("noStyle")}
+          </span>
+          <ChevronDownIcon size={16} />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        className="w-[280px] rounded-2xl p-0 shadow-lg"
+      >
+        {hasStyles ? (
+          <>
+            <div className="max-h-[320px] overflow-y-scroll">
+              <RadioGroup
+                className="gap-0"
+                onValueChange={handleStyleChange}
+                value={currentStyleId ?? "none"}
+              >
+                <label
+                  className={cn(
+                    "group flex min-h-[44px] cursor-pointer items-start",
+                    "gap-3 px-3 py-2.5 transition-colors hover:bg-accent",
+                    !currentStyleId && "bg-accent/50"
+                  )}
+                  htmlFor="style-none"
+                >
+                  <RadioGroupItem
+                    className="sr-only"
+                    id="style-none"
+                    value="none"
+                  />
+                  <div className="flex-1">
+                    <div className="font-medium text-sm leading-tight">
+                      {t("noStyle")}
+                    </div>
+                    <div className="mt-0.5 text-muted-foreground text-xs leading-snug">
+                      {t("noStyleDescription")}
+                    </div>
+                  </div>
+                  {!currentStyleId && (
+                    <span className="mt-0.5 flex-shrink-0 text-primary">
+                      <CheckCircleFillIcon size={18} />
+                    </span>
+                  )}
+                </label>
+
+                <div className="border-border border-t" />
+
+                {styles.map((style) => {
+                  const isSelected = currentStyleId === style.id;
+                  return (
+                    <label
+                      className={cn(
+                        "group flex min-h-[44px] cursor-pointer",
+                        "items-start gap-3 px-3 py-2.5",
+                        "transition-colors hover:bg-accent",
+                        isSelected && "bg-accent/50"
+                      )}
+                      htmlFor={`style-${style.id}`}
+                      key={style.id}
+                    >
+                      <RadioGroupItem
+                        className="sr-only"
+                        id={`style-${style.id}`}
+                        value={style.id}
+                      />
+                      <div className="flex-1">
+                        <div className="font-medium text-sm leading-tight">
+                          {style.name}
+                        </div>
+                        <div className="mt-0.5 text-muted-foreground text-xs leading-snug">
+                          {t("exampleCount", {
+                            count: style.examples.length,
+                          })}
+                        </div>
+                      </div>
+                      {isSelected && (
+                        <span className="mt-0.5 flex-shrink-0 text-primary">
+                          <CheckCircleFillIcon size={18} />
+                        </span>
+                      )}
+                    </label>
+                  );
+                })}
+              </RadioGroup>
+            </div>
+            <div className="border-border border-t px-3 py-2">
+              <Link
+                className="text-muted-foreground text-xs hover:text-foreground hover:underline"
+                href="/styles"
+                onClick={() => setOpen(false)}
+              >
+                {t("manageStyles")}
+              </Link>
+            </div>
+          </>
+        ) : (
+          <div className="px-3 py-4 text-center">
+            <p className="text-muted-foreground text-sm">
+              {t("noStylesYetShort")}
+            </p>
+            <Link
+              className="mt-2 inline-block text-primary text-sm hover:underline"
+              href="/styles"
+              onClick={() => setOpen(false)}
+            >
+              {t("manageStyles")}
+            </Link>
+          </div>
+        )}
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+const InputStyleSelector = memo(PureInputStyleSelector);
 
 function PureStopButton({
   stop,

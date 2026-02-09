@@ -2,11 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useStyle } from "@/contexts/style-context";
 import type { TextStyle } from "@/lib/db/schema";
 
-import { PenIcon, TrashIcon } from "./icons";
+import { CheckCircleFillIcon, CrossIcon, PenIcon, TrashIcon } from "./icons";
 import { toast } from "./toast";
 import {
   AlertDialog,
@@ -41,9 +41,19 @@ export function StyleDetail({ initialStyle }: { initialStyle: TextStyle }) {
     null
   );
   const [deleteStyleOpen, setDeleteStyleOpen] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState("");
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isEditingName) {
+      nameInputRef.current?.focus();
+    }
+  }, [isEditingName]);
 
   const patchStyle = useCallback(
     async (updates: {
+      name?: string;
       examples?: string[];
       isDefault?: boolean;
     }): Promise<TextStyle | null> => {
@@ -70,6 +80,24 @@ export function StyleDetail({ initialStyle }: { initialStyle: TextStyle }) {
     [style.id, refreshStyles, t]
   );
 
+  const handleSaveName = useCallback(async () => {
+    const trimmed = nameInput.trim();
+    if (!trimmed || isSaving) {
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const result = await patchStyle({ name: trimmed });
+      if (result) {
+        toast({ type: "success", description: t("renameSuccess") });
+        setIsEditingName(false);
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  }, [nameInput, isSaving, patchStyle, t]);
+
   const handleSaveExample = useCallback(async () => {
     const trimmed = formText.trim();
     if (!trimmed || isSaving) {
@@ -83,7 +111,7 @@ export function StyleDetail({ initialStyle }: { initialStyle: TextStyle }) {
       if (editingIndex !== null) {
         updatedExamples[editingIndex] = trimmed;
       } else {
-        updatedExamples.push(trimmed);
+        updatedExamples.unshift(trimmed);
       }
 
       const result = await patchStyle({ examples: updatedExamples });
@@ -157,10 +185,10 @@ export function StyleDetail({ initialStyle }: { initialStyle: TextStyle }) {
   const isFormOpen = isAdding || editingIndex !== null;
 
   return (
-    <div className="mx-auto flex h-dvh max-w-2xl flex-col px-4 py-8">
+    <div className="flex h-dvh flex-col px-4 py-8">
       {/* Header */}
       <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center gap-3">
           <Button
             onClick={() => router.push("/styles")}
             size="sm"
@@ -168,9 +196,59 @@ export function StyleDetail({ initialStyle }: { initialStyle: TextStyle }) {
           >
             {tCommon("buttons.back")}
           </Button>
-          <h1 className="font-semibold text-xl">
-            {t("styleTitle", { name: style.name })}
-          </h1>
+          {isEditingName ? (
+            <div className="flex min-w-0 items-center gap-2">
+              <input
+                className="min-w-0 flex-1 rounded border bg-transparent px-2 py-1 font-semibold text-xl outline-none focus:border-primary"
+                onChange={(e) => setNameInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleSaveName();
+                  }
+                  if (e.key === "Escape") {
+                    setIsEditingName(false);
+                  }
+                }}
+                ref={nameInputRef}
+                value={nameInput}
+              />
+              <Button
+                disabled={!nameInput.trim() || isSaving}
+                onClick={handleSaveName}
+                size="icon"
+                title={tCommon("buttons.save")}
+                variant="ghost"
+              >
+                <CheckCircleFillIcon size={16} />
+              </Button>
+              <Button
+                disabled={isSaving}
+                onClick={() => setIsEditingName(false)}
+                size="icon"
+                title={tCommon("buttons.cancel")}
+                variant="ghost"
+              >
+                <CrossIcon size={16} />
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1">
+              <h1 className="font-semibold text-xl">
+                {t("styleTitle", { name: style.name })}
+              </h1>
+              <Button
+                onClick={() => {
+                  setNameInput(style.name);
+                  setIsEditingName(true);
+                }}
+                size="icon"
+                title={t("editName")}
+                variant="ghost"
+              >
+                <PenIcon size={16} />
+              </Button>
+            </div>
+          )}
         </div>
         <Button
           onClick={() => setDeleteStyleOpen(true)}
@@ -223,6 +301,36 @@ export function StyleDetail({ initialStyle }: { initialStyle: TextStyle }) {
 
       {/* Examples list */}
       <div className="space-y-3 overflow-y-auto">
+        {/* Add form (top of list) */}
+        {isAdding && (
+          <div className="rounded-lg border border-primary p-4">
+            <Textarea
+              className="min-h-[120px] resize-y"
+              maxLength={MAX_EXAMPLE_LENGTH}
+              onChange={(e) => setFormText(e.target.value)}
+              placeholder={t("examplePlaceholder")}
+              value={formText}
+            />
+            <div className="mt-3 flex gap-2">
+              <Button
+                disabled={!formText.trim() || isSaving}
+                onClick={handleSaveExample}
+                size="sm"
+              >
+                {tCommon("buttons.save")}
+              </Button>
+              <Button
+                disabled={isSaving}
+                onClick={closeForm}
+                size="sm"
+                variant="outline"
+              >
+                {tCommon("buttons.cancel")}
+              </Button>
+            </div>
+          </div>
+        )}
+
         {style.examples.map((example, index) =>
           editingIndex === index ? (
             <div
@@ -282,36 +390,6 @@ export function StyleDetail({ initialStyle }: { initialStyle: TextStyle }) {
               </div>
             </div>
           )
-        )}
-
-        {/* Add form (below list) */}
-        {isAdding && (
-          <div className="rounded-lg border border-primary p-4">
-            <Textarea
-              className="min-h-[120px] resize-y"
-              maxLength={MAX_EXAMPLE_LENGTH}
-              onChange={(e) => setFormText(e.target.value)}
-              placeholder={t("examplePlaceholder")}
-              value={formText}
-            />
-            <div className="mt-3 flex gap-2">
-              <Button
-                disabled={!formText.trim() || isSaving}
-                onClick={handleSaveExample}
-                size="sm"
-              >
-                {tCommon("buttons.save")}
-              </Button>
-              <Button
-                disabled={isSaving}
-                onClick={closeForm}
-                size="sm"
-                variant="outline"
-              >
-                {tCommon("buttons.cancel")}
-              </Button>
-            </div>
-          </div>
         )}
       </div>
 

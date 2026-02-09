@@ -927,10 +927,12 @@
     "manageStyles": "Manage styles",
     "exampleCount": "{count, plural, one {# example} other {# examples}}",
     "title": "Writing Styles",
+    "pageDescription": "Create custom writing styles by providing text examples. The AI will adapt its tone and voice to match.",
     "createStyle": "Create style",
     "editStyle": "Edit style",
     "deleteStyle": "Delete style",
     "noStylesYet": "No styles yet",
+    "noStylesYetShort": "You don't have styles yet",
     "noStylesDescription": "Create a writing style by providing text examples. The AI will mirror your tone and voice.",
     "styleName": "Style name",
     "styleNamePlaceholder": "e.g. Casual, Technical, Formal...",
@@ -952,6 +954,8 @@
     "exampleSaved": "Example saved",
     "exampleDeleted": "Example deleted",
     "noExamplesYet": "No examples yet",
-    "noExamplesDescription": "Add text examples to teach the AI your writing style."
+    "noExamplesDescription": "Add text examples to teach the AI your writing style.",
+    "renameSuccess": "Style renamed successfully",
+    "editName": "Rename style"
   }
 }
