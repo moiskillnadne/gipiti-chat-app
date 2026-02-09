@@ -57,6 +57,7 @@ export const metadata: Metadata = {
 
 export const viewport = {
   maximumScale: 1,
+  viewportFit: "cover",
 };
 
 const rubik = Rubik({

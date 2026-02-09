@@ -41,7 +41,7 @@ const StepConnector = ({ isVertical }: { isVertical: boolean }) => (
     className={
       isVertical
         ? "mx-auto h-8 w-px bg-gradient-to-b from-indigo-500/50 to-purple-500/50"
-        : "hidden h-px flex-1 bg-gradient-to-r from-indigo-500/50 to-purple-500/50 lg:block"
+        : "mt-7 hidden h-px flex-1 bg-gradient-to-r from-indigo-500/50 to-purple-500/50 lg:block"
     }
     initial={{ scaleY: isVertical ? 0 : 1, scaleX: isVertical ? 1 : 0 }}
     transition={{ duration: 0.6, ease: "easeOut" }}
@@ -64,7 +64,7 @@ export const HowItWorksSection = () => (
 
       {/* Desktop: horizontal */}
       <motion.div
-        className="hidden items-center lg:flex"
+        className="hidden items-start lg:flex"
         initial="hidden"
         variants={staggerContainer}
         viewport={{ once: true, margin: "-100px" }}
