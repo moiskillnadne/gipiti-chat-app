@@ -57,6 +57,7 @@ export const metadata: Metadata = {
 
 export const viewport = {
   maximumScale: 1,
+  viewportFit: "cover",
 };
 
 const rubik = Rubik({
@@ -102,7 +103,7 @@ export default async function RootLayout({
 
   return (
     <html
-      className={`${rubik.variable} ${geistMono.variable}`}
+      className={`${rubik.variable} ${geistMono.variable} scroll-smooth`}
       lang={locale}
       suppressHydrationWarning
     >
