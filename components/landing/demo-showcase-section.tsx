@@ -98,6 +98,46 @@ const demoTabs: DemoTab[] = [
       },
     ],
   },
+  {
+    id: "code",
+    label: "Генерация кода",
+    modelBadge: "Claude Opus 4.6",
+    messages: [
+      {
+        role: "user",
+        content: "Сгенерируй алгоритм поиска кратчайшего пути",
+      },
+      {
+        role: "assistant",
+        content: "Конечно! Вот алгоритм Дейкстры на Python:",
+        codeBlock: {
+          language: "python",
+          code: [
+            "import heapq",
+            "",
+            "def dijkstra(graph, start):",
+            "    distances = {node: float('inf') for node in graph}",
+            "    distances[start] = 0",
+            "    queue = [(0, start)]",
+            "",
+            "    while queue:",
+            "        dist, node = heapq.heappop(queue)",
+            "        if dist > distances[node]:",
+            "            continue",
+            "",
+            "        for neighbor, weight in graph[node]:",
+            "            new_dist = dist + weight",
+            "            if new_dist < distances[neighbor]:",
+            "                distances[neighbor] = new_dist",
+            "                heapq.heappush(queue, (new_dist, neighbor))",
+            "",
+            "    return distances",
+          ].join("\n"),
+        },
+        model: "Claude Opus 4.6",
+      },
+    ],
+  },
 ];
 
 export const DemoShowcaseSection = () => {
