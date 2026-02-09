@@ -32,7 +32,7 @@ export async function assignTesterPlan(userId: string) {
         billingPeriod: testerTier.billingPeriod,
         billingPeriodCount: testerTier.billingPeriodCount,
         tokenQuota: testerTier.tokenQuota,
-        features: testerTier.features as any,
+        features: testerTier.features,
         price: testerTier.price.toString(),
         isTesterPlan: true,
       })
@@ -103,7 +103,7 @@ export async function upgradeToPlan(userId: string, planName: string) {
         billingPeriod: tier.billingPeriod,
         billingPeriodCount: tier.billingPeriodCount,
         tokenQuota: tier.tokenQuota,
-        features: tier.features as any,
+        features: tier.features,
         price: tier.price.toString(),
         isTesterPlan: false,
       })

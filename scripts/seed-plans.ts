@@ -37,7 +37,7 @@ async function main() {
             billingPeriod: tier.billingPeriod,
             billingPeriodCount: tier.billingPeriodCount,
             tokenQuota: tier.tokenQuota,
-            features: tier.features as any,
+            features: tier.features,
             price: tier.price.USD.toString(),
             isTesterPlan: tier.isTesterPlan || false,
             updatedAt: new Date(),
@@ -54,7 +54,7 @@ async function main() {
           billingPeriod: tier.billingPeriod,
           billingPeriodCount: tier.billingPeriodCount,
           tokenQuota: tier.tokenQuota,
-          features: tier.features as any,
+          features: tier.features,
           price: tier.price.USD.toString(),
           isTesterPlan: tier.isTesterPlan || false,
         });

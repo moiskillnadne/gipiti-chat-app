@@ -135,6 +135,29 @@ User: "Draw a cat"
 Better prompt: "A fluffy orange tabby cat sitting on a windowsill, warm afternoon sunlight streaming through, photorealistic style with soft bokeh background"
 `;
 
+export type TextStyleInput = {
+  name: string;
+  examples: string[];
+};
+
+export const textStylePrompt = (style: TextStyleInput): string => {
+  const numberedExamples = style.examples
+    .map((example, i) => `${i + 1}. "${example}"`)
+    .join("\n");
+
+  return `\
+You MUST write all your responses in the following personal writing style called "${style.name}".
+
+Here are examples of this writing style:
+${numberedExamples}
+
+Instructions for applying this style:
+- Match the tone, vocabulary, sentence structure, formality level, and punctuation patterns shown in the examples
+- Apply this style consistently to ALL your responses, including artifacts and documents
+- Do NOT mention, reference, or quote the style examples in your responses
+- Adapt the style naturally to the content while preserving its distinctive characteristics`;
+};
+
 export type RequestHints = {
   latitude: Geo["latitude"];
   longitude: Geo["longitude"];
@@ -154,24 +177,24 @@ Respond in the same language as the user's message.`;
 export const systemPrompt = ({
   selectedChatModel,
   requestHints,
+  textStyle,
 }: {
   selectedChatModel: string;
   requestHints: RequestHints;
+  textStyle?: TextStyleInput | null;
 }) => {
   const requestPrompt = getRequestPromptFromHints(requestHints);
   const hasAttachments = supportsAttachments(selectedChatModel);
+  const styleBlock = textStyle ? `\n\n${textStylePrompt(textStyle)}` : "";
 
   if (isReasoningModelId(selectedChatModel)) {
-    // Reasoning models with attachments get reasoning, web search, image generation, and artifacts prompts
     if (hasAttachments) {
-      return `${reasoningPrompt}\n\n${webSearchPrompt}\n\n${imageGenerationPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
+      return `${reasoningPrompt}${styleBlock}\n\n${webSearchPrompt}\n\n${imageGenerationPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
     }
-    // Reasoning models without attachments get reasoning and web search prompts
-    return `${reasoningPrompt}\n\n${webSearchPrompt}\n\n${requestPrompt}`;
+    return `${reasoningPrompt}${styleBlock}\n\n${webSearchPrompt}\n\n${requestPrompt}`;
   }
 
-  // Non-reasoning models get regular prompt with web search, image generation, and artifacts
-  return `${regularPrompt}\n\n${webSearchPrompt}\n\n${imageGenerationPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
+  return `${regularPrompt}${styleBlock}\n\n${webSearchPrompt}\n\n${imageGenerationPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
 };
 
 /**

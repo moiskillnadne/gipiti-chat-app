@@ -8,7 +8,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useSWRConfig } from "swr";
 import { unstable_serialize } from "swr/infinite";
-import { PlusIcon, TrashIcon } from "@/components/icons";
+import { PenIcon, PlusIcon, TrashIcon } from "@/components/icons";
 import {
   getChatHistoryPaginationKey,
   SidebarHistory,
@@ -41,6 +41,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 export function AppSidebar({ user }: { user: User | undefined }) {
   const t = useTranslations("chat.sidebar");
   const tCommon = useTranslations("common.buttons");
+  const tTextStyles = useTranslations("textStyles");
   const router = useRouter();
   const { setOpenMobile } = useSidebar();
   const { mutate } = useSWRConfig();
@@ -113,6 +114,18 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               >
                 <PlusIcon />
                 <span>{t("newChat")}</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                className="h-10 gap-2"
+                onClick={() => {
+                  setOpenMobile(false);
+                  router.push("/styles");
+                }}
+              >
+                <PenIcon />
+                <span>{tTextStyles("manageStyles")}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>

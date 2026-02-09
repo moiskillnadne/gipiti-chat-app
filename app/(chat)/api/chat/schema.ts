@@ -43,6 +43,7 @@ export const postRequestBodySchema = z.object({
   selectedChatModel: chatModelIdSchema,
   thinkingSetting: thinkingSettingSchema.optional(),
   previousGenerationId: z.string().optional(),
+  selectedTextStyleId: z.string().uuid().optional(),
 });
 
 export type PostRequestBody = z.infer<typeof postRequestBodySchema>;

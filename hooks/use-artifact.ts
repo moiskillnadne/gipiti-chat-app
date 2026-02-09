@@ -70,6 +70,7 @@ export function useArtifact() {
   // Use a static key for metadata to avoid losing state when documentId changes during streaming
   // The metadata (language, outputs, etc.) belongs to the current artifact session
   const { data: localArtifactMetadata, mutate: setLocalArtifactMetadata } =
+    // biome-ignore lint/suspicious/noExplicitAny: Polymorphic artifact metadata varies per artifact type
     useSWR<any>("artifact-metadata", null, {
       fallbackData: null,
     });

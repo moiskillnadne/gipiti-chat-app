@@ -15,7 +15,9 @@ type ArtifactActionsProps = {
   currentVersionIndex: number;
   isCurrentVersion: boolean;
   mode: "edit" | "diff";
+  // biome-ignore lint/suspicious/noExplicitAny: Polymorphic artifact metadata varies per artifact type
   metadata: any;
+  // biome-ignore lint/suspicious/noExplicitAny: Polymorphic artifact metadata varies per artifact type
   setMetadata: Dispatch<SetStateAction<any>>;
 };
 

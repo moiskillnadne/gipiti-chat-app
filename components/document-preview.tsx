@@ -22,10 +22,22 @@ import { ImageEditor } from "./image-editor";
 import { SpreadsheetEditor } from "./sheet-editor";
 import { Editor } from "./text-editor";
 
+type DocumentToolCallResult = {
+  id: string;
+  title: string;
+  kind: ArtifactKind;
+};
+
+type DocumentToolCallArgs = {
+  title?: string;
+  kind?: ArtifactKind;
+  isUpdate?: boolean;
+};
+
 type DocumentPreviewProps = {
   isReadonly: boolean;
-  result?: any;
-  args?: any;
+  result?: DocumentToolCallResult;
+  args?: DocumentToolCallArgs;
 };
 
 export function DocumentPreview({
@@ -72,7 +84,7 @@ export function DocumentPreview({
     if (args) {
       return (
         <DocumentToolCall
-          args={{ title: args.title, kind: args.kind }}
+          args={{ title: args.title ?? "", kind: args.kind ?? "text" }}
           isReadonly={isReadonly}
           type="create"
         />
@@ -81,7 +93,9 @@ export function DocumentPreview({
   }
 
   if (isDocumentsFetching) {
-    return <LoadingSkeleton artifactKind={result.kind ?? args.kind} />;
+    return (
+      <LoadingSkeleton artifactKind={result?.kind ?? args?.kind ?? "text"} />
+    );
   }
 
   const document: Document | null = previewDocument
@@ -150,7 +164,7 @@ const PureHitboxLayer = ({
   setArtifact,
 }: {
   hitboxRef: React.RefObject<HTMLDivElement>;
-  result: any;
+  result?: DocumentToolCallResult;
   setArtifact: (
     updaterFn: UIArtifact | ((currentArtifact: UIArtifact) => UIArtifact)
   ) => void;
@@ -160,7 +174,7 @@ const PureHitboxLayer = ({
       const boundingBox = event.currentTarget.getBoundingClientRect();
 
       setArtifact((artifact) =>
-        artifact.status === "streaming"
+        artifact.status === "streaming" || !result
           ? { ...artifact, isVisible: true }
           : {
               ...artifact,
