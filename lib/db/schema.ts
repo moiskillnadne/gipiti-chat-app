@@ -759,3 +759,27 @@ export const textStyle = pgTable(
 );
 
 export type TextStyle = InferSelectModel<typeof textStyle>;
+
+// ============================================================================
+// PROJECT TABLE
+// ============================================================================
+
+export const project = pgTable(
+  "Project",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    name: varchar("name", { length: 128 }).notNull(),
+    contextEntries: jsonb("context_entries").$type<string[]>().notNull(),
+    isDefault: boolean("is_default").default(false).notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index("project_user_id_idx").on(table.userId),
+  })
+);
+
+export type Project = InferSelectModel<typeof project>;

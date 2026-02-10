@@ -59,11 +59,13 @@ const demoTabs: DemoTab[] = [
     messages: [
       {
         role: "user",
-        content: "Создай необычное изображение человека, парящего над цветочным полем",
+        content:
+          "Создай необычное изображение человека, парящего над цветочным полем",
       },
       {
         role: "assistant",
-        content: "Вот необычное изображение человека, парящего над цветочным полем:",
+        content:
+          "Вот необычное изображение человека, парящего над цветочным полем:",
         imageUrl: "/images/generated-photo-sample.jpeg",
         model: "Gemini 3 Pro Nano Banana",
       },

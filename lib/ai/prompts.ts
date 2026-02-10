@@ -158,6 +158,29 @@ Instructions for applying this style:
 - Adapt the style naturally to the content while preserving its distinctive characteristics`;
 };
 
+export type ProjectContextInput = {
+  name: string;
+  contextEntries: string[];
+};
+
+export const projectContextPrompt = (project: ProjectContextInput): string => {
+  const numberedEntries = project.contextEntries
+    .map((entry, i) => `${i + 1}. "${entry}"`)
+    .join("\n");
+
+  return `\
+You are working within the context of a project called "${project.name}".
+
+Here is the project context information:
+${numberedEntries}
+
+Instructions:
+- Use this context to inform your responses
+- Reference project details when relevant
+- Keep responses aligned with the project scope
+- Do NOT repeat the context verbatim unless asked`;
+};
+
 export type RequestHints = {
   latitude: Geo["latitude"];
   longitude: Geo["longitude"];
@@ -178,23 +201,28 @@ export const systemPrompt = ({
   selectedChatModel,
   requestHints,
   textStyle,
+  projectContext,
 }: {
   selectedChatModel: string;
   requestHints: RequestHints;
   textStyle?: TextStyleInput | null;
+  projectContext?: ProjectContextInput | null;
 }) => {
   const requestPrompt = getRequestPromptFromHints(requestHints);
   const hasAttachments = supportsAttachments(selectedChatModel);
   const styleBlock = textStyle ? `\n\n${textStylePrompt(textStyle)}` : "";
+  const projectBlock = projectContext?.contextEntries.length
+    ? `\n\n${projectContextPrompt(projectContext)}`
+    : "";
 
   if (isReasoningModelId(selectedChatModel)) {
     if (hasAttachments) {
-      return `${reasoningPrompt}${styleBlock}\n\n${webSearchPrompt}\n\n${imageGenerationPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
+      return `${reasoningPrompt}${styleBlock}${projectBlock}\n\n${webSearchPrompt}\n\n${imageGenerationPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
     }
-    return `${reasoningPrompt}${styleBlock}\n\n${webSearchPrompt}\n\n${requestPrompt}`;
+    return `${reasoningPrompt}${styleBlock}${projectBlock}\n\n${webSearchPrompt}\n\n${requestPrompt}`;
   }
 
-  return `${regularPrompt}${styleBlock}\n\n${webSearchPrompt}\n\n${imageGenerationPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
+  return `${regularPrompt}${styleBlock}${projectBlock}\n\n${webSearchPrompt}\n\n${imageGenerationPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
 };
 
 /**

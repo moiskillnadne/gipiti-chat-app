@@ -748,6 +748,23 @@ export const CpuIcon = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
+export const FolderIcon = ({ size = 16 }: { size?: number }) => (
+  <svg
+    height={size}
+    strokeLinejoin="round"
+    style={{ color: "currentcolor" }}
+    viewBox="0 0 16 16"
+    width={size}
+  >
+    <path
+      clipRule="evenodd"
+      d="M0 2.5C0 1.67157 0.671573 1 1.5 1H5.5L7.5 3H14.5C15.3284 3 16 3.67157 16 4.5V13.5C16 14.3284 15.3284 15 14.5 15H1.5C0.671573 15 0 14.3284 0 13.5V2.5ZM1.5 2.5H5.08579L6.58579 4H6.5H14.5V13.5H1.5V2.5Z"
+      fill="currentColor"
+      fillRule="evenodd"
+    />
+  </svg>
+);
+
 export const PenIcon = ({ size = 16 }: { size?: number }) => (
   <svg
     height={size}
