@@ -6,6 +6,7 @@ vi.mock("../connection", async () => {
   return { db: mod.mockDb };
 });
 
+import { ChatSDKError } from "../../../errors";
 import {
   createProject,
   deleteProject,
@@ -14,7 +15,6 @@ import {
   getProjectsByUserId,
   updateProject,
 } from "../project-queries";
-import { ChatSDKError } from "../../../errors";
 
 const DB_ERROR = new Error("connection lost");
 
@@ -50,9 +50,9 @@ describe("project-queries", () => {
 
     it("throws ChatSDKError on database error", async () => {
       setError(DB_ERROR);
-      await expect(
-        getProjectsByUserId({ userId: "u1" }),
-      ).rejects.toMatchObject({ type: "bad_request", surface: "database" });
+      await expect(getProjectsByUserId({ userId: "u1" })).rejects.toMatchObject(
+        { type: "bad_request", surface: "database" }
+      );
     });
   });
 
@@ -113,7 +113,7 @@ describe("project-queries", () => {
     it("throws ChatSDKError on database error", async () => {
       setError(DB_ERROR);
       await expect(
-        createProject({ userId: "u1", name: "Fail" }),
+        createProject({ userId: "u1", name: "Fail" })
       ).rejects.toMatchObject({ type: "bad_request", surface: "database" });
     });
   });
@@ -157,7 +157,7 @@ describe("project-queries", () => {
     it("throws ChatSDKError on database error", async () => {
       setError(DB_ERROR);
       await expect(
-        updateProject({ id: "p1", userId: "u1", name: "Fail" }),
+        updateProject({ id: "p1", userId: "u1", name: "Fail" })
       ).rejects.toMatchObject({ type: "bad_request", surface: "database" });
     });
   });
@@ -168,14 +168,14 @@ describe("project-queries", () => {
     it("deletes project by id and userId", async () => {
       setResult(undefined);
       await expect(
-        deleteProject({ id: "p1", userId: "u1" }),
+        deleteProject({ id: "p1", userId: "u1" })
       ).resolves.toBeUndefined();
     });
 
     it("throws ChatSDKError on database error", async () => {
       setError(DB_ERROR);
       await expect(
-        deleteProject({ id: "p1", userId: "u1" }),
+        deleteProject({ id: "p1", userId: "u1" })
       ).rejects.toMatchObject({ type: "bad_request", surface: "database" });
     });
   });
@@ -198,9 +198,10 @@ describe("project-queries", () => {
 
     it("throws ChatSDKError on database error", async () => {
       setError(DB_ERROR);
-      await expect(
-        getDefaultProject({ userId: "u1" }),
-      ).rejects.toMatchObject({ type: "bad_request", surface: "database" });
+      await expect(getDefaultProject({ userId: "u1" })).rejects.toMatchObject({
+        type: "bad_request",
+        surface: "database",
+      });
     });
   });
 });

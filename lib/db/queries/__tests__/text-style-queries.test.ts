@@ -6,6 +6,7 @@ vi.mock("../connection", async () => {
   return { db: mod.mockDb };
 });
 
+import { ChatSDKError } from "../../../errors";
 import {
   createTextStyle,
   deleteTextStyle,
@@ -14,7 +15,6 @@ import {
   getTextStylesByUserId,
   updateTextStyle,
 } from "../text-style-queries";
-import { ChatSDKError } from "../../../errors";
 
 const DB_ERROR = new Error("connection lost");
 
@@ -51,7 +51,7 @@ describe("text-style-queries", () => {
     it("throws ChatSDKError on database error", async () => {
       setError(DB_ERROR);
       await expect(
-        getTextStylesByUserId({ userId: "u1" }),
+        getTextStylesByUserId({ userId: "u1" })
       ).rejects.toMatchObject({ type: "bad_request", surface: "database" });
     });
   });
@@ -73,9 +73,10 @@ describe("text-style-queries", () => {
 
     it("throws ChatSDKError on database error", async () => {
       setError(DB_ERROR);
-      await expect(
-        getTextStyleById({ id: "ts1" }),
-      ).rejects.toMatchObject({ type: "bad_request", surface: "database" });
+      await expect(getTextStyleById({ id: "ts1" })).rejects.toMatchObject({
+        type: "bad_request",
+        surface: "database",
+      });
     });
   });
 
@@ -115,7 +116,7 @@ describe("text-style-queries", () => {
     it("throws ChatSDKError on database error", async () => {
       setError(DB_ERROR);
       await expect(
-        createTextStyle({ userId: "u1", name: "Fail" }),
+        createTextStyle({ userId: "u1", name: "Fail" })
       ).rejects.toMatchObject({ type: "bad_request", surface: "database" });
     });
   });
@@ -159,7 +160,7 @@ describe("text-style-queries", () => {
     it("throws ChatSDKError on database error", async () => {
       setError(DB_ERROR);
       await expect(
-        updateTextStyle({ id: "ts1", userId: "u1", name: "Fail" }),
+        updateTextStyle({ id: "ts1", userId: "u1", name: "Fail" })
       ).rejects.toMatchObject({ type: "bad_request", surface: "database" });
     });
   });
@@ -170,14 +171,14 @@ describe("text-style-queries", () => {
     it("deletes style by id and userId", async () => {
       setResult(undefined);
       await expect(
-        deleteTextStyle({ id: "ts1", userId: "u1" }),
+        deleteTextStyle({ id: "ts1", userId: "u1" })
       ).resolves.toBeUndefined();
     });
 
     it("throws ChatSDKError on database error", async () => {
       setError(DB_ERROR);
       await expect(
-        deleteTextStyle({ id: "ts1", userId: "u1" }),
+        deleteTextStyle({ id: "ts1", userId: "u1" })
       ).rejects.toMatchObject({ type: "bad_request", surface: "database" });
     });
   });
@@ -200,9 +201,9 @@ describe("text-style-queries", () => {
 
     it("throws ChatSDKError on database error", async () => {
       setError(DB_ERROR);
-      await expect(
-        getDefaultTextStyle({ userId: "u1" }),
-      ).rejects.toMatchObject({ type: "bad_request", surface: "database" });
+      await expect(getDefaultTextStyle({ userId: "u1" })).rejects.toMatchObject(
+        { type: "bad_request", surface: "database" }
+      );
     });
   });
 });
