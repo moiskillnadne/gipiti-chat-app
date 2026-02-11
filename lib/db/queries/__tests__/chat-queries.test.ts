@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { AppUsage } from "../../../usage";
 import { resetMock, setError, setResult, setResults } from "./db-mock";
 
 vi.mock("../connection", async () => {
@@ -359,19 +360,34 @@ describe("chat-queries", () => {
   describe("updateChatLastContextById", () => {
     it("updates lastContext and returns result", async () => {
       setResult({ rowCount: 1 });
+      const mockContext = {
+        inputTokens: 100,
+        outputTokens: 50,
+        totalTokens: 150,
+        inputTokenDetails: {},
+        outputTokenDetails: {},
+      };
       const result = await updateChatLastContextById({
         chatId: "c1",
-        context: { inputTokens: 100, outputTokens: 50 },
+        context: mockContext as AppUsage,
       });
       expect(result).toEqual({ rowCount: 1 });
     });
 
     it("does not throw on error, returns undefined", async () => {
+      // biome-ignore lint/suspicious/noEmptyBlockStatements: noop mock
       vi.spyOn(console, "warn").mockImplementation(() => {});
       setError(DB_ERROR);
+      const mockContext = {
+        inputTokens: 0,
+        outputTokens: 0,
+        totalTokens: 0,
+        inputTokenDetails: {},
+        outputTokenDetails: {},
+      };
       const result = await updateChatLastContextById({
         chatId: "c1",
-        context: { inputTokens: 0, outputTokens: 0 },
+        context: mockContext as AppUsage,
       });
       expect(result).toBeUndefined();
       vi.restoreAllMocks();

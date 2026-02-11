@@ -71,7 +71,9 @@ const proxyHandler: ProxyHandler<Record<string, unknown>> = {
       }
       return (resolve: (v: unknown) => void) => resolve(getNextResult());
     }
-    if (typeof prop === "symbol") return undefined;
+    if (typeof prop === "symbol") {
+      return;
+    }
     return (..._args: unknown[]) => new Proxy({}, proxyHandler);
   },
 };
