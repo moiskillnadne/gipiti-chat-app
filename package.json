@@ -17,6 +17,7 @@
     "db:check": "drizzle-kit check",
     "db:up": "drizzle-kit up",
     "test": "export PLAYWRIGHT=True && pnpm exec playwright test",
+    "test:unit": "vitest run",
     "models:list": "tsx scripts/fetch-gateway-models.ts"
   },
   "dependencies": {
@@ -132,7 +133,8 @@
     "tailwindcss": "^4.1.13",
     "tsx": "^4.19.1",
     "typescript": "^5.6.3",
-    "ultracite": "5.3.9"
+    "ultracite": "5.3.9",
+    "vitest": "^4.0.18"
   },
   "packageManager": "pnpm@9.12.3"
 }
