@@ -6,6 +6,7 @@ vi.mock("../connection", async () => {
   return { db: mod.mockDb };
 });
 
+import { ChatSDKError } from "../../../errors";
 import {
   deleteDocumentsByIdAfterTimestamp,
   getDocumentById,
@@ -15,7 +16,6 @@ import {
   saveDocument,
   saveSuggestions,
 } from "../document-queries";
-import { ChatSDKError } from "../../../errors";
 
 const DB_ERROR = new Error("connection lost");
 
@@ -82,7 +82,7 @@ describe("document-queries", () => {
           kind: "text",
           content: "",
           userId: "u1",
-        }),
+        })
       ).rejects.toMatchObject({ type: "bad_request", surface: "database" });
     });
   });
@@ -157,7 +157,7 @@ describe("document-queries", () => {
     it("throws ChatSDKError on database error", async () => {
       setError(DB_ERROR);
       await expect(
-        getGenerationIdByDocumentId({ id: "d1" }),
+        getGenerationIdByDocumentId({ id: "d1" })
       ).rejects.toMatchObject({ type: "bad_request", surface: "database" });
     });
   });
@@ -181,7 +181,7 @@ describe("document-queries", () => {
         deleteDocumentsByIdAfterTimestamp({
           id: "d1",
           timestamp: new Date(),
-        }),
+        })
       ).rejects.toMatchObject({ type: "bad_request", surface: "database" });
     });
   });
@@ -211,9 +211,10 @@ describe("document-queries", () => {
 
     it("throws ChatSDKError on database error", async () => {
       setError(DB_ERROR);
-      await expect(
-        saveSuggestions({ suggestions: [] }),
-      ).rejects.toMatchObject({ type: "bad_request", surface: "database" });
+      await expect(saveSuggestions({ suggestions: [] })).rejects.toMatchObject({
+        type: "bad_request",
+        surface: "database",
+      });
     });
   });
 
@@ -232,7 +233,7 @@ describe("document-queries", () => {
     it("throws ChatSDKError on database error", async () => {
       setError(DB_ERROR);
       await expect(
-        getSuggestionsByDocumentId({ documentId: "d1" }),
+        getSuggestionsByDocumentId({ documentId: "d1" })
       ).rejects.toMatchObject({ type: "bad_request", surface: "database" });
     });
   });

@@ -64,10 +64,7 @@ const proxyHandler: ProxyHandler<Record<string, unknown>> = {
     if (prop === "then") {
       if (state.error) {
         const err = state.error;
-        return (
-          _resolve: unknown,
-          reject: (e: Error) => void,
-        ) => reject(err);
+        return (_resolve: unknown, reject: (e: Error) => void) => reject(err);
       }
       return (resolve: (v: unknown) => void) => resolve(getNextResult());
     }

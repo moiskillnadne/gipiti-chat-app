@@ -7,11 +7,10 @@ vi.mock("../connection", async () => {
 });
 
 vi.mock("../../../subscription/billing-periods", () => ({
-  calculatePeriodEnd: vi.fn(
-    () => new Date("2024-02-01T00:00:00.000Z"),
-  ),
+  calculatePeriodEnd: vi.fn(() => new Date("2024-02-01T00:00:00.000Z")),
 }));
 
+import { ChatSDKError } from "../../../errors";
 import {
   createUserSubscription,
   getActiveUserSubscription,
@@ -20,7 +19,6 @@ import {
   getUserSubscriptionWithPlan,
   saveCancellationFeedback,
 } from "../subscription-queries";
-import { ChatSDKError } from "../../../errors";
 
 const DB_ERROR = new Error("connection lost");
 
@@ -41,7 +39,7 @@ const mockPlan = {
   name: "basic_monthly",
   displayName: "Basic Monthly",
   billingPeriod: "monthly" as const,
-  tokenQuota: 3000000,
+  tokenQuota: 3_000_000,
   isActive: true,
 };
 
@@ -68,7 +66,7 @@ describe("subscription-queries", () => {
     it("throws ChatSDKError on database error", async () => {
       setError(DB_ERROR);
       await expect(
-        getActiveUserSubscription({ userId: "u1" }),
+        getActiveUserSubscription({ userId: "u1" })
       ).rejects.toMatchObject({ type: "bad_request", surface: "database" });
     });
   });
@@ -95,7 +93,7 @@ describe("subscription-queries", () => {
     it("throws ChatSDKError on database error", async () => {
       setError(DB_ERROR);
       await expect(
-        getUserSubscriptionWithPlan({ userId: "u1" }),
+        getUserSubscriptionWithPlan({ userId: "u1" })
       ).rejects.toMatchObject({ type: "bad_request", surface: "database" });
     });
   });
@@ -140,7 +138,7 @@ describe("subscription-queries", () => {
     it("throws ChatSDKError on database error", async () => {
       setError(DB_ERROR);
       await expect(
-        getSubscriptionPlanByName({ name: "basic" }),
+        getSubscriptionPlanByName({ name: "basic" })
       ).rejects.toMatchObject({ type: "bad_request", surface: "database" });
     });
   });
@@ -176,7 +174,7 @@ describe("subscription-queries", () => {
           userId: "u1",
           planId: "plan-1",
           billingPeriod: "monthly",
-        }),
+        })
       ).rejects.toMatchObject({ type: "bad_request", surface: "database" });
     });
   });
@@ -196,7 +194,7 @@ describe("subscription-queries", () => {
           billingPeriod: "monthly",
           subscriptionDurationDays: 30,
           wasTrial: false,
-        }),
+        })
       ).resolves.toBeUndefined();
     });
 
@@ -208,7 +206,7 @@ describe("subscription-queries", () => {
           subscriptionId: "sub-1",
           reasons: ["other"],
           wasTrial: true,
-        }),
+        })
       ).resolves.toBeUndefined();
     });
 
@@ -220,7 +218,7 @@ describe("subscription-queries", () => {
           subscriptionId: "sub-1",
           reasons: [],
           wasTrial: false,
-        }),
+        })
       ).rejects.toMatchObject({ type: "bad_request", surface: "database" });
     });
   });
