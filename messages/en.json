@@ -405,7 +405,11 @@
       "stop": "Stop generating",
       "attachFile": "Attach file",
       "recording": "Recording...",
-      "quotaExceeded": "Quota exceeded. Your limit will reset soon."
+      "quotaExceeded": "Quota exceeded. Your limit will reset soon.",
+      "tools": "Tools",
+      "toolsThinking": "Thinking",
+      "toolsStyle": "Style",
+      "toolsProject": "Project"
     },
     "messages": {
       "thinking": "Thinking...",
