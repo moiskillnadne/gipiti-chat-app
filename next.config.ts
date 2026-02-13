@@ -5,6 +5,11 @@ const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 const nextConfig: NextConfig = {
   cacheComponents: false,
+  experimental: {
+    serverActions: {
+      allowedOrigins: ["gipiti.ru", "www.gipiti.ru"],
+    },
+  },
   images: {
     remotePatterns: [
       {
