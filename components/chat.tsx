@@ -227,7 +227,6 @@ export function Chat({
               attachments={attachments}
               chatId={id}
               input={input}
-              messages={messages}
               sendMessage={sendMessage}
               setAttachments={setAttachments}
               setInput={setInput}

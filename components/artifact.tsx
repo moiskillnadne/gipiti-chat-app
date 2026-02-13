@@ -331,7 +331,6 @@ function PureArtifact({
                     chatId={chatId}
                     className="bg-background dark:bg-muted"
                     input={input}
-                    messages={messages}
                     sendMessage={sendMessage}
                     setAttachments={setAttachments}
                     setInput={setInput}

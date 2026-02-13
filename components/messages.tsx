@@ -7,6 +7,7 @@ import { useModel } from "@/contexts/model-context";
 import { useMessages } from "@/hooks/use-messages";
 import type { Vote } from "@/lib/db/schema";
 import type { ChatMessage } from "@/lib/types";
+import { cn } from "@/lib/utils";
 import { Conversation, ConversationContent } from "./elements/conversation";
 import { Greeting } from "./greeting";
 import { PreviewMessage, ThinkingMessage } from "./message";
@@ -69,8 +70,19 @@ function PureMessages({
       ref={messagesContainerRef}
       style={{ overflowAnchor: "none" }}
     >
-      <Conversation className="mx-auto flex min-w-0 max-w-4xl flex-col gap-4 md:gap-6">
-        <ConversationContent className="flex flex-col gap-4 px-2 py-4 md:gap-6 md:px-4">
+      <Conversation
+        className={cn(
+          "mx-auto flex min-w-0 max-w-4xl flex-col gap-4 md:gap-6",
+          messages.length === 0 && "min-h-full",
+          messages.length === 0 && "justify-center"
+        )}
+      >
+        <ConversationContent
+          className={cn(
+            "flex flex-col gap-4 px-2 py-4 md:gap-6 md:px-4",
+            messages.length === 0 && "min-h-full"
+          )}
+        >
           {messages.length === 0 && <Greeting />}
 
           {messages.map((message, index) => (
