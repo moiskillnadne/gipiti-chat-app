@@ -13,6 +13,7 @@ import {
   gte,
   inArray,
   lt,
+  lte,
   type SQL,
 } from "drizzle-orm";
 
@@ -353,6 +354,39 @@ export async function getMessageCountByUserId({
     throw new ChatSDKError(
       "bad_request:database",
       "Failed to get message count by user id"
+    );
+  }
+}
+
+export async function getMessageCountByBillingPeriod({
+  userId,
+  periodStart,
+  periodEnd,
+}: {
+  userId: string;
+  periodStart: Date;
+  periodEnd: Date;
+}): Promise<number> {
+  try {
+    const [stats] = await db
+      .select({ count: count(message.id) })
+      .from(message)
+      .innerJoin(chat, eq(message.chatId, chat.id))
+      .where(
+        and(
+          eq(chat.userId, userId),
+          eq(message.role, "user"),
+          gte(message.createdAt, periodStart),
+          lte(message.createdAt, periodEnd)
+        )
+      )
+      .execute();
+
+    return stats?.count ?? 0;
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to get message count by billing period"
     );
   }
 }

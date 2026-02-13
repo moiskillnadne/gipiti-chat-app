@@ -362,6 +362,16 @@
           }
         }
       },
+      "limits": {
+        "title": "Usage Limits",
+        "description": "Track your feature usage for the current billing period",
+        "messages": "Messages",
+        "webSearch": "Web Search",
+        "imageGeneration": "Image Generation",
+        "used": "{used} / {limit}",
+        "usedUnlimited": "{used} (unlimited)",
+        "noSubscription": "No active subscription"
+      },
       "usage": {
         "title": "Token Usage",
         "description": "Monitor your token consumption this billing period",

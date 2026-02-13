@@ -14,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { UsageLimitsWidget } from "@/components/usage-limits-widget";
 import { getUserSubscriptionWithPlan } from "@/lib/db/queries";
 import { SUBSCRIPTION_TIERS } from "../../lib/subscription/subscription-tiers";
 
@@ -302,6 +303,8 @@ export default async function SubscriptionPage() {
       </Card>
 
       <TokenUsageSummary />
+
+      <UsageLimitsWidget />
 
       {subscription.cancelAtPeriodEnd && subscription.currentPeriodEnd && (
         <Card className="mt-6 border-destructive/50 bg-destructive/5">

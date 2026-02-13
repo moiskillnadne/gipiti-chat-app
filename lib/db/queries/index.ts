@@ -13,6 +13,7 @@ export {
   getChatById,
   getChatsByUserId,
   getMessageById,
+  getMessageCountByBillingPeriod,
   getMessageCountByUserId,
   getMessagesByChatId,
   getStreamIdsByChatId,

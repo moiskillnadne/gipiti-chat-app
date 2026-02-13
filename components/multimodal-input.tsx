@@ -1,7 +1,6 @@
 "use client";
 
 import type { UseChatHelpers } from "@ai-sdk/react";
-import type { UIMessage } from "ai";
 import equal from "fast-deep-equal";
 import {
   ChevronLeftIcon,
@@ -44,7 +43,6 @@ import {
   PromptInputToolbar,
   PromptInputTools,
 } from "./elements/prompt-input";
-import { UsageHint } from "./elements/usage-hint";
 import {
   ArrowUpIcon,
   CheckCircleFillIcon,
@@ -55,7 +53,6 @@ import {
   StopIcon,
 } from "./icons";
 import { PreviewAttachment } from "./preview-attachment";
-import { SuggestedActions } from "./suggested-actions";
 import { Button } from "./ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
@@ -572,7 +569,6 @@ function PureMultimodalInput({
   stop,
   attachments,
   setAttachments,
-  messages,
   setMessages,
   sendMessage,
   className,
@@ -585,7 +581,6 @@ function PureMultimodalInput({
   stop: () => void;
   attachments: Attachment[];
   setAttachments: Dispatch<SetStateAction<Attachment[]>>;
-  messages: UIMessage[];
   setMessages: UseChatHelpers<ChatMessage>["setMessages"];
   sendMessage: UseChatHelpers<ChatMessage>["sendMessage"];
   className?: string;
@@ -749,12 +744,6 @@ function PureMultimodalInput({
 
   return (
     <div className={cn("relative flex w-full flex-col gap-4", className)}>
-      {messages.length === 0 &&
-        attachments.length === 0 &&
-        uploadQueue.length === 0 && (
-          <SuggestedActions chatId={chatId} sendMessage={sendMessage} />
-        )}
-
       <input
         accept="image/jpeg,image/png,application/pdf"
         className="-top-4 -left-4 pointer-events-none fixed size-0.5 opacity-0"
@@ -766,7 +755,7 @@ function PureMultimodalInput({
       />
 
       <PromptInput
-        className="rounded-xl border border-border bg-background p-3 shadow-xs transition-all duration-200 focus-within:border-border hover:border-muted-foreground/50"
+        className="rounded-3xl border border-border bg-background p-3 shadow-xs transition-all duration-200 focus-within:border-border hover:border-muted-foreground/50"
         onSubmit={(event) => {
           event.preventDefault();
           if (status !== "ready") {
@@ -845,7 +834,6 @@ function PureMultimodalInput({
           )}
         </PromptInputToolbar>
       </PromptInput>
-      <UsageHint className="pl-1" usage={usage} />
     </div>
   );
 }

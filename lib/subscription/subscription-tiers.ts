@@ -21,6 +21,7 @@ export type SubscriptionTierConfig = {
     hasAPIAccess?: boolean;
     searchQuota: number;
     searchDepthAllowed: SearchDepth;
+    maxImageGenerationsPerPeriod?: number;
   };
   price: {
     USD: number;
@@ -60,6 +61,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       hasAPIAccess: false,
       searchQuota: 40, // 40 searches per day
       searchDepthAllowed: "advanced",
+      maxImageGenerationsPerPeriod: 10, // 10 images per day
     },
     price: {
       USD: 0,
@@ -98,6 +100,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       hasAPIAccess: false,
       searchQuota: 40, // 40 searches per day
       searchDepthAllowed: "advanced",
+      maxImageGenerationsPerPeriod: 10, // 10 images per day
     },
     price: {
       USD: 0.05,
@@ -136,6 +139,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       hasAPIAccess: false,
       searchQuota: 250, // 250 searches per month
       searchDepthAllowed: "advanced",
+      maxImageGenerationsPerPeriod: 50, // 50 images per month
     },
     price: {
       USD: 19.99,
@@ -173,6 +177,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       hasAPIAccess: false,
       searchQuota: 750, // 750 searches per quarter (250/month)
       searchDepthAllowed: "advanced",
+      maxImageGenerationsPerPeriod: 150, // 150 images per quarter
     },
     price: {
       USD: 49.99,
@@ -209,6 +214,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       hasAPIAccess: false,
       searchQuota: 3000, // 3000 searches per year (250/month)
       searchDepthAllowed: "advanced",
+      maxImageGenerationsPerPeriod: 600, // 600 images per year
     },
     price: {
       USD: 149.99,
