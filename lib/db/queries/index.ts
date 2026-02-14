@@ -59,6 +59,7 @@ export {
 } from "./text-style-queries";
 export {
   getImageGenerationCountByBillingPeriod,
+  getImageGenerationCountByDateRange,
   getSearchUsageCountByBillingPeriod,
   getSearchUsageCountByDateRange,
   insertImageGenerationUsageLog,

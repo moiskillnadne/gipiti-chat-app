@@ -195,6 +195,11 @@
         "badge": "Save 37%",
         "subscribeButton": "Start with best price"
       },
+      "free": {
+        "name": "Free Plan",
+        "period": "/day",
+        "description": "Limited free access with daily quotas"
+      },
       "tester": {
         "name": "Tester Plan",
         "period": "/day",

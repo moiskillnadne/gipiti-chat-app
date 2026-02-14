@@ -77,6 +77,7 @@ import { ChatSDKError } from "@/lib/errors";
 import type { ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
 import { convertToUIMessages, generateUUID } from "@/lib/utils";
+import { checkImageGenerationQuota } from "@/lib/ai/image-generation-quota";
 import {
   createImageUsageAccumulator,
   generateImage,
@@ -226,14 +227,22 @@ export async function POST(request: Request) {
         return new ChatSDKError("forbidden:chat").toResponse();
       }
     } else {
-      const t0 = performance.now();
-      const title = await generateTitleFromUserMessage({
-        message,
-      });
-      const t1 = performance.now();
-      console.log("Time taken to generate title:", t1 - t0, "milliseconds");
+      let title = "New Chat";
 
-      console.log("title", title);
+      try {
+        const t0 = performance.now();
+        title = await generateTitleFromUserMessage({
+          message,
+        });
+        const t1 = performance.now();
+        console.log("Time taken to generate title:", t1 - t0, "milliseconds");
+      } catch (error) {
+        console.error("Failed to generate title, using fallback:", error);
+        const textPart = message.parts.find((part) => part.type === "text");
+        if (textPart && textPart.type === "text") {
+          title = textPart.text.substring(0, 80);
+        }
+      }
 
       await saveChat({
         id,
@@ -326,6 +335,20 @@ export async function POST(request: Request) {
 
           if (!userPrompt) {
             throw new ChatSDKError("bad_request:api");
+          }
+
+          // Check image generation quota before proceeding
+          const imageQuotaCheck = await checkImageGenerationQuota(
+            session.user.id
+          );
+
+          if (!imageQuotaCheck.allowed) {
+            dataStream.write({
+              type: "text-delta",
+              id: generateUUID(),
+              delta: imageQuotaCheck.reason ?? "Image generation quota exceeded.",
+            });
+            return;
           }
 
           // Check if this is an edit request
