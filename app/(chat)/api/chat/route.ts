@@ -20,9 +20,9 @@ import type { ModelCatalog } from "tokenlens/core";
 import { fetchModels } from "tokenlens/fetch";
 import { getUsage } from "tokenlens/helpers";
 import { z } from "zod";
-import { auth, type UserType } from "@/app/(auth)/auth";
-import { entitlementsByUserType } from "@/lib/ai/entitlements";
+import { auth } from "@/app/(auth)/auth";
 import { checkImageGenerationQuota } from "@/lib/ai/image-generation-quota";
+import { checkMessageQuota } from "@/lib/ai/message-quota";
 import { ensureMessageHasTextPart } from "@/lib/ai/message-validator";
 import {
   DEFAULT_CHAT_MODEL,
@@ -65,7 +65,6 @@ import {
   getActiveUserSubscription,
   getChatById,
   getDocumentById,
-  getMessageCountByUserId,
   getMessagesByChatId,
   getProjectById,
   getTextStyleById,
@@ -198,23 +197,23 @@ export async function POST(request: Request) {
     }
 
     // Run independent pre-stream checks in parallel
-    const [quotaCheck, messageCount, existingChat, textStyleRow, projectRow] =
-      await Promise.all([
-        checkTokenQuota(session.user.id),
-        getMessageCountByUserId({
-          id: session.user.id,
-          differenceInHours: 24,
-        }),
-        getChatById({ id }),
-        selectedTextStyleId
-          ? getTextStyleById({ id: selectedTextStyleId })
-          : Promise.resolve(undefined),
-        selectedProjectId
-          ? getProjectById({ id: selectedProjectId })
-          : Promise.resolve(undefined),
-      ]);
-
-    const userType: UserType = session.user.type;
+    const [
+      quotaCheck,
+      messageQuotaCheck,
+      existingChat,
+      textStyleRow,
+      projectRow,
+    ] = await Promise.all([
+      checkTokenQuota(session.user.id),
+      checkMessageQuota(session.user.id),
+      getChatById({ id }),
+      selectedTextStyleId
+        ? getTextStyleById({ id: selectedTextStyleId })
+        : Promise.resolve(undefined),
+      selectedProjectId
+        ? getProjectById({ id: selectedProjectId })
+        : Promise.resolve(undefined),
+    ]);
 
     // Build text style / project context from pre-fetched rows
     const textStyle: TextStyleInput | null =
@@ -305,8 +304,8 @@ export async function POST(request: Request) {
       ).toResponse();
     }
 
-    // --- Rate limit check (after chat/message save to prevent 404) ---
-    if (messageCount > entitlementsByUserType[userType].maxMessagesPerDay) {
+    // --- Message quota check (after chat/message save to prevent 404) ---
+    if (!messageQuotaCheck.allowed) {
       const t = await getTranslations("chat");
       await saveMessages({
         messages: [
