@@ -151,6 +151,36 @@ export function Chat({
           const quotaInfo = parseQuotaInfo(error.cause as string);
           setQuotaErrorInfo(quotaInfo);
           setShowQuotaExceededDialog(true);
+
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: generateUUID(),
+              role: "assistant",
+              parts: [
+                { type: "text", text: t("errors.quotaExceededAssistant") },
+              ],
+              createdAt: new Date(),
+            } as ChatMessage,
+          ]);
+          return;
+        }
+
+        // Handle rate limit
+        if (error.type === "rate_limit") {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: generateUUID(),
+              role: "assistant",
+              parts: [{ type: "text", text: t("errors.rateLimitAssistant") }],
+              createdAt: new Date(),
+            } as ChatMessage,
+          ]);
+          toast({
+            type: "error",
+            description: error.message,
+          });
           return;
         }
 

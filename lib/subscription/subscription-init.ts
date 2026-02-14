@@ -1,4 +1,5 @@
 import { and, eq } from "drizzle-orm";
+import { resetBalance } from "@/lib/ai/token-balance";
 import { db } from "@/lib/db/queries";
 import { subscriptionPlan, user, userSubscription } from "@/lib/db/schema";
 import {
@@ -72,6 +73,74 @@ export async function assignTesterPlan(userId: string) {
 }
 
 /**
+ * Assign free plan to a new user
+ */
+export async function assignFreePlan(userId: string) {
+  const freeTier = SUBSCRIPTION_TIERS.free;
+
+  // Get or create free plan
+  const plans = await db
+    .select()
+    .from(subscriptionPlan)
+    .where(eq(subscriptionPlan.name, "free"))
+    .limit(1);
+
+  let plan = plans[0];
+
+  if (!plan) {
+    const [newPlan] = await db
+      .insert(subscriptionPlan)
+      .values({
+        name: freeTier.name,
+        displayName: freeTier.displayName.en,
+        billingPeriod: freeTier.billingPeriod,
+        billingPeriodCount: freeTier.billingPeriodCount,
+        tokenQuota: freeTier.tokenQuota,
+        features: freeTier.features,
+        price: freeTier.price.toString(),
+        isTesterPlan: false,
+      })
+      .returning();
+    plan = newPlan;
+  }
+
+  // Create subscription
+  const now = new Date();
+  const periodEnd = calculatePeriodEnd(
+    now,
+    freeTier.billingPeriod,
+    freeTier.billingPeriodCount
+  );
+  const nextBilling = calculateNextBillingDate(
+    now,
+    freeTier.billingPeriod,
+    freeTier.billingPeriodCount
+  );
+
+  await db.insert(userSubscription).values({
+    userId,
+    planId: plan.id,
+    billingPeriod: freeTier.billingPeriod,
+    billingPeriodCount: freeTier.billingPeriodCount,
+    currentPeriodStart: now,
+    currentPeriodEnd: periodEnd,
+    nextBillingDate: nextBilling,
+    status: "active",
+  });
+
+  // Update user's current plan
+  await db.update(user).set({ currentPlan: "free" }).where(eq(user.id, userId));
+
+  // Set initial token balance
+  await resetBalance({
+    userId,
+    newBalance: freeTier.tokenQuota,
+    reason: "subscription_reset",
+    planName: "free",
+  });
+}
+
+/**
  * Upgrade user to a paid plan
  */
 export async function upgradeToPlan(userId: string, planName: string) {
@@ -83,6 +152,10 @@ export async function upgradeToPlan(userId: string, planName: string) {
 
   if (tier.isTesterPlan) {
     throw new Error("Cannot upgrade to tester plan");
+  }
+
+  if (tier.isFreePlan) {
+    throw new Error("Cannot upgrade to free plan");
   }
 
   // Get or create plan

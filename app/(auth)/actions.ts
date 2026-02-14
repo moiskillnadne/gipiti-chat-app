@@ -25,6 +25,7 @@ import {
   getRateLimitResetMinutes,
   getRateLimitResetSeconds,
 } from "@/lib/rate-limit";
+import { assignFreePlan } from "@/lib/subscription/subscription-init";
 
 import { auth, signIn } from "./auth";
 
@@ -112,7 +113,14 @@ export const register = async (
       return { status: "user_exists" } as RegisterActionState;
     }
 
-    await createUser(validatedData.email, validatedData.password, locale);
+    const newUser = await createUser(
+      validatedData.email,
+      validatedData.password,
+      locale
+    );
+
+    // Assign free plan so user gets immediate access after email verification
+    await assignFreePlan(newUser.id);
 
     // Add user to marketing segment (non-blocking, fire-and-forget)
     // Registration should succeed even if this fails

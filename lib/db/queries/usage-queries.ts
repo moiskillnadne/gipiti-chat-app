@@ -172,6 +172,36 @@ export async function insertImageGenerationUsageLog({
   }
 }
 
+export async function getImageGenerationCountByDateRange({
+  userId,
+  startDate,
+  endDate,
+}: {
+  userId: string;
+  startDate: Date;
+  endDate: Date;
+}): Promise<number> {
+  try {
+    const [usageCount] = await db
+      .select({ count: count() })
+      .from(imageGenerationUsageLog)
+      .where(
+        and(
+          eq(imageGenerationUsageLog.userId, userId),
+          gte(imageGenerationUsageLog.createdAt, startDate),
+          lte(imageGenerationUsageLog.createdAt, endDate)
+        )
+      );
+
+    return usageCount?.count ?? 0;
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to get image generation count by date range"
+    );
+  }
+}
+
 export async function getImageGenerationCountByBillingPeriod({
   userId,
   periodStart,

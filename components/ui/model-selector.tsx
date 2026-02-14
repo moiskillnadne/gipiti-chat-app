@@ -7,12 +7,7 @@ import { useModel } from "@/contexts/model-context";
 import { type ChatModel, isImageGenerationModel } from "@/lib/ai/models";
 import { cn } from "@/lib/utils";
 
-import {
-  CheckCircleFillIcon,
-  ChevronDownIcon,
-  CpuIcon,
-  ImageIcon,
-} from "../icons";
+import { CheckCircleFillIcon, ChevronDownIcon, ImageIcon } from "../icons";
 import { Button } from "./button";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { RadioGroup, RadioGroupItem } from "./radio-group";
@@ -67,12 +62,11 @@ export function ModelSelector() {
     <Popover onOpenChange={setOpen} open={open}>
       <PopoverTrigger asChild>
         <Button
-          className="gap-2 px-3"
+          className="gap-2 rounded-2xl px-3"
           data-testid="model-selector-trigger"
-          variant="outline"
+          variant="ghost"
         >
-          <CpuIcon size={16} />
-          <span className="text-sm">
+          <span className="text-lg">
             {currentModel ? t(currentModel.name) : "Select Model"}
           </span>
           <span
@@ -81,7 +75,7 @@ export function ModelSelector() {
               open && "rotate-180"
             )}
           >
-            <ChevronDownIcon size={16} />
+            <ChevronDownIcon size={24} />
           </span>
         </Button>
       </PopoverTrigger>

@@ -21,6 +21,7 @@ export {
   saveChat,
   saveMessages,
   updateChatLastContextById,
+  updateChatTitle,
   voteMessage,
 } from "./chat-queries";
 export { db } from "./connection";
@@ -59,6 +60,7 @@ export {
 } from "./text-style-queries";
 export {
   getImageGenerationCountByBillingPeriod,
+  getImageGenerationCountByDateRange,
   getSearchUsageCountByBillingPeriod,
   getSearchUsageCountByDateRange,
   insertImageGenerationUsageLog,

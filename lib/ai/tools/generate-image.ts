@@ -8,6 +8,7 @@ import {
 } from "../../db/queries";
 import type { ChatMessage } from "../../types";
 import { generateUUID } from "../../utils";
+import { checkImageGenerationQuota } from "../image-generation-quota";
 
 async function uploadGeneratedImage(
   base64Data: string,
@@ -72,6 +73,16 @@ export const generateImageTool = ({
       modelId: z.string(),
     }),
     execute: async ({ prompt }) => {
+      // Pre-flight quota check
+      const quotaCheck = await checkImageGenerationQuota(userId);
+      if (!quotaCheck.allowed) {
+        return {
+          id: generateUUID(),
+          imageUrl: undefined,
+          content: quotaCheck.reason ?? "Image generation quota exceeded.",
+        };
+      }
+
       const id = generateUUID();
       let imageUrl: string | undefined;
       let usageMetadata: ImageUsageMetadata | undefined;

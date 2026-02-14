@@ -28,9 +28,39 @@ export type SubscriptionTierConfig = {
     RUB: number;
   };
   isTesterPlan?: boolean;
+  isFreePlan?: boolean;
 };
 
 export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
+  // FREE PLAN - Auto-assigned to every new user on registration
+  free: {
+    name: "free",
+    displayName: {
+      en: "Free Plan",
+      ru: "Бесплатный план",
+    },
+    billingPeriod: "daily",
+    billingPeriodCount: 1,
+    tokenQuota: 35_000, // 35K tokens per day
+    features: {
+      maxMessagesPerPeriod: 10, // 10 messages per day
+      maxImageGenerationsPerPeriod: 1, // 1 image per day
+      allowedModels: ["grok-code-fast-1", "gemini-3-pro-image"],
+      hasReasoningModels: false,
+      hasPrioritySupport: false,
+      maxFileSize: 2 * 1024 * 1024, // 2MB
+      maxConcurrentChats: 1,
+      hasAPIAccess: false,
+      searchQuota: 2, // 2 searches per day
+      searchDepthAllowed: "basic",
+    },
+    price: {
+      USD: 0,
+      RUB: 0,
+    },
+    isFreePlan: true,
+  },
+
   // TESTER PLAN - Daily reset for easy testing (not for production use)
   tester: {
     name: "tester",
@@ -235,8 +265,17 @@ export function getTiersByBillingPeriod(period: BillingPeriod) {
 }
 
 /**
- * Helper to get all production tiers (excluding tester)
+ * Helper to get all production tiers (excluding tester and free)
  */
 export function getProductionTiers() {
-  return Object.values(SUBSCRIPTION_TIERS).filter((tier) => !tier.isTesterPlan);
+  return Object.values(SUBSCRIPTION_TIERS).filter(
+    (tier) => !tier.isTesterPlan && !tier.isFreePlan
+  );
+}
+
+/**
+ * Helper to get the free tier config
+ */
+export function getFreeTier(): SubscriptionTierConfig {
+  return SUBSCRIPTION_TIERS.free;
 }

@@ -1,4 +1,4 @@
-import { and, eq, lte } from "drizzle-orm";
+import { and, eq, lte, or } from "drizzle-orm";
 import { resetBalance } from "@/lib/ai/token-balance";
 import { db } from "@/lib/db/queries";
 import { subscriptionPlan, userSubscription } from "@/lib/db/schema";
@@ -16,9 +16,11 @@ export async function GET(request: Request) {
 
   const now = new Date();
 
-  console.log("[Cron:ResetQuotas] Starting quota reset for free tester plans");
+  console.log(
+    "[Cron:ResetQuotas] Starting quota reset for free and tester plans"
+  );
 
-  // Find only FREE tester plan subscriptions with expired periods
+  // Find FREE tester and free plan subscriptions with expired periods
   // Paid plans (including tester_paid) use CloudPayments webhooks for resets
   const expiredSubscriptions = await db
     .select({
@@ -34,12 +36,15 @@ export async function GET(request: Request) {
       and(
         eq(userSubscription.status, "active"),
         lte(userSubscription.currentPeriodEnd, now),
-        eq(subscriptionPlan.name, "tester") // Only free tester plan
+        or(
+          eq(subscriptionPlan.name, "tester"),
+          eq(subscriptionPlan.name, "free")
+        )
       )
     );
 
   console.log(
-    `[Cron:ResetQuotas] Found ${expiredSubscriptions.length} expired tester subscriptions`
+    `[Cron:ResetQuotas] Found ${expiredSubscriptions.length} expired free/tester subscriptions`
   );
 
   let renewed = 0;

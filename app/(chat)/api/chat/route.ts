@@ -10,6 +10,7 @@ import {
 } from "ai";
 import { unstable_cache as cache } from "next/cache";
 import { after } from "next/server";
+import { getTranslations } from "next-intl/server";
 import OpenAI from "openai";
 import {
   createResumableStreamContext,
@@ -19,8 +20,9 @@ import type { ModelCatalog } from "tokenlens/core";
 import { fetchModels } from "tokenlens/fetch";
 import { getUsage } from "tokenlens/helpers";
 import { z } from "zod";
-import { auth, type UserType } from "@/app/(auth)/auth";
-import { entitlementsByUserType } from "@/lib/ai/entitlements";
+import { auth } from "@/app/(auth)/auth";
+import { checkImageGenerationQuota } from "@/lib/ai/image-generation-quota";
+import { checkMessageQuota } from "@/lib/ai/message-quota";
 import { ensureMessageHasTextPart } from "@/lib/ai/message-validator";
 import {
   DEFAULT_CHAT_MODEL,
@@ -63,7 +65,6 @@ import {
   getActiveUserSubscription,
   getChatById,
   getDocumentById,
-  getMessageCountByUserId,
   getMessagesByChatId,
   getProjectById,
   getTextStyleById,
@@ -72,6 +73,7 @@ import {
   saveDocument,
   saveMessages,
   updateChatLastContextById,
+  updateChatTitle,
 } from "@/lib/db/queries";
 import { ChatSDKError } from "@/lib/errors";
 import type { ChatMessage } from "@/lib/types";
@@ -173,12 +175,9 @@ export async function POST(request: Request) {
       message,
       selectedChatModel: requestedChatModel,
       thinkingSetting: rawThinkingSetting,
-      previousGenerationId,
       selectedTextStyleId,
       selectedProjectId,
     } = requestBody;
-
-    console.log("previousGenerationId", previousGenerationId);
 
     // Transform hidden models to default visible model
     const selectedChatModel = isVisibleInUI(requestedChatModel)
@@ -197,53 +196,60 @@ export async function POST(request: Request) {
       return new ChatSDKError("unauthorized:chat").toResponse();
     }
 
-    // Check token quota first
-    const quotaCheck = await checkTokenQuota(session.user.id);
+    // Run independent pre-stream checks in parallel
+    const [
+      quotaCheck,
+      messageQuotaCheck,
+      existingChat,
+      textStyleRow,
+      projectRow,
+    ] = await Promise.all([
+      checkTokenQuota(session.user.id),
+      checkMessageQuota(session.user.id),
+      getChatById({ id }),
+      selectedTextStyleId
+        ? getTextStyleById({ id: selectedTextStyleId })
+        : Promise.resolve(undefined),
+      selectedProjectId
+        ? getProjectById({ id: selectedProjectId })
+        : Promise.resolve(undefined),
+    ]);
 
-    if (!quotaCheck.allowed) {
-      return new ChatSDKError(
-        "quota_exceeded:chat",
-        JSON.stringify(quotaCheck.quotaInfo), // Pass quota info as cause
-        quotaCheck.reason
-      ).toResponse();
-    }
+    // Build text style / project context from pre-fetched rows
+    const textStyle: TextStyleInput | null =
+      textStyleRow && textStyleRow.userId === session.user.id
+        ? { name: textStyleRow.name, examples: textStyleRow.examples }
+        : null;
 
-    const userType: UserType = session.user.type;
+    const projectContext: ProjectContextInput | null =
+      projectRow && projectRow.userId === session.user.id
+        ? {
+            name: projectRow.name,
+            contextEntries: projectRow.contextEntries,
+          }
+        : null;
 
-    const messageCount = await getMessageCountByUserId({
-      id: session.user.id,
-      differenceInHours: 24,
-    });
-
-    if (messageCount > entitlementsByUserType[userType].maxMessagesPerDay) {
-      return new ChatSDKError("rate_limit:chat").toResponse();
-    }
-
-    const chat = await getChatById({ id });
-
-    if (chat) {
-      if (chat.userId !== session.user.id) {
+    if (existingChat) {
+      if (existingChat.userId !== session.user.id) {
         return new ChatSDKError("forbidden:chat").toResponse();
       }
     } else {
-      const t0 = performance.now();
-      const title = await generateTitleFromUserMessage({
-        message,
-      });
-      const t1 = performance.now();
-      console.log("Time taken to generate title:", t1 - t0, "milliseconds");
+      // Save chat with placeholder title, generate AI title in background
+      const textPart = message.parts.find((p) => p.type === "text");
+      const placeholderTitle =
+        textPart?.type === "text" ? textPart.text.substring(0, 80) : "New Chat";
 
-      console.log("title", title);
+      await saveChat({ id, userId: session.user.id, title: placeholderTitle });
 
-      await saveChat({
-        id,
-        userId: session.user.id,
-        title,
+      after(async () => {
+        try {
+          const aiTitle = await generateTitleFromUserMessage({ message });
+          await updateChatTitle({ chatId: id, title: aiTitle });
+        } catch (error) {
+          console.error("Background title generation failed:", error);
+        }
       });
     }
-
-    const messagesFromDb = await getMessagesByChatId({ id });
-    const uiMessages = [...convertToUIMessages(messagesFromDb), message];
 
     const { longitude, latitude, city, country } = geolocation(request);
 
@@ -254,22 +260,102 @@ export async function POST(request: Request) {
       country,
     };
 
-    await saveMessages({
-      messages: [
-        {
-          chatId: id,
-          id: message.id,
-          role: "user",
-          parts: message.parts,
-          attachments: [],
-          createdAt: new Date(),
-          modelId: null,
-        },
-      ],
-    });
-
+    // Run independent data-prep queries in parallel
     const streamId = generateUUID();
-    await createStreamId({ streamId, chatId: id });
+    const [messagesFromDb] = await Promise.all([
+      getMessagesByChatId({ id }),
+      saveMessages({
+        messages: [
+          {
+            chatId: id,
+            id: message.id,
+            role: "user",
+            parts: message.parts,
+            attachments: [],
+            createdAt: new Date(),
+            modelId: null,
+          },
+        ],
+      }),
+      createStreamId({ streamId, chatId: id }),
+    ]);
+    const uiMessages = [...convertToUIMessages(messagesFromDb), message];
+
+    // --- Token quota check (after chat/message save to prevent 404) ---
+    if (!quotaCheck.allowed) {
+      const t = await getTranslations("chat");
+      await saveMessages({
+        messages: [
+          {
+            chatId: id,
+            id: generateUUID(),
+            role: "assistant",
+            parts: [{ type: "text", text: t("errors.quotaExceededAssistant") }],
+            attachments: [],
+            createdAt: new Date(),
+            modelId: null,
+          },
+        ],
+      });
+      return new ChatSDKError(
+        "quota_exceeded:chat",
+        JSON.stringify(quotaCheck.quotaInfo),
+        quotaCheck.reason
+      ).toResponse();
+    }
+
+    // --- Message quota check (after chat/message save to prevent 404) ---
+    if (!messageQuotaCheck.allowed) {
+      const t = await getTranslations("chat");
+      await saveMessages({
+        messages: [
+          {
+            chatId: id,
+            id: generateUUID(),
+            role: "assistant",
+            parts: [{ type: "text", text: t("errors.rateLimitAssistant") }],
+            attachments: [],
+            createdAt: new Date(),
+            modelId: null,
+          },
+        ],
+      });
+      return new ChatSDKError("rate_limit:chat").toResponse();
+    }
+
+    // --- Image quota check (after chat/message save to prevent 404) ---
+    const isDirectImageGeneration = isImageGenerationModel(selectedChatModel);
+
+    if (isDirectImageGeneration) {
+      const imageQuotaCheck = await checkImageGenerationQuota(session.user.id);
+
+      if (!imageQuotaCheck.allowed) {
+        const t = await getTranslations("chat");
+        await saveMessages({
+          messages: [
+            {
+              chatId: id,
+              id: generateUUID(),
+              role: "assistant",
+              parts: [
+                {
+                  type: "text",
+                  text: t("errors.imageQuotaExceededAssistant"),
+                },
+              ],
+              attachments: [],
+              createdAt: new Date(),
+              modelId: null,
+            },
+          ],
+        });
+        return new ChatSDKError(
+          "quota_exceeded:chat",
+          undefined,
+          imageQuotaCheck.reason
+        ).toResponse();
+      }
+    }
 
     let finalMergedUsage: AppUsage | undefined;
     const imageUsageAccumulator = createImageUsageAccumulator();
@@ -306,9 +392,6 @@ export async function POST(request: Request) {
     });
 
     console.info("optimalStepLimit", optimalStepLimit);
-
-    // Check if this is a direct image generation model
-    const isDirectImageGeneration = isImageGenerationModel(selectedChatModel);
 
     const stream = createUIMessageStream({
       execute: async ({ writer: dataStream }) => {
@@ -660,27 +743,6 @@ export async function POST(request: Request) {
           }
 
           return;
-        }
-
-        // Fetch text style if selected
-        let textStyle: TextStyleInput | null = null;
-        if (selectedTextStyleId) {
-          const style = await getTextStyleById({ id: selectedTextStyleId });
-          if (style && style.userId === session.user.id) {
-            textStyle = { name: style.name, examples: style.examples };
-          }
-        }
-
-        // Fetch project context if selected
-        let projectContext: ProjectContextInput | null = null;
-        if (selectedProjectId) {
-          const proj = await getProjectById({ id: selectedProjectId });
-          if (proj && proj.userId === session.user.id) {
-            projectContext = {
-              name: proj.name,
-              contextEntries: proj.contextEntries,
-            };
-          }
         }
 
         const result = streamText({

@@ -79,7 +79,8 @@ export async function getUserSubscriptionWithPlan({
     }
 
     return subscriptions[0];
-  } catch (_error) {
+  } catch (error) {
+    console.error("[getUserSubscriptionWithPlan] DB error:", error);
     throw new ChatSDKError(
       "bad_request:database",
       "Failed to get user subscription with plan"
