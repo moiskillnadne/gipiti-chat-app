@@ -525,6 +525,11 @@
       "currentPlan": "Current Plan",
       "upgradeButton": "Upgrade Plan",
       "viewDetails": "View Usage Details"
+    },
+    "errors": {
+      "quotaExceededAssistant": "Sorry, I can't respond because your token quota has been exceeded for this billing period. Please [upgrade your plan](/subscribtion) or wait for the quota to reset.",
+      "rateLimitAssistant": "Sorry, I can't respond because you've reached the daily message limit. Please try again later or [upgrade your plan](/subscribtion) for higher limits.",
+      "imageQuotaExceededAssistant": "Sorry, I can't generate an image because your image generation quota has been exceeded. Please [upgrade your plan](/subscribtion) or wait for the quota to reset."
     }
   },
   "metadata": {

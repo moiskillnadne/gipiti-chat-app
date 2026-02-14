@@ -21,6 +21,7 @@ export {
   saveChat,
   saveMessages,
   updateChatLastContextById,
+  updateChatTitle,
   voteMessage,
 } from "./chat-queries";
 export { db } from "./connection";

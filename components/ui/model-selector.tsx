@@ -66,7 +66,7 @@ export function ModelSelector() {
           data-testid="model-selector-trigger"
           variant="ghost"
         >
-          <span className="text-sm">
+          <span className="text-lg">
             {currentModel ? t(currentModel.name) : "Select Model"}
           </span>
           <span

@@ -126,12 +126,8 @@ export async function checkTokenQuota(userId: string): Promise<{
     };
   }
 
-  // Get full quota info for the response (for backward compatibility)
-  const quotaInfo = await getUserQuotaInfo(userId);
-
   return {
     allowed: true,
-    quotaInfo,
     balanceInfo: {
       balance: balanceCheck.balance,
       subscription: balanceCheck.subscription,

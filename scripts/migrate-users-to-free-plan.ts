@@ -145,7 +145,8 @@ async function main() {
         amount: newBalance - Number(previousBalance),
         balanceAfter: newBalance,
         referenceType: "migration",
-        description: "Migrated to free plan via migrate-users-to-free-plan script",
+        description:
+          "Migrated to free plan via migrate-users-to-free-plan script",
         metadata: {
           planName: "free",
           previousBalance: Number(previousBalance),

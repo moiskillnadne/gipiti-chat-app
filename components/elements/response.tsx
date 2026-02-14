@@ -19,6 +19,7 @@ export const Response = memo(
           think: () => null,
         } as ResponseProps["components"]
       }
+      defaultOrigin="https://app"
       {...props}
     />
   ),
