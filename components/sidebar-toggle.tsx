@@ -25,7 +25,7 @@ export function SidebarToggle({
           onClick={toggleSidebar}
           variant="outline"
         >
-          <SidebarLeftIcon size={16} />
+          <SidebarLeftIcon size={24} />
         </Button>
       </TooltipTrigger>
       <TooltipContent align="start" className="hidden md:block">

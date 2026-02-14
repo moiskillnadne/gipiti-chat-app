@@ -156,7 +156,7 @@ function PureToolsPopover() {
           className="aspect-square h-8 rounded-lg p-1 transition-colors hover:bg-accent"
           variant="ghost"
         >
-          <SlidersHorizontalIcon size={14} style={{ width: 14, height: 14 }} />
+          <SlidersHorizontalIcon size={16} style={{ width: 16, height: 16 }} />
         </Button>
       </PopoverTrigger>
       <PopoverContent
@@ -876,7 +876,7 @@ function PureAttachmentsButton({
       }}
       variant="ghost"
     >
-      <PaperclipIcon size={14} style={{ width: 14, height: 14 }} />
+      <PaperclipIcon size={16} style={{ width: 16, height: 16 }} />
     </Button>
   );
 }
