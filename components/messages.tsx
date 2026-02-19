@@ -85,6 +85,16 @@ function PureMessages({
         >
           {messages.length === 0 && <Greeting />}
 
+          {(() => {
+            // #region agent log
+            const assistantMsgs = messages.filter(m => m.role === 'assistant');
+            const msgsWithCreateDoc = assistantMsgs.filter(m => m.parts?.some(p => p.type === 'tool-createDocument'));
+            if (msgsWithCreateDoc.length > 0) {
+              fetch('http://127.0.0.1:7243/ingest/afd4d0df-289c-4211-8f44-f973dd807050',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'0e88c6'},body:JSON.stringify({sessionId:'0e88c6',location:'messages.tsx:render',message:'Messages with createDocument parts',data:{totalMessages:messages.length,assistantMessages:assistantMsgs.length,msgsWithCreateDocCount:msgsWithCreateDoc.length,msgsWithCreateDocIds:msgsWithCreateDoc.map(m=>m.id),msgsWithCreateDocDetails:msgsWithCreateDoc.map(m=>({id:m.id,partsCount:m.parts?.length,toolCreateDocParts:m.parts?.filter(p=>p.type==='tool-createDocument').map((p:any)=>({toolCallId:p.toolCallId,state:p.state}))}))},timestamp:Date.now(),hypothesisId:'C_D'})}).catch(()=>{});
+            }
+            // #endregion
+            return null;
+          })()}
           {messages.map((message, index) => (
             <PreviewMessage
               chatId={chatId}

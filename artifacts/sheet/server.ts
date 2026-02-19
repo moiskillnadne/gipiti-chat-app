@@ -6,11 +6,11 @@ import { createDocumentHandler } from "@/lib/artifacts/server";
 
 export const sheetDocumentHandler = createDocumentHandler<"sheet">({
   kind: "sheet",
-  onCreateDocument: async ({ title, dataStream }) => {
+  onCreateDocument: async ({ title, dataStream, modelId, onUsage }) => {
     let draftContent = "";
 
-    const { fullStream } = streamObject({
-      model: myProvider.languageModel("artifact-model"),
+    const result = streamObject({
+      model: myProvider.languageModel(modelId),
       system: sheetPrompt,
       prompt: title,
       schema: z.object({
@@ -18,7 +18,7 @@ export const sheetDocumentHandler = createDocumentHandler<"sheet">({
       }),
     });
 
-    for await (const delta of fullStream) {
+    for await (const delta of result.fullStream) {
       const { type } = delta;
 
       if (type === "object") {
@@ -43,13 +43,25 @@ export const sheetDocumentHandler = createDocumentHandler<"sheet">({
       transient: true,
     });
 
+    const finalUsage = await result.usage;
+    onUsage?.({
+      inputTokens: finalUsage.inputTokens ?? 0,
+      outputTokens: finalUsage.outputTokens ?? 0,
+    });
+
     return draftContent;
   },
-  onUpdateDocument: async ({ document, description, dataStream }) => {
+  onUpdateDocument: async ({
+    document,
+    description,
+    dataStream,
+    modelId,
+    onUsage,
+  }) => {
     let draftContent = "";
 
-    const { fullStream } = streamObject({
-      model: myProvider.languageModel("artifact-model"),
+    const result = streamObject({
+      model: myProvider.languageModel(modelId),
       system: updateDocumentPrompt(document.content, "sheet"),
       prompt: description,
       schema: z.object({
@@ -57,7 +69,7 @@ export const sheetDocumentHandler = createDocumentHandler<"sheet">({
       }),
     });
 
-    for await (const delta of fullStream) {
+    for await (const delta of result.fullStream) {
       const { type } = delta;
 
       if (type === "object") {
@@ -75,6 +87,12 @@ export const sheetDocumentHandler = createDocumentHandler<"sheet">({
         }
       }
     }
+
+    const finalUsage = await result.usage;
+    onUsage?.({
+      inputTokens: finalUsage.inputTokens ?? 0,
+      outputTokens: finalUsage.outputTokens ?? 0,
+    });
 
     return draftContent;
   },

@@ -2,6 +2,7 @@ import { tool, type UIMessageStreamWriter } from "ai";
 import type { Session } from "next-auth";
 import { z } from "zod";
 import {
+  type ArtifactUsage,
   artifactKinds,
   documentHandlersByArtifactKind,
 } from "@/lib/artifacts/server";
@@ -11,9 +12,16 @@ import { generateUUID } from "@/lib/utils";
 type CreateDocumentProps = {
   session: Session;
   dataStream: UIMessageStreamWriter<ChatMessage>;
+  modelId: string;
+  onUsage?: (usage: ArtifactUsage) => void;
 };
 
-export const createDocument = ({ session, dataStream }: CreateDocumentProps) =>
+export const createDocument = ({
+  session,
+  dataStream,
+  modelId,
+  onUsage,
+}: CreateDocumentProps) =>
   tool({
     description:
       "Create a document for writing or content creation activities. For code artifacts, you MUST specify the 'language' parameter with the programming language (e.g., 'javascript', 'typescript', 'python', 'java', 'go', 'rust'). The language determines syntax highlighting and execution capabilities.",
@@ -29,6 +37,10 @@ export const createDocument = ({ session, dataStream }: CreateDocumentProps) =>
     }),
     execute: async ({ title, kind, language }) => {
       const id = generateUUID();
+
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/afd4d0df-289c-4211-8f44-f973dd807050',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'0e88c6'},body:JSON.stringify({sessionId:'0e88c6',location:'create-document.ts:execute',message:'createDocument tool called',data:{id,title,kind,language},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
 
       dataStream.write({
         type: "data-kind",
@@ -63,14 +75,14 @@ export const createDocument = ({ session, dataStream }: CreateDocumentProps) =>
         throw new Error(`No document handler found for kind: ${kind}`);
       }
 
-      console.log(language);
-
       await documentHandler.onCreateDocument({
         id,
         title,
         dataStream,
         session,
         language,
+        modelId,
+        onUsage,
       });
 
       dataStream.write({ type: "data-finish", data: null, transient: true });

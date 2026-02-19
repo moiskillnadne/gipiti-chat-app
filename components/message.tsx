@@ -133,6 +133,15 @@ const PurePreviewMessage = ({
             </div>
           )}
 
+          {(() => {
+            // #region agent log
+            const toolDocParts = message.parts?.filter(p => p.type === 'tool-createDocument') ?? [];
+            if (toolDocParts.length > 0) {
+              fetch('http://127.0.0.1:7243/ingest/afd4d0df-289c-4211-8f44-f973dd807050',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'0e88c6'},body:JSON.stringify({sessionId:'0e88c6',location:'message.tsx:parts-render',message:'tool-createDocument parts in message',data:{messageId:message.id,messageRole:message.role,totalParts:message.parts?.length,toolDocPartsCount:toolDocParts.length,toolDocPartDetails:toolDocParts.map((p:any)=>({toolCallId:p.toolCallId,state:p.state,hasOutput:!!p.output,outputId:p.output?.id,outputTitle:p.output?.title})),allPartTypes:message.parts?.map((p:any)=>p.type)},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
+            }
+            // #endregion
+            return null;
+          })()}
           {message.parts?.map((part, index) => {
             const { type } = part;
             const key = `message-${message.id}-part-${index}`;

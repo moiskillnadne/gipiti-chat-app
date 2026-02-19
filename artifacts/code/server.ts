@@ -90,7 +90,13 @@ const detectLanguageFromContent = (content: string | null): string | null => {
 
 export const codeDocumentHandler = createDocumentHandler<"code">({
   kind: "code",
-  onCreateDocument: async ({ title, dataStream, language = "python" }) => {
+  onCreateDocument: async ({
+    title,
+    dataStream,
+    language = "python",
+    modelId,
+    onUsage,
+  }) => {
     let draftContent = "";
 
     // Stream the language to the client for syntax highlighting
@@ -100,8 +106,8 @@ export const codeDocumentHandler = createDocumentHandler<"code">({
       transient: true,
     });
 
-    const { fullStream } = streamObject({
-      model: myProvider.languageModel("artifact-model"),
+    const result = streamObject({
+      model: myProvider.languageModel(modelId),
       system: getCodePrompt(language),
       prompt: title,
       schema: z.object({
@@ -109,7 +115,7 @@ export const codeDocumentHandler = createDocumentHandler<"code">({
       }),
     });
 
-    for await (const delta of fullStream) {
+    for await (const delta of result.fullStream) {
       const { type } = delta;
 
       if (type === "object") {
@@ -129,9 +135,21 @@ export const codeDocumentHandler = createDocumentHandler<"code">({
       }
     }
 
+    const finalUsage = await result.usage;
+    onUsage?.({
+      inputTokens: finalUsage.inputTokens ?? 0,
+      outputTokens: finalUsage.outputTokens ?? 0,
+    });
+
     return draftContent;
   },
-  onUpdateDocument: async ({ document, description, dataStream }) => {
+  onUpdateDocument: async ({
+    document,
+    description,
+    dataStream,
+    modelId,
+    onUsage,
+  }) => {
     let draftContent = "";
 
     // Detect language from existing content or default to python
@@ -145,8 +163,8 @@ export const codeDocumentHandler = createDocumentHandler<"code">({
       transient: true,
     });
 
-    const { fullStream } = streamObject({
-      model: myProvider.languageModel("artifact-model"),
+    const result = streamObject({
+      model: myProvider.languageModel(modelId),
       system: updateDocumentPrompt(document.content, "code"),
       prompt: description,
       schema: z.object({
@@ -154,7 +172,7 @@ export const codeDocumentHandler = createDocumentHandler<"code">({
       }),
     });
 
-    for await (const delta of fullStream) {
+    for await (const delta of result.fullStream) {
       const { type } = delta;
 
       if (type === "object") {
@@ -173,6 +191,12 @@ export const codeDocumentHandler = createDocumentHandler<"code">({
         }
       }
     }
+
+    const finalUsage = await result.usage;
+    onUsage?.({
+      inputTokens: finalUsage.inputTokens ?? 0,
+      outputTokens: finalUsage.outputTokens ?? 0,
+    });
 
     return draftContent;
   },
