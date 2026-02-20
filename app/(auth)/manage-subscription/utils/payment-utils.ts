@@ -131,7 +131,7 @@ export function createWidgetOptions(
  * Build the return URL for CloudPayments redirect recovery
  */
 export function buildReturnUrl(sessionId: string): string {
-  return `${window.location.origin}/subscribe?sessionId=${encodeURIComponent(sessionId)}`;
+  return `${window.location.origin}/manage-subscription?sessionId=${encodeURIComponent(sessionId)}`;
 }
 
 /**

@@ -88,13 +88,13 @@ function VerifyEmailPage() {
         );
         setTimeout(() => {
           setIsUpdatingSession(false);
-          router.replace("/subscribe");
+          router.replace("/chat");
         }, 1500);
       }
     } catch (error) {
       console.error("Session update failed:", error);
       setIsUpdatingSession(false);
-      setTimeout(() => router.replace("/subscribe"), 1000);
+      setTimeout(() => router.replace("/chat"), 1000);
     }
   }, [updateSession, router]);
 
@@ -108,9 +108,9 @@ function VerifyEmailPage() {
   useEffect(() => {
     if (session?.user?.emailVerified && !hasHandledSuccess.current) {
       hasHandledSuccess.current = true;
-      console.log("Session emailVerified detected, redirecting to /subscribe");
+      console.log("Session emailVerified detected, redirecting to /chat");
       setIsUpdatingSession(false);
-      router.replace("/subscribe");
+      router.replace("/chat");
     }
   }, [session?.user?.emailVerified, router]);
 
@@ -119,7 +119,7 @@ function VerifyEmailPage() {
       const timeout = setTimeout(() => {
         console.warn("Session update timeout - redirecting anyway");
         setIsUpdatingSession(false);
-        router.replace("/subscribe");
+        router.replace("/chat");
       }, 5000);
       return () => clearTimeout(timeout);
     }
@@ -152,7 +152,7 @@ function VerifyEmailPage() {
     ) {
       hasHandledSuccess.current = true;
       toast({ type: "success", description: t("alreadyVerified") });
-      router.replace("/subscribe");
+      router.replace("/chat");
       return;
     }
 

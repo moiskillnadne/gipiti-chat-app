@@ -6,11 +6,11 @@ import { useTranslations } from "next-intl";
 import { Suspense } from "react";
 import { Loader } from "@/components/elements/loader";
 import { PaymentLoadingOverlay } from "@/components/payment-loading-overlay";
-import { FAQ } from "../subscribe/components/faq";
-import { FeaturesTable } from "../subscribe/components/features-table";
-import { PlanSelector } from "../subscribe/components/plan-selector";
-import { TesterPlan } from "../subscribe/components/tester-plan";
-import { usePayment } from "../subscribe/hooks/use-payment";
+import { FAQ } from "./components/faq";
+import { FeaturesTable } from "./components/features-table";
+import { PlanSelector } from "./components/plan-selector";
+import { TesterPlan } from "./components/tester-plan";
+import { usePayment } from "./hooks/use-payment";
 
 function SupportLink({ text, linkText }: { text: string; linkText: string }) {
   return (

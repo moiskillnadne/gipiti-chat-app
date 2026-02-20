@@ -79,13 +79,8 @@ export async function proxy(request: NextRequest) {
 
   const isPublicRoute = pathname.startsWith("/legal/") || pathname === "/";
 
-  // Redirect authenticated users from landing page to chat
-  if (
-    token &&
-    pathname === "/" &&
-    token.emailVerified &&
-    token.hasActiveSubscription
-  ) {
+  // Redirect authenticated and verified users from landing page to chat
+  if (token && pathname === "/" && token.emailVerified) {
     return NextResponse.redirect(new URL("/chat", request.url));
   }
 
@@ -106,27 +101,8 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/verify-email", request.url));
   }
 
-  // Authenticated and verified but no subscription - subscription gate
-  if (token?.emailVerified && !token?.hasActiveSubscription) {
-    // Allow access to subscribe, payment-status pages and public routes
-    if (
-      pathname === "/subscribe" ||
-      pathname === "/payment-status" ||
-      isPublicRoute
-    ) {
-      return response;
-    }
-    // Redirect users without subscription to paywall
-    return NextResponse.redirect(new URL("/subscribe", request.url));
-  }
-
-  // Authenticated, verified, and subscribed users cannot access auth routes
+  // Authenticated, verified users cannot access auth routes
   if (token && isAuthRoute) {
-    return NextResponse.redirect(new URL("/", request.url));
-  }
-
-  // Also redirect subscribed users away from subscribe page
-  if (token?.hasActiveSubscription && pathname === "/subscribe") {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
@@ -142,7 +118,6 @@ export const config = {
     "/register",
     "/forgot-password",
     "/reset-password",
-    "/subscribe",
     "/legal/:path*",
 
     /*

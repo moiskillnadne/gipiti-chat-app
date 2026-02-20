@@ -5,8 +5,6 @@ import { z } from "zod";
 import { createPasswordResetToken, hashToken } from "@/lib/auth/reset-token";
 import {
   createUser,
-  createUserSubscription,
-  getSubscriptionPlanByName,
   getUserByResetToken,
   getUserByVerificationCode,
   markEmailAsVerified,
@@ -27,7 +25,7 @@ import {
 } from "@/lib/rate-limit";
 import { assignFreePlan } from "@/lib/subscription/subscription-init";
 
-import { auth, signIn } from "./auth";
+import { signIn } from "./auth";
 
 // Login schema - less strict to allow existing users with older passwords
 const loginFormSchema = z.object({
@@ -439,59 +437,6 @@ export const resetPassword = async (
     }
 
     console.error("Error in resetPassword:", error);
-    return { status: "failed" };
-  }
-};
-
-// Subscribe schema
-const subscribeFormSchema = z.object({
-  planName: z.enum(["basic_monthly", "basic_annual"]),
-});
-
-export type SubscribeActionState = {
-  status: "idle" | "in_progress" | "success" | "failed" | "invalid_data";
-};
-
-export const subscribe = async (
-  _: SubscribeActionState,
-  formData: FormData
-): Promise<SubscribeActionState> => {
-  try {
-    const validatedData = subscribeFormSchema.parse({
-      planName: formData.get("planName"),
-    });
-
-    // Get current user session
-    const session = await auth();
-
-    if (!session?.user?.id) {
-      return { status: "failed" };
-    }
-
-    // Get the subscription plan from database
-    const plan = await getSubscriptionPlanByName({
-      name: validatedData.planName,
-    });
-
-    if (!plan) {
-      console.error("Plan not found:", validatedData.planName);
-      return { status: "failed" };
-    }
-
-    // Create subscription for the user (mock activation)
-    await createUserSubscription({
-      userId: session.user.id,
-      planId: plan.id,
-      billingPeriod: plan.billingPeriod,
-    });
-
-    return { status: "success" };
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return { status: "invalid_data" };
-    }
-
-    console.error("Error in subscribe:", error);
     return { status: "failed" };
   }
 };
