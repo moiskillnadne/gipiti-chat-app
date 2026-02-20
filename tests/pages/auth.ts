@@ -4,7 +4,7 @@ import { TEST_URLS, TIMEOUTS } from "../fixtures";
 import { waitForToast } from "../helpers";
 
 const SUBMIT_BUTTON_NAME_REGEX = /sign in|войти|submit/i;
-const LOGIN_SUCCESS_URL_REGEX = /\/(chat|settings|verify-email|subscribe)/;
+const LOGIN_SUCCESS_URL_REGEX = /\/(chat|settings|verify-email)/;
 
 /**
  * Page Object Model for the Login Page (/login)

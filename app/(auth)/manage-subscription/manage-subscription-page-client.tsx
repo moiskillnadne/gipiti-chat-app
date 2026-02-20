@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { Suspense } from "react";
 import { Loader } from "@/components/elements/loader";
@@ -23,15 +23,15 @@ function SupportLink({ text, linkText }: { text: string; linkText: string }) {
   );
 }
 
-export default function Page() {
+export function ManageSubscriptionPageClient() {
   return (
-    <Suspense fallback={<SubscribePageFallback />}>
-      <SubscribePage />
+    <Suspense fallback={<ManageSubscriptionFallback />}>
+      <ManageSubscriptionContent />
     </Suspense>
   );
 }
 
-function SubscribePageFallback() {
+function ManageSubscriptionFallback() {
   const t = useTranslations("auth.subscription");
 
   return (
@@ -48,11 +48,11 @@ function SubscribePageFallback() {
   );
 }
 
-function SubscribePage() {
+function ManageSubscriptionContent() {
   const t = useTranslations("auth.subscription");
-  const tNav = useTranslations("common.navigation");
   const tLegal = useTranslations("legal");
   const tSupport = useTranslations("legal.support");
+  const tManage = useTranslations("auth.subscription.management");
 
   const { data: session, status: sessionStatus } = useSession();
   const isSessionLoading = sessionStatus === "loading";
@@ -63,6 +63,7 @@ function SubscribePage() {
 
   const { state, subscribe, startTrial, reset } = usePayment({
     isTester,
+    successRedirectUrl: "/subscription",
   });
 
   const handleSubscribe = canStartTrial ? startTrial : subscribe;
@@ -111,13 +112,12 @@ function SubscribePage() {
 
         {/* Footer Links */}
         <div className="flex flex-col items-center gap-4">
-          <button
+          <Link
             className="my-2 font-medium text-gray-600 text-sm hover:underline dark:text-zinc-400"
-            onClick={() => signOut({ callbackUrl: "/login" })}
-            type="button"
+            href="/subscription"
           >
-            {tNav("signOut")}
-          </button>
+            {tManage("backToSubscription")}
+          </Link>
 
           <div className="mb-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
             <Link
@@ -145,13 +145,11 @@ function SubscribePage() {
         </div>
       </div>
 
-      {/* Fixed UI Elements */}
       <SupportLink
         linkText={tSupport("linkText")}
         text={tSupport("needHelp")}
       />
 
-      {/* Payment Loading Overlay */}
       <PaymentLoadingOverlay
         error={state.error}
         isOpen={state.isLoading}

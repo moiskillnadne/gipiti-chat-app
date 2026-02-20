@@ -32,6 +32,7 @@ import {
 
 export type UsePaymentOptions = {
   isTester: boolean;
+  successRedirectUrl?: string;
 };
 
 export type UsePaymentReturn = {
@@ -42,7 +43,7 @@ export type UsePaymentReturn = {
 };
 
 export function usePayment(options: UsePaymentOptions): UsePaymentReturn {
-  const { isTester } = options;
+  const { isTester, successRedirectUrl = "/chat" } = options;
   const t = useTranslations("auth.subscription");
   const locale = useLocale() as Locale;
   const router = useRouter();
@@ -63,9 +64,8 @@ export function usePayment(options: UsePaymentOptions): UsePaymentReturn {
 
   const handleSessionUpdate = useCallback(async () => {
     await updateSession({ hasActiveSubscription: true });
-    // Redirect directly to chat instead of relying on middleware
-    router.replace("/chat");
-  }, [updateSession, router]);
+    router.replace(successRedirectUrl);
+  }, [updateSession, router, successRedirectUrl]);
 
   // Poll payment status using the payment intent system
   const pollPaymentStatus = useCallback(

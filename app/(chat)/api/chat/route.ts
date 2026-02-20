@@ -359,6 +359,14 @@ export async function POST(request: Request) {
 
     let finalMergedUsage: AppUsage | undefined;
     const imageUsageAccumulator = createImageUsageAccumulator();
+    const artifactTokens = { inputTokens: 0, outputTokens: 0 };
+    const addArtifactUsage = (usage: {
+      inputTokens: number;
+      outputTokens: number;
+    }) => {
+      artifactTokens.inputTokens += usage.inputTokens;
+      artifactTokens.outputTokens += usage.outputTokens;
+    };
 
     const providerOptions = getProviderOptions(
       selectedChatModel,
@@ -804,11 +812,23 @@ export async function POST(request: Request) {
           tools: {
             calculator,
             getWeather,
-            createDocument: createDocument({ session, dataStream }),
-            updateDocument: updateDocument({ session, dataStream }),
+            createDocument: createDocument({
+              session,
+              dataStream,
+              modelId: selectedChatModel,
+              onUsage: addArtifactUsage,
+            }),
+            updateDocument: updateDocument({
+              session,
+              dataStream,
+              modelId: selectedChatModel,
+              onUsage: addArtifactUsage,
+            }),
             requestSuggestions: requestSuggestions({
               session,
               dataStream,
+              modelId: selectedChatModel,
+              onUsage: addArtifactUsage,
             }),
             webSearch: webSearch({ session, chatId: id }),
             extractUrl: extractUrl({ session, chatId: id }),
@@ -833,10 +853,12 @@ export async function POST(request: Request) {
                   ...usage,
                   inputTokens:
                     (usage.inputTokens ?? 0) +
-                    imageUsageAccumulator.totalInputTokens,
+                    imageUsageAccumulator.totalInputTokens +
+                    artifactTokens.inputTokens,
                   outputTokens:
                     (usage.outputTokens ?? 0) +
-                    imageUsageAccumulator.totalOutputTokens,
+                    imageUsageAccumulator.totalOutputTokens +
+                    artifactTokens.outputTokens,
                 };
                 dataStream.write({
                   type: "data-usage",
@@ -850,10 +872,12 @@ export async function POST(request: Request) {
                   ...usage,
                   inputTokens:
                     (usage.inputTokens ?? 0) +
-                    imageUsageAccumulator.totalInputTokens,
+                    imageUsageAccumulator.totalInputTokens +
+                    artifactTokens.inputTokens,
                   outputTokens:
                     (usage.outputTokens ?? 0) +
-                    imageUsageAccumulator.totalOutputTokens,
+                    imageUsageAccumulator.totalOutputTokens +
+                    artifactTokens.outputTokens,
                 };
                 dataStream.write({
                   type: "data-usage",
@@ -872,10 +896,12 @@ export async function POST(request: Request) {
                 modelId,
                 inputTokens:
                   (usage.inputTokens ?? 0) +
-                  imageUsageAccumulator.totalInputTokens,
+                  imageUsageAccumulator.totalInputTokens +
+                  artifactTokens.inputTokens,
                 outputTokens:
                   (usage.outputTokens ?? 0) +
-                  imageUsageAccumulator.totalOutputTokens,
+                  imageUsageAccumulator.totalOutputTokens +
+                  artifactTokens.outputTokens,
                 inputCost: baseCost + imageUsageAccumulator.totalCost,
               } as AppUsage;
               dataStream.write({
@@ -900,10 +926,12 @@ export async function POST(request: Request) {
                 ...usage,
                 inputTokens:
                   (usage.inputTokens ?? 0) +
-                  imageUsageAccumulator.totalInputTokens,
+                  imageUsageAccumulator.totalInputTokens +
+                  artifactTokens.inputTokens,
                 outputTokens:
                   (usage.outputTokens ?? 0) +
-                  imageUsageAccumulator.totalOutputTokens,
+                  imageUsageAccumulator.totalOutputTokens +
+                  artifactTokens.outputTokens,
               };
               dataStream.write({
                 type: "data-usage",

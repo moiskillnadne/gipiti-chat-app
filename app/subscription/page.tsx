@@ -93,7 +93,7 @@ export default async function SubscriptionPage() {
             <CardDescription>{t("noSubscriptionDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <Link href="/subscribe">
+            <Link href="/manage-subscription">
               <Button>{t("subscribeLink")}</Button>
             </Link>
           </CardContent>
@@ -298,6 +298,12 @@ export default async function SubscriptionPage() {
                 <p className="text-lg">{t("noFurtherCharges")}</p>
               </div>
             )}
+          </div>
+
+          <div className="pt-2">
+            <Link href="/manage-subscription">
+              <Button variant="outline">{t("manageSubscriptionButton")}</Button>
+            </Link>
           </div>
         </CardContent>
       </Card>

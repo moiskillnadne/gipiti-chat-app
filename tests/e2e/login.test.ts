@@ -15,8 +15,8 @@ import {
 import { LoginPage } from "../pages/auth";
 
 const CHAT_OR_LOGIN_URL_REGEX = /\/(chat|login)/;
-const SUCCESS_REDIRECT_URL_REGEX = /\/(chat|verify-email|subscribe)/;
-const CHAT_OR_SUBSCRIBE_URL_REGEX = /\/(chat|subscribe)/;
+const SUCCESS_REDIRECT_URL_REGEX = /\/(chat|verify-email)/;
+const CHAT_URL_REGEX = /\/chat/;
 
 test.describe("Login Page", () => {
   let loginPage: LoginPage;
@@ -197,7 +197,7 @@ test.describe("Login Page", () => {
       await loginPage.login(TEST_USER.email, TEST_USER.password);
       await loginPage.waitForLoginSuccess();
 
-      // Should redirect to chat, verify-email, or subscribe page
+      // Should redirect to chat or verify-email page
       expect(page.url()).toMatch(SUCCESS_REDIRECT_URL_REGEX);
     });
 
@@ -214,8 +214,8 @@ test.describe("Login Page", () => {
       await loginPage.waitForPageLoad();
       await loginPage.login(TEST_USER.email, TEST_USER.password);
 
-      // User may be redirected to subscribe if no subscription
-      await page.waitForURL(CHAT_OR_SUBSCRIBE_URL_REGEX, {
+      // User should be redirected to chat
+      await page.waitForURL(CHAT_URL_REGEX, {
         timeout: TIMEOUTS.formSubmission,
       });
     });
@@ -230,7 +230,7 @@ test.describe("Login Page", () => {
       await loginPage.login(TEST_USER.email, TEST_USER.password);
 
       // Should redirect to internal route, not the malicious URL
-      await page.waitForURL(CHAT_OR_SUBSCRIBE_URL_REGEX, {
+      await page.waitForURL(CHAT_URL_REGEX, {
         timeout: TIMEOUTS.formSubmission,
       });
       expect(page.url()).not.toContain("malicious");
@@ -481,7 +481,7 @@ test.describe("Login Page", () => {
       await loginPage.login(TEST_USER.email, TEST_USER.password);
 
       // Should redirect to internal route, not the malicious URL
-      await page.waitForURL(CHAT_OR_SUBSCRIBE_URL_REGEX, {
+      await page.waitForURL(CHAT_URL_REGEX, {
         timeout: TIMEOUTS.formSubmission,
       });
       expect(page.url()).not.toContain("malicious");
@@ -493,8 +493,8 @@ test.describe("Login Page", () => {
       await loginPage.waitForPageLoad();
       await loginPage.login(TEST_USER.email, TEST_USER.password);
 
-      // User may be redirected to subscribe if no subscription
-      await page.waitForURL(CHAT_OR_SUBSCRIBE_URL_REGEX, {
+      // User should be redirected to chat
+      await page.waitForURL(CHAT_URL_REGEX, {
         timeout: TIMEOUTS.formSubmission,
       });
     });
@@ -507,7 +507,7 @@ test.describe("Login Page", () => {
       await loginPage.login(TEST_USER.email, TEST_USER.password);
 
       // Should redirect to internal route, not execute javascript
-      await page.waitForURL(CHAT_OR_SUBSCRIBE_URL_REGEX, {
+      await page.waitForURL(CHAT_URL_REGEX, {
         timeout: TIMEOUTS.formSubmission,
       });
     });

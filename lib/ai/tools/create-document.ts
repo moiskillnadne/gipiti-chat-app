@@ -2,6 +2,7 @@ import { tool, type UIMessageStreamWriter } from "ai";
 import type { Session } from "next-auth";
 import { z } from "zod";
 import {
+  type ArtifactUsage,
   artifactKinds,
   documentHandlersByArtifactKind,
 } from "@/lib/artifacts/server";
@@ -11,9 +12,16 @@ import { generateUUID } from "@/lib/utils";
 type CreateDocumentProps = {
   session: Session;
   dataStream: UIMessageStreamWriter<ChatMessage>;
+  modelId: string;
+  onUsage?: (usage: ArtifactUsage) => void;
 };
 
-export const createDocument = ({ session, dataStream }: CreateDocumentProps) =>
+export const createDocument = ({
+  session,
+  dataStream,
+  modelId,
+  onUsage,
+}: CreateDocumentProps) =>
   tool({
     description:
       "Create a document for writing or content creation activities. For code artifacts, you MUST specify the 'language' parameter with the programming language (e.g., 'javascript', 'typescript', 'python', 'java', 'go', 'rust'). The language determines syntax highlighting and execution capabilities.",
@@ -63,14 +71,14 @@ export const createDocument = ({ session, dataStream }: CreateDocumentProps) =>
         throw new Error(`No document handler found for kind: ${kind}`);
       }
 
-      console.log(language);
-
       await documentHandler.onCreateDocument({
         id,
         title,
         dataStream,
         session,
         language,
+        modelId,
+        onUsage,
       });
 
       dataStream.write({ type: "data-finish", data: null, transient: true });
