@@ -314,6 +314,8 @@
         "noFurtherCharges": "С вас больше не будет списаний.",
         "noSubscriptionDescription": "У вас нет активной подписки. Подпишитесь, чтобы начать.",
         "subscribeLink": "Подписаться",
+        "manageSubscriptionButton": "Управление подпиской",
+        "backToSubscription": "Назад к подписке",
         "notAvailable": "Недоступно",
         "status": "Статус",
         "statusActive": "Активна",

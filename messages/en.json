@@ -314,6 +314,8 @@
         "noFurtherCharges": "You will not be charged anymore.",
         "noSubscriptionDescription": "You don't have an active subscription. Subscribe to get started.",
         "subscribeLink": "Subscribe Now",
+        "manageSubscriptionButton": "Manage subscription",
+        "backToSubscription": "Back to subscription",
         "notAvailable": "Not available",
         "status": "Status",
         "statusActive": "Active",

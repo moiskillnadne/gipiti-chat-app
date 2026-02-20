@@ -38,7 +38,6 @@ export const createDocument = ({
     execute: async ({ title, kind, language }) => {
       const id = generateUUID();
 
-
       dataStream.write({
         type: "data-kind",
         data: kind,

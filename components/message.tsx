@@ -298,7 +298,6 @@ const PurePreviewMessage = ({
             if (type === "tool-updateDocument") {
               const { toolCallId } = part;
 
-
               if (part.output && "error" in part.output) {
                 return (
                   <div
