@@ -38,9 +38,6 @@ export const createDocument = ({
     execute: async ({ title, kind, language }) => {
       const id = generateUUID();
 
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/afd4d0df-289c-4211-8f44-f973dd807050',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'0e88c6'},body:JSON.stringify({sessionId:'0e88c6',location:'create-document.ts:execute',message:'createDocument tool called',data:{id,title,kind,language},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
-      // #endregion
 
       dataStream.write({
         type: "data-kind",
