@@ -8,7 +8,7 @@ import { FadeIn } from "./fade-in";
 
 const pricingFeatures = [
   "Доступ ко всем AI-моделям",
-  "ChatGPT 5.2, Gemini 3 Pro",
+  "ChatGPT 5.2, Gemini 3.1 Pro",
   "Claude Opus 4.6, Grok 4.1",
   "Генерация изображений",
   "Анализ документов до 10MB",

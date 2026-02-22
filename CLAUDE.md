@@ -201,7 +201,7 @@ scripts/                   # Utility scripts (seed-plans, add-tokens, etc.)
 
 **Model Configuration** (`lib/ai/models.ts`):
 - **Default model**: `gpt-5.2` (OpenAI)
-- **19 models across 4 providers**: OpenAI (gpt-5, gpt-5.1-instant, gpt-5.1-thinking, gpt-5.2, gpt-5.2-pro, gpt-5-mini, gpt-codex-5.2, gpt-image-1.5), Google (gemini-2.5-pro, gemini-3-pro, gemini-3-pro-image), Anthropic (opus-4.1, opus-4.6, sonnet-4.5), Xai (grok-2-vision, grok-3-mini, grok-4.1-reasoning, grok-4.1-non-reasoning, grok-code-fast-1)
+- **19 models across 4 providers**: OpenAI (gpt-5, gpt-5.1-instant, gpt-5.1-thinking, gpt-5.2, gpt-5.2-pro, gpt-5-mini, gpt-codex-5.2, gpt-image-1.5), Google (gemini-2.5-pro, gemini-3.1-pro, gemini-3-pro-image), Anthropic (opus-4.1, opus-4.6, sonnet-4.5), Xai (grok-2-vision, grok-3-mini, grok-4.1-reasoning, grok-4.1-non-reasoning, grok-code-fast-1)
 - **Capabilities**: `reasoning`, `attachments`, `imageGeneration`, `thinkingConfig` (effort levels)
 - **Thinking configurations**: OpenAI (auto/none/medium/high), Google (auto/low/high), Anthropic (auto/low/medium/high)
 - Reasoning models use `extractReasoningMiddleware({ tagName: "think" })` to parse `<think>` blocks
