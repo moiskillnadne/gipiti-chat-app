@@ -35,7 +35,7 @@ const models: ModelCard[] = [
     badges: ["Вложения", "Изображения"],
   },
   {
-    name: "Gemini 3 Pro",
+    name: "Gemini 3.1 Pro",
     provider: "Google",
     Logo: LogoGoogle,
     color: "from-blue-500 to-indigo-600",

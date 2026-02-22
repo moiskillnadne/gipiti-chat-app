@@ -72,8 +72,8 @@ export const myProvider = isTestEnvironment
           model: gateway.languageModel("google/gemini-2.5-pro"),
           middleware: extractReasoningMiddleware({ tagName: "think" }),
         }),
-        "gemini-3-pro": wrapLanguageModel({
-          model: gateway.languageModel("google/gemini-3-pro-preview"),
+        "gemini-3.1-pro": wrapLanguageModel({
+          model: gateway.languageModel("google/gemini-3.1-pro-preview"),
           middleware: extractReasoningMiddleware({ tagName: "think" }),
         }),
         "gemini-3-pro-image": gateway.languageModel(
@@ -88,8 +88,8 @@ export const myProvider = isTestEnvironment
           model: gateway.languageModel("anthropic/claude-opus-4.6"),
           middleware: extractReasoningMiddleware({ tagName: "think" }),
         }),
-        "sonnet-4.5": wrapLanguageModel({
-          model: gateway.languageModel("anthropic/claude-sonnet-4.5"),
+        "sonnet-4.6": wrapLanguageModel({
+          model: gateway.languageModel("anthropic/claude-sonnet-4.6"),
           middleware: extractReasoningMiddleware({ tagName: "think" }),
         }),
       },

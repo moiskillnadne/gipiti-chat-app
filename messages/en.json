@@ -231,7 +231,7 @@
           "imageModels": "GPT Image 1.5, Gemini 3 Pro Image (Nano banana pro)",
           "fileAnalysis": "Document analysis",
           "fileTypes": "up to 10MB - PDF, JPG, PNG",
-          "modelsList": "ChatGPT 5.2, Gemini 3 Pro, Opus 4.6, Grok 4.1, GPT-Image-1.5, Gemini 3 Pro Image"
+          "modelsList": "ChatGPT 5.2, Gemini 3.1 Pro, Opus 4.6, Grok 4.1, GPT-Image-1.5, Gemini 3 Pro Image"
         },
         "periods": {
           "monthly": "Monthly",
@@ -922,8 +922,8 @@
       "name": "Gemini 2.5 Pro",
       "description": "Latest Google Gemini model for daily tasks."
     },
-    "gemini3Pro": {
-      "name": "Gemini 3 Pro",
+    "gemini31Pro": {
+      "name": "Gemini 3.1 Pro",
       "description": "Latest Google Gemini model with advanced reasoning capabilities."
     },
     "gemini3ProImage": {
@@ -942,8 +942,8 @@
       "name": "Opus 4.6",
       "description": "Latest Anthropic Opus model with extended context and reasoning."
     },
-    "sonnet45": {
-      "name": "Sonnet 4.5",
+    "sonnet46": {
+      "name": "Sonnet 4.6",
       "description": "Anthropic's balanced model with fast reasoning and excellent code generation."
     }
   },

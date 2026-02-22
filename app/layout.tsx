@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     template: "%s | GIPITI",
   },
   description:
-    "GIPITI — платформа с доступом к лучшим AI-моделям: ChatGPT 5.2, Gemini 3 Pro, Claude Opus 4.6 и Grok 4.1. Генерация текста, изображений, анализ документов.",
+    "GIPITI — платформа с доступом к лучшим AI-моделям: ChatGPT 5.2, Gemini 3.1 Pro, Claude Opus 4.6 и Grok 4.1. Генерация текста, изображений, анализ документов.",
   keywords: [
     "AI чат",
     "ChatGPT",

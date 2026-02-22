@@ -52,7 +52,7 @@ export const anthropicModelIds = ["opus-4.1", "opus-4.5", "sonnet-4.5", "new-mod
 export const openaiModelIds = ["gpt-5.2", "gpt-5.2-pro", "gpt-5-mini", "new-model"] as const;
 
 // For Google models
-export const googleModelIds = ["gemini-3-pro", "new-model"] as const;
+export const googleModelIds = ["gemini-3.1-pro", "new-model"] as const;
 ```
 
 ---
@@ -82,7 +82,7 @@ Add the gateway mapping in the `languageModels` object:
 |----------|---------|---------|
 | Anthropic | `anthropic/claude-{model-name}` | `anthropic/claude-sonnet-4.5` |
 | OpenAI | `openai/{model-name}` | `openai/gpt-5.2` |
-| Google | `google/{model-name}` | `google/gemini-3-pro-preview` |
+| Google | `google/{model-name}` | `google/gemini-3.1-pro-preview` |
 | XAI | `xai/{model-name}` | `xai/grok-4-1-fast-reasoning` |
 
 ---
@@ -113,7 +113,7 @@ allowedModels: [
   "gpt-5.1-thinking",
   "gpt-5.2",
   "gpt-5.2-pro",
-  "gemini-3-pro",
+  "gemini-3.1-pro",
   "opus-4.5",
   "sonnet-4.5",
   "new-model-id",  // Add here
@@ -197,7 +197,7 @@ const THINKING_CONFIG: ThinkingBudgetConfig = {
 |--------|--------|---------|---------|
 | `OPUS_THINKING_CONFIG` | low, medium, high | high | opus-4.5, sonnet-4.5 |
 | `GPT52_THINKING_CONFIG` | none, medium, high | medium | gpt-5.2 |
-| `GEMINI3_THINKING_CONFIG` | low, high | low | gemini-3-pro |
+| `GEMINI31_THINKING_CONFIG` | low, high | low | gemini-3.1-pro |
 
 ---
 

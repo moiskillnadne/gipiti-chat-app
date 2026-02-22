@@ -62,7 +62,7 @@ const GPT52_THINKING_CONFIG: ThinkingEffortConfig = {
   default: "auto",
 };
 
-const GEMINI3_THINKING_CONFIG: ThinkingEffortConfig = {
+const GEMINI31_THINKING_CONFIG: ThinkingEffortConfig = {
   type: "effort",
   values: ["auto", "low", "high"] as const,
   default: "auto",
@@ -220,16 +220,16 @@ export const chatModels: ChatModel[] = [
     showInUI: false,
   },
   {
-    id: "gemini-3-pro",
-    name: "gemini3Pro.name",
-    description: "gemini3Pro.description",
+    id: "gemini-3.1-pro",
+    name: "gemini31Pro.name",
+    description: "gemini31Pro.description",
     provider: "google",
     capabilities: {
       reasoning: true,
       attachments: true,
     },
     showInUI: true,
-    thinkingConfig: GEMINI3_THINKING_CONFIG,
+    thinkingConfig: GEMINI31_THINKING_CONFIG,
   },
   {
     id: "gemini-3-pro-image",
@@ -294,9 +294,9 @@ export const chatModels: ChatModel[] = [
     thinkingConfig: OPUS_THINKING_CONFIG,
   },
   {
-    id: "sonnet-4.5",
-    name: "sonnet45.name",
-    description: "sonnet45.description",
+    id: "sonnet-4.6",
+    name: "sonnet46.name",
+    description: "sonnet46.description",
     provider: "anthropic",
     capabilities: {
       reasoning: true,
@@ -396,7 +396,7 @@ export const getOpenAIProviderOptions = (
   };
 };
 
-export const googleModelIds = ["gemini-3-pro"] as const;
+export const googleModelIds = ["gemini-3.1-pro"] as const;
 export type GoogleModelId = (typeof googleModelIds)[number];
 
 export const isGoogleModel = (modelId: string) => {
@@ -423,7 +423,7 @@ export const getGoogleProviderOptions = (
 export const anthropicModelIds = [
   "opus-4.1",
   "opus-4.6",
-  "sonnet-4.5",
+  "sonnet-4.6",
 ] as const;
 export type AnthropicModelId = (typeof anthropicModelIds)[number];
 
