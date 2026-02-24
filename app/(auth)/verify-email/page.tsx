@@ -210,21 +210,6 @@ function VerifyEmailPage() {
     });
   }, [email, locale, cooldown, resendAction]);
 
-  const handleCodeComplete = useCallback(
-    (value: string) => {
-      setCode(value);
-      if (value.length === 6) {
-        const formData = new FormData();
-        formData.set("email", email);
-        formData.set("code", value);
-        startTransition(() => {
-          verifyAction(formData);
-        });
-      }
-    },
-    [email, verifyAction]
-  );
-
   if (status === "loading") {
     return <VerifyEmailPageFallback />;
   }
@@ -274,7 +259,6 @@ function VerifyEmailPage() {
           disabled={verifyState.status === "in_progress" || isUpdatingSession}
           maxLength={6}
           onChange={setCode}
-          onComplete={handleCodeComplete}
           value={code}
         >
           <InputOTPGroup>
