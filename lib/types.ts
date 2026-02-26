@@ -69,6 +69,13 @@ export type CustomUIDataTypes = {
       totalTokenCount?: number;
     };
   };
+  videoDelta: string;
+  videoGenerationFinish: {
+    responseId: string;
+    videoUrl: string;
+    userPrompt: string;
+    durationSeconds: number;
+  };
 };
 
 export type ChatMessage = UIMessage<

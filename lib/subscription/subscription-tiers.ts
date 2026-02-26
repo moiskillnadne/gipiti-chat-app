@@ -22,6 +22,7 @@ export type SubscriptionTierConfig = {
     searchQuota: number;
     searchDepthAllowed: SearchDepth;
     maxImageGenerationsPerPeriod?: number;
+    maxVideoGenerationsPerPeriod?: number;
   };
   price: {
     USD: number;
@@ -45,6 +46,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
     features: {
       maxMessagesPerPeriod: 10, // 10 messages per day
       maxImageGenerationsPerPeriod: 1, // 1 image per day
+      maxVideoGenerationsPerPeriod: 0, // No video for free tier
       allowedModels: [
         "grok-code-fast-1",
         "gemini-3-pro-image",
@@ -87,6 +89,8 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
         "gemini-3.1-pro",
         "opus-4.6",
         "sonnet-4.6",
+        "veo-3.1",
+        "veo-3.1-fast",
       ],
       hasReasoningModels: true,
       hasPrioritySupport: false,
@@ -96,6 +100,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       searchQuota: 40, // 40 searches per day
       searchDepthAllowed: "advanced",
       maxImageGenerationsPerPeriod: 10, // 10 images per day
+      maxVideoGenerationsPerPeriod: 5, // 5 videos per day
     },
     price: {
       USD: 0,
@@ -126,6 +131,8 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
         "gemini-3.1-pro",
         "opus-4.6",
         "sonnet-4.6",
+        "veo-3.1",
+        "veo-3.1-fast",
       ],
       hasReasoningModels: true,
       hasPrioritySupport: false,
@@ -135,6 +142,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       searchQuota: 40, // 40 searches per day
       searchDepthAllowed: "advanced",
       maxImageGenerationsPerPeriod: 10, // 10 images per day
+      maxVideoGenerationsPerPeriod: 5, // 5 videos per day
     },
     price: {
       USD: 0.05,
@@ -165,6 +173,8 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
         "gemini-3.1-pro",
         "opus-4.6",
         "sonnet-4.6",
+        "veo-3.1",
+        "veo-3.1-fast",
       ],
       hasReasoningModels: true,
       hasPrioritySupport: false,
@@ -174,6 +184,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       searchQuota: 250, // 250 searches per month
       searchDepthAllowed: "advanced",
       maxImageGenerationsPerPeriod: 50, // 50 images per month
+      maxVideoGenerationsPerPeriod: 5, // 5 videos per month
     },
     price: {
       USD: 19.99,
@@ -203,6 +214,8 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
         "gemini-3.1-pro",
         "opus-4.6",
         "sonnet-4.6",
+        "veo-3.1",
+        "veo-3.1-fast",
       ],
       hasReasoningModels: true,
       hasPrioritySupport: false,
@@ -212,6 +225,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       searchQuota: 750, // 750 searches per quarter (250/month)
       searchDepthAllowed: "advanced",
       maxImageGenerationsPerPeriod: 150, // 150 images per quarter
+      maxVideoGenerationsPerPeriod: 15, // 15 videos per quarter
     },
     price: {
       USD: 49.99,
@@ -240,6 +254,8 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
         "gemini-3.1-pro",
         "opus-4.6",
         "sonnet-4.6",
+        "veo-3.1",
+        "veo-3.1-fast",
       ],
       hasReasoningModels: true,
       hasPrioritySupport: true,
@@ -249,6 +265,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       searchQuota: 3000, // 3000 searches per year (250/month)
       searchDepthAllowed: "advanced",
       maxImageGenerationsPerPeriod: 600, // 600 images per year
+      maxVideoGenerationsPerPeriod: 60, // 60 videos per year
     },
     price: {
       USD: 149.99,

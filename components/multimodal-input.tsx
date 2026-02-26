@@ -27,6 +27,7 @@ import { useProject } from "@/contexts/project-context";
 import { useStyle } from "@/contexts/style-context";
 import {
   getModelById,
+  isVideoGenerationModel,
   supportsAttachments,
   supportsThinkingConfig,
   type ThinkingSetting,
@@ -706,6 +707,10 @@ function PureMultimodalInput({
   );
 
   const _modelResolver = useMemo(() => {
+    // Video generation models use gateway.videoModel(), not languageModel()
+    if (isVideoGenerationModel(currentModelId)) {
+      return null;
+    }
     return myProvider.languageModel(currentModelId);
   }, [currentModelId]);
 

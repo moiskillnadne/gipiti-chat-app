@@ -6,7 +6,11 @@
 import { and, count, eq, gte, lte } from "drizzle-orm";
 
 import { ChatSDKError } from "../../errors";
-import { imageGenerationUsageLog, searchUsageLog } from "../schema";
+import {
+  imageGenerationUsageLog,
+  searchUsageLog,
+  videoGenerationUsageLog,
+} from "../schema";
 import { db } from "./connection";
 
 export async function getSearchUsageCountByDateRange({
@@ -228,6 +232,116 @@ export async function getImageGenerationCountByBillingPeriod({
     throw new ChatSDKError(
       "bad_request:database",
       "Failed to get image generation count by billing period"
+    );
+  }
+}
+
+export async function insertVideoGenerationUsageLog({
+  userId,
+  chatId,
+  modelId,
+  prompt,
+  videoUrl,
+  generationId,
+  success,
+  durationSeconds,
+  totalCostUsd,
+  billingPeriodType,
+  billingPeriodStart,
+  billingPeriodEnd,
+}: {
+  userId: string;
+  chatId: string | null;
+  modelId: string;
+  prompt: string;
+  videoUrl: string | null;
+  generationId: string | null;
+  success: boolean;
+  durationSeconds: number;
+  totalCostUsd: string | null;
+  billingPeriodType: "daily" | "weekly" | "monthly" | "annual";
+  billingPeriodStart: Date;
+  billingPeriodEnd: Date;
+}): Promise<void> {
+  try {
+    await db.insert(videoGenerationUsageLog).values({
+      userId,
+      chatId,
+      modelId,
+      prompt,
+      videoUrl,
+      generationId,
+      success,
+      durationSeconds,
+      totalCostUsd,
+      billingPeriodType,
+      billingPeriodStart,
+      billingPeriodEnd,
+    });
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to insert video generation usage log"
+    );
+  }
+}
+
+export async function getVideoGenerationCountByDateRange({
+  userId,
+  startDate,
+  endDate,
+}: {
+  userId: string;
+  startDate: Date;
+  endDate: Date;
+}): Promise<number> {
+  try {
+    const [usageCount] = await db
+      .select({ count: count() })
+      .from(videoGenerationUsageLog)
+      .where(
+        and(
+          eq(videoGenerationUsageLog.userId, userId),
+          gte(videoGenerationUsageLog.createdAt, startDate),
+          lte(videoGenerationUsageLog.createdAt, endDate)
+        )
+      );
+
+    return usageCount?.count ?? 0;
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to get video generation count by date range"
+    );
+  }
+}
+
+export async function getVideoGenerationCountByBillingPeriod({
+  userId,
+  periodStart,
+  periodEnd,
+}: {
+  userId: string;
+  periodStart: Date;
+  periodEnd: Date;
+}): Promise<number> {
+  try {
+    const [usageCount] = await db
+      .select({ count: count() })
+      .from(videoGenerationUsageLog)
+      .where(
+        and(
+          eq(videoGenerationUsageLog.userId, userId),
+          gte(videoGenerationUsageLog.billingPeriodStart, periodStart),
+          lte(videoGenerationUsageLog.billingPeriodEnd, periodEnd)
+        )
+      );
+
+    return usageCount?.count ?? 0;
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to get video generation count by billing period"
     );
   }
 }
