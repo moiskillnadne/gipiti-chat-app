@@ -45,7 +45,11 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
     features: {
       maxMessagesPerPeriod: 10, // 10 messages per day
       maxImageGenerationsPerPeriod: 1, // 1 image per day
-      allowedModels: ["grok-code-fast-1", "gemini-3-pro-image"],
+      allowedModels: [
+        "grok-code-fast-1",
+        "gemini-3-pro-image",
+        "gemini-3.1-flash-image",
+      ],
       hasReasoningModels: false,
       hasPrioritySupport: false,
       maxFileSize: 2 * 1024 * 1024, // 2MB

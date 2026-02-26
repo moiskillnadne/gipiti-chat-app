@@ -253,6 +253,27 @@ export const chatModels: ChatModel[] = [
     },
   },
   {
+    id: "gemini-3.1-flash-image",
+    name: "gemini31FlashImage.name",
+    description: "gemini31FlashImage.description",
+    provider: "google",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+      imageGeneration: true,
+    },
+    showInUI: true,
+    providerOptions: {
+      google: {
+        mediaResolution: "MEDIA_RESOLUTION_HIGH",
+        imageConfig: {
+          imageSize: "2K",
+          aspectRatio: "16:9",
+        },
+      } satisfies GoogleGenerativeAIProviderOptions,
+    },
+  },
+  {
     id: "gpt-image-1.5",
     name: "gptImage15.name",
     description: "gptImage15.description",

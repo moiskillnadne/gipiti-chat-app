@@ -930,6 +930,10 @@
       "name": "Gemini 3 Pro Image",
       "description": "Generate and refine images with natural language."
     },
+    "gemini31FlashImage": {
+      "name": "Gemini 3.1 Flash Image",
+      "description": "Fast Google model with image generation capabilities."
+    },
     "gptImage15": {
       "name": "GPT Image 1.5",
       "description": "Generate high-quality images with OpenAI's latest image model."
