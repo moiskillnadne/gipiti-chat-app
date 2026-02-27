@@ -21,8 +21,8 @@
     "models:list": "tsx scripts/fetch-gateway-models.ts"
   },
   "dependencies": {
-    "@ai-sdk/gateway": "^3.0.36",
-    "@ai-sdk/google": "^3.0.21",
+    "@ai-sdk/gateway": "^3.0.57",
+    "@ai-sdk/google": "^3.0.33",
     "@ai-sdk/provider": "3.0.7",
     "@ai-sdk/react": "3.0.75",
     "@ai-sdk/xai": "3.0.47",
