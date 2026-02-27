@@ -1,8 +1,10 @@
+import { gateway } from "@ai-sdk/gateway";
 import { put } from "@vercel/blob";
 import { geolocation } from "@vercel/functions";
 import {
   convertToModelMessages,
   createUIMessageStream,
+  experimental_generateVideo as generateVideo,
   JsonToSseTransformStream,
   smoothStream,
   stepCountIs,
@@ -28,9 +30,11 @@ import {
   DEFAULT_CHAT_MODEL,
   getModelById,
   getProviderOptions,
+  getVeoGatewayModelId,
   isAutoReasoning,
   isImageGenerationModel,
   isReasoningModelId,
+  isVideoGenerationModel,
   isVisibleInUI,
   supportsAttachments,
   supportsThinkingConfig,
@@ -58,6 +62,7 @@ import { getWeather } from "@/lib/ai/tools/get-weather";
 import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
 import { updateDocument } from "@/lib/ai/tools/update-document";
 import { webSearch } from "@/lib/ai/tools/web-search";
+import { checkVideoGenerationQuota } from "@/lib/ai/video-generation-quota";
 import { isProductionEnvironment } from "@/lib/constants";
 import {
   createStreamId,
@@ -69,6 +74,7 @@ import {
   getProjectById,
   getTextStyleById,
   insertImageGenerationUsageLog,
+  insertVideoGenerationUsageLog,
   saveChat,
   saveDocument,
   saveMessages,
@@ -136,6 +142,18 @@ async function uploadGeneratedImage(
   const filename = `generated-${generateUUID()}.${extension}`;
 
   const { url } = await put(filename, buffer, { access: "public" });
+  return url;
+}
+
+// Direct video generation utility
+async function uploadGeneratedVideo(videoData: Uint8Array): Promise<string> {
+  const buffer = Buffer.from(videoData);
+  const filename = `generated-video-${generateUUID()}.mp4`;
+
+  const { url } = await put(filename, buffer, {
+    access: "public",
+    contentType: "video/mp4",
+  });
   return url;
 }
 
@@ -353,6 +371,40 @@ export async function POST(request: Request) {
           "quota_exceeded:chat",
           undefined,
           imageQuotaCheck.reason
+        ).toResponse();
+      }
+    }
+
+    // --- Video quota check (after chat/message save to prevent 404) ---
+    const isDirectVideoGeneration = isVideoGenerationModel(selectedChatModel);
+
+    if (isDirectVideoGeneration) {
+      const videoQuotaCheck = await checkVideoGenerationQuota(session.user.id);
+
+      if (!videoQuotaCheck.allowed) {
+        const t = await getTranslations("chat");
+        await saveMessages({
+          messages: [
+            {
+              chatId: id,
+              id: generateUUID(),
+              role: "assistant",
+              parts: [
+                {
+                  type: "text",
+                  text: t("errors.videoQuotaExceededAssistant"),
+                },
+              ],
+              attachments: [],
+              createdAt: new Date(),
+              modelId: null,
+            },
+          ],
+        });
+        return new ChatSDKError(
+          "quota_exceeded:chat",
+          undefined,
+          videoQuotaCheck.reason
         ).toResponse();
       }
     }
@@ -748,6 +800,187 @@ export async function POST(request: Request) {
                 err
               );
             }
+          }
+
+          return;
+        }
+
+        if (isDirectVideoGeneration) {
+          const userMessageParts = message.parts;
+          const userPrompt =
+            userMessageParts.find((part) => part.type === "text")?.text ?? null;
+
+          if (!userPrompt) {
+            throw new ChatSDKError("bad_request:api");
+          }
+
+          const documentId = generateUUID();
+          const generationStartTime = Date.now();
+
+          // Write initial reasoning status
+          dataStream.write({ id: documentId, type: "reasoning-start" });
+          dataStream.write({
+            id: documentId,
+            type: "reasoning-delta",
+            delta: "Generating video...",
+          });
+
+          // Keep-alive: send periodic dots to prevent connection drops
+          const keepAliveInterval = setInterval(() => {
+            dataStream.write({
+              id: documentId,
+              type: "reasoning-delta",
+              delta: ".",
+            });
+          }, 15_000);
+
+          let videoUrl: string | undefined;
+          const durationSeconds = 8;
+
+          try {
+            const gatewayModelId = getVeoGatewayModelId(selectedChatModel);
+            const result = await generateVideo({
+              model: gateway.videoModel(gatewayModelId),
+              prompt: userPrompt,
+              aspectRatio: "16:9",
+              duration: 8,
+            });
+
+            clearInterval(keepAliveInterval);
+
+            dataStream.write({
+              id: documentId,
+              type: "reasoning-delta",
+              delta: " Uploading video...",
+            });
+
+            // Upload the first generated video
+            const generatedVideo = result.video;
+            if (generatedVideo) {
+              videoUrl = await uploadGeneratedVideo(generatedVideo.uint8Array);
+            }
+          } catch (error) {
+            clearInterval(keepAliveInterval);
+            console.error("Video generation failed:", error);
+            throw error;
+          }
+
+          const generationDuration = Math.round(
+            (Date.now() - generationStartTime) / 1000
+          );
+
+          // Write final video generation result
+          if (videoUrl) {
+            const responseId = `vgen-${generateUUID()}`;
+
+            dataStream.write({
+              type: "data-videoGenerationFinish",
+              data: {
+                responseId,
+                videoUrl,
+                userPrompt,
+                durationSeconds,
+              },
+            });
+
+            dataStream.write({
+              type: "file",
+              mediaType: "video/mp4",
+              url: videoUrl,
+            });
+
+            // Save document to database
+            await saveDocument({
+              id: documentId,
+              title: userPrompt,
+              content: videoUrl,
+              kind: "video",
+              userId: session.user.id,
+              generationId: responseId,
+            });
+
+            // Record usage to VideoGenerationUsageLog
+            try {
+              const subscription = await getActiveUserSubscription({
+                userId: session.user.id,
+              });
+
+              let billingPeriodStart: Date;
+              let billingPeriodEnd: Date;
+              let billingPeriodType: "daily" | "weekly" | "monthly" | "annual";
+
+              if (subscription) {
+                billingPeriodStart = subscription.currentPeriodStart;
+                billingPeriodEnd = subscription.currentPeriodEnd;
+                billingPeriodType = subscription.billingPeriod;
+              } else {
+                const now = new Date();
+                billingPeriodStart = new Date(now);
+                billingPeriodStart.setHours(0, 0, 0, 0);
+                billingPeriodEnd = new Date(now);
+                billingPeriodEnd.setHours(23, 59, 59, 999);
+                billingPeriodType = "daily";
+              }
+
+              await insertVideoGenerationUsageLog({
+                userId: session.user.id,
+                chatId: id,
+                modelId: selectedChatModel,
+                prompt: userPrompt,
+                videoUrl: videoUrl ?? null,
+                generationId: responseId,
+                success: Boolean(videoUrl),
+                durationSeconds,
+                totalCostUsd: null,
+                billingPeriodType,
+                billingPeriodStart,
+                billingPeriodEnd,
+              });
+            } catch (err) {
+              console.warn("Failed to record video generation usage", err);
+            }
+
+            // Record token usage for quota tracking
+            const directVideoUsage: AppUsage = {
+              modelId: selectedChatModel,
+              inputTokens: 0,
+              outputTokens: 0,
+              totalTokens: 0,
+              inputCost: 0,
+              outputCost: 0,
+              inputTokenDetails: {
+                noCacheTokens: undefined,
+                cacheReadTokens: undefined,
+                cacheWriteTokens: undefined,
+              },
+              outputTokenDetails: {
+                textTokens: undefined,
+                reasoningTokens: undefined,
+              },
+            };
+
+            try {
+              await recordTokenUsage({
+                userId: session.user.id,
+                chatId: id,
+                messageId: undefined,
+                usage: directVideoUsage,
+              });
+            } catch (err) {
+              console.warn(
+                "Failed to record token usage for video generation",
+                err
+              );
+            }
+
+            // Write generation timing as usage info
+            dataStream.write({
+              type: "data-usage",
+              data: {
+                ...directVideoUsage,
+                generationDurationSeconds: generationDuration,
+              },
+            });
           }
 
           return;

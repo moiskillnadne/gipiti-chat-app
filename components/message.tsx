@@ -206,6 +206,60 @@ const PurePreviewMessage = ({
               );
             }
 
+            if (type === "data-videoGenerationFinish") {
+              const { videoUrl, userPrompt, responseId } = part.data;
+
+              const handleVideoDownload = async (propUrl: string) => {
+                const response = await fetch(propUrl);
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                const filename =
+                  propUrl.split("/").pop() ?? "generated-video.mp4";
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+              };
+
+              return (
+                <div
+                  className="group/video relative overflow-hidden rounded-lg"
+                  key={responseId}
+                >
+                  <video
+                    className="max-w-full rounded-lg"
+                    controls
+                    playsInline
+                    preload="metadata"
+                    title={userPrompt}
+                  >
+                    <source src={videoUrl} type="video/mp4" />
+                    <track kind="captions" />
+                  </video>
+                  <button
+                    className="absolute right-2 bottom-2 flex size-8 items-center justify-center rounded-lg bg-black/50 text-white transition-opacity hover:bg-black/70 md:opacity-0 md:group-hover/video:opacity-100"
+                    onClick={() => {
+                      if (videoUrl) {
+                        handleVideoDownload(videoUrl);
+                      } else {
+                        toast({
+                          type: "error",
+                          description: t("downloadError"),
+                        });
+                      }
+                    }}
+                    title={t("downloadVideo")}
+                    type="button"
+                  >
+                    <DownloadIcon size={16} />
+                  </button>
+                </div>
+              );
+            }
+
             if (type === "text") {
               if (mode === "view") {
                 return (

@@ -443,7 +443,9 @@
       "errorCreatingDocument": "Error creating document",
       "errorUpdatingDocument": "Error updating document",
       "generatingImage": "Generating image...",
+      "generatingVideo": "Generating video...",
       "download": "Download",
+      "downloadVideo": "Download video",
       "downloadError": "Failed to download image"
     },
     "empty": {
@@ -489,7 +491,8 @@
     "models": {
       "selectModel": "Select Model",
       "currentModel": "Current Model",
-      "imageGenerationModel": "Image Generation Model"
+      "imageGenerationModel": "Image Generation Model",
+      "videoGenerationModel": "Video Generation Model"
     },
     "tools": {
       "error": "Error",
@@ -531,7 +534,8 @@
     "errors": {
       "quotaExceededAssistant": "Sorry, I can't respond because your token quota has been exceeded for this billing period. Please [upgrade your plan](/subscription) or wait for the quota to reset.",
       "rateLimitAssistant": "Sorry, I can't respond because you've reached the daily message limit. Please try again later or [upgrade your plan](/subscription) for higher limits.",
-      "imageQuotaExceededAssistant": "Sorry, I can't generate an image because your image generation quota has been exceeded. Please [upgrade your plan](/subscription) or wait for the quota to reset."
+      "imageQuotaExceededAssistant": "Sorry, I can't generate an image because your image generation quota has been exceeded. Please [upgrade your plan](/subscription) or wait for the quota to reset.",
+      "videoQuotaExceededAssistant": "Sorry, I can't generate a video because your video generation quota has been exceeded. Please [upgrade your plan](/subscription) or wait for the quota to reset."
     }
   },
   "metadata": {
@@ -949,6 +953,14 @@
     "sonnet46": {
       "name": "Sonnet 4.6",
       "description": "Anthropic's balanced model with fast reasoning and excellent code generation."
+    },
+    "veo31": {
+      "name": "Veo 3.1",
+      "description": "Google's high-quality video generation model. Creates 8-second videos from text prompts."
+    },
+    "veo31Fast": {
+      "name": "Veo 3.1 Fast",
+      "description": "Google's fast video generation model. Creates 8-second videos quickly from text prompts."
     }
   },
   "textStyles": {

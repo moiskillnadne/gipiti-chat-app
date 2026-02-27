@@ -4,10 +4,19 @@ import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import { useModel } from "@/contexts/model-context";
-import { type ChatModel, isImageGenerationModel } from "@/lib/ai/models";
+import {
+  type ChatModel,
+  isImageGenerationModel,
+  isVideoGenerationModel,
+} from "@/lib/ai/models";
 import { cn } from "@/lib/utils";
 
-import { CheckCircleFillIcon, ChevronDownIcon, ImageIcon } from "../icons";
+import {
+  CheckCircleFillIcon,
+  ChevronDownIcon,
+  ImageIcon,
+  PlayIcon,
+} from "../icons";
 import { Button } from "./button";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { RadioGroup, RadioGroupItem } from "./radio-group";
@@ -123,6 +132,14 @@ export function ModelSelector() {
                               title={tModels("imageGenerationModel")}
                             >
                               <ImageIcon size={14} />
+                            </span>
+                          )}
+                          {isVideoGenerationModel(model.id) && (
+                            <span
+                              className="text-muted-foreground"
+                              title={tModels("videoGenerationModel")}
+                            >
+                              <PlayIcon size={14} />
                             </span>
                           )}
                         </div>

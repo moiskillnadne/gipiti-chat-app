@@ -148,7 +148,9 @@ export const document = pgTable(
     createdAt: timestamp("createdAt").notNull(),
     title: text("title").notNull(),
     content: text("content"),
-    kind: varchar("text", { enum: ["text", "code", "image", "sheet"] })
+    kind: varchar("text", {
+      enum: ["text", "code", "image", "sheet", "video"],
+    })
       .notNull()
       .default("text"),
     userId: uuid("userId")
@@ -629,6 +631,57 @@ export const imageGenerationUsageLog = pgTable(
 
 export type ImageGenerationUsageLog = InferSelectModel<
   typeof imageGenerationUsageLog
+>;
+
+// Video Generation Usage Log
+export const videoGenerationUsageLog = pgTable(
+  "VideoGenerationUsageLog",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+
+    // User context
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    chatId: uuid("chat_id").references(() => chat.id, { onDelete: "set null" }),
+
+    // Video generation details
+    modelId: varchar("model_id", { length: 128 }).notNull(),
+    prompt: text("prompt").notNull(),
+    videoUrl: varchar("video_url", { length: 512 }),
+    generationId: varchar("generation_id", { length: 256 }),
+    success: boolean("success").notNull().default(true),
+
+    // Video duration in seconds
+    durationSeconds: integer("duration_seconds").default(0),
+
+    // Pricing (in USD)
+    totalCostUsd: decimal("total_cost_usd", { precision: 12, scale: 8 }),
+
+    // Billing period
+    billingPeriodType: billingPeriodEnum("billing_period_type").notNull(),
+    billingPeriodStart: timestamp("billing_period_start").notNull(),
+    billingPeriodEnd: timestamp("billing_period_end").notNull(),
+
+    // Meta
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index("video_generation_usage_log_user_id_idx").on(table.userId),
+    chatIdIdx: index("video_generation_usage_log_chat_id_idx").on(table.chatId),
+    createdAtIdx: index("video_generation_usage_log_created_at_idx").on(
+      table.createdAt
+    ),
+    userPeriodIdx: index("video_generation_usage_log_user_period_idx").on(
+      table.userId,
+      table.billingPeriodStart,
+      table.billingPeriodEnd
+    ),
+  })
+);
+
+export type VideoGenerationUsageLog = InferSelectModel<
+  typeof videoGenerationUsageLog
 >;
 
 // Cancellation Feedback - tracks why users cancel subscriptions

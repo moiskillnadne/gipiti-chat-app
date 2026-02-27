@@ -7,6 +7,7 @@ export type ChatModelCapabilities = {
   reasoning?: boolean;
   attachments?: boolean;
   imageGeneration?: boolean;
+  videoGeneration?: boolean;
 };
 
 export type ModelProvider = "openai" | "google" | "anthropic" | "xai";
@@ -326,6 +327,26 @@ export const chatModels: ChatModel[] = [
     showInUI: true,
     thinkingConfig: OPUS_THINKING_CONFIG,
   },
+  {
+    id: "veo-3.1",
+    name: "veo31.name",
+    description: "veo31.description",
+    provider: "google",
+    capabilities: {
+      videoGeneration: true,
+    },
+    showInUI: true,
+  },
+  {
+    id: "veo-3.1-fast",
+    name: "veo31Fast.name",
+    description: "veo31Fast.description",
+    provider: "google",
+    capabilities: {
+      videoGeneration: true,
+    },
+    showInUI: true,
+  },
 ];
 
 export const chatModelIds = chatModels.map((model) => model.id);
@@ -351,6 +372,30 @@ const imageGenerationModelIds = new Set(
 
 export const isImageGenerationModel = (modelId: string) =>
   imageGenerationModelIds.has(modelId);
+
+const videoGenerationModelIds = new Set(
+  chatModels
+    .filter((model) => model.capabilities?.videoGeneration)
+    .map((model) => model.id)
+);
+
+export const isVideoGenerationModel = (modelId: string) =>
+  videoGenerationModelIds.has(modelId);
+
+type VeoModelId = "veo-3.1" | "veo-3.1-fast";
+
+const VEO_GATEWAY_MODEL_MAP: Record<VeoModelId, string> = {
+  "veo-3.1": "google/veo-3.1-generate-001",
+  "veo-3.1-fast": "google/veo-3.1-fast-generate-001",
+};
+
+export const getVeoGatewayModelId = (modelId: string): string => {
+  const gatewayId = VEO_GATEWAY_MODEL_MAP[modelId as VeoModelId];
+  if (!gatewayId) {
+    throw new Error(`Unknown Veo model: ${modelId}`);
+  }
+  return gatewayId;
+};
 
 export const supportsAttachments = (modelId: string) => {
   const model = chatModels.find((m) => m.id === modelId);

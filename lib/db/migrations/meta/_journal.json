@@ -204,6 +204,13 @@
       "when": 1770652470758,
       "tag": "0028_steady_kat_farrell",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1772134169785,
+      "tag": "0029_exotic_redwing",
+      "breakpoints": true
     }
   ]
 }

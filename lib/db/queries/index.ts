@@ -63,8 +63,11 @@ export {
   getImageGenerationCountByDateRange,
   getSearchUsageCountByBillingPeriod,
   getSearchUsageCountByDateRange,
+  getVideoGenerationCountByBillingPeriod,
+  getVideoGenerationCountByDateRange,
   insertImageGenerationUsageLog,
   insertSearchUsageLog,
+  insertVideoGenerationUsageLog,
 } from "./usage-queries";
 export {
   clearEmailVerificationCode,
