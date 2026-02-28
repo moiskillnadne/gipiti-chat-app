@@ -40,6 +40,7 @@ export type ChatModel = {
   showInUI?: boolean;
   thinkingConfig?: ThinkingConfig;
   providerOptions?: SharedV2ProviderOptions;
+  imageGenConfig?: ImageGenConfig;
 };
 
 export type ThinkingSettingEffort = {
@@ -56,6 +57,75 @@ export type ThinkingSetting = ThinkingSettingEffort | ThinkingSettingBudget;
 
 export const FALLBACK_THINKING_EFFORT = "auto" as const;
 export const THINKING_COOKIE_PREFIX = "thinking-v2" as const;
+
+// Image generation setting types
+export type ImageGenOption = { value: string; labelKey: string };
+export type ImageGenQualityConfig = {
+  options: readonly ImageGenOption[];
+  default: string;
+};
+export type ImageGenAspectRatioConfig = {
+  options: readonly ImageGenOption[];
+  default: string;
+};
+export type ImageGenConfig = {
+  quality?: ImageGenQualityConfig;
+  aspectRatio?: ImageGenAspectRatioConfig;
+};
+export type ImageGenSetting = {
+  quality?: string;
+  aspectRatio?: string;
+};
+
+export const IMAGE_QUALITY_COOKIE_PREFIX = "image-quality" as const;
+export const IMAGE_ASPECT_COOKIE_PREFIX = "image-aspect" as const;
+
+const GOOGLE_IMAGE_GEN_CONFIG: ImageGenConfig = {
+  quality: {
+    options: [
+      { value: "1K", labelKey: "standard" },
+      { value: "2K", labelKey: "hd" },
+      { value: "4K", labelKey: "ultra" },
+    ],
+    default: "2K",
+  },
+  aspectRatio: {
+    options: [
+      { value: "1:1", labelKey: "square" },
+      { value: "16:9", labelKey: "landscape169" },
+      { value: "9:16", labelKey: "portrait916" },
+      { value: "3:2", labelKey: "wide32" },
+      { value: "2:3", labelKey: "tall23" },
+      { value: "4:3", labelKey: "standard43" },
+      { value: "3:4", labelKey: "standard34" },
+      { value: "5:4", labelKey: "photo54" },
+      { value: "4:5", labelKey: "photo45" },
+      { value: "21:9", labelKey: "ultrawide" },
+    ],
+    default: "16:9",
+  },
+};
+
+const OPENAI_IMAGE_GEN_CONFIG: ImageGenConfig = {
+  quality: {
+    options: [
+      { value: "auto", labelKey: "auto" },
+      { value: "low", labelKey: "low" },
+      { value: "medium", labelKey: "medium" },
+      { value: "high", labelKey: "high" },
+    ],
+    default: "auto",
+  },
+  aspectRatio: {
+    options: [
+      { value: "auto", labelKey: "auto" },
+      { value: "1024x1024", labelKey: "square" },
+      { value: "1536x1024", labelKey: "landscape" },
+      { value: "1024x1536", labelKey: "portrait" },
+    ],
+    default: "auto",
+  },
+};
 
 const GPT52_THINKING_CONFIG: ThinkingEffortConfig = {
   type: "effort",
@@ -252,6 +322,7 @@ export const chatModels: ChatModel[] = [
         },
       } satisfies GoogleGenerativeAIProviderOptions,
     },
+    imageGenConfig: GOOGLE_IMAGE_GEN_CONFIG,
   },
   {
     id: "gemini-3.1-flash-image",
@@ -273,6 +344,7 @@ export const chatModels: ChatModel[] = [
         },
       } satisfies GoogleGenerativeAIProviderOptions,
     },
+    imageGenConfig: GOOGLE_IMAGE_GEN_CONFIG,
   },
   {
     id: "gpt-image-1.5",
@@ -291,6 +363,7 @@ export const chatModels: ChatModel[] = [
         imageQuality: "hd",
       },
     },
+    imageGenConfig: OPENAI_IMAGE_GEN_CONFIG,
   },
   {
     id: "opus-4.1",
@@ -637,4 +710,84 @@ export const validateThinkingSetting = (
     return { type: "budget", value: config.default };
   }
   return thinkingSetting;
+};
+
+// Image generation setting helpers
+
+export const supportsImageGenConfig = (modelId: string): boolean => {
+  const model = getModelById(modelId);
+  return model?.imageGenConfig !== undefined;
+};
+
+export const getDefaultImageGenSetting = (
+  modelId: string
+): ImageGenSetting | undefined => {
+  const model = getModelById(modelId);
+  if (!model?.imageGenConfig) {
+    return;
+  }
+
+  return {
+    quality: model.imageGenConfig.quality?.default,
+    aspectRatio: model.imageGenConfig.aspectRatio?.default,
+  };
+};
+
+export const parseImageGenSettingFromCookie = (
+  modelId: string,
+  qualityCookie: string | undefined,
+  aspectCookie: string | undefined
+): ImageGenSetting | undefined => {
+  const model = getModelById(modelId);
+  if (!model?.imageGenConfig) {
+    return;
+  }
+
+  const defaults = getDefaultImageGenSetting(modelId);
+  const quality =
+    qualityCookie &&
+    model.imageGenConfig.quality?.options.some((o) => o.value === qualityCookie)
+      ? qualityCookie
+      : defaults?.quality;
+  const aspectRatio =
+    aspectCookie &&
+    model.imageGenConfig.aspectRatio?.options.some(
+      (o) => o.value === aspectCookie
+    )
+      ? aspectCookie
+      : defaults?.aspectRatio;
+
+  return { quality, aspectRatio };
+};
+
+export const validateImageGenSetting = (
+  modelId: string,
+  setting: ImageGenSetting | undefined
+): ImageGenSetting | undefined => {
+  const model = getModelById(modelId);
+  if (!model?.imageGenConfig) {
+    return;
+  }
+
+  const defaults = getDefaultImageGenSetting(modelId);
+  if (!setting) {
+    return defaults;
+  }
+
+  const quality =
+    setting.quality &&
+    model.imageGenConfig.quality?.options.some(
+      (o) => o.value === setting.quality
+    )
+      ? setting.quality
+      : defaults?.quality;
+  const aspectRatio =
+    setting.aspectRatio &&
+    model.imageGenConfig.aspectRatio?.options.some(
+      (o) => o.value === setting.aspectRatio
+    )
+      ? setting.aspectRatio
+      : defaults?.aspectRatio;
+
+  return { quality, aspectRatio };
 };

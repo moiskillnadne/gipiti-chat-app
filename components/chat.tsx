@@ -62,7 +62,7 @@ export function Chat({
   const tUsage = useTranslations("usage");
 
   // Use model context for stable refs
-  const { modelIdRef, thinkingSettingRef } = useModelRefs();
+  const { modelIdRef, thinkingSettingRef, imageGenSettingRef } = useModelRefs();
   const { setIsEmptyChat, persistPendingModelChange } = useModel();
   const { styleIdRef } = useStyleRef();
   const { projectIdRef } = useProjectRef();
@@ -103,6 +103,9 @@ export function Chat({
           message: request.messages.at(-1),
           selectedChatModel: modelIdRef.current,
           thinkingSetting: thinkingSettingRef.current,
+          ...(imageGenSettingRef.current && {
+            imageGenSetting: imageGenSettingRef.current,
+          }),
           ...(lastGenerationIdRef.current && {
             previousGenerationId: lastGenerationIdRef.current,
           }),

@@ -38,6 +38,7 @@ import {
   isVisibleInUI,
   supportsAttachments,
   supportsThinkingConfig,
+  validateImageGenSetting,
   validateThinkingSetting,
 } from "@/lib/ai/models";
 import {
@@ -193,6 +194,7 @@ export async function POST(request: Request) {
       message,
       selectedChatModel: requestedChatModel,
       thinkingSetting: rawThinkingSetting,
+      imageGenSetting: rawImageGenSetting,
       selectedTextStyleId,
       selectedProjectId,
     } = requestBody;
@@ -206,6 +208,12 @@ export async function POST(request: Request) {
     const thinkingSetting = validateThinkingSetting(
       selectedChatModel,
       rawThinkingSetting
+    );
+
+    // Validate image generation setting against the model's config
+    const imageGenSetting = validateImageGenSetting(
+      selectedChatModel,
+      rawImageGenSetting
     );
 
     const session = await auth();
@@ -539,20 +547,41 @@ export async function POST(request: Request) {
                 // EDIT MODE: Use images.edit() API
                 const imageFile = await downloadImageAsFile(previousImageUrl);
 
+                // Edit API doesn't support "auto" size
+                const editSize =
+                  imageGenSetting?.aspectRatio &&
+                  imageGenSetting.aspectRatio !== "auto"
+                    ? (imageGenSetting.aspectRatio as
+                        | "1024x1024"
+                        | "1536x1024"
+                        | "1024x1536")
+                    : "1024x1024";
+
                 openaiResponse = await openaiClient.images.edit({
                   model: "gpt-image-1",
                   image: imageFile,
                   prompt: userPrompt,
-                  size: "1024x1024",
+                  size: editSize,
                   n: 1,
                 });
               } else {
                 // GENERATE MODE: Use images.generate() API
+                const genSize = (imageGenSetting?.aspectRatio ?? "auto") as
+                  | "auto"
+                  | "1024x1024"
+                  | "1536x1024"
+                  | "1024x1536";
+                const genQuality = (imageGenSetting?.quality ?? "auto") as
+                  | "auto"
+                  | "low"
+                  | "medium"
+                  | "high";
+
                 openaiResponse = await openaiClient.images.generate({
                   model: "gpt-image-1.5",
                   prompt: userPrompt,
-                  size: "1024x1024",
-                  quality: "medium",
+                  size: genSize,
+                  quality: genQuality,
                   n: 1,
                 });
               }
@@ -597,11 +626,35 @@ export async function POST(request: Request) {
 
             console.dir(messagesPayloadForImageGeneration, { depth: null });
 
+            // Build provider options merging model defaults with user settings
+            const modelDef = getModelById(selectedChatModel);
+            const baseProviderOptions = modelDef?.providerOptions ?? {};
+            const googleBase =
+              (baseProviderOptions.google as Record<string, unknown>) ?? {};
+            const googleImageConfig =
+              (googleBase.imageConfig as Record<string, string>) ?? {};
+
+            const mergedProviderOptions = {
+              ...baseProviderOptions,
+              google: {
+                ...googleBase,
+                imageConfig: {
+                  ...googleImageConfig,
+                  ...(imageGenSetting?.quality && {
+                    imageSize: imageGenSetting.quality,
+                  }),
+                  ...(imageGenSetting?.aspectRatio && {
+                    aspectRatio: imageGenSetting.aspectRatio,
+                  }),
+                },
+              },
+            };
+
             // Start streaming
             const result = streamText({
               model: myProvider.languageModel(selectedChatModel),
               messages: messagesPayloadForImageGeneration,
-              providerOptions: getModelById(selectedChatModel)?.providerOptions,
+              providerOptions: mergedProviderOptions,
             });
 
             // Process stream manually

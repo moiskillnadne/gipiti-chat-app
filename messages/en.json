@@ -426,7 +426,9 @@
       "tools": "Tools",
       "toolsThinking": "Thinking",
       "toolsStyle": "Style",
-      "toolsProject": "Project"
+      "toolsProject": "Project",
+      "toolsImageQuality": "Image Quality",
+      "toolsImageAspect": "Aspect Ratio"
     },
     "messages": {
       "thinking": "Thinking...",
@@ -866,6 +868,29 @@
     "high": "Extended",
     "low": "Low",
     "off": "Off"
+  },
+  "imageGenSetting": {
+    "qualityLabel": "Image Quality",
+    "aspectLabel": "Aspect Ratio",
+    "auto": "Auto",
+    "standard": "Standard (1K)",
+    "hd": "HD (2K)",
+    "ultra": "Ultra HD (4K)",
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "square": "Square (1:1)",
+    "landscape169": "Landscape (16:9)",
+    "portrait916": "Portrait (9:16)",
+    "landscape": "Landscape",
+    "portrait": "Portrait",
+    "wide32": "Wide (3:2)",
+    "tall23": "Tall (2:3)",
+    "standard43": "Standard (4:3)",
+    "standard34": "Standard (3:4)",
+    "photo54": "Photo (5:4)",
+    "photo45": "Photo (4:5)",
+    "ultrawide": "Ultra Wide (21:9)"
   },
   "modelList": {
     "providers": {

@@ -33,6 +33,11 @@ const thinkingSettingSchema = z.union([
   thinkingSettingBudgetSchema,
 ]);
 
+const imageGenSettingSchema = z.object({
+  quality: z.string().optional(),
+  aspectRatio: z.string().optional(),
+});
+
 export const postRequestBodySchema = z.object({
   id: z.string().uuid(),
   message: z.object({
@@ -42,6 +47,7 @@ export const postRequestBodySchema = z.object({
   }),
   selectedChatModel: chatModelIdSchema,
   thinkingSetting: thinkingSettingSchema.optional(),
+  imageGenSetting: imageGenSettingSchema.optional(),
   previousGenerationId: z.string().optional(),
   selectedTextStyleId: z.string().uuid().optional(),
   selectedProjectId: z.string().uuid().optional(),

@@ -9,8 +9,12 @@ import { StyleProvider } from "@/contexts/style-context";
 import {
   chatModelIds,
   DEFAULT_CHAT_MODEL,
+  getDefaultImageGenSetting,
   getDefaultThinkingSetting,
+  IMAGE_ASPECT_COOKIE_PREFIX,
+  IMAGE_QUALITY_COOKIE_PREFIX,
   isVisibleInUI,
+  parseImageGenSettingFromCookie,
   parseThinkingSettingFromCookie,
   THINKING_COOKIE_PREFIX,
 } from "@/lib/ai/models";
@@ -40,6 +44,19 @@ export default async function Layout({
     parseThinkingSettingFromCookie(validatedModelId, thinkingCookieValue) ??
     getDefaultThinkingSetting(validatedModelId);
 
+  const imageQualityCookie = cookieStore.get(
+    `${IMAGE_QUALITY_COOKIE_PREFIX}-${validatedModelId}`
+  )?.value;
+  const imageAspectCookie = cookieStore.get(
+    `${IMAGE_ASPECT_COOKIE_PREFIX}-${validatedModelId}`
+  )?.value;
+  const initialImageGenSetting =
+    parseImageGenSettingFromCookie(
+      validatedModelId,
+      imageQualityCookie,
+      imageAspectCookie
+    ) ?? getDefaultImageGenSetting(validatedModelId);
+
   const userType = session?.user?.type ?? "regular";
   const textStyleId = cookieStore.get("chat-text-style")?.value ?? null;
   const projectId = cookieStore.get("chat-project")?.value ?? null;
@@ -52,6 +69,7 @@ export default async function Layout({
       />
       <DataStreamProvider>
         <ModelProvider
+          initialImageGenSetting={initialImageGenSetting}
           initialModelId={validatedModelId}
           initialThinkingSetting={initialThinkingSetting}
           userType={userType}

@@ -3,7 +3,11 @@
 import type { GatewayProviderOptions } from "@ai-sdk/gateway";
 import { generateText, type UIMessage } from "ai";
 import { cookies } from "next/headers";
-import { THINKING_COOKIE_PREFIX } from "@/lib/ai/models";
+import {
+  IMAGE_ASPECT_COOKIE_PREFIX,
+  IMAGE_QUALITY_COOKIE_PREFIX,
+  THINKING_COOKIE_PREFIX,
+} from "@/lib/ai/models";
 import { myProvider } from "@/lib/ai/providers";
 import {
   deleteMessagesByChatIdAfterTimestamp,
@@ -21,6 +25,16 @@ export async function saveThinkingSettingAsCookie(
 ) {
   const cookieStore = await cookies();
   cookieStore.set(`${THINKING_COOKIE_PREFIX}-${modelId}`, value);
+}
+
+export async function saveImageQualityAsCookie(modelId: string, value: string) {
+  const cookieStore = await cookies();
+  cookieStore.set(`${IMAGE_QUALITY_COOKIE_PREFIX}-${modelId}`, value);
+}
+
+export async function saveImageAspectAsCookie(modelId: string, value: string) {
+  const cookieStore = await cookies();
+  cookieStore.set(`${IMAGE_ASPECT_COOKIE_PREFIX}-${modelId}`, value);
 }
 
 export async function generateTitleFromUserMessage({
