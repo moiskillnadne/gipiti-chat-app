@@ -426,7 +426,9 @@
       "tools": "Инструменты",
       "toolsThinking": "Размышление",
       "toolsStyle": "Стиль",
-      "toolsProject": "Проект"
+      "toolsProject": "Проект",
+      "toolsImageQuality": "Качество изображения",
+      "toolsImageAspect": "Соотношение сторон"
     },
     "messages": {
       "thinking": "Думаю...",
@@ -866,6 +868,29 @@
     "high": "Глубокое",
     "low": "Минимальное",
     "off": "Выкл"
+  },
+  "imageGenSetting": {
+    "qualityLabel": "Качество изображения",
+    "aspectLabel": "Соотношение сторон",
+    "auto": "Авто",
+    "standard": "Стандарт (1K)",
+    "hd": "HD (2K)",
+    "ultra": "Ultra HD (4K)",
+    "low": "Низкое",
+    "medium": "Среднее",
+    "high": "Высокое",
+    "square": "Квадрат (1:1)",
+    "landscape169": "Пейзаж (16:9)",
+    "portrait916": "Портрет (9:16)",
+    "landscape": "Пейзаж",
+    "portrait": "Портрет",
+    "wide32": "Широкий (3:2)",
+    "tall23": "Высокий (2:3)",
+    "standard43": "Стандарт (4:3)",
+    "standard34": "Стандарт (3:4)",
+    "photo54": "Фото (5:4)",
+    "photo45": "Фото (4:5)",
+    "ultrawide": "Ультраширокий (21:9)"
   },
   "modelList": {
     "providers": {

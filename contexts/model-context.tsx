@@ -14,13 +14,17 @@ import {
 import type { UserType } from "@/app/(auth)/auth";
 import {
   saveChatModelAsCookie,
+  saveImageAspectAsCookie,
+  saveImageQualityAsCookie,
   saveThinkingSettingAsCookie,
 } from "@/app/(chat)/actions";
 import { entitlementsByUserType } from "@/lib/ai/entitlements";
 import {
   type ChatModel,
   chatModels,
+  getDefaultImageGenSetting,
   getDefaultThinkingSetting,
+  type ImageGenSetting,
   serializeThinkingSetting,
   type ThinkingSetting,
   uiVisibleChatModels,
@@ -33,6 +37,8 @@ type ModelContextValue = {
   getModelById: (id: string) => ChatModel | undefined;
   currentThinkingSetting: ThinkingSetting | undefined;
   setCurrentThinkingSetting: (setting: ThinkingSetting | undefined) => void;
+  currentImageGenSetting: ImageGenSetting | undefined;
+  setCurrentImageGenSetting: (setting: ImageGenSetting | undefined) => void;
   isEmptyChat: boolean;
   setIsEmptyChat: (isEmpty: boolean) => void;
   persistPendingModelChange: () => void;
@@ -44,11 +50,13 @@ export function ModelProvider({
   children,
   initialModelId,
   initialThinkingSetting,
+  initialImageGenSetting,
   userType,
 }: {
   children: ReactNode;
   initialModelId: string;
   initialThinkingSetting?: ThinkingSetting;
+  initialImageGenSetting?: ImageGenSetting;
   userType: UserType;
 }) {
   const [currentModelId, setCurrentModelId] = useState(initialModelId);
@@ -56,15 +64,23 @@ export function ModelProvider({
   const [currentThinkingSetting, setCurrentThinkingSettingState] = useState<
     ThinkingSetting | undefined
   >(initialThinkingSetting);
+  const [currentImageGenSetting, setCurrentImageGenSettingState] = useState<
+    ImageGenSetting | undefined
+  >(initialImageGenSetting);
   const [isEmptyChat, setIsEmptyChat] = useState(false);
 
   // Create refs for stable access in callbacks
   const currentModelIdRef = useRef(currentModelId);
   const currentThinkingSettingRef = useRef(currentThinkingSetting);
+  const currentImageGenSettingRef = useRef(currentImageGenSetting);
   const pendingModelChangeRef = useRef<string | null>(null);
   const pendingThinkingSettingChangeRef = useRef<{
     modelId: string;
     setting: ThinkingSetting;
+  } | null>(null);
+  const pendingImageGenSettingChangeRef = useRef<{
+    modelId: string;
+    setting: ImageGenSetting;
   } | null>(null);
 
   useEffect(() => {
@@ -74,6 +90,10 @@ export function ModelProvider({
   useEffect(() => {
     currentThinkingSettingRef.current = currentThinkingSetting;
   }, [currentThinkingSetting]);
+
+  useEffect(() => {
+    currentImageGenSettingRef.current = currentImageGenSetting;
+  }, [currentImageGenSetting]);
 
   // Filter models based on user entitlements and UI visibility
   const availableModels = useMemo(() => {
@@ -99,6 +119,10 @@ export function ModelProvider({
       // Reset thinking setting to default for new model
       const defaultSetting = getDefaultThinkingSetting(newModelId);
       setCurrentThinkingSettingState(defaultSetting);
+
+      // Reset image gen setting to default for new model
+      const defaultImageGenSetting = getDefaultImageGenSetting(newModelId);
+      setCurrentImageGenSettingState(defaultImageGenSetting);
 
       // Conditionally persist to cookie based on chat state
       if (isEmptyChat) {
@@ -135,6 +159,30 @@ export function ModelProvider({
     [isEmptyChat, currentModelId]
   );
 
+  // Handle image gen setting change with conditional persistence
+  const setCurrentImageGenSetting = useCallback(
+    (setting: ImageGenSetting | undefined) => {
+      setCurrentImageGenSettingState(setting);
+
+      if (setting && !isEmptyChat) {
+        startTransition(() => {
+          if (setting.quality) {
+            saveImageQualityAsCookie(currentModelId, setting.quality);
+          }
+          if (setting.aspectRatio) {
+            saveImageAspectAsCookie(currentModelId, setting.aspectRatio);
+          }
+        });
+      } else if (setting && isEmptyChat) {
+        pendingImageGenSettingChangeRef.current = {
+          modelId: currentModelId,
+          setting,
+        };
+      }
+    },
+    [isEmptyChat, currentModelId]
+  );
+
   // Sync optimistic state with actual state
   useEffect(() => {
     setOptimisticModelId(currentModelId);
@@ -157,6 +205,19 @@ export function ModelProvider({
         saveThinkingSettingAsCookie(modelId, serializeThinkingSetting(setting));
       });
     }
+
+    if (pendingImageGenSettingChangeRef.current) {
+      const { modelId, setting } = pendingImageGenSettingChangeRef.current;
+      pendingImageGenSettingChangeRef.current = null;
+      startTransition(() => {
+        if (setting.quality) {
+          saveImageQualityAsCookie(modelId, setting.quality);
+        }
+        if (setting.aspectRatio) {
+          saveImageAspectAsCookie(modelId, setting.aspectRatio);
+        }
+      });
+    }
   }, []);
 
   const value = useMemo(
@@ -167,6 +228,8 @@ export function ModelProvider({
       getModelById: getModelByIdFn,
       currentThinkingSetting,
       setCurrentThinkingSetting,
+      currentImageGenSetting,
+      setCurrentImageGenSetting,
       isEmptyChat,
       setIsEmptyChat,
       persistPendingModelChange,
@@ -178,6 +241,8 @@ export function ModelProvider({
       getModelByIdFn,
       currentThinkingSetting,
       setCurrentThinkingSetting,
+      currentImageGenSetting,
+      setCurrentImageGenSetting,
       isEmptyChat,
       persistPendingModelChange,
     ]
@@ -198,9 +263,11 @@ export function useModel() {
 
 // Export refs for cases where we need stable references
 export function useModelRefs() {
-  const { currentModelId, currentThinkingSetting } = useModel();
+  const { currentModelId, currentThinkingSetting, currentImageGenSetting } =
+    useModel();
   const modelIdRef = useRef(currentModelId);
   const thinkingSettingRef = useRef(currentThinkingSetting);
+  const imageGenSettingRef = useRef(currentImageGenSetting);
 
   useEffect(() => {
     modelIdRef.current = currentModelId;
@@ -210,8 +277,13 @@ export function useModelRefs() {
     thinkingSettingRef.current = currentThinkingSetting;
   }, [currentThinkingSetting]);
 
+  useEffect(() => {
+    imageGenSettingRef.current = currentImageGenSetting;
+  }, [currentImageGenSetting]);
+
   return {
     modelIdRef,
     thinkingSettingRef,
+    imageGenSettingRef,
   };
 }

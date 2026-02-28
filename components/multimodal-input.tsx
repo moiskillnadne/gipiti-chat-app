@@ -5,6 +5,8 @@ import equal from "fast-deep-equal";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
+  ImageIcon,
+  RatioIcon,
   SlidersHorizontalIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -27,8 +29,10 @@ import { useProject } from "@/contexts/project-context";
 import { useStyle } from "@/contexts/style-context";
 import {
   getModelById,
+  type ImageGenSetting,
   isVideoGenerationModel,
   supportsAttachments,
+  supportsImageGenConfig,
   supportsThinkingConfig,
   type ThinkingSetting,
 } from "@/lib/ai/models";
@@ -58,7 +62,13 @@ import { Button } from "./ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 
-type ToolsPopoverView = "menu" | "thinking" | "style" | "project";
+type ToolsPopoverView =
+  | "menu"
+  | "thinking"
+  | "style"
+  | "project"
+  | "imageQuality"
+  | "imageAspect";
 
 function PureToolsPopover() {
   const [open, setOpen] = useState(false);
@@ -66,11 +76,17 @@ function PureToolsPopover() {
 
   const tInput = useTranslations("chat.input");
   const tThinking = useTranslations("thinkingSetting");
+  const tImageGen = useTranslations("imageGenSetting");
   const tStyles = useTranslations("textStyles");
   const tProjects = useTranslations("projects");
 
-  const { currentModelId, currentThinkingSetting, setCurrentThinkingSetting } =
-    useModel();
+  const {
+    currentModelId,
+    currentThinkingSetting,
+    setCurrentThinkingSetting,
+    currentImageGenSetting,
+    setCurrentImageGenSetting,
+  } = useModel();
   const {
     currentStyleId,
     setStyleId,
@@ -85,8 +101,10 @@ function PureToolsPopover() {
   } = useProject();
 
   const isThinkingSupported = supportsThinkingConfig(currentModelId);
+  const isImageGenSupported = supportsImageGenConfig(currentModelId);
   const model = getModelById(currentModelId);
   const thinkingConfig = model?.thinkingConfig;
+  const imageGenConfig = model?.imageGenConfig;
 
   const currentStyle = styles.find((s) => s.id === currentStyleId);
   const currentProject = projects.find((p) => p.id === currentProjectId);
@@ -145,6 +163,50 @@ function PureToolsPopover() {
       setView("menu");
     },
     [setProjectId]
+  );
+
+  const getCurrentQualityLabel = useCallback(() => {
+    if (!imageGenConfig?.quality || !currentImageGenSetting?.quality) {
+      return tImageGen("auto");
+    }
+    const opt = imageGenConfig.quality.options.find(
+      (o) => o.value === currentImageGenSetting.quality
+    );
+    return opt ? tImageGen(opt.labelKey) : tImageGen("auto");
+  }, [imageGenConfig, currentImageGenSetting, tImageGen]);
+
+  const getCurrentAspectLabel = useCallback(() => {
+    if (!imageGenConfig?.aspectRatio || !currentImageGenSetting?.aspectRatio) {
+      return tImageGen("auto");
+    }
+    const opt = imageGenConfig.aspectRatio.options.find(
+      (o) => o.value === currentImageGenSetting.aspectRatio
+    );
+    return opt ? tImageGen(opt.labelKey) : tImageGen("auto");
+  }, [imageGenConfig, currentImageGenSetting, tImageGen]);
+
+  const handleImageQualitySelect = useCallback(
+    (value: string) => {
+      setCurrentImageGenSetting({
+        ...currentImageGenSetting,
+        quality: value,
+      } as ImageGenSetting);
+      setOpen(false);
+      setView("menu");
+    },
+    [setCurrentImageGenSetting, currentImageGenSetting]
+  );
+
+  const handleImageAspectSelect = useCallback(
+    (value: string) => {
+      setCurrentImageGenSetting({
+        ...currentImageGenSetting,
+        aspectRatio: value,
+      } as ImageGenSetting);
+      setOpen(false);
+      setView("menu");
+    },
+    [setCurrentImageGenSetting, currentImageGenSetting]
   );
 
   const hasStyles = !isStylesLoading && styles.length > 0;
@@ -232,6 +294,52 @@ function PureToolsPopover() {
               </div>
               <ChevronRightIcon className="text-muted-foreground" size={16} />
             </button>
+
+            {isImageGenSupported && imageGenConfig?.quality && (
+              <button
+                className={cn(
+                  "flex min-h-[44px] w-full cursor-pointer items-center",
+                  "gap-3 border-border border-t px-3 py-2.5 text-left",
+                  "transition-colors hover:bg-accent"
+                )}
+                onClick={() => setView("imageQuality")}
+                type="button"
+              >
+                <ImageIcon size={16} />
+                <div className="flex-1">
+                  <div className="font-medium text-sm leading-tight">
+                    {tInput("toolsImageQuality")}
+                  </div>
+                  <div className="mt-0.5 text-muted-foreground text-xs">
+                    {getCurrentQualityLabel()}
+                  </div>
+                </div>
+                <ChevronRightIcon className="text-muted-foreground" size={16} />
+              </button>
+            )}
+
+            {isImageGenSupported && imageGenConfig?.aspectRatio && (
+              <button
+                className={cn(
+                  "flex min-h-[44px] w-full cursor-pointer items-center",
+                  "gap-3 border-border border-t px-3 py-2.5 text-left",
+                  "transition-colors hover:bg-accent"
+                )}
+                onClick={() => setView("imageAspect")}
+                type="button"
+              >
+                <RatioIcon size={16} />
+                <div className="flex-1">
+                  <div className="font-medium text-sm leading-tight">
+                    {tInput("toolsImageAspect")}
+                  </div>
+                  <div className="mt-0.5 text-muted-foreground text-xs">
+                    {getCurrentAspectLabel()}
+                  </div>
+                </div>
+                <ChevronRightIcon className="text-muted-foreground" size={16} />
+              </button>
+            )}
           </div>
         )}
 
@@ -553,6 +661,104 @@ function PureToolsPopover() {
                 </Link>
               </div>
             )}
+          </div>
+        )}
+        {view === "imageQuality" && imageGenConfig?.quality && (
+          <div className="flex flex-col">
+            <button
+              className={cn(
+                "flex min-h-[40px] w-full cursor-pointer items-center",
+                "gap-2 border-border border-b px-3 py-2 text-left",
+                "transition-colors hover:bg-accent"
+              )}
+              onClick={() => setView("menu")}
+              type="button"
+            >
+              <ChevronLeftIcon size={16} />
+              <span className="font-medium text-sm">
+                {tInput("toolsImageQuality")}
+              </span>
+            </button>
+            <div className="flex flex-col gap-px py-1">
+              {imageGenConfig.quality.options.map((opt) => {
+                const isSelected =
+                  currentImageGenSetting?.quality === opt.value;
+                return (
+                  <button
+                    className={cn(
+                      "flex min-h-[40px] w-full cursor-pointer items-center",
+                      "gap-3 px-3 py-2 text-left",
+                      "transition-colors hover:bg-accent",
+                      isSelected && "bg-accent/50"
+                    )}
+                    key={opt.value}
+                    onClick={() => handleImageQualitySelect(opt.value)}
+                    type="button"
+                  >
+                    <div className="flex-1 font-medium text-sm">
+                      {tImageGen(opt.labelKey)}
+                    </div>
+                    {isSelected && (
+                      <span className="flex-shrink-0 text-primary">
+                        <CheckCircleFillIcon size={18} />
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {view === "imageAspect" && imageGenConfig?.aspectRatio && (
+          <div className="flex flex-col">
+            <button
+              className={cn(
+                "flex min-h-[40px] w-full cursor-pointer items-center",
+                "gap-2 border-border border-b px-3 py-2 text-left",
+                "transition-colors hover:bg-accent"
+              )}
+              onClick={() => setView("menu")}
+              type="button"
+            >
+              <ChevronLeftIcon size={16} />
+              <span className="font-medium text-sm">
+                {tInput("toolsImageAspect")}
+              </span>
+            </button>
+            <div className="max-h-[320px] flex-col gap-px overflow-y-auto py-1">
+              {imageGenConfig.aspectRatio.options.map((opt) => {
+                const isSelected =
+                  currentImageGenSetting?.aspectRatio === opt.value;
+                return (
+                  <button
+                    className={cn(
+                      "flex min-h-[40px] w-full cursor-pointer items-center",
+                      "gap-3 px-3 py-2 text-left",
+                      "transition-colors hover:bg-accent",
+                      isSelected && "bg-accent/50"
+                    )}
+                    key={opt.value}
+                    onClick={() => handleImageAspectSelect(opt.value)}
+                    type="button"
+                  >
+                    <div className="flex flex-1 items-center gap-2">
+                      <span className="font-medium text-sm">
+                        {tImageGen(opt.labelKey)}
+                      </span>
+                      <span className="text-muted-foreground text-xs">
+                        {opt.value}
+                      </span>
+                    </div>
+                    {isSelected && (
+                      <span className="flex-shrink-0 text-primary">
+                        <CheckCircleFillIcon size={18} />
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         )}
       </PopoverContent>
