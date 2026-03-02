@@ -32,6 +32,8 @@ export const ensureMessageHasTextPart = (
 
   // If has reasoning but no text, synthesize fallback response
   if (hasReasoningPart && !hasTextPart) {
+    const hasFilePart = message.parts.some((p) => p.type === "file");
+
     console.warn(
       "[MESSAGE_VALIDATOR] Message missing text part after reasoning",
       {
@@ -43,14 +45,18 @@ export const ensureMessageHasTextPart = (
       }
     );
 
-    // Add minimal text part directing user to reasoning content
+    // Context-aware fallback: use appropriate message based on content type
+    const fallbackText = hasFilePart
+      ? "Image generated successfully."
+      : "Please see my detailed analysis above for the answer to your question.";
+
     return {
       ...message,
       parts: [
         ...message.parts,
         {
           type: "text" as const,
-          text: "Please see my detailed analysis above for the answer to your question.",
+          text: fallbackText,
         },
       ],
     };

@@ -305,7 +305,30 @@ export async function POST(request: Request) {
       }),
       createStreamId({ streamId, chatId: id }),
     ]);
-    const uiMessages = [...convertToUIMessages(messagesFromDb), message];
+    const rawUiMessages = [...convertToUIMessages(messagesFromDb), message];
+
+    // Strip reasoning parts from historical messages to prevent cross-provider
+    // incompatibilities (e.g., Anthropic reasoning parts sent to OpenAI).
+    // Reasoning is ephemeral display content — not needed for inference context.
+    const uiMessages = rawUiMessages.map((msg) => {
+      if (msg.role !== "assistant" || !msg.parts) {
+        return msg;
+      }
+
+      const filteredParts = msg.parts.filter((p) => p.type !== "reasoning");
+
+      // Keep original message if filtering would remove all meaningful parts
+      if (
+        filteredParts.length === 0 ||
+        !filteredParts.some((p) => p.type === "text")
+      ) {
+        return msg;
+      }
+
+      return filteredParts.length === msg.parts.length
+        ? msg
+        : { ...msg, parts: filteredParts };
+    });
 
     // --- Token quota check (after chat/message save to prevent 404) ---
     if (!quotaCheck.allowed) {
