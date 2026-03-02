@@ -10,7 +10,7 @@ export type ChatModelCapabilities = {
   videoGeneration?: boolean;
 };
 
-export type ModelProvider = "openai" | "google" | "anthropic" | "xai";
+export type ModelProvider = "openai" | "google" | "anthropic" | "xai" | "bfl";
 
 export type ThinkingEffortConfig = {
   type: "effort";
@@ -124,6 +124,21 @@ const OPENAI_IMAGE_GEN_CONFIG: ImageGenConfig = {
       { value: "1024x1536", labelKey: "portrait" },
     ],
     default: "auto",
+  },
+};
+
+const BFL_IMAGE_GEN_CONFIG: ImageGenConfig = {
+  aspectRatio: {
+    options: [
+      { value: "1:1", labelKey: "square" },
+      { value: "16:9", labelKey: "landscape169" },
+      { value: "9:16", labelKey: "portrait916" },
+      { value: "3:2", labelKey: "wide32" },
+      { value: "2:3", labelKey: "tall23" },
+      { value: "4:3", labelKey: "standard43" },
+      { value: "3:4", labelKey: "standard34" },
+    ],
+    default: "1:1",
   },
 };
 
@@ -430,6 +445,17 @@ export const chatModels: ChatModel[] = [
     },
     showInUI: true,
   },
+  {
+    id: "flux-2-max",
+    name: "flux2Max.name",
+    description: "flux2Max.description",
+    provider: "bfl",
+    capabilities: {
+      imageGeneration: true,
+    },
+    showInUI: true,
+    imageGenConfig: BFL_IMAGE_GEN_CONFIG,
+  },
 ];
 
 export const chatModelIds = chatModels.map((model) => model.id);
@@ -478,10 +504,11 @@ const videoGenerationModelIds = new Set(
 export const isVideoGenerationModel = (modelId: string) =>
   videoGenerationModelIds.has(modelId);
 
-type DedicatedImageModelId = "grok-imagine-image-pro";
+type DedicatedImageModelId = "grok-imagine-image-pro" | "flux-2-max";
 
 const DEDICATED_IMAGE_GATEWAY_MAP: Record<DedicatedImageModelId, string> = {
   "grok-imagine-image-pro": "xai/grok-imagine-image-pro",
+  "flux-2-max": "bfl/flux-2-max",
 };
 
 export const getDedicatedImageGatewayModelId = (modelId: string): string => {

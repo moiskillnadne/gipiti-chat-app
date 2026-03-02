@@ -12,6 +12,7 @@ const providerStyles: Record<ModelProvider | "unknown", string> = {
   anthropic:
     "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
   xai: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
+  bfl: "bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-400",
   unknown: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
 };
 

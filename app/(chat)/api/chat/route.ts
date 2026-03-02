@@ -661,6 +661,10 @@ export async function POST(request: Request) {
             const result = await sdkGenerateImage({
               model: gateway.imageModel(gatewayModelId),
               prompt: userPrompt,
+              ...(imageGenSetting?.aspectRatio && {
+                aspectRatio:
+                  imageGenSetting.aspectRatio as `${number}:${number}`,
+              }),
             });
 
             dataStream.write({
