@@ -1,4 +1,5 @@
 import { gateway } from "@ai-sdk/gateway";
+import type { SharedV2ProviderOptions } from "@ai-sdk/provider";
 import { put } from "@vercel/blob";
 import { geolocation } from "@vercel/functions";
 import {
@@ -649,29 +650,32 @@ export async function POST(request: Request) {
 
             console.dir(messagesPayloadForImageGeneration, { depth: null });
 
-            // Build provider options merging model defaults with user settings
+            // Build provider options based on the model's provider
             const modelDef = getModelById(selectedChatModel);
-            const baseProviderOptions = modelDef?.providerOptions ?? {};
-            const googleBase =
-              (baseProviderOptions.google as Record<string, unknown>) ?? {};
-            const googleImageConfig =
-              (googleBase.imageConfig as Record<string, string>) ?? {};
+            let mergedProviderOptions: SharedV2ProviderOptions =
+              modelDef?.providerOptions ?? {};
 
-            const mergedProviderOptions = {
-              ...baseProviderOptions,
-              google: {
-                ...googleBase,
-                imageConfig: {
-                  ...googleImageConfig,
-                  ...(imageGenSetting?.quality && {
-                    imageSize: imageGenSetting.quality,
-                  }),
-                  ...(imageGenSetting?.aspectRatio && {
-                    aspectRatio: imageGenSetting.aspectRatio,
-                  }),
+            if (modelDef?.provider === "google" && imageGenSetting) {
+              const googleBase =
+                (mergedProviderOptions.google as Record<string, unknown>) ?? {};
+              const googleImageConfig =
+                (googleBase.imageConfig as Record<string, string>) ?? {};
+              mergedProviderOptions = {
+                ...mergedProviderOptions,
+                google: {
+                  ...googleBase,
+                  imageConfig: {
+                    ...googleImageConfig,
+                    ...(imageGenSetting.quality && {
+                      imageSize: imageGenSetting.quality,
+                    }),
+                    ...(imageGenSetting.aspectRatio && {
+                      aspectRatio: imageGenSetting.aspectRatio,
+                    }),
+                  },
                 },
-              },
-            };
+              };
+            }
 
             // Start streaming
             const result = streamText({
@@ -714,8 +718,8 @@ export async function POST(request: Request) {
               if (delta.type === "finish-step") {
                 const metadata = await result.providerMetadata;
                 if (metadata) {
-                  usageMetadata = metadata.google
-                    ?.usageMetadata as typeof usageMetadata;
+                  usageMetadata = (metadata.google?.usageMetadata ??
+                    metadata.xai?.usageMetadata) as typeof usageMetadata;
                   totalCostUsd = metadata.gateway?.cost?.toString();
 
                   // Debug: log full metadata structure

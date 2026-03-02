@@ -347,6 +347,16 @@ export const chatModels: ChatModel[] = [
     imageGenConfig: GOOGLE_IMAGE_GEN_CONFIG,
   },
   {
+    id: "grok-imagine-image-pro",
+    name: "grokImagineImagePro.name",
+    description: "grokImagineImagePro.description",
+    provider: "xai",
+    capabilities: {
+      imageGeneration: true,
+    },
+    showInUI: true,
+  },
+  {
     id: "gpt-image-1.5",
     name: "gptImage15.name",
     description: "gptImage15.description",
