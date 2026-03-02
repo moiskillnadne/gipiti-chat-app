@@ -30,6 +30,7 @@ import { useStyle } from "@/contexts/style-context";
 import {
   getModelById,
   type ImageGenSetting,
+  isDedicatedImageModel,
   isVideoGenerationModel,
   supportsAttachments,
   supportsImageGenConfig,
@@ -913,8 +914,11 @@ function PureMultimodalInput({
   );
 
   const _modelResolver = useMemo(() => {
-    // Video generation models use gateway.videoModel(), not languageModel()
-    if (isVideoGenerationModel(currentModelId)) {
+    // These models don't use languageModel() — they have dedicated APIs
+    if (
+      isVideoGenerationModel(currentModelId) ||
+      isDedicatedImageModel(currentModelId)
+    ) {
       return null;
     }
     return myProvider.languageModel(currentModelId);

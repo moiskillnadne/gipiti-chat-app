@@ -7,6 +7,7 @@ import {
   createUIMessageStream,
   experimental_generateVideo as generateVideo,
   JsonToSseTransformStream,
+  generateImage as sdkGenerateImage,
   smoothStream,
   stepCountIs,
   streamText,
@@ -29,10 +30,12 @@ import { checkMessageQuota } from "@/lib/ai/message-quota";
 import { ensureMessageHasTextPart } from "@/lib/ai/message-validator";
 import {
   DEFAULT_CHAT_MODEL,
+  getDedicatedImageGatewayModelId,
   getModelById,
   getProviderOptions,
   getVeoGatewayModelId,
   isAutoReasoning,
+  isDedicatedImageModel,
   isImageGenerationModel,
   isReasoningModelId,
   isVideoGenerationModel,
@@ -643,8 +646,57 @@ export async function POST(request: Request) {
               }
               throw error;
             }
+          } else if (isDedicatedImageModel(selectedChatModel)) {
+            // Dedicated image models (e.g. grok-imagine-image-pro) use
+            // generateImage() + gateway.imageModel() instead of streamText()
+            const gatewayModelId =
+              getDedicatedImageGatewayModelId(selectedChatModel);
+
+            dataStream.write({
+              id: documentId,
+              type: "reasoning-delta",
+              delta: "Generating image...",
+            });
+
+            const result = await sdkGenerateImage({
+              model: gateway.imageModel(gatewayModelId),
+              prompt: userPrompt,
+            });
+
+            dataStream.write({
+              id: documentId,
+              type: "reasoning-delta",
+              delta: "Uploading image...",
+            });
+
+            if (result.image) {
+              imageUrl = await uploadGeneratedImage(
+                result.image.base64,
+                "image/png"
+              );
+            }
+
+            // Extract usage metadata
+            const imgUsage = result.usage;
+            usageMetadata = {
+              promptTokenCount: imgUsage.inputTokens ?? 0,
+              candidatesTokenCount: imgUsage.outputTokens ?? 0,
+              thoughtsTokenCount: 0,
+              totalTokenCount: imgUsage.totalTokens ?? 0,
+            };
+
+            // Extract cost from provider metadata
+            const provMeta = result.providerMetadata;
+            const gatewayCost = (
+              provMeta?.gateway as Record<string, unknown> | undefined
+            )?.cost;
+            if (gatewayCost != null) {
+              totalCostUsd = String(gatewayCost);
+            }
+
+            _responseId = generateImageGenerationId();
           } else {
-            // Use existing gateway flow for other image generation models
+            // Use existing gateway flow for multimodal image models (Gemini)
             const messagesPayloadForImageGeneration =
               await convertToModelMessages(uiMessages);
 
