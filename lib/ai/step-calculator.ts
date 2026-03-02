@@ -30,7 +30,7 @@ export const calculateOptimalStepLimit = (
       none: 0,
       low: 1,
       medium: 3,
-      high: 6,
+      high: 4,
     };
 
     steps += effortBonus[thinkingSetting.value] ?? 0;
@@ -46,5 +46,5 @@ export const calculateOptimalStepLimit = (
   }
 
   // Cap at reasonable maximum to control costs and prevent runaway execution
-  return Math.min(steps, 15);
+  return Math.min(steps, 12);
 };

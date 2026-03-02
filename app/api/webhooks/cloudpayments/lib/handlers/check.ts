@@ -75,7 +75,8 @@ export async function handleCheckWebhook(
     }
 
     if (!planName) {
-      const subscriptions = await db
+      // First try active subscriptions by userId
+      const activeSubscriptions = await db
         .select({
           planName: subscriptionPlan.name,
         })
@@ -92,11 +93,36 @@ export async function handleCheckWebhook(
         )
         .limit(1);
 
-      if (subscriptions.length > 0) {
-        planName = subscriptions[0].planName;
+      if (activeSubscriptions.length > 0) {
+        planName = activeSubscriptions[0].planName;
         console.log(
           `[CloudPayments:Check] Found plan ${planName} by AccountId ${AccountId}`
         );
+      } else {
+        // Fallback: check past_due subscriptions (retry webhooks after failed payments)
+        const pastDueSubscriptions = await db
+          .select({
+            planName: subscriptionPlan.name,
+          })
+          .from(userSubscription)
+          .innerJoin(
+            subscriptionPlan,
+            eq(userSubscription.planId, subscriptionPlan.id)
+          )
+          .where(
+            and(
+              eq(userSubscription.userId, AccountId),
+              eq(userSubscription.status, "past_due")
+            )
+          )
+          .limit(1);
+
+        if (pastDueSubscriptions.length > 0) {
+          planName = pastDueSubscriptions[0].planName;
+          console.log(
+            `[CloudPayments:Check] Found past_due plan ${planName} by AccountId ${AccountId}`
+          );
+        }
       }
     }
   }

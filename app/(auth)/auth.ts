@@ -23,6 +23,18 @@ export const {
 } = NextAuth({
   ...authConfig,
   secret: getAuthSecret(),
+  logger: {
+    error(code, ...message) {
+      // Suppress CredentialsSignin errors — these are expected for wrong passwords
+      if (code instanceof Error && code.name === "CredentialsSignin") {
+        return;
+      }
+      console.error(`[auth][error] ${code}`, ...message);
+    },
+    warn(code) {
+      console.warn(`[auth][warn] ${code}`);
+    },
+  },
   providers: [
     Credentials({
       credentials: {
