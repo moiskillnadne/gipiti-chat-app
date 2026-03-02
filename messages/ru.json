@@ -897,7 +897,8 @@
       "openai": "OpenAI",
       "google": "Google",
       "anthropic": "Anthropic",
-      "xai": "X.AI"
+      "xai": "X.AI",
+      "bfl": "Black Forest Labs"
     },
     "grokVision": {
       "name": "Grok Vision",
@@ -990,6 +991,10 @@
     "veo31Fast": {
       "name": "Veo 3.1 Fast",
       "description": "Быстрая модель Google для генерации видео. Быстро создаёт 8-секундные видео из текстовых описаний."
+    },
+    "flux2Max": {
+      "name": "Flux 2 Max",
+      "description": "Высококачественная генерация изображений от Black Forest Labs."
     }
   },
   "textStyles": {

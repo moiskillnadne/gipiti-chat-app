@@ -33,6 +33,7 @@ export const entitlementsByUserType: Record<UserType, Entitlements> = {
       "gpt-codex-5.2",
       "veo-3.1",
       "veo-3.1-fast",
+      "flux-2-max",
     ],
   },
 
