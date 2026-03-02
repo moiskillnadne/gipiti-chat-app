@@ -347,6 +347,16 @@ export const chatModels: ChatModel[] = [
     imageGenConfig: GOOGLE_IMAGE_GEN_CONFIG,
   },
   {
+    id: "grok-imagine-image-pro",
+    name: "grokImagineImagePro.name",
+    description: "grokImagineImagePro.description",
+    provider: "xai",
+    capabilities: {
+      imageGeneration: true,
+    },
+    showInUI: true,
+  },
+  {
     id: "gpt-image-1.5",
     name: "gptImage15.name",
     description: "gptImage15.description",
@@ -446,6 +456,19 @@ const imageGenerationModelIds = new Set(
 export const isImageGenerationModel = (modelId: string) =>
   imageGenerationModelIds.has(modelId);
 
+/**
+ * Dedicated image models only have `imageGeneration` capability
+ * (no reasoning, no attachments). They use `generateImage()` + `gateway.imageModel()`
+ * instead of `streamText()` + `gateway.languageModel()`.
+ */
+export const isDedicatedImageModel = (modelId: string): boolean => {
+  const model = chatModels.find((m) => m.id === modelId);
+  if (!model?.capabilities?.imageGeneration) {
+    return false;
+  }
+  return !model.capabilities.reasoning && !model.capabilities.attachments;
+};
+
 const videoGenerationModelIds = new Set(
   chatModels
     .filter((model) => model.capabilities?.videoGeneration)
@@ -454,6 +477,21 @@ const videoGenerationModelIds = new Set(
 
 export const isVideoGenerationModel = (modelId: string) =>
   videoGenerationModelIds.has(modelId);
+
+type DedicatedImageModelId = "grok-imagine-image-pro";
+
+const DEDICATED_IMAGE_GATEWAY_MAP: Record<DedicatedImageModelId, string> = {
+  "grok-imagine-image-pro": "xai/grok-imagine-image-pro",
+};
+
+export const getDedicatedImageGatewayModelId = (modelId: string): string => {
+  const gatewayId =
+    DEDICATED_IMAGE_GATEWAY_MAP[modelId as DedicatedImageModelId];
+  if (!gatewayId) {
+    throw new Error(`Unknown dedicated image model: ${modelId}`);
+  }
+  return gatewayId;
+};
 
 type VeoModelId = "veo-3.1" | "veo-3.1-fast";
 

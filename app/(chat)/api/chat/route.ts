@@ -1,4 +1,5 @@
 import { gateway } from "@ai-sdk/gateway";
+import type { SharedV2ProviderOptions } from "@ai-sdk/provider";
 import { put } from "@vercel/blob";
 import { geolocation } from "@vercel/functions";
 import {
@@ -6,6 +7,7 @@ import {
   createUIMessageStream,
   experimental_generateVideo as generateVideo,
   JsonToSseTransformStream,
+  generateImage as sdkGenerateImage,
   smoothStream,
   stepCountIs,
   streamText,
@@ -28,10 +30,12 @@ import { checkMessageQuota } from "@/lib/ai/message-quota";
 import { ensureMessageHasTextPart } from "@/lib/ai/message-validator";
 import {
   DEFAULT_CHAT_MODEL,
+  getDedicatedImageGatewayModelId,
   getModelById,
   getProviderOptions,
   getVeoGatewayModelId,
   isAutoReasoning,
+  isDedicatedImageModel,
   isImageGenerationModel,
   isReasoningModelId,
   isVideoGenerationModel,
@@ -642,36 +646,88 @@ export async function POST(request: Request) {
               }
               throw error;
             }
+          } else if (isDedicatedImageModel(selectedChatModel)) {
+            // Dedicated image models (e.g. grok-imagine-image-pro) use
+            // generateImage() + gateway.imageModel() instead of streamText()
+            const gatewayModelId =
+              getDedicatedImageGatewayModelId(selectedChatModel);
+
+            dataStream.write({
+              id: documentId,
+              type: "reasoning-delta",
+              delta: "Generating image...",
+            });
+
+            const result = await sdkGenerateImage({
+              model: gateway.imageModel(gatewayModelId),
+              prompt: userPrompt,
+            });
+
+            dataStream.write({
+              id: documentId,
+              type: "reasoning-delta",
+              delta: "Uploading image...",
+            });
+
+            if (result.image) {
+              imageUrl = await uploadGeneratedImage(
+                result.image.base64,
+                "image/png"
+              );
+            }
+
+            // Extract usage metadata
+            const imgUsage = result.usage;
+            usageMetadata = {
+              promptTokenCount: imgUsage.inputTokens ?? 0,
+              candidatesTokenCount: imgUsage.outputTokens ?? 0,
+              thoughtsTokenCount: 0,
+              totalTokenCount: imgUsage.totalTokens ?? 0,
+            };
+
+            // Extract cost from provider metadata
+            const provMeta = result.providerMetadata;
+            const gatewayCost = (
+              provMeta?.gateway as Record<string, unknown> | undefined
+            )?.cost;
+            if (gatewayCost != null) {
+              totalCostUsd = String(gatewayCost);
+            }
+
+            _responseId = generateImageGenerationId();
           } else {
-            // Use existing gateway flow for other image generation models
+            // Use existing gateway flow for multimodal image models (Gemini)
             const messagesPayloadForImageGeneration =
               await convertToModelMessages(uiMessages);
 
             console.dir(messagesPayloadForImageGeneration, { depth: null });
 
-            // Build provider options merging model defaults with user settings
+            // Build provider options based on the model's provider
             const modelDef = getModelById(selectedChatModel);
-            const baseProviderOptions = modelDef?.providerOptions ?? {};
-            const googleBase =
-              (baseProviderOptions.google as Record<string, unknown>) ?? {};
-            const googleImageConfig =
-              (googleBase.imageConfig as Record<string, string>) ?? {};
+            let mergedProviderOptions: SharedV2ProviderOptions =
+              modelDef?.providerOptions ?? {};
 
-            const mergedProviderOptions = {
-              ...baseProviderOptions,
-              google: {
-                ...googleBase,
-                imageConfig: {
-                  ...googleImageConfig,
-                  ...(imageGenSetting?.quality && {
-                    imageSize: imageGenSetting.quality,
-                  }),
-                  ...(imageGenSetting?.aspectRatio && {
-                    aspectRatio: imageGenSetting.aspectRatio,
-                  }),
+            if (modelDef?.provider === "google" && imageGenSetting) {
+              const googleBase =
+                (mergedProviderOptions.google as Record<string, unknown>) ?? {};
+              const googleImageConfig =
+                (googleBase.imageConfig as Record<string, string>) ?? {};
+              mergedProviderOptions = {
+                ...mergedProviderOptions,
+                google: {
+                  ...googleBase,
+                  imageConfig: {
+                    ...googleImageConfig,
+                    ...(imageGenSetting.quality && {
+                      imageSize: imageGenSetting.quality,
+                    }),
+                    ...(imageGenSetting.aspectRatio && {
+                      aspectRatio: imageGenSetting.aspectRatio,
+                    }),
+                  },
                 },
-              },
-            };
+              };
+            }
 
             // Start streaming
             const result = streamText({
@@ -714,8 +770,8 @@ export async function POST(request: Request) {
               if (delta.type === "finish-step") {
                 const metadata = await result.providerMetadata;
                 if (metadata) {
-                  usageMetadata = metadata.google
-                    ?.usageMetadata as typeof usageMetadata;
+                  usageMetadata = (metadata.google?.usageMetadata ??
+                    metadata.xai?.usageMetadata) as typeof usageMetadata;
                   totalCostUsd = metadata.gateway?.cost?.toString();
 
                   // Debug: log full metadata structure
