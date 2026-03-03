@@ -6,6 +6,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   ImageIcon,
+  PaletteIcon,
   RatioIcon,
   SlidersHorizontalIcon,
 } from "lucide-react";
@@ -69,7 +70,8 @@ type ToolsPopoverView =
   | "style"
   | "project"
   | "imageQuality"
-  | "imageAspect";
+  | "imageAspect"
+  | "imageStyle";
 
 function PureToolsPopover() {
   const [open, setOpen] = useState(false);
@@ -210,6 +212,28 @@ function PureToolsPopover() {
     [setCurrentImageGenSetting, currentImageGenSetting]
   );
 
+  const getCurrentImageStyleLabel = useCallback(() => {
+    if (!imageGenConfig?.style || !currentImageGenSetting?.style) {
+      return tImageGen("realisticImage");
+    }
+    const opt = imageGenConfig.style.options.find(
+      (o) => o.value === currentImageGenSetting.style
+    );
+    return opt ? tImageGen(opt.labelKey) : tImageGen("realisticImage");
+  }, [imageGenConfig, currentImageGenSetting, tImageGen]);
+
+  const handleImageStyleSelect = useCallback(
+    (value: string) => {
+      setCurrentImageGenSetting({
+        ...currentImageGenSetting,
+        style: value,
+      } as ImageGenSetting);
+      setOpen(false);
+      setView("menu");
+    },
+    [setCurrentImageGenSetting, currentImageGenSetting]
+  );
+
   const hasStyles = !isStylesLoading && styles.length > 0;
   const hasProjects = !isProjectsLoading && projects.length > 0;
 
@@ -336,6 +360,29 @@ function PureToolsPopover() {
                   </div>
                   <div className="mt-0.5 text-muted-foreground text-xs">
                     {getCurrentAspectLabel()}
+                  </div>
+                </div>
+                <ChevronRightIcon className="text-muted-foreground" size={16} />
+              </button>
+            )}
+
+            {isImageGenSupported && imageGenConfig?.style && (
+              <button
+                className={cn(
+                  "flex min-h-[44px] w-full cursor-pointer items-center",
+                  "gap-3 border-border border-t px-3 py-2.5 text-left",
+                  "transition-colors hover:bg-accent"
+                )}
+                onClick={() => setView("imageStyle")}
+                type="button"
+              >
+                <PaletteIcon size={16} />
+                <div className="flex-1">
+                  <div className="font-medium text-sm leading-tight">
+                    {tInput("toolsImageStyle")}
+                  </div>
+                  <div className="mt-0.5 text-muted-foreground text-xs">
+                    {getCurrentImageStyleLabel()}
                   </div>
                 </div>
                 <ChevronRightIcon className="text-muted-foreground" size={16} />
@@ -750,6 +797,52 @@ function PureToolsPopover() {
                       <span className="text-muted-foreground text-xs">
                         {opt.value}
                       </span>
+                    </div>
+                    {isSelected && (
+                      <span className="flex-shrink-0 text-primary">
+                        <CheckCircleFillIcon size={18} />
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {view === "imageStyle" && imageGenConfig?.style && (
+          <div className="flex flex-col">
+            <button
+              className={cn(
+                "flex min-h-[40px] w-full cursor-pointer items-center",
+                "gap-2 border-border border-b px-3 py-2 text-left",
+                "transition-colors hover:bg-accent"
+              )}
+              onClick={() => setView("menu")}
+              type="button"
+            >
+              <ChevronLeftIcon size={16} />
+              <span className="font-medium text-sm">
+                {tInput("toolsImageStyle")}
+              </span>
+            </button>
+            <div className="flex flex-col gap-px py-1">
+              {imageGenConfig.style.options.map((opt) => {
+                const isSelected = currentImageGenSetting?.style === opt.value;
+                return (
+                  <button
+                    className={cn(
+                      "flex min-h-[40px] w-full cursor-pointer items-center",
+                      "gap-3 px-3 py-2 text-left",
+                      "transition-colors hover:bg-accent",
+                      isSelected && "bg-accent/50"
+                    )}
+                    key={opt.value}
+                    onClick={() => handleImageStyleSelect(opt.value)}
+                    type="button"
+                  >
+                    <div className="flex-1 font-medium text-sm">
+                      {tImageGen(opt.labelKey)}
                     </div>
                     {isSelected && (
                       <span className="flex-shrink-0 text-primary">

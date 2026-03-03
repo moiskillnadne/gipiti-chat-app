@@ -10,7 +10,13 @@ export type ChatModelCapabilities = {
   videoGeneration?: boolean;
 };
 
-export type ModelProvider = "openai" | "google" | "anthropic" | "xai" | "bfl";
+export type ModelProvider =
+  | "openai"
+  | "google"
+  | "anthropic"
+  | "xai"
+  | "bfl"
+  | "recraft";
 
 export type ThinkingEffortConfig = {
   type: "effort";
@@ -68,17 +74,24 @@ export type ImageGenAspectRatioConfig = {
   options: readonly ImageGenOption[];
   default: string;
 };
+export type ImageGenStyleConfig = {
+  options: readonly ImageGenOption[];
+  default: string;
+};
 export type ImageGenConfig = {
   quality?: ImageGenQualityConfig;
   aspectRatio?: ImageGenAspectRatioConfig;
+  style?: ImageGenStyleConfig;
 };
 export type ImageGenSetting = {
   quality?: string;
   aspectRatio?: string;
+  style?: string;
 };
 
 export const IMAGE_QUALITY_COOKIE_PREFIX = "image-quality" as const;
 export const IMAGE_ASPECT_COOKIE_PREFIX = "image-aspect" as const;
+export const IMAGE_STYLE_COOKIE_PREFIX = "image-style" as const;
 
 const GOOGLE_IMAGE_GEN_CONFIG: ImageGenConfig = {
   quality: {
@@ -137,6 +150,21 @@ const BFL_IMAGE_GEN_CONFIG: ImageGenConfig = {
       { value: "2:3", labelKey: "tall23" },
       { value: "4:3", labelKey: "standard43" },
       { value: "3:4", labelKey: "standard34" },
+    ],
+    default: "1:1",
+  },
+};
+
+const RECRAFT_IMAGE_GEN_CONFIG: ImageGenConfig = {
+  aspectRatio: {
+    options: [
+      { value: "1:1", labelKey: "square" },
+      { value: "4:3", labelKey: "standard43" },
+      { value: "3:4", labelKey: "standard34" },
+      { value: "16:9", labelKey: "landscape169" },
+      { value: "9:16", labelKey: "portrait916" },
+      { value: "3:2", labelKey: "wide32" },
+      { value: "2:3", labelKey: "tall23" },
     ],
     default: "1:1",
   },
@@ -456,6 +484,17 @@ export const chatModels: ChatModel[] = [
     showInUI: true,
     imageGenConfig: BFL_IMAGE_GEN_CONFIG,
   },
+  {
+    id: "recraft-v4-pro",
+    name: "recraftV4Pro.name",
+    description: "recraftV4Pro.description",
+    provider: "recraft",
+    capabilities: {
+      imageGeneration: true,
+    },
+    showInUI: true,
+    imageGenConfig: RECRAFT_IMAGE_GEN_CONFIG,
+  },
 ];
 
 export const chatModelIds = chatModels.map((model) => model.id);
@@ -504,11 +543,15 @@ const videoGenerationModelIds = new Set(
 export const isVideoGenerationModel = (modelId: string) =>
   videoGenerationModelIds.has(modelId);
 
-type DedicatedImageModelId = "grok-imagine-image-pro" | "flux-2-max";
+type DedicatedImageModelId =
+  | "grok-imagine-image-pro"
+  | "flux-2-max"
+  | "recraft-v4-pro";
 
 const DEDICATED_IMAGE_GATEWAY_MAP: Record<DedicatedImageModelId, string> = {
   "grok-imagine-image-pro": "xai/grok-imagine-image-pro",
   "flux-2-max": "bfl/flux-2-max",
+  "recraft-v4-pro": "recraft/recraft-v4-pro",
 };
 
 export const getDedicatedImageGatewayModelId = (modelId: string): string => {
@@ -795,13 +838,15 @@ export const getDefaultImageGenSetting = (
   return {
     quality: model.imageGenConfig.quality?.default,
     aspectRatio: model.imageGenConfig.aspectRatio?.default,
+    style: model.imageGenConfig.style?.default,
   };
 };
 
 export const parseImageGenSettingFromCookie = (
   modelId: string,
   qualityCookie: string | undefined,
-  aspectCookie: string | undefined
+  aspectCookie: string | undefined,
+  styleCookie?: string | undefined
 ): ImageGenSetting | undefined => {
   const model = getModelById(modelId);
   if (!model?.imageGenConfig) {
@@ -821,8 +866,13 @@ export const parseImageGenSettingFromCookie = (
     )
       ? aspectCookie
       : defaults?.aspectRatio;
+  const style =
+    styleCookie &&
+    model.imageGenConfig.style?.options.some((o) => o.value === styleCookie)
+      ? styleCookie
+      : defaults?.style;
 
-  return { quality, aspectRatio };
+  return { quality, aspectRatio, style };
 };
 
 export const validateImageGenSetting = (
@@ -853,6 +903,11 @@ export const validateImageGenSetting = (
     )
       ? setting.aspectRatio
       : defaults?.aspectRatio;
+  const style =
+    setting.style &&
+    model.imageGenConfig.style?.options.some((o) => o.value === setting.style)
+      ? setting.style
+      : defaults?.style;
 
-  return { quality, aspectRatio };
+  return { quality, aspectRatio, style };
 };

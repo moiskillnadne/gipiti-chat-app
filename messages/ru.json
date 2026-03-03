@@ -428,7 +428,8 @@
       "toolsStyle": "Стиль",
       "toolsProject": "Проект",
       "toolsImageQuality": "Качество изображения",
-      "toolsImageAspect": "Соотношение сторон"
+      "toolsImageAspect": "Соотношение сторон",
+      "toolsImageStyle": "Стиль изображения"
     },
     "messages": {
       "thinking": "Думаю...",
@@ -890,7 +891,12 @@
     "standard34": "Стандарт (3:4)",
     "photo54": "Фото (5:4)",
     "photo45": "Фото (4:5)",
-    "ultrawide": "Ультраширокий (21:9)"
+    "ultrawide": "Ультраширокий (21:9)",
+    "styleLabel": "Стиль изображения",
+    "realisticImage": "Реалистичный",
+    "digitalIllustration": "Цифровая иллюстрация",
+    "vectorIllustration": "Векторная иллюстрация",
+    "iconStyle": "Иконка"
   },
   "modelList": {
     "providers": {
@@ -898,7 +904,8 @@
       "google": "Google",
       "anthropic": "Anthropic",
       "xai": "X.AI",
-      "bfl": "Black Forest Labs"
+      "bfl": "Black Forest Labs",
+      "recraft": "Recraft"
     },
     "grokVision": {
       "name": "Grok Vision",
@@ -995,6 +1002,10 @@
     "flux2Max": {
       "name": "Flux 2 Max",
       "description": "Высококачественная генерация изображений от Black Forest Labs."
+    },
+    "recraftV4Pro": {
+      "name": "Recraft v4 Pro",
+      "description": "Генерация изображений с художественными стилями."
     }
   },
   "textStyles": {

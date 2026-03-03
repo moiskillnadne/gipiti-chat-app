@@ -16,6 +16,7 @@ import {
   saveChatModelAsCookie,
   saveImageAspectAsCookie,
   saveImageQualityAsCookie,
+  saveImageStyleAsCookie,
   saveThinkingSettingAsCookie,
 } from "@/app/(chat)/actions";
 import { entitlementsByUserType } from "@/lib/ai/entitlements";
@@ -172,6 +173,9 @@ export function ModelProvider({
           if (setting.aspectRatio) {
             saveImageAspectAsCookie(currentModelId, setting.aspectRatio);
           }
+          if (setting.style) {
+            saveImageStyleAsCookie(currentModelId, setting.style);
+          }
         });
       } else if (setting && isEmptyChat) {
         pendingImageGenSettingChangeRef.current = {
@@ -215,6 +219,9 @@ export function ModelProvider({
         }
         if (setting.aspectRatio) {
           saveImageAspectAsCookie(modelId, setting.aspectRatio);
+        }
+        if (setting.style) {
+          saveImageStyleAsCookie(modelId, setting.style);
         }
       });
     }

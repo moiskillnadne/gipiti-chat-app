@@ -428,7 +428,8 @@
       "toolsStyle": "Style",
       "toolsProject": "Project",
       "toolsImageQuality": "Image Quality",
-      "toolsImageAspect": "Aspect Ratio"
+      "toolsImageAspect": "Aspect Ratio",
+      "toolsImageStyle": "Image Style"
     },
     "messages": {
       "thinking": "Thinking...",
@@ -890,7 +891,12 @@
     "standard34": "Standard (3:4)",
     "photo54": "Photo (5:4)",
     "photo45": "Photo (4:5)",
-    "ultrawide": "Ultra Wide (21:9)"
+    "ultrawide": "Ultra Wide (21:9)",
+    "styleLabel": "Image Style",
+    "realisticImage": "Realistic",
+    "digitalIllustration": "Digital Illustration",
+    "vectorIllustration": "Vector Illustration",
+    "iconStyle": "Icon"
   },
   "modelList": {
     "providers": {
@@ -898,7 +904,8 @@
       "google": "Google",
       "anthropic": "Anthropic",
       "xai": "X.AI",
-      "bfl": "Black Forest Labs"
+      "bfl": "Black Forest Labs",
+      "recraft": "Recraft"
     },
     "grokVision": {
       "name": "Grok Vision",
@@ -995,6 +1002,10 @@
     "flux2Max": {
       "name": "Flux 2 Max",
       "description": "High-quality image generation by Black Forest Labs."
+    },
+    "recraftV4Pro": {
+      "name": "Recraft v4 Pro",
+      "description": "Premium image generation with artistic styles."
     }
   },
   "textStyles": {
