@@ -6,6 +6,7 @@ import { cookies } from "next/headers";
 import {
   IMAGE_ASPECT_COOKIE_PREFIX,
   IMAGE_QUALITY_COOKIE_PREFIX,
+  IMAGE_STYLE_COOKIE_PREFIX,
   THINKING_COOKIE_PREFIX,
 } from "@/lib/ai/models";
 import { myProvider } from "@/lib/ai/providers";
@@ -35,6 +36,11 @@ export async function saveImageQualityAsCookie(modelId: string, value: string) {
 export async function saveImageAspectAsCookie(modelId: string, value: string) {
   const cookieStore = await cookies();
   cookieStore.set(`${IMAGE_ASPECT_COOKIE_PREFIX}-${modelId}`, value);
+}
+
+export async function saveImageStyleAsCookie(modelId: string, value: string) {
+  const cookieStore = await cookies();
+  cookieStore.set(`${IMAGE_STYLE_COOKIE_PREFIX}-${modelId}`, value);
 }
 
 export async function generateTitleFromUserMessage({

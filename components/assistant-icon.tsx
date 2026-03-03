@@ -17,12 +17,13 @@ type AssistantIconProps = {
 
 type IconComponentProps = { size?: number };
 
-const providerIconMap: Partial<Record<ModelProvider, FC<IconComponentProps>>> = {
-  openai: LogoOpenAI,
-  google: LogoGoogle,
-  anthropic: LogoAnthropic,
-  xai: LogoXai,
-};
+const providerIconMap: Partial<Record<ModelProvider, FC<IconComponentProps>>> =
+  {
+    openai: LogoOpenAI,
+    google: LogoGoogle,
+    anthropic: LogoAnthropic,
+    xai: LogoXai,
+  };
 
 export const AssistantIcon = ({
   isLoading = false,
@@ -32,8 +33,7 @@ export const AssistantIcon = ({
   const model = modelId ? getModelById(modelId) : undefined;
   const provider = model?.provider;
 
-  const IconComponent =
-    (provider && providerIconMap[provider]) || SparklesIcon;
+  const IconComponent = (provider && providerIconMap[provider]) || SparklesIcon;
 
   return (
     <div

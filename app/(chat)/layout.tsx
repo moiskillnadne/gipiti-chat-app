@@ -13,6 +13,7 @@ import {
   getDefaultThinkingSetting,
   IMAGE_ASPECT_COOKIE_PREFIX,
   IMAGE_QUALITY_COOKIE_PREFIX,
+  IMAGE_STYLE_COOKIE_PREFIX,
   isVisibleInUI,
   parseImageGenSettingFromCookie,
   parseThinkingSettingFromCookie,
@@ -50,11 +51,15 @@ export default async function Layout({
   const imageAspectCookie = cookieStore.get(
     `${IMAGE_ASPECT_COOKIE_PREFIX}-${validatedModelId}`
   )?.value;
+  const imageStyleCookie = cookieStore.get(
+    `${IMAGE_STYLE_COOKIE_PREFIX}-${validatedModelId}`
+  )?.value;
   const initialImageGenSetting =
     parseImageGenSettingFromCookie(
       validatedModelId,
       imageQualityCookie,
-      imageAspectCookie
+      imageAspectCookie,
+      imageStyleCookie
     ) ?? getDefaultImageGenSetting(validatedModelId);
 
   const userType = session?.user?.type ?? "regular";

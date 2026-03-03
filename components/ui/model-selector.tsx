@@ -49,7 +49,9 @@ export function ModelSelector() {
     }
 
     // Convert to array and sort providers in consistent order
-    const providerOrder = ["openai", "google", "anthropic", "xai", "bfl", "other"];
+    const providerOrder = [
+      "openai", "google", "anthropic", "xai", "bfl", "recraft", "other",
+    ];
     return Array.from(groups.entries())
       .map(([provider, models]) => ({
         provider,

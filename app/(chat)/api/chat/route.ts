@@ -58,6 +58,7 @@ import {
   type TextStyleInput,
 } from "@/lib/ai/prompts";
 import { myProvider } from "@/lib/ai/providers";
+import { generateRecraftImage, isRecraftModel } from "@/lib/ai/recraft-client";
 import { calculateOptimalStepLimit } from "@/lib/ai/step-calculator";
 import { checkTokenQuota, recordTokenUsage } from "@/lib/ai/token-quota";
 import { calculator } from "@/lib/ai/tools/calculator";
@@ -644,6 +645,46 @@ export async function POST(request: Request) {
                   throw new ChatSDKError("rate_limit:chat");
                 }
               }
+              throw error;
+            }
+          } else if (isRecraftModel(selectedChatModel)) {
+            // Recraft V4 Pro uses generateImage() — no style support on V4
+            try {
+              dataStream.write({
+                id: documentId,
+                type: "reasoning-delta",
+                delta: "Generating image with Recraft...",
+              });
+
+              const recraftResult = await generateRecraftImage(userPrompt, {
+                aspectRatio: imageGenSetting?.aspectRatio,
+              });
+
+              dataStream.write({
+                id: documentId,
+                type: "reasoning-delta",
+                delta: "Uploading image...",
+              });
+
+              imageUrl = await uploadGeneratedImage(
+                recraftResult.base64,
+                recraftResult.mediaType
+              );
+
+              usageMetadata = {
+                promptTokenCount: recraftResult.usage.inputTokens ?? 0,
+                candidatesTokenCount: recraftResult.usage.outputTokens ?? 0,
+                thoughtsTokenCount: 0,
+                totalTokenCount: recraftResult.usage.totalTokens ?? 0,
+              };
+
+              if (recraftResult.totalCostUsd) {
+                totalCostUsd = recraftResult.totalCostUsd;
+              }
+
+              _responseId = generateImageGenerationId();
+            } catch (error) {
+              console.error("Recraft image generation error:", error);
               throw error;
             }
           } else if (isDedicatedImageModel(selectedChatModel)) {
