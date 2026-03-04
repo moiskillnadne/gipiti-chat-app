@@ -1362,8 +1362,14 @@ export async function POST(request: Request) {
       generateId: generateUUID,
       onFinish: async ({ messages }) => {
         // Validate and fix messages before saving (ensure text parts exist)
+        // Skip for dedicated image/video models — their output is saved as
+        // documents, not text messages, so the reasoning-only parts are expected.
         const validatedMessages = messages.map((msg) => {
-          if (msg.role === "assistant") {
+          if (
+            msg.role === "assistant" &&
+            !isDirectImageGeneration &&
+            !isDirectVideoGeneration
+          ) {
             return ensureMessageHasTextPart(msg as ChatMessage, {
               modelId: selectedChatModel,
               stepCount: messages.length,

@@ -1003,6 +1003,10 @@
       "name": "Flux 2 Max",
       "description": "High-quality image generation by Black Forest Labs."
     },
+    "fluxKontextPro": {
+      "name": "Flux Kontext Pro",
+      "description": "High-quality image generation from Black Forest Labs with advanced editing capabilities."
+    },
     "recraftV4Pro": {
       "name": "Recraft v4 Pro",
       "description": "Premium image generation with artistic styles."

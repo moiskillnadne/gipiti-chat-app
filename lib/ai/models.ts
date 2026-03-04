@@ -485,6 +485,17 @@ export const chatModels: ChatModel[] = [
     imageGenConfig: BFL_IMAGE_GEN_CONFIG,
   },
   {
+    id: "flux-kontext-pro",
+    name: "fluxKontextPro.name",
+    description: "fluxKontextPro.description",
+    provider: "bfl",
+    capabilities: {
+      imageGeneration: true,
+    },
+    showInUI: true,
+    imageGenConfig: BFL_IMAGE_GEN_CONFIG,
+  },
+  {
     id: "recraft-v4-pro",
     name: "recraftV4Pro.name",
     description: "recraftV4Pro.description",
@@ -546,11 +557,13 @@ export const isVideoGenerationModel = (modelId: string) =>
 type DedicatedImageModelId =
   | "grok-imagine-image-pro"
   | "flux-2-max"
+  | "flux-kontext-pro"
   | "recraft-v4-pro";
 
 const DEDICATED_IMAGE_GATEWAY_MAP: Record<DedicatedImageModelId, string> = {
   "grok-imagine-image-pro": "xai/grok-imagine-image-pro",
   "flux-2-max": "bfl/flux-2-max",
+  "flux-kontext-pro": "bfl/flux-kontext-pro",
   "recraft-v4-pro": "recraft/recraft-v4-pro",
 };
 
