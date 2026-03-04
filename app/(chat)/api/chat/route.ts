@@ -33,7 +33,7 @@ import {
   getDedicatedImageGatewayModelId,
   getModelById,
   getProviderOptions,
-  getVeoGatewayModelId,
+  getVideoGatewayModelId,
   isAutoReasoning,
   isDedicatedImageModel,
   isImageGenerationModel,
@@ -1015,7 +1015,7 @@ export async function POST(request: Request) {
           const durationSeconds = 8;
 
           try {
-            const gatewayModelId = getVeoGatewayModelId(selectedChatModel);
+            const gatewayModelId = getVideoGatewayModelId(selectedChatModel);
             const result = await generateVideo({
               model: gateway.videoModel(gatewayModelId),
               prompt: userPrompt,
