@@ -474,6 +474,16 @@ export const chatModels: ChatModel[] = [
     showInUI: true,
   },
   {
+    id: "grok-imagine-video",
+    name: "grokImagineVideo.name",
+    description: "grokImagineVideo.description",
+    provider: "xai",
+    capabilities: {
+      videoGeneration: true,
+    },
+    showInUI: true,
+  },
+  {
     id: "flux-2-max",
     name: "flux2Max.name",
     description: "flux2Max.description",
@@ -576,17 +586,18 @@ export const getDedicatedImageGatewayModelId = (modelId: string): string => {
   return gatewayId;
 };
 
-type VeoModelId = "veo-3.1" | "veo-3.1-fast";
+type VideoModelId = "veo-3.1" | "veo-3.1-fast" | "grok-imagine-video";
 
-const VEO_GATEWAY_MODEL_MAP: Record<VeoModelId, string> = {
+const VIDEO_GATEWAY_MODEL_MAP: Record<VideoModelId, string> = {
   "veo-3.1": "google/veo-3.1-generate-001",
   "veo-3.1-fast": "google/veo-3.1-fast-generate-001",
+  "grok-imagine-video": "xai/grok-imagine-video",
 };
 
-export const getVeoGatewayModelId = (modelId: string): string => {
-  const gatewayId = VEO_GATEWAY_MODEL_MAP[modelId as VeoModelId];
+export const getVideoGatewayModelId = (modelId: string): string => {
+  const gatewayId = VIDEO_GATEWAY_MODEL_MAP[modelId as VideoModelId];
   if (!gatewayId) {
-    throw new Error(`Unknown Veo model: ${modelId}`);
+    throw new Error(`Unknown video model: ${modelId}`);
   }
   return gatewayId;
 };

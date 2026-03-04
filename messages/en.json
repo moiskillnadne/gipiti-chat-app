@@ -999,6 +999,10 @@
       "name": "Veo 3.1 Fast",
       "description": "Google's fast video generation model. Creates 8-second videos quickly from text prompts."
     },
+    "grokImagineVideo": {
+      "name": "Grok Imagine Video",
+      "description": "XAI's video generation model. Creates videos from text prompts using Grok Imagine."
+    },
     "flux2Max": {
       "name": "Flux 2 Max",
       "description": "High-quality image generation by Black Forest Labs."
