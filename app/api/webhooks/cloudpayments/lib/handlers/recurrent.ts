@@ -146,16 +146,33 @@ export async function handleRecurrentWebhook(
     return Response.json({ code: 0 });
   }
 
-  if (Status === "Rejected" || Status === "Expired") {
+  if (Status === "Rejected") {
     console.warn(
-      `[CloudPayments:Recurrent] Payment failed with status ${Status} for subscription ${subscription.id}, user ${AccountId}. Preserving access until period end.`
+      `[CloudPayments:Recurrent] Payment rejected for subscription ${subscription.id}, user ${AccountId}. Setting past_due to allow retry.`
     );
 
     await db
       .update(userSubscription)
       .set({
-        // Keep access until period end, then cleanup cron will finalize.
-        // This handles both card failures AND infrastructure issues (SSL errors, etc.)
+        // Mark as past_due so the user keeps access and CloudPayments can retry.
+        // Do NOT set cancelAtPeriodEnd — a single rejection shouldn't auto-cancel.
+        status: "past_due",
+        updatedAt: now,
+      })
+      .where(eq(userSubscription.id, subscription.id));
+
+    return Response.json({ code: 0 });
+  }
+
+  if (Status === "Expired") {
+    console.warn(
+      `[CloudPayments:Recurrent] Subscription expired for ${subscription.id}, user ${AccountId}. Preserving access until period end.`
+    );
+
+    await db
+      .update(userSubscription)
+      .set({
+        // Expired means CloudPayments won't retry — schedule cancellation at period end.
         status: "active",
         cancelAtPeriodEnd: true,
         cancelledAt: subscription.cancelledAt ?? now,

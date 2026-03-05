@@ -13,6 +13,10 @@ import { handlePayWebhook } from "./lib/handlers/pay";
 import { handleRecurrentWebhook } from "./lib/handlers/recurrent";
 import { normalizeRecurrentPayload } from "./lib/recurrent-normalizer";
 
+// CloudPayments has a 30s timeout for webhooks.
+// Ensure Vercel allocates enough time (especially for cold starts + DB queries).
+export const maxDuration = 25;
+
 type WebhookType = "check" | "pay" | "fail" | "recurrent" | "cancel";
 
 function validateWebhookSignature(

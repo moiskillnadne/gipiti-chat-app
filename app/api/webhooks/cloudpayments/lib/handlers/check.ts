@@ -13,8 +13,7 @@ export async function handleCheckWebhook(
   const { AccountId, Amount, Data, Currency, SubscriptionId } = payload;
 
   console.info(
-    "[CloudPayments:Check] Received webhook",
-    JSON.stringify(payload, null, 2)
+    `[CloudPayments:Check] Received webhook: AccountId=${AccountId}, Amount=${Amount}, Currency=${Currency}, SubscriptionId=${SubscriptionId}`
   );
 
   if (!AccountId) {
@@ -23,7 +22,7 @@ export async function handleCheckWebhook(
   }
 
   const users = await db
-    .select()
+    .select({ id: user.id })
     .from(user)
     .where(eq(user.id, AccountId))
     .limit(1);
