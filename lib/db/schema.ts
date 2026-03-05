@@ -38,6 +38,13 @@ export const user = pgTable(
     resetPasswordTokenExpiry: timestamp("reset_password_token_expiry"),
     trialUsedAt: timestamp("trial_used_at"),
 
+    // UTM attribution
+    utmSource: varchar("utm_source", { length: 255 }),
+    utmMedium: varchar("utm_medium", { length: 255 }),
+    utmCampaign: varchar("utm_campaign", { length: 255 }),
+    utmContent: varchar("utm_content", { length: 255 }),
+    utmTerm: varchar("utm_term", { length: 255 }),
+
     // Token balance system
     tokenBalance: bigint("token_balance", { mode: "number" })
       .notNull()

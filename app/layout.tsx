@@ -7,6 +7,7 @@ import { getLocale, getMessages } from "next-intl/server";
 import { Toaster } from "sonner";
 import { ErrorLogger } from "@/components/error-logger";
 import { ThemeProvider } from "@/components/theme-provider";
+import { UtmCapture } from "@/components/utm-capture";
 import { YandexMetrika } from "@/components/yandex-metrika";
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
@@ -14,11 +15,11 @@ import { SessionProvider } from "next-auth/react";
 export const metadata: Metadata = {
   metadataBase: new URL("https://gipiti.ru"),
   title: {
-    default: "GIPITI - AI-чат с ChatGPT, Gemini, Claude и Grok",
+    default: "GIPITI - Агрегатор нейросетей. ChatGPT, Gemini, Claude и Grok.",
     template: "%s | GIPITI",
   },
   description:
-    "GIPITI — платформа с доступом к лучшим AI-моделям: ChatGPT 5.2, Gemini 3.1 Pro, Claude Opus 4.6 и Grok 4.1. Генерация текста, изображений, анализ документов.",
+    "GIPITI — платформа с доступом к лучшим AI-моделям: ChatGPT 5.2, Gemini 3.1 Pro, Claude Opus 4.6 и Grok 4.1. Генерация текста, изображений, видео, кода, анализ документов.",
   keywords: [
     "AI чат",
     "ChatGPT",
@@ -29,6 +30,9 @@ export const metadata: Metadata = {
     "искусственный интеллект",
     "генерация текста",
     "генерация изображений",
+    "генерация видео",
+    "генерация кода",
+    "анализ документов",
   ],
   authors: [{ name: "GIPITI" }],
   creator: "GIPITI",
@@ -41,12 +45,13 @@ export const metadata: Metadata = {
     locale: "ru_RU",
     url: "https://gipiti.ru",
     siteName: "GIPITI",
-    title: "GIPITI - AI-чат с ChatGPT, Gemini, Claude и Grok",
-    description: "Доступ к лучшим AI-моделям в одном месте",
+    title: "GIPITI - Агрегатор нейросетей. ChatGPT, Gemini, Claude и Grok",
+    description:
+      "GIPITI — платформа с доступом к лучшим AI-моделям: ChatGPT 5.2, Gemini 3.1 Pro, Claude Opus 4.6 и Grok 4.1. Генерация текста, изображений, видео, кода, анализ документов.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "GIPITI - AI-чат с ChatGPT, Gemini, Claude и Grok",
+    title: "GIPITI - Агрегатор нейросетей. ChatGPT, Gemini, Claude и Grok",
     description: "Доступ к лучшим AI-моделям в одном месте",
   },
   robots: {
@@ -118,6 +123,7 @@ export default async function RootLayout({
       </head>
       <body className="antialiased" suppressHydrationWarning>
         <ErrorLogger />
+        <UtmCapture />
         <SpeedInsights />
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider
