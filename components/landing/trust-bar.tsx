@@ -11,8 +11,10 @@ import { useEffect, useRef } from "react";
 
 import {
   LogoAnthropic,
+  LogoBFL,
   LogoGoogle,
   LogoOpenAI,
+  LogoRecraft,
   LogoXai,
 } from "@/components/icons";
 
@@ -25,8 +27,8 @@ type StatItem = {
 };
 
 const stats: StatItem[] = [
-  { value: 4, suffix: "+", label: "AI-провайдеров" },
-  { value: 10, suffix: "+", label: "AI-моделей" },
+  { value: 6, suffix: "+", label: "AI-провайдеров" },
+  { value: 18, suffix: "+", label: "AI-моделей" },
   { value: 500, suffix: "+", label: "пользователей" },
 ];
 
@@ -35,6 +37,8 @@ const providers = [
   { Logo: LogoGoogle, name: "Google" },
   { Logo: LogoAnthropic, name: "Anthropic" },
   { Logo: LogoXai, name: "xAI" },
+  { Logo: LogoBFL, name: "BFL" },
+  { Logo: LogoRecraft, name: "Recraft" },
 ];
 
 const AnimatedCounter = ({

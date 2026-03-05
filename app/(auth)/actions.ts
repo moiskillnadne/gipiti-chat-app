@@ -1,5 +1,6 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { z } from "zod";
 
 import { createPasswordResetToken, hashToken } from "@/lib/auth/reset-token";
@@ -24,6 +25,8 @@ import {
   getRateLimitResetSeconds,
 } from "@/lib/rate-limit";
 import { assignFreePlan } from "@/lib/subscription/subscription-init";
+import { UTM_COOKIE_NAME } from "@/lib/utm/constants";
+import { parseUtmCookie } from "@/lib/utm/parse-utm-cookie";
 
 import { signIn } from "./auth";
 
@@ -111,11 +114,24 @@ export const register = async (
       return { status: "user_exists" } as RegisterActionState;
     }
 
+    // Read UTM attribution from cookie
+    const cookieStore = await cookies();
+    const utmCookie = cookieStore.get(UTM_COOKIE_NAME)?.value;
+    const utmData = parseUtmCookie(
+      utmCookie ? decodeURIComponent(utmCookie) : undefined
+    );
+
     const newUser = await createUser(
       validatedData.email,
       validatedData.password,
-      locale
+      locale,
+      utmData ?? undefined
     );
+
+    // Clear UTM cookie after attribution
+    if (utmCookie) {
+      cookieStore.delete(UTM_COOKIE_NAME);
+    }
 
     // Assign free plan so user gets immediate access after email verification
     await assignFreePlan(newUser.id);

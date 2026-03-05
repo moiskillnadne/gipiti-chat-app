@@ -55,7 +55,7 @@ const demoTabs: DemoTab[] = [
   {
     id: "images",
     label: "Генерация изображений",
-    modelBadge: "Gemini 3 Pro Nano Banana",
+    modelBadge: "Gemini 3 Pro Image",
     messages: [
       {
         role: "user",
@@ -67,7 +67,7 @@ const demoTabs: DemoTab[] = [
         content:
           "Вот необычное изображение человека, парящего над цветочным полем:",
         imageUrl: "/images/generated-photo-sample.jpeg",
-        model: "Gemini 3 Pro Nano Banana",
+        model: "Gemini 3 Pro Image",
       },
     ],
   },
@@ -103,7 +103,7 @@ const demoTabs: DemoTab[] = [
   {
     id: "code",
     label: "Генерация кода",
-    modelBadge: "Claude Opus 4.6",
+    modelBadge: "GPT Codex 5.2",
     messages: [
       {
         role: "user",
@@ -136,7 +136,24 @@ const demoTabs: DemoTab[] = [
             "    return distances",
           ].join("\n"),
         },
-        model: "Claude Opus 4.6",
+        model: "GPT Codex 5.2",
+      },
+    ],
+  },
+  {
+    id: "video",
+    label: "Генерация видео",
+    modelBadge: "Veo 3.1",
+    messages: [
+      {
+        role: "user",
+        content: "Создай короткое видео заката над океаном с чайками",
+      },
+      {
+        role: "assistant",
+        content:
+          "Генерирую видео заката над океаном с парящими чайками. Видео будет готово через несколько секунд...",
+        model: "Veo 3.1",
       },
     ],
   },

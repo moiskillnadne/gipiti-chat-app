@@ -8,9 +8,10 @@ import { FadeIn } from "./fade-in";
 
 const pricingFeatures = [
   "Доступ ко всем AI-моделям",
-  "ChatGPT 5.2, Gemini 3.1 Pro",
-  "Claude Opus 4.6, Grok 4.1",
-  "Генерация изображений",
+  "ChatGPT, Gemini, Claude, Grok",
+  "Flux, Recraft и другие",
+  "Генерация изображений и видео",
+  "Генерация и выполнение кода",
   "Анализ документов до 10MB",
   "Поиск в интернете",
   "Режим рассуждений",
@@ -37,11 +38,11 @@ export const PricingSection = () => (
               <div className="mb-6">
                 <p className="mb-1 text-sm text-zinc-500">
                   <span className="line-through">
-                    5 отдельных подписок ~ 15,000 ₽/мес
+                    6 отдельных подписок ~ 18,000 ₽/мес
                   </span>
                 </p>
                 <p className="text-emerald-400 text-sm">
-                  Вы экономите более 13,000 ₽ ежемесячно
+                  Вы экономите более 16,000 ₽ ежемесячно
                 </p>
               </div>
 

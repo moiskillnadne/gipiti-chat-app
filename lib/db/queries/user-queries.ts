@@ -6,6 +6,7 @@
 import { and, eq, gt } from "drizzle-orm";
 
 import { ChatSDKError } from "../../errors";
+import type { UtmData } from "../../utm/constants";
 import { type User, user } from "../schema";
 import { generateHashedPassword } from "../utils";
 import { db } from "./connection";
@@ -14,7 +15,8 @@ export async function createUser(
   email: string,
   password: string,
   // Temporarily default to Russian - was "en"
-  preferredLanguage = "ru"
+  preferredLanguage = "ru",
+  utmData?: UtmData
 ) {
   const hashedPassword = generateHashedPassword(password);
 
@@ -26,6 +28,13 @@ export async function createUser(
         password: hashedPassword,
         preferredLanguage,
         currentPlan: null, // No default plan - users must subscribe to get access
+        ...(utmData && {
+          utmSource: utmData.utmSource,
+          utmMedium: utmData.utmMedium,
+          utmCampaign: utmData.utmCampaign,
+          utmContent: utmData.utmContent,
+          utmTerm: utmData.utmTerm,
+        }),
       })
       .returning();
     return newUser;
