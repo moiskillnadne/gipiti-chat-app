@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import { SupportLink } from "./support-link";
@@ -14,6 +16,15 @@ export function AuthPageLayout({ children }: AuthPageLayoutProps) {
   return (
     <div className="flex h-dvh w-screen items-start justify-center bg-background pt-12 md:items-center md:pt-0">
       <div className="flex w-full max-w-md flex-col gap-12 overflow-hidden rounded-2xl">
+        <Link className="flex justify-center" href="/">
+          <Image
+            alt="GIPITI"
+            className="dark:invert"
+            height={64}
+            src="/icon.png"
+            width={64}
+          />
+        </Link>
         {children}
       </div>
       <SupportLink
