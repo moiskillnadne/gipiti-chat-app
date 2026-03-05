@@ -1,9 +1,11 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db/queries";
 import { subscriptionPlan, user, userSubscription } from "@/lib/db/schema";
 import type { CloudPaymentsCheckWebhook } from "@/lib/payments/cloudpayments-types";
 import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 import { parseWebhookData } from "./utils";
+
+const RECOVERABLE_STATUSES = ["active", "past_due"] as const;
 
 export async function handleCheckWebhook(
   payload: CloudPaymentsCheckWebhook
@@ -48,10 +50,12 @@ export async function handleCheckWebhook(
       "[CloudPayments:Check] planName not found in Data, looking up subscription from database"
     );
 
+    // 1. Look up by externalSubscriptionId (most specific, no status filter needed)
     if (SubscriptionId) {
       const subscriptions = await db
         .select({
           planName: subscriptionPlan.name,
+          status: userSubscription.status,
         })
         .from(userSubscription)
         .innerJoin(
@@ -59,26 +63,28 @@ export async function handleCheckWebhook(
           eq(userSubscription.planId, subscriptionPlan.id)
         )
         .where(
-          and(
-            eq(userSubscription.externalSubscriptionId, SubscriptionId),
-            eq(userSubscription.status, "active")
-          )
+          eq(userSubscription.externalSubscriptionId, SubscriptionId)
         )
         .limit(1);
 
       if (subscriptions.length > 0) {
         planName = subscriptions[0].planName;
         console.log(
-          `[CloudPayments:Check] Found plan ${planName} by SubscriptionId ${SubscriptionId}`
+          `[CloudPayments:Check] Found plan ${planName} (status: ${subscriptions[0].status}) by SubscriptionId ${SubscriptionId}`
+        );
+      } else {
+        console.log(
+          `[CloudPayments:Check] No subscription found by SubscriptionId ${SubscriptionId}`
         );
       }
     }
 
+    // 2. Fallback: look up by userId with active or past_due status
     if (!planName) {
-      // First try active subscriptions by userId
-      const activeSubscriptions = await db
+      const subscriptionsByUser = await db
         .select({
           planName: subscriptionPlan.name,
+          status: userSubscription.status,
         })
         .from(userSubscription)
         .innerJoin(
@@ -88,41 +94,20 @@ export async function handleCheckWebhook(
         .where(
           and(
             eq(userSubscription.userId, AccountId),
-            eq(userSubscription.status, "active")
+            inArray(userSubscription.status, [...RECOVERABLE_STATUSES])
           )
         )
         .limit(1);
 
-      if (activeSubscriptions.length > 0) {
-        planName = activeSubscriptions[0].planName;
+      if (subscriptionsByUser.length > 0) {
+        planName = subscriptionsByUser[0].planName;
         console.log(
-          `[CloudPayments:Check] Found plan ${planName} by AccountId ${AccountId}`
+          `[CloudPayments:Check] Found plan ${planName} (status: ${subscriptionsByUser[0].status}) by AccountId ${AccountId}`
         );
       } else {
-        // Fallback: check past_due subscriptions (retry webhooks after failed payments)
-        const pastDueSubscriptions = await db
-          .select({
-            planName: subscriptionPlan.name,
-          })
-          .from(userSubscription)
-          .innerJoin(
-            subscriptionPlan,
-            eq(userSubscription.planId, subscriptionPlan.id)
-          )
-          .where(
-            and(
-              eq(userSubscription.userId, AccountId),
-              eq(userSubscription.status, "past_due")
-            )
-          )
-          .limit(1);
-
-        if (pastDueSubscriptions.length > 0) {
-          planName = pastDueSubscriptions[0].planName;
-          console.log(
-            `[CloudPayments:Check] Found past_due plan ${planName} by AccountId ${AccountId}`
-          );
-        }
+        console.log(
+          `[CloudPayments:Check] No active/past_due subscription found for AccountId ${AccountId}`
+        );
       }
     }
   }
