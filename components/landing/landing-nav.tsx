@@ -68,7 +68,7 @@ export const LandingNav = () => {
               className="hidden rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-5 py-2 font-medium text-sm text-white transition-all hover:shadow-indigo-500/25 hover:shadow-lg sm:inline-flex"
               href="#pricing"
             >
-              Попробовать бесплатно
+              Тарифы
             </a>
           </motion.div>
         </div>

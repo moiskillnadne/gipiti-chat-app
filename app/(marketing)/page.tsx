@@ -16,9 +16,9 @@ import { PricingSection } from "@/components/landing/pricing-section";
 import { TrustBar } from "@/components/landing/trust-bar";
 
 export const metadata: Metadata = {
-  title: "GIPITI - AI-чат с ChatGPT, Gemini, Claude и Grok",
+  title: "GIPITI - AI-чат с ChatGPT, Gemini, Claude, Grok, Flux и Recraft",
   description:
-    "GIPITI — платформа с доступом к лучшим AI-моделям: ChatGPT 5.2, Gemini 3.1 Pro, Claude Opus 4.6 и Grok 4.1. Генерация текста, изображений, анализ документов.",
+    "GIPITI — платформа с доступом к 18+ AI-моделям от 6 провайдеров. Генерация текста, изображений и видео, генерация кода, анализ документов.",
   alternates: {
     canonical: "https://gipiti.ru",
   },
@@ -30,7 +30,7 @@ const jsonLd = {
   name: "GIPITI",
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",
-  description: "AI-чат платформа с доступом к ChatGPT, Gemini, Claude и Grok",
+  description: "AI-чат платформа с доступом к 18+ моделям от 6 провайдеров",
   url: "https://gipiti.ru",
   offers: {
     "@type": "Offer",
@@ -42,7 +42,10 @@ const jsonLd = {
     "Доступ к Gemini 3.1 Pro",
     "Доступ к Claude Opus 4.6",
     "Доступ к Grok 4.1",
+    "Доступ к Flux и Recraft",
     "Генерация изображений",
+    "Генерация видео",
+    "Генерация и выполнение кода",
     "Анализ документов",
     "Поиск в интернете",
   ],
@@ -81,7 +84,7 @@ const faqJsonLd = {
       name: "Что входит в подписку?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Доступ ко всем AI-моделям, генерация изображений, анализ документов, поиск и режим рассуждений.",
+        text: "Доступ ко всем 18+ AI-моделям от 6 провайдеров, генерация изображений и видео, генерация кода, анализ документов, поиск и режим рассуждений.",
       },
     },
     {

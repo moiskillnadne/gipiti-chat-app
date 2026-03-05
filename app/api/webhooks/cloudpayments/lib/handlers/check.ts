@@ -61,9 +61,7 @@ export async function handleCheckWebhook(
           subscriptionPlan,
           eq(userSubscription.planId, subscriptionPlan.id)
         )
-        .where(
-          eq(userSubscription.externalSubscriptionId, SubscriptionId)
-        )
+        .where(eq(userSubscription.externalSubscriptionId, SubscriptionId))
         .limit(1);
 
       if (subscriptions.length > 0) {

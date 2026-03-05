@@ -3,10 +3,12 @@
 import { motion } from "framer-motion";
 import {
   BrainIcon,
+  Code2Icon,
   FileTextIcon,
   ImageIcon,
   MessageSquareIcon,
   SearchIcon,
+  VideoIcon,
   ZapIcon,
 } from "lucide-react";
 import type { ElementType } from "react";
@@ -28,7 +30,20 @@ const features: Feature[] = [
   {
     icon: ImageIcon,
     title: "Генерация изображений",
-    description: "Создавайте изображения с GPT Image 1.5 и Gemini 3 Pro Image",
+    description:
+      "Создавайте изображения с GPT Image, Gemini, Flux, Recraft и Grok Imagine",
+  },
+  {
+    icon: VideoIcon,
+    title: "Генерация видео",
+    description:
+      "Создавайте видео с Veo 3.1 и Grok Imagine Video по текстовому описанию",
+  },
+  {
+    icon: Code2Icon,
+    title: "Генерация кода",
+    description:
+      "Пишите и выполняйте код с GPT Codex и Grok Code Fast прямо в браузере",
   },
   {
     icon: FileTextIcon,
@@ -65,7 +80,7 @@ export const FeaturesSection = () => (
       </FadeIn>
 
       <motion.div
-        className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+        className="grid gap-6 md:grid-cols-2 lg:grid-cols-4"
         initial="hidden"
         variants={staggerContainer}
         viewport={{ once: true, margin: "-100px" }}

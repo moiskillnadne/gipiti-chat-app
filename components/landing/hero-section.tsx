@@ -59,7 +59,7 @@ export const HeroSection = () => (
       <FadeIn delay={0.3}>
         <p className="mx-auto mb-10 max-w-2xl text-lg text-zinc-400 md:text-xl">
           GIPITI — единая платформа для общения с передовыми AI-моделями.
-          Генерируйте текст, изображения, анализируйте документы.
+          Генерируйте текст, изображения и видео, анализируйте документы.
         </p>
       </FadeIn>
 
@@ -68,12 +68,6 @@ export const HeroSection = () => (
         <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
           <a
             className="inline-flex w-full items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-8 py-4 font-semibold text-lg text-white shadow-indigo-500/25 shadow-lg transition-all hover:shadow-indigo-500/30 hover:shadow-xl sm:w-auto"
-            href="#pricing"
-          >
-            Попробовать бесплатно
-          </a>
-          <a
-            className="inline-flex w-full items-center justify-center rounded-full border border-zinc-700 bg-zinc-900/50 px-8 py-4 font-semibold text-lg text-zinc-300 transition-all hover:border-zinc-600 hover:bg-zinc-800/50 sm:w-auto"
             href="#pricing"
           >
             Посмотреть тарифы

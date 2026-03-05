@@ -260,6 +260,56 @@ export const LogoXai = ({ size = 16 }: { size?: number }) => {
   );
 };
 
+export const LogoBFL = ({ size = 16 }: { size?: number }) => {
+  return (
+    <svg
+      height={size}
+      style={{ color: "currentcolor" }}
+      viewBox="0 0 24 24"
+      width={size}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <text
+        dominantBaseline="central"
+        fill="currentColor"
+        fontFamily="system-ui, sans-serif"
+        fontSize="14"
+        fontWeight="bold"
+        textAnchor="middle"
+        x="12"
+        y="12"
+      >
+        BFL
+      </text>
+    </svg>
+  );
+};
+
+export const LogoRecraft = ({ size = 16 }: { size?: number }) => {
+  return (
+    <svg
+      height={size}
+      style={{ color: "currentcolor" }}
+      viewBox="0 0 24 24"
+      width={size}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <text
+        dominantBaseline="central"
+        fill="currentColor"
+        fontFamily="system-ui, sans-serif"
+        fontSize="16"
+        fontWeight="bold"
+        textAnchor="middle"
+        x="12"
+        y="12"
+      >
+        R
+      </text>
+    </svg>
+  );
+};
+
 export const RouteIcon = ({ size = 16 }: { size?: number }) => {
   return (
     <svg
