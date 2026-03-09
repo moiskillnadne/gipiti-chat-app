@@ -1,6 +1,6 @@
 "use client";
 
-import { ImageIcon, MessageSquareIcon, SearchIcon } from "lucide-react";
+import { ImageIcon, MessageSquareIcon, SearchIcon, VideoIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import useSWR from "swr";
@@ -24,6 +24,7 @@ type UsageLimitsResponse = {
   messages: UsageLimitItem;
   webSearch: UsageLimitItem;
   imageGeneration: UsageLimitItem;
+  videoGeneration: UsageLimitItem;
 };
 
 type LimitRowProps = {
@@ -102,6 +103,12 @@ export function UsageLimitsWidget() {
       label: t("imageGeneration"),
       item: data.imageGeneration,
     },
+    {
+      key: "videoGeneration",
+      icon: <VideoIcon className="h-4 w-4 text-muted-foreground" />,
+      label: t("videoGeneration"),
+      item: data.videoGeneration,
+    },
   ];
 
   return (
@@ -134,7 +141,7 @@ function UsageLimitsWidgetSkeleton() {
         <Skeleton className="mt-2 h-4 w-64" />
       </CardHeader>
       <CardContent className="space-y-4">
-        {[1, 2, 3].map((i) => (
+        {[1, 2, 3, 4].map((i) => (
           <div className="space-y-2" key={i}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">

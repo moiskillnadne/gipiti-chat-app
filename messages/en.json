@@ -228,7 +228,9 @@
           "models": "Available models",
           "reasoning": "Adjustable reasoning depth",
           "imageGeneration": "Image generation",
+          "videoGeneration": "Video generation",
           "imageModels": "GPT Image 1.5, Gemini 3 Pro Image (Nano banana pro)",
+          "videoModels": "Veo 3.1, Veo 3.1 Fast, Grok Imagine Video",
           "fileAnalysis": "Document analysis",
           "fileTypes": "up to 10MB - PDF, JPG, PNG",
           "modelsList": "ChatGPT 5.2, Gemini 3.1 Pro, Opus 4.6, Grok 4.1, GPT-Image-1.5, Gemini 3 Pro Image"
@@ -242,17 +244,20 @@
           "monthly": {
             "tokens": "3M",
             "messages": "1,500",
-            "searches": "250"
+            "searches": "250",
+            "videoGenerations": "5"
           },
           "quarterly": {
             "tokens": "9M",
             "messages": "4,500",
-            "searches": "750"
+            "searches": "750",
+            "videoGenerations": "15"
           },
           "annual": {
             "tokens": "36M",
             "messages": "18,000",
-            "searches": "3,000"
+            "searches": "3,000",
+            "videoGenerations": "60"
           }
         }
       },
@@ -375,6 +380,7 @@
         "messages": "Messages",
         "webSearch": "Web Search",
         "imageGeneration": "Image Generation",
+        "videoGeneration": "Video Generation",
         "used": "{used} / {limit}",
         "usedUnlimited": "{used} (unlimited)",
         "noSubscription": "No active subscription"

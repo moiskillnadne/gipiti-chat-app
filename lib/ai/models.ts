@@ -480,6 +480,7 @@ export const chatModels: ChatModel[] = [
     provider: "xai",
     capabilities: {
       videoGeneration: true,
+      attachments: true,
     },
     showInUI: true,
   },
