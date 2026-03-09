@@ -120,6 +120,21 @@ export function FeaturesTable() {
               </td>
             </tr>
 
+            {/* Video generation row */}
+            <tr className="bg-white dark:bg-zinc-900">
+              <td className="px-4 py-3 font-medium text-gray-900 dark:text-zinc-100">
+                {t("table.videoGeneration")}
+              </td>
+              {periods.map((period) => (
+                <td
+                  className="px-4 py-3 text-center text-gray-700 dark:text-zinc-300"
+                  key={period}
+                >
+                  {t(`values.${period}.videoGenerations`)}
+                </td>
+              ))}
+            </tr>
+
             {/* File analysis row - merged cell */}
             <tr className="bg-white dark:bg-zinc-900">
               <td className="px-4 py-3 font-medium text-gray-900 dark:text-zinc-100">
