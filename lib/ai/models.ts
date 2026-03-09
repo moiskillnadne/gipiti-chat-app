@@ -460,6 +460,7 @@ export const chatModels: ChatModel[] = [
     provider: "google",
     capabilities: {
       videoGeneration: true,
+      attachments: true,
     },
     showInUI: true,
   },
@@ -470,6 +471,7 @@ export const chatModels: ChatModel[] = [
     provider: "google",
     capabilities: {
       videoGeneration: true,
+      attachments: true,
     },
     showInUI: true,
   },
