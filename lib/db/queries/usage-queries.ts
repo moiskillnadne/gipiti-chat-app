@@ -278,7 +278,8 @@ export async function insertVideoGenerationUsageLog({
       billingPeriodStart,
       billingPeriodEnd,
     });
-  } catch (_error) {
+  } catch (error) {
+    console.error("Video generation usage log insert error:", error);
     throw new ChatSDKError(
       "bad_request:database",
       "Failed to insert video generation usage log"

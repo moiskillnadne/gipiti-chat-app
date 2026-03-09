@@ -991,6 +991,15 @@ export async function POST(request: Request) {
             throw new ChatSDKError("bad_request:api");
           }
 
+          // Extract first image attachment for image-to-video generation
+          const imageAttachment = userMessageParts.find(
+            (part) =>
+              part.type === "file" &&
+              (part.mediaType === "image/jpeg" || part.mediaType === "image/png")
+          );
+          const referenceImageUrl =
+            imageAttachment?.type === "file" ? imageAttachment.url : undefined;
+
           const documentId = generateUUID();
           const generationStartTime = Date.now();
 
@@ -1016,9 +1025,13 @@ export async function POST(request: Request) {
 
           try {
             const gatewayModelId = getVideoGatewayModelId(selectedChatModel);
+            const videoPrompt = referenceImageUrl
+              ? { image: referenceImageUrl, text: userPrompt }
+              : userPrompt;
+
             const result = await generateVideo({
               model: gateway.videoModel(gatewayModelId),
-              prompt: userPrompt,
+              prompt: videoPrompt,
               aspectRatio: "16:9",
               duration: 8,
             });
@@ -1117,7 +1130,7 @@ export async function POST(request: Request) {
               console.warn("Failed to record video generation usage", err);
             }
 
-            // Record token usage for quota tracking
+            // Write generation timing as usage info
             const directVideoUsage: AppUsage = {
               modelId: selectedChatModel,
               inputTokens: 0,
@@ -1136,21 +1149,6 @@ export async function POST(request: Request) {
               },
             };
 
-            try {
-              await recordTokenUsage({
-                userId: session.user.id,
-                chatId: id,
-                messageId: undefined,
-                usage: directVideoUsage,
-              });
-            } catch (err) {
-              console.warn(
-                "Failed to record token usage for video generation",
-                err
-              );
-            }
-
-            // Write generation timing as usage info
             dataStream.write({
               type: "data-usage",
               data: {

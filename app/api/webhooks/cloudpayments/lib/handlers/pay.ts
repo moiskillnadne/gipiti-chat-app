@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { resetBalance } from "@/lib/ai/token-balance";
 import { db } from "@/lib/db/queries";
 import {
@@ -286,6 +286,18 @@ export async function handlePayWebhook(
           updatedAt: now,
         })
         .where(eq(userSubscription.id, existingSubscription.id));
+
+      // Cancel any other active subscriptions for this user (orphaned free/tester subs)
+      await db
+        .update(userSubscription)
+        .set({ status: "cancelled", cancelledAt: now })
+        .where(
+          and(
+            eq(userSubscription.userId, AccountId),
+            eq(userSubscription.status, "active"),
+            ne(userSubscription.id, existingSubscription.id)
+          )
+        );
     } else {
       // If the user does not have an active subscription, cancel the existing subscription and create a new one.
       await db

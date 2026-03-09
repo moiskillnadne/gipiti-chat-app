@@ -4,6 +4,7 @@ import {
   getMessageCountByBillingPeriod,
   getSearchUsageCountByBillingPeriod,
   getUserSubscriptionWithPlan,
+  getVideoGenerationCountByBillingPeriod,
 } from "@/lib/db/queries";
 import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 
@@ -16,6 +17,7 @@ type UsageLimitsResponse = {
   messages: UsageLimitItem;
   webSearch: UsageLimitItem;
   imageGeneration: UsageLimitItem;
+  videoGeneration: UsageLimitItem;
 };
 
 export async function GET() {
@@ -39,7 +41,7 @@ export async function GET() {
   const periodStart = subscription.currentPeriodStart;
   const periodEnd = subscription.currentPeriodEnd;
 
-  const [messagesUsed, searchUsed, imageGenUsed] = await Promise.all([
+  const [messagesUsed, searchUsed, imageGenUsed, videoGenUsed] = await Promise.all([
     getMessageCountByBillingPeriod({
       userId: session.user.id,
       periodStart,
@@ -51,6 +53,11 @@ export async function GET() {
       periodEnd,
     }),
     getImageGenerationCountByBillingPeriod({
+      userId: session.user.id,
+      periodStart,
+      periodEnd,
+    }),
+    getVideoGenerationCountByBillingPeriod({
       userId: session.user.id,
       periodStart,
       periodEnd,
@@ -69,6 +76,10 @@ export async function GET() {
     imageGeneration: {
       used: imageGenUsed,
       limit: tierConfig?.features.maxImageGenerationsPerPeriod ?? null,
+    },
+    videoGeneration: {
+      used: videoGenUsed,
+      limit: tierConfig?.features.maxVideoGenerationsPerPeriod ?? null,
     },
   };
 

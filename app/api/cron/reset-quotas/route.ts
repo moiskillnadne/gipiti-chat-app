@@ -1,4 +1,4 @@
-import { and, eq, lte, or } from "drizzle-orm";
+import { and, eq, lte, ne, or } from "drizzle-orm";
 import { resetBalance } from "@/lib/ai/token-balance";
 import { db } from "@/lib/db/queries";
 import { subscriptionPlan, userSubscription } from "@/lib/db/schema";
@@ -83,6 +83,31 @@ export async function GET(request: Request) {
     );
 
     renewed++;
+
+    // Check if user has an active paid subscription (orphaned free/tester sub guard)
+    const paidSub = await db
+      .select({ id: userSubscription.id })
+      .from(userSubscription)
+      .innerJoin(
+        subscriptionPlan,
+        eq(userSubscription.planId, subscriptionPlan.id)
+      )
+      .where(
+        and(
+          eq(userSubscription.userId, sub.userId),
+          eq(userSubscription.status, "active"),
+          ne(subscriptionPlan.name, "tester"),
+          ne(subscriptionPlan.name, "free")
+        )
+      )
+      .limit(1);
+
+    if (paidSub.length > 0) {
+      console.log(
+        `[Cron:ResetQuotas] User ${sub.userId} has active paid subscription ${paidSub[0].id}, skipping free/tester balance reset`
+      );
+      continue;
+    }
 
     // Reset token balance to plan quota
     try {
