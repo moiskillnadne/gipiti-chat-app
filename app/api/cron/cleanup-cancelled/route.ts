@@ -1,5 +1,5 @@
 import { and, eq, lte } from "drizzle-orm";
-import { db } from "@/lib/db/queries";
+import { db, getActiveUserSubscription } from "@/lib/db/queries";
 import { userSubscription } from "@/lib/db/schema";
 import { assignFreePlan } from "@/lib/subscription/subscription-init";
 
@@ -21,7 +21,8 @@ export async function GET(request: Request) {
     .where(
       and(
         eq(userSubscription.cancelAtPeriodEnd, true),
-        lte(userSubscription.currentPeriodEnd, now)
+        lte(userSubscription.currentPeriodEnd, now),
+        eq(userSubscription.status, "active")
       )
     );
 
@@ -36,15 +37,26 @@ export async function GET(request: Request) {
       `[Cron:CleanupCancelled] Processing user ${sub.userId}, subscription ${sub.id}`
     );
 
-    // Mark the old subscription as cancelled
-    if (sub.status !== "cancelled") {
-      await db
-        .update(userSubscription)
-        .set({ status: "cancelled" })
-        .where(eq(userSubscription.id, sub.id));
+    // Mark this subscription as cancelled
+    await db
+      .update(userSubscription)
+      .set({ status: "cancelled", cancelledAt: now })
+      .where(eq(userSubscription.id, sub.id));
+
+    // Check if user has another active subscription before downgrading
+    const activeSub = await getActiveUserSubscription({
+      userId: sub.userId,
+    });
+
+    if (activeSub) {
+      console.log(
+        `[Cron:CleanupCancelled] User ${sub.userId} has active subscription ${activeSub.id}, skipping free plan assignment`
+      );
+      cleaned++;
+      continue;
     }
 
-    // Downgrade user to free plan instead of leaving them with null plan
+    // No other active subscription — downgrade to free plan
     try {
       await assignFreePlan(sub.userId);
       console.log(

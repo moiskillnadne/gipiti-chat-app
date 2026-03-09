@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { resetBalance } from "@/lib/ai/token-balance";
 import { db } from "@/lib/db/queries";
 import { subscriptionPlan, user, userSubscription } from "@/lib/db/schema";
@@ -76,6 +76,31 @@ export async function assignTesterPlan(userId: string) {
  * Assign free plan to a new user
  */
 export async function assignFreePlan(userId: string) {
+  // Safety guard: do not downgrade a user who has an active paid subscription
+  const activePaidSubs = await db
+    .select({ id: userSubscription.id })
+    .from(userSubscription)
+    .innerJoin(
+      subscriptionPlan,
+      eq(userSubscription.planId, subscriptionPlan.id)
+    )
+    .where(
+      and(
+        eq(userSubscription.userId, userId),
+        eq(userSubscription.status, "active"),
+        eq(subscriptionPlan.isTesterPlan, false),
+        ne(subscriptionPlan.name, "free")
+      )
+    )
+    .limit(1);
+
+  if (activePaidSubs.length > 0) {
+    console.warn(
+      `[assignFreePlan] Skipping: user ${userId} has active paid subscription ${activePaidSubs[0].id}`
+    );
+    return;
+  }
+
   const freeTier = SUBSCRIPTION_TIERS.free;
 
   // Get or create free plan
