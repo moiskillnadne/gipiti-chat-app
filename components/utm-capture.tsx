@@ -3,7 +3,13 @@
 import { useEffect } from "react";
 import { UTM_COOKIE_MAX_AGE, UTM_COOKIE_NAME } from "@/lib/utm/constants";
 
-const UTM_PARAMS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"];
+const UTM_PARAMS = [
+  "utm_source",
+  "utm_medium",
+  "utm_campaign",
+  "utm_content",
+  "utm_term",
+];
 
 export function UtmCapture() {
   useEffect(() => {
@@ -20,8 +26,7 @@ export function UtmCapture() {
     if (Object.keys(utmData).length === 0) return;
 
     const json = encodeURIComponent(JSON.stringify(utmData));
-    document.cookie =
-      `${UTM_COOKIE_NAME}=${json}; path=/; max-age=${UTM_COOKIE_MAX_AGE}; samesite=lax`;
+    document.cookie = `${UTM_COOKIE_NAME}=${json}; path=/; max-age=${UTM_COOKIE_MAX_AGE}; samesite=lax`;
   }, []);
 
   return null;

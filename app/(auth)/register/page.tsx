@@ -1,5 +1,6 @@
 "use client";
 
+import { SmartCaptcha } from "@yandex/smart-captcha";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -13,6 +14,8 @@ import { Loader } from "@/components/elements/loader";
 import { SubmitButton } from "@/components/submit-button";
 import { toast } from "@/components/toast";
 import { type RegisterActionState, register } from "../actions";
+
+const CAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_YANDEX_SMARTCAPTCHA_SITE_KEY;
 
 export default function Page() {
   return (
@@ -41,6 +44,8 @@ function RegisterPage() {
   const router = useRouter();
 
   const [isSuccessful, setIsSuccessful] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaKey, setCaptchaKey] = useState(0);
 
   const [state, formAction] = useActionState<RegisterActionState, FormData>(
     register,
@@ -50,6 +55,9 @@ function RegisterPage() {
   );
 
   const { update: updateSession } = useSession();
+
+  const isCaptchaEnabled = !!CAPTCHA_SITE_KEY;
+  const isCaptchaCompleted = !isCaptchaEnabled || !!captchaToken;
 
   useEffect(() => {
     if (isSuccessful) {
@@ -71,6 +79,13 @@ function RegisterPage() {
         type: "error",
         description: tErrors("invalidData"),
       });
+      return;
+    }
+
+    if (state.status === "captcha_failed") {
+      toast({ type: "error", description: tErrors("captchaFailed") });
+      setCaptchaToken("");
+      setCaptchaKey((prev) => prev + 1);
       return;
     }
 
@@ -99,7 +114,20 @@ function RegisterPage() {
       <AuthPageHeader subtitle={t("subtitle")} title={t("title")} />
       <AuthForm action={formAction} mode="register">
         <input name="locale" type="hidden" value={locale} />
-        <SubmitButton isSuccessful={isSuccessful}>
+        <input name="captcha-token" type="hidden" value={captchaToken} />
+        {isCaptchaEnabled && (
+          <SmartCaptcha
+            key={captchaKey}
+            language={locale === "ru" ? "ru" : "en"}
+            onSuccess={setCaptchaToken}
+            onTokenExpired={() => setCaptchaToken("")}
+            sitekey={CAPTCHA_SITE_KEY}
+          />
+        )}
+        <SubmitButton
+          isDisabled={!isCaptchaCompleted}
+          isSuccessful={isSuccessful}
+        >
           {t("signUpButton")}
         </SubmitButton>
         <p className="mt-4 text-center text-gray-600 text-sm dark:text-zinc-400">

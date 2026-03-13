@@ -8,7 +8,9 @@ type RawUtmData = {
   utm_term?: string;
 };
 
-export function parseUtmCookie(cookieValue: string | undefined): UtmData | null {
+export function parseUtmCookie(
+  cookieValue: string | undefined
+): UtmData | null {
   if (!cookieValue) return null;
 
   try {

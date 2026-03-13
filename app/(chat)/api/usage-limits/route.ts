@@ -41,28 +41,29 @@ export async function GET() {
   const periodStart = subscription.currentPeriodStart;
   const periodEnd = subscription.currentPeriodEnd;
 
-  const [messagesUsed, searchUsed, imageGenUsed, videoGenUsed] = await Promise.all([
-    getMessageCountByBillingPeriod({
-      userId: session.user.id,
-      periodStart,
-      periodEnd,
-    }),
-    getSearchUsageCountByBillingPeriod({
-      userId: session.user.id,
-      periodStart,
-      periodEnd,
-    }),
-    getImageGenerationCountByBillingPeriod({
-      userId: session.user.id,
-      periodStart,
-      periodEnd,
-    }),
-    getVideoGenerationCountByBillingPeriod({
-      userId: session.user.id,
-      periodStart,
-      periodEnd,
-    }),
-  ]);
+  const [messagesUsed, searchUsed, imageGenUsed, videoGenUsed] =
+    await Promise.all([
+      getMessageCountByBillingPeriod({
+        userId: session.user.id,
+        periodStart,
+        periodEnd,
+      }),
+      getSearchUsageCountByBillingPeriod({
+        userId: session.user.id,
+        periodStart,
+        periodEnd,
+      }),
+      getImageGenerationCountByBillingPeriod({
+        userId: session.user.id,
+        periodStart,
+        periodEnd,
+      }),
+      getVideoGenerationCountByBillingPeriod({
+        userId: session.user.id,
+        periodStart,
+        periodEnd,
+      }),
+    ]);
 
   const response: UsageLimitsResponse = {
     messages: {

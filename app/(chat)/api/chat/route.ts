@@ -995,7 +995,8 @@ export async function POST(request: Request) {
           const imageAttachment = userMessageParts.find(
             (part) =>
               part.type === "file" &&
-              (part.mediaType === "image/jpeg" || part.mediaType === "image/png")
+              (part.mediaType === "image/jpeg" ||
+                part.mediaType === "image/png")
           );
           const referenceImageUrl =
             imageAttachment?.type === "file" ? imageAttachment.url : undefined;
