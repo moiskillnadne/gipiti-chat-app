@@ -1,6 +1,11 @@
 "use client";
 
-import { ImageIcon, MessageSquareIcon, SearchIcon, VideoIcon } from "lucide-react";
+import {
+  ImageIcon,
+  MessageSquareIcon,
+  SearchIcon,
+  VideoIcon,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import useSWR from "swr";

@@ -9,19 +9,23 @@ import { Button } from "./ui/button";
 
 export function SubmitButton({
   children,
+  isDisabled = false,
   isSuccessful,
 }: {
   children: React.ReactNode;
+  isDisabled?: boolean;
   isSuccessful: boolean;
 }) {
   const t = useTranslations("common.accessibility");
   const { pending } = useFormStatus();
 
+  const isButtonDisabled = pending || isSuccessful || isDisabled;
+
   return (
     <Button
-      aria-disabled={pending || isSuccessful}
+      aria-disabled={isButtonDisabled}
       className="relative"
-      disabled={pending || isSuccessful}
+      disabled={isButtonDisabled}
       type={pending ? "button" : "submit"}
     >
       {children}
