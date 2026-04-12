@@ -1,4 +1,4 @@
-import * as readline from "node:readline";
+import { createInterface } from "node:readline";
 import { config } from "dotenv";
 import { eq, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -20,8 +20,8 @@ config({
 const isForceMode = process.argv.includes("--force");
 const emails = process.argv.slice(2).filter((arg) => arg !== "--force");
 
-async function promptConfirmation(prompt: string): Promise<boolean> {
-  const rl = readline.createInterface({
+function promptConfirmation(prompt: string): Promise<boolean> {
+  const rl = createInterface({
     input: process.stdin,
     output: process.stdout,
   });

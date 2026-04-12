@@ -10,7 +10,6 @@ vi.mock("../../../subscription/billing-periods", () => ({
   calculatePeriodEnd: vi.fn(() => new Date("2024-02-01T00:00:00.000Z")),
 }));
 
-import { ChatSDKError } from "../../../errors";
 import {
   createUserSubscription,
   getActiveUserSubscription,

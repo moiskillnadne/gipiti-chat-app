@@ -113,7 +113,6 @@ async function main() {
 }
 
 async function assignTesterPlanForUser(
-  // biome-ignore lint/suspicious/noExplicitAny: standalone script db type
   db: ReturnType<typeof drizzle>,
   userId: string,
   email: string
@@ -243,7 +242,6 @@ async function assignTesterPlanForUser(
 }
 
 async function fixUserWithFreePlan(
-  // biome-ignore lint/suspicious/noExplicitAny: standalone script db type
   db: ReturnType<typeof drizzle>,
   userId: string,
   email: string
