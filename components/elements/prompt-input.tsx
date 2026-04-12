@@ -38,6 +38,7 @@ export type PromptInputTextareaProps = Omit<
   minHeight?: number;
   maxHeight?: number;
   disableAutoResize?: boolean;
+  disableKeyboardSubmit?: boolean;
   resizeOnNewLinesOnly?: boolean;
 };
 
@@ -53,6 +54,7 @@ export const PromptInputTextarea = forwardRef<
       minHeight = 48,
       maxHeight = 164,
       disableAutoResize = false,
+      disableKeyboardSubmit = false,
       resizeOnNewLinesOnly = false,
       ...props
     },
@@ -85,6 +87,11 @@ export const PromptInputTextarea = forwardRef<
       if (e.key === "Enter") {
         // Don't submit if IME composition is in progress
         if (e.nativeEvent.isComposing) {
+          return;
+        }
+
+        // On mobile, always allow newline (no keyboard submission)
+        if (disableKeyboardSubmit) {
           return;
         }
 
