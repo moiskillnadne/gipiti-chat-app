@@ -48,3 +48,7 @@ logs/
 /plans/*
 
 /prompt-templates
+
+.mcp.json
+cloudpayments-documentation.en.md
+gipiti.drawio.png
