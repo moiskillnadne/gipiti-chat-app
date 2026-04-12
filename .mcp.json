@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "vps-logs": {
+      "type": "http",
+      "url": "https://mcp-monitoring-ru.gipiti.ru/mcp",
+      "headers": {
+        "Authorization": "Bearer 3d0f1df59b66de9e4c29f473dec6ef124401fd10e43ffb3866809db71dbbbb7f"
+      }
+    }
+  }
+}
