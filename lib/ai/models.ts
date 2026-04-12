@@ -323,6 +323,17 @@ export const chatModels: ChatModel[] = [
     showInUI: false,
   },
   {
+    id: "gpt-5.4-mini",
+    name: "gpt54Mini.name",
+    description: "gpt54Mini.description",
+    provider: "openai",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+  },
+  {
     id: "gpt-codex-5.2",
     name: "gptCodex52.name",
     description: "gptCodex52.description",
@@ -659,6 +670,7 @@ export const openaiModelIds = [
   "gpt-5.2-pro",
   "gpt-5.4",
   "gpt-5-mini",
+  "gpt-5.4-mini",
   "gpt-codex-5.2",
 ] as const;
 export type OpenAIModelId = (typeof openaiModelIds)[number];

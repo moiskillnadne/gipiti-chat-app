@@ -962,6 +962,10 @@
       "name": "GPT-5 Mini",
       "description": "Smallest OpenAI GPT model for quick tasks."
     },
+    "gpt54Mini": {
+      "name": "GPT-5.4 Mini",
+      "description": "Fast and efficient OpenAI model for quick tasks with reasoning."
+    },
     "gptCodex52": {
       "name": "GPT-Codex 5.2",
       "description": "OpenAI's specialized coding model with advanced code generation and reasoning."

@@ -48,6 +48,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       maxImageGenerationsPerPeriod: 1, // 1 image per day
       maxVideoGenerationsPerPeriod: 0, // No video for free tier
       allowedModels: [
+        "gpt-5.4-mini",
         "grok-code-fast-1",
         "gemini-3-pro-image",
         "gemini-3.1-flash-image",
@@ -86,6 +87,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
         "gpt-5.1-thinking",
         "gpt-5.2",
         "gpt-5.4",
+        "gpt-5.4-mini",
         "gpt-5.2-pro",
         "gpt-codex-5.2",
         "grok-code-fast-1",
@@ -134,6 +136,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
         "gpt-5.1-thinking",
         "gpt-5.2",
         "gpt-5.4",
+        "gpt-5.4-mini",
         "gpt-5.2-pro",
         "gpt-codex-5.2",
         "grok-code-fast-1",
@@ -181,6 +184,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
         "gpt-5.1-thinking",
         "gpt-5.2",
         "gpt-5.4",
+        "gpt-5.4-mini",
         "gpt-5.2-pro",
         "gpt-codex-5.2",
         "grok-code-fast-1",
@@ -228,6 +232,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
         "gpt-5.1-thinking",
         "gpt-5.2",
         "gpt-5.4",
+        "gpt-5.4-mini",
         "gpt-5.2-pro",
         "gpt-codex-5.2",
         "grok-code-fast-1",
@@ -274,6 +279,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
         "gpt-5.1-thinking",
         "gpt-5.2",
         "gpt-5.4",
+        "gpt-5.4-mini",
         "gpt-5.2-pro",
         "gpt-codex-5.2",
         "grok-code-fast-1",
