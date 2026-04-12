@@ -950,6 +950,10 @@
       "name": "GPT-5.2",
       "description": "Latest OpenAI model with advanced reasoning capabilities."
     },
+    "gpt54": {
+      "name": "GPT-5.4",
+      "description": "Latest OpenAI model with advanced reasoning capabilities."
+    },
     "gpt52Pro": {
       "name": "GPT-5.2 Pro",
       "description": "Most powerful OpenAI model with extended context and reasoning."

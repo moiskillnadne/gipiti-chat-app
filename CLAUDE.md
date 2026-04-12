@@ -95,7 +95,7 @@ app/
   subscription/            # Subscription dashboard + usage pages
 lib/
   ai/
-    models.ts              # Model registry (19 models, 4 providers)
+    models.ts              # Model registry (20 models, 4 providers)
     providers.ts           # AI SDK provider setup + reasoning middleware
     prompts.ts             # System prompts (regular, reasoning, artifacts, search, image, style, project)
     token-quota.ts         # Quota checking & period-based enforcement
@@ -200,8 +200,8 @@ scripts/                   # Utility scripts (seed-plans, add-tokens, etc.)
 ### AI Integration
 
 **Model Configuration** (`lib/ai/models.ts`):
-- **Default model**: `gpt-5.2` (OpenAI)
-- **19 models across 4 providers**: OpenAI (gpt-5, gpt-5.1-instant, gpt-5.1-thinking, gpt-5.2, gpt-5.2-pro, gpt-5-mini, gpt-codex-5.2, gpt-image-1.5), Google (gemini-2.5-pro, gemini-3.1-pro, gemini-3-pro-image), Anthropic (opus-4.1, opus-4.6, sonnet-4.5), Xai (grok-2-vision, grok-3-mini, grok-4.1-reasoning, grok-4.1-non-reasoning, grok-code-fast-1)
+- **Default model**: `gpt-5.4` (OpenAI)
+- **20 models across 4 providers**: OpenAI (gpt-5, gpt-5.1-instant, gpt-5.1-thinking, gpt-5.2, gpt-5.2-pro, gpt-5.4, gpt-5-mini, gpt-codex-5.2, gpt-image-1.5), Google (gemini-2.5-pro, gemini-3.1-pro, gemini-3-pro-image), Anthropic (opus-4.1, opus-4.6, sonnet-4.5), Xai (grok-2-vision, grok-3-mini, grok-4.1-reasoning, grok-4.1-non-reasoning, grok-code-fast-1)
 - **Capabilities**: `reasoning`, `attachments`, `imageGeneration`, `thinkingConfig` (effort levels)
 - **Thinking configurations**: OpenAI (auto/none/medium/high), Google (auto/low/high), Anthropic (auto/low/medium/high)
 - Reasoning models use `extractReasoningMiddleware({ tagName: "think" })` to parse `<think>` blocks

@@ -1,7 +1,7 @@
 import type { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google";
 import type { SharedV2ProviderOptions } from "@ai-sdk/provider";
 
-export const DEFAULT_CHAT_MODEL: string = "gpt-5.2";
+export const DEFAULT_CHAT_MODEL: string = "gpt-5.4";
 
 export type ChatModelCapabilities = {
   reasoning?: boolean;
@@ -280,6 +280,18 @@ export const chatModels: ChatModel[] = [
     id: "gpt-5.2",
     name: "gpt52.name",
     description: "gpt52.description",
+    provider: "openai",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: false,
+    thinkingConfig: GPT52_THINKING_CONFIG,
+  },
+  {
+    id: "gpt-5.4",
+    name: "gpt54.name",
+    description: "gpt54.description",
     provider: "openai",
     capabilities: {
       reasoning: true,
@@ -645,6 +657,7 @@ export const DEFAULT_REASONING_SUMMARY: ReasoningSummary = "auto";
 export const openaiModelIds = [
   "gpt-5.2",
   "gpt-5.2-pro",
+  "gpt-5.4",
   "gpt-5-mini",
   "gpt-codex-5.2",
 ] as const;
