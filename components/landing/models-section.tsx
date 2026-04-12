@@ -39,6 +39,7 @@ const providers: ProviderCard[] = [
     gradientBg: "group-hover:opacity-5",
     models: [
       { name: "GPT 5.2", badges: ["Рассуждения", "Вложения"] },
+      { name: "GPT 5.4 Mini", badges: ["Рассуждения", "Вложения"] },
       { name: "GPT Codex 5.2", badges: ["Код", "Рассуждения"] },
       { name: "GPT Image 1.5", badges: ["Изображения"] },
     ],

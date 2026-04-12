@@ -51,6 +51,14 @@ export const myProvider = isTestEnvironment
           model: gateway.languageModel("openai/gpt-5-mini"),
           middleware: extractReasoningMiddleware({ tagName: "think" }),
         }),
+        "gpt-5.4-mini": wrapLanguageModel({
+          model: gateway.languageModel("openai/gpt-5.4-mini"),
+          middleware: extractReasoningMiddleware({ tagName: "think" }),
+        }),
+        "gpt-5.4-nano": wrapLanguageModel({
+          model: gateway.languageModel("openai/gpt-5.4-nano"),
+          middleware: extractReasoningMiddleware({ tagName: "think" }),
+        }),
         "gpt-5.1-instant": gateway.languageModel("openai/gpt-5.1-instant"),
         "gpt-5.1-thinking": wrapLanguageModel({
           model: gateway.languageModel("openai/gpt-5.1-thinking"),
@@ -58,6 +66,10 @@ export const myProvider = isTestEnvironment
         }),
         "gpt-5.2": wrapLanguageModel({
           model: gateway.languageModel("openai/gpt-5.2"),
+          middleware: extractReasoningMiddleware({ tagName: "think" }),
+        }),
+        "gpt-5.4": wrapLanguageModel({
+          model: gateway.languageModel("openai/gpt-5.4"),
           middleware: extractReasoningMiddleware({ tagName: "think" }),
         }),
         "gpt-5.2-pro": wrapLanguageModel({

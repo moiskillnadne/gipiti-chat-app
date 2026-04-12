@@ -25,6 +25,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useSessionStorage, useWindowSize } from "usehooks-ts";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useModel } from "@/contexts/model-context";
 import { useProject } from "@/contexts/project-context";
 import { useStyle } from "@/contexts/style-context";
@@ -891,6 +892,7 @@ function PureMultimodalInput({
   const tInput = useTranslations("chat.input");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
+  const isMobile = useIsMobile();
 
   const resetHeight = useCallback(() => {
     if (textareaRef.current) {
@@ -1112,6 +1114,7 @@ function PureMultimodalInput({
             className="min-w-0 grow resize-none break-words border-0! border-none! bg-transparent p-2 text-base outline-none ring-0 [-ms-overflow-style:none] [scrollbar-width:none] placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 [&::-webkit-scrollbar]:hidden"
             data-testid="multimodal-input"
             disableAutoResize={false}
+            disableKeyboardSubmit={isMobile}
             maxHeight={250}
             minHeight={44}
             onChange={handleInput}

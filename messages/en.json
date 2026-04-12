@@ -950,6 +950,10 @@
       "name": "GPT-5.2",
       "description": "Latest OpenAI model with advanced reasoning capabilities."
     },
+    "gpt54": {
+      "name": "GPT-5.4",
+      "description": "Latest OpenAI model with advanced reasoning capabilities."
+    },
     "gpt52Pro": {
       "name": "GPT-5.2 Pro",
       "description": "Most powerful OpenAI model with extended context and reasoning."
@@ -957,6 +961,14 @@
     "gpt5Mini": {
       "name": "GPT-5 Mini",
       "description": "Smallest OpenAI GPT model for quick tasks."
+    },
+    "gpt54Mini": {
+      "name": "GPT-5.4 Mini",
+      "description": "Fast and efficient OpenAI model for quick tasks with reasoning."
+    },
+    "gpt54Nano": {
+      "name": "GPT-5.4 Nano",
+      "description": "OpenAI's fastest and most cost-effective model for quick everyday tasks."
     },
     "gptCodex52": {
       "name": "GPT-Codex 5.2",

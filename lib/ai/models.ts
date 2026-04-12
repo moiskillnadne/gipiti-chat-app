@@ -1,7 +1,7 @@
 import type { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google";
 import type { SharedV2ProviderOptions } from "@ai-sdk/provider";
 
-export const DEFAULT_CHAT_MODEL: string = "gpt-5.2";
+export const DEFAULT_CHAT_MODEL: string = "gpt-5.4";
 
 export type ChatModelCapabilities = {
   reasoning?: boolean;
@@ -285,6 +285,18 @@ export const chatModels: ChatModel[] = [
       reasoning: true,
       attachments: true,
     },
+    showInUI: false,
+    thinkingConfig: GPT52_THINKING_CONFIG,
+  },
+  {
+    id: "gpt-5.4",
+    name: "gpt54.name",
+    description: "gpt54.description",
+    provider: "openai",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
     showInUI: true,
     thinkingConfig: GPT52_THINKING_CONFIG,
   },
@@ -309,6 +321,28 @@ export const chatModels: ChatModel[] = [
       attachments: true,
     },
     showInUI: false,
+  },
+  {
+    id: "gpt-5.4-mini",
+    name: "gpt54Mini.name",
+    description: "gpt54Mini.description",
+    provider: "openai",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+  },
+  {
+    id: "gpt-5.4-nano",
+    name: "gpt54Nano.name",
+    description: "gpt54Nano.description",
+    provider: "openai",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
   },
   {
     id: "gpt-codex-5.2",
@@ -645,7 +679,10 @@ export const DEFAULT_REASONING_SUMMARY: ReasoningSummary = "auto";
 export const openaiModelIds = [
   "gpt-5.2",
   "gpt-5.2-pro",
+  "gpt-5.4",
   "gpt-5-mini",
+  "gpt-5.4-mini",
+  "gpt-5.4-nano",
   "gpt-codex-5.2",
 ] as const;
 export type OpenAIModelId = (typeof openaiModelIds)[number];
