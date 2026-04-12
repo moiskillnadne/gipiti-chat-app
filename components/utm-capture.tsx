@@ -13,19 +13,26 @@ const UTM_PARAMS = [
 
 export function UtmCapture() {
   useEffect(() => {
-    if (document.cookie.includes(`${UTM_COOKIE_NAME}=`)) return;
+    if (document.cookie.includes(`${UTM_COOKIE_NAME}=`)) {
+      return;
+    }
 
     const params = new URLSearchParams(window.location.search);
     const utmData: Record<string, string> = {};
 
     for (const key of UTM_PARAMS) {
       const value = params.get(key);
-      if (value) utmData[key] = value;
+      if (value) {
+        utmData[key] = value;
+      }
     }
 
-    if (Object.keys(utmData).length === 0) return;
+    if (Object.keys(utmData).length === 0) {
+      return;
+    }
 
     const json = encodeURIComponent(JSON.stringify(utmData));
+    // biome-ignore lint/suspicious/noDocumentCookie: <It's fine here>
     document.cookie = `${UTM_COOKIE_NAME}=${json}; path=/; max-age=${UTM_COOKIE_MAX_AGE}; samesite=lax`;
   }, []);
 

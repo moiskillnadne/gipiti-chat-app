@@ -11,7 +11,9 @@ type RawUtmData = {
 export function parseUtmCookie(
   cookieValue: string | undefined
 ): UtmData | null {
-  if (!cookieValue) return null;
+  if (!cookieValue) {
+    return null;
+  }
 
   try {
     const raw: RawUtmData = JSON.parse(cookieValue);

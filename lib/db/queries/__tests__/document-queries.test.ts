@@ -6,7 +6,6 @@ vi.mock("../connection", async () => {
   return { db: mod.mockDb };
 });
 
-import { ChatSDKError } from "../../../errors";
 import {
   deleteDocumentsByIdAfterTimestamp,
   getDocumentById,
