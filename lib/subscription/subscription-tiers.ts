@@ -176,8 +176,8 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
   unlim: {
     name: "unlim",
     displayName: {
-      en: "Unlim Plan",
-      ru: "Безлимитный план",
+      en: "БЕЗЛИМИТИЩЕ",
+      ru: "БЕЗЛИМИТИЩЕ",
     },
     billingPeriod: "daily",
     billingPeriodCount: 1,
