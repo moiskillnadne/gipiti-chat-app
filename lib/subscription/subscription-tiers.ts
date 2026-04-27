@@ -170,6 +170,58 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
     isTesterPlan: true,
   },
 
+  // UNLIM PLAN - Manually-assigned only via scripts/assign-unlim-plan.ts.
+  // Hidden from UI tier picker (picker hardcodes plan names). Daily reset
+  // via reset-quotas cron (which must include "unlim" in its filter).
+  unlim: {
+    name: "unlim",
+    displayName: {
+      en: "Unlim Plan",
+      ru: "Безлимитный план",
+    },
+    billingPeriod: "daily",
+    billingPeriodCount: 1,
+    tokenQuota: 5_000_000, // 5M tokens per day
+    features: {
+      maxMessagesPerPeriod: 1000,
+      allowedModels: [
+        "gpt-5.1-instant",
+        "gpt-5.1-thinking",
+        "gpt-5.2",
+        "gpt-5.4",
+        "gpt-5.4-mini",
+        "gpt-5.4-nano",
+        "gpt-5.2-pro",
+        "gpt-codex-5.2",
+        "grok-code-fast-1",
+        "gemini-3.1-pro",
+        "grok-imagine-image-pro",
+        "opus-4.6",
+        "sonnet-4.6",
+        "veo-3.1",
+        "veo-3.1-fast",
+        "grok-imagine-video",
+        "flux-2-max",
+        "flux-kontext-pro",
+        "recraft-v4-pro",
+      ],
+      hasReasoningModels: true,
+      hasPrioritySupport: true,
+      maxFileSize: 25 * 1024 * 1024, // 25MB
+      maxConcurrentChats: 10,
+      hasAPIAccess: false,
+      searchQuota: 200,
+      searchDepthAllowed: "advanced",
+      maxImageGenerationsPerPeriod: 100,
+      maxVideoGenerationsPerPeriod: 100,
+    },
+    price: {
+      USD: 0,
+      RUB: 0,
+    },
+    isFreePlan: true,
+  },
+
   // BASIC PLAN - Entry-level subscription for paywall
   basic_monthly: {
     name: "basic_monthly",
