@@ -17,10 +17,10 @@ export async function GET(request: Request) {
   const now = new Date();
 
   console.log(
-    "[Cron:ResetQuotas] Starting quota reset for free and tester plans"
+    "[Cron:ResetQuotas] Starting quota reset for free, tester, and unlim plans"
   );
 
-  // Find FREE tester and free plan subscriptions with expired periods
+  // Find FREE tester, free, and unlim plan subscriptions with expired periods
   // Paid plans (including tester_paid) use CloudPayments webhooks for resets
   const expiredSubscriptions = await db
     .select({
@@ -38,13 +38,14 @@ export async function GET(request: Request) {
         lte(userSubscription.currentPeriodEnd, now),
         or(
           eq(subscriptionPlan.name, "tester"),
-          eq(subscriptionPlan.name, "free")
+          eq(subscriptionPlan.name, "free"),
+          eq(subscriptionPlan.name, "unlim")
         )
       )
     );
 
   console.log(
-    `[Cron:ResetQuotas] Found ${expiredSubscriptions.length} expired free/tester subscriptions`
+    `[Cron:ResetQuotas] Found ${expiredSubscriptions.length} expired free/tester/unlim subscriptions`
   );
 
   let renewed = 0;
@@ -97,14 +98,15 @@ export async function GET(request: Request) {
           eq(userSubscription.userId, sub.userId),
           eq(userSubscription.status, "active"),
           ne(subscriptionPlan.name, "tester"),
-          ne(subscriptionPlan.name, "free")
+          ne(subscriptionPlan.name, "free"),
+          ne(subscriptionPlan.name, "unlim")
         )
       )
       .limit(1);
 
     if (paidSub.length > 0) {
       console.log(
-        `[Cron:ResetQuotas] User ${sub.userId} has active paid subscription ${paidSub[0].id}, skipping free/tester balance reset`
+        `[Cron:ResetQuotas] User ${sub.userId} has active paid subscription ${paidSub[0].id}, skipping free/tester/unlim balance reset`
       );
       continue;
     }
