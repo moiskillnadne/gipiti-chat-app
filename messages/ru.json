@@ -440,6 +440,7 @@
     },
     "messages": {
       "thinking": "Думаю...",
+      "thoughtFor": "Думал {duration}с",
       "generating": "Генерирую...",
       "streaming": "Отвечаю...",
       "error": "Не удалось сгенерировать ответ",

@@ -440,6 +440,7 @@
     },
     "messages": {
       "thinking": "Thinking...",
+      "thoughtFor": "Thought for {duration}s",
       "generating": "Generating...",
       "streaming": "Responding...",
       "error": "Failed to generate response",
