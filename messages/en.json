@@ -164,8 +164,7 @@
       "resetFailed": "Failed to reset password. Please try again",
       "invalidCode": "Invalid verification code",
       "expiredCode": "Verification code has expired",
-      "emailNotVerified": "Please verify your email before signing in",
-      "captchaFailed": "Captcha verification failed. Please try again."
+      "emailNotVerified": "Please verify your email before signing in"
     },
     "logout": {
       "confirm": "Are you sure you want to logout?",

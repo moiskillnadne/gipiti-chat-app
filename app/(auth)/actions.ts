@@ -3,7 +3,6 @@
 import { cookies } from "next/headers";
 import { z } from "zod";
 import { createPasswordResetToken, hashToken } from "@/lib/auth/reset-token";
-import { validateCaptcha } from "@/lib/captcha/validate-captcha";
 import {
   createUser,
   getUserByResetToken,
@@ -92,8 +91,7 @@ export type RegisterActionState = {
     | "success"
     | "failed"
     | "user_exists"
-    | "invalid_data"
-    | "captcha_failed";
+    | "invalid_data";
   email?: string;
 };
 
@@ -102,14 +100,6 @@ export const register = async (
   formData: FormData
 ): Promise<RegisterActionState> => {
   try {
-    // Validate captcha before any other processing
-    const captchaToken = formData.get("captcha-token") as string;
-    const captchaResult = await validateCaptcha(captchaToken);
-
-    if (!captchaResult.isValid) {
-      return { status: "captcha_failed" };
-    }
-
     const validatedData = registerFormSchema.parse({
       email: formData.get("email"),
       password: formData.get("password"),
