@@ -9,6 +9,7 @@ import type { ChatMessage } from "@/lib/types";
 import { extractDomain, faviconUrl } from "@/lib/url";
 import { DocumentToolResult } from "./document";
 import { DocumentPreview } from "./document-preview";
+import { Response } from "./elements/response";
 import {
   EarlierStepsToggle,
   RECENT_STEPS_COUNT,
@@ -54,6 +55,11 @@ type StepDescriptor = {
     | "requestedSuggestions"
     | "generatedImage";
   body: React.ReactNode;
+  /**
+   * For `thought` steps, the full reasoning text (rendered as markdown when
+   * the user expands the row). Other step kinds leave this undefined.
+   */
+  fullText?: string;
 };
 
 const TOOL_PART_PREFIX = "tool-";
@@ -239,6 +245,7 @@ const buildStep = ({
       hasSources: 0,
       verbKey: "thought",
       body: <span className="text-ink">{summarizeReasoning(text)}</span>,
+      fullText: text,
     };
   }
 
@@ -486,6 +493,21 @@ export const ToolRunRenderer = ({
   const tVerb = useTranslations("chat.tools.run.verb");
   const tRun = useTranslations("chat.tools.run");
   const [isExpanded, setIsExpanded] = useState(false);
+  const [expandedThoughts, setExpandedThoughts] = useState<Set<string>>(
+    () => new Set()
+  );
+
+  const toggleThought = (stepKey: string) => {
+    setExpandedThoughts((previous) => {
+      const next = new Set(previous);
+      if (next.has(stepKey)) {
+        next.delete(stepKey);
+      } else {
+        next.add(stepKey);
+      }
+      return next;
+    });
+  };
 
   const lastPart = group.parts.at(-1);
   // biome-ignore lint/suspicious/noExplicitAny: discriminated runtime check
@@ -626,32 +648,62 @@ export const ToolRunRenderer = ({
 
       {earlierCount > 0 && isExpanded && (
         <div className="border-rule border-b bg-paper">
-          {earlierSteps.map((step, index) => (
-            <ToolRunStep
-              body={step.body}
-              isActive={step.isActive}
-              isFirst={index === 0}
-              isLast={index === earlierSteps.length - 1}
-              key={step.key}
-              kind={step.kind}
-              verb={tVerb(step.verbKey)}
-            />
-          ))}
+          {earlierSteps.map((step, index) => {
+            const isThoughtExpanded =
+              step.kind === "thought" && expandedThoughts.has(step.key);
+            return (
+              <ToolRunStep
+                body={step.body}
+                expandedContent={
+                  step.fullText ? (
+                    <Response className="grid gap-2">{step.fullText}</Response>
+                  ) : undefined
+                }
+                isActive={step.isActive}
+                isExpanded={isThoughtExpanded}
+                isFirst={index === 0}
+                isLast={index === earlierSteps.length - 1}
+                key={step.key}
+                kind={step.kind}
+                onToggle={
+                  step.kind === "thought" && step.fullText
+                    ? () => toggleThought(step.key)
+                    : undefined
+                }
+                verb={tVerb(step.verbKey)}
+              />
+            );
+          })}
         </div>
       )}
 
       <div>
-        {recentSteps.map((step, index) => (
-          <ToolRunStep
-            body={step.body}
-            isActive={step.isActive}
-            isFirst={index === 0 && (earlierCount === 0 || !isExpanded)}
-            isLast={index === recentSteps.length - 1}
-            key={step.key}
-            kind={step.kind}
-            verb={tVerb(step.verbKey)}
-          />
-        ))}
+        {recentSteps.map((step, index) => {
+          const isThoughtExpanded =
+            step.kind === "thought" && expandedThoughts.has(step.key);
+          return (
+            <ToolRunStep
+              body={step.body}
+              expandedContent={
+                step.fullText ? (
+                  <Response className="grid gap-2">{step.fullText}</Response>
+                ) : undefined
+              }
+              isActive={step.isActive}
+              isExpanded={isThoughtExpanded}
+              isFirst={index === 0 && (earlierCount === 0 || !isExpanded)}
+              isLast={index === recentSteps.length - 1}
+              key={step.key}
+              kind={step.kind}
+              onToggle={
+                step.kind === "thought" && step.fullText
+                  ? () => toggleThought(step.key)
+                  : undefined
+              }
+              verb={tVerb(step.verbKey)}
+            />
+          );
+        })}
       </div>
     </ToolRun>
   );

@@ -284,6 +284,18 @@ export type ToolRunStepProps = {
   verb: ReactNode;
   body: ReactNode;
   trailing?: ReactNode;
+  /**
+   * When provided, the row becomes interactive: clicking it (or pressing
+   * Enter/Space) calls `onToggle`. A chevron is rendered at the trailing edge
+   * and rotated based on `isExpanded`. Use together with `expandedContent`.
+   */
+  onToggle?: () => void;
+  isExpanded?: boolean;
+  /**
+   * Renders below the verb/body row when `isExpanded` is true. Indents under
+   * the glyph column so the timeline rule still reads cleanly.
+   */
+  expandedContent?: ReactNode;
 };
 
 const KIND_GLYPH: Record<StepKind, () => ReactNode> = {
@@ -308,17 +320,21 @@ export const ToolRunStep = ({
   verb,
   body,
   trailing,
+  onToggle,
+  isExpanded = false,
+  expandedContent,
 }: ToolRunStepProps) => {
   const Glyph = KIND_GLYPH[kind];
   const usesAccent = HIGHLIGHT_KINDS.has(kind);
+  const isInteractive = Boolean(onToggle);
 
-  return (
-    <div className="relative flex items-start gap-3 px-3.5 py-2.5 text-[13px] text-ink-2 [&+&]:border-rule [&+&]:border-t">
+  const rowInner = (
+    <>
       <div className="relative flex w-[18px] shrink-0 items-center justify-center pt-0.5">
         {!isFirst && (
           <span className="-translate-x-1/2 absolute top-[-11px] bottom-1/2 left-1/2 w-px bg-rule" />
         )}
-        {!isLast && (
+        {!isLast && !(isInteractive && isExpanded) && (
           <span className="-translate-x-1/2 absolute top-1/2 bottom-[-11px] left-1/2 w-px bg-rule" />
         )}
         <span
@@ -331,12 +347,12 @@ export const ToolRunStep = ({
           <Glyph />
         </span>
       </div>
-      <div className="min-w-0 flex-1 space-y-1.5">
+      <div className="min-w-0 flex-1 space-y-1.5 text-left">
         <div className="text-[13px] text-ink leading-snug">
           <span className="font-normal text-ink-3">{verb}</span> {body}
         </div>
       </div>
-      {trailing && (
+      {trailing && !isInteractive && (
         <span
           className={cn(
             "shrink-0 pt-0.5 font-mono text-[10px]",
@@ -345,6 +361,42 @@ export const ToolRunStep = ({
         >
           {trailing}
         </span>
+      )}
+      {isInteractive && (
+        <ChevronDownIcon
+          className={cn(
+            "mt-0.5 size-3.5 shrink-0 text-ink-4 transition-transform duration-fast ease-canon",
+            isExpanded && "rotate-180"
+          )}
+        />
+      )}
+    </>
+  );
+
+  const rowClass =
+    "relative flex w-full items-start gap-3 px-3.5 py-2.5 text-[13px] text-ink-2";
+
+  return (
+    <div className="border-rule border-t first:border-t-0">
+      {isInteractive ? (
+        <button
+          aria-expanded={isExpanded}
+          className={cn(
+            rowClass,
+            "cursor-pointer text-left transition-colors duration-fast ease-canon hover:bg-paper-2/60"
+          )}
+          onClick={onToggle}
+          type="button"
+        >
+          {rowInner}
+        </button>
+      ) : (
+        <div className={rowClass}>{rowInner}</div>
+      )}
+      {isInteractive && isExpanded && expandedContent && (
+        <div className="border-rule border-t bg-paper px-3.5 py-3 pl-[44px] text-ink-2 text-xs">
+          {expandedContent}
+        </div>
       )}
     </div>
   );
