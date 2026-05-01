@@ -531,6 +531,32 @@
         "calculating": "Calculating...",
         "result": "Result",
         "error": "Invalid expression"
+      },
+      "run": {
+        "researching": "Researching",
+        "researched": "Researched the answer",
+        "lookedItUp": "Looked it up",
+        "thoughtFor": "Thought for {duration}s",
+        "earlierSteps": "{count, plural, one {# earlier step} other {# earlier steps}}",
+        "earlierStepsHint": "{count, plural, one {first thought or search} other {first thoughts and searches}}",
+        "elapsed": "{seconds}s elapsed",
+        "totalSeconds": "{seconds}s",
+        "searches": "{count, plural, one {# search} other {# searches}}",
+        "sources": "{count, plural, one {# source} other {# sources}}",
+        "verb": {
+          "thought": "Thought —",
+          "searched": "Searched",
+          "searching": "Searching —",
+          "extracted": "Read",
+          "extracting": "Reading —",
+          "calculated": "Calculated",
+          "calculating": "Calculating —",
+          "weather": "Looked up weather in",
+          "createdDocument": "Created document",
+          "updatedDocument": "Updated document",
+          "requestedSuggestions": "Suggested edits to",
+          "generatedImage": "Generated image —"
+        }
       }
     },
     "quota": {

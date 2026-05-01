@@ -3,33 +3,21 @@ import type { UseChatHelpers } from "@ai-sdk/react";
 import equal from "fast-deep-equal";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
-import { memo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import type { Vote } from "@/lib/db/schema";
+import { downloadFromUrl } from "@/lib/download";
+import { groupToolRuns } from "@/lib/messages/group-tool-runs";
 import type { ChatMessage } from "@/lib/types";
 import { cn, sanitizeText } from "@/lib/utils";
 import { AssistantIcon } from "./assistant-icon";
-import { DocumentToolResult } from "./document";
-import { DocumentPreview } from "./document-preview";
 import { MessageContent } from "./elements/message";
 import { Response } from "./elements/response";
-import {
-  Tool,
-  ToolContent,
-  ToolHeader,
-  ToolInput,
-  ToolOutput,
-} from "./elements/tool";
 import { DownloadIcon } from "./icons";
 import { MessageActions } from "./message-actions";
 import { MessageEditor } from "./message-editor";
-import { MessageReasoning } from "./message-reasoning";
 import { PreviewAttachment } from "./preview-attachment";
 import { toast } from "./toast";
-import { UrlExtractInputPreview } from "./url-extract-input-preview";
-import { UrlExtractResult } from "./url-extract-result";
-import { Weather } from "./weather";
-import { WebSearchInputPreview } from "./web-search-input-preview";
-import { WebSearchResult } from "./web-search-result";
+import { ToolRunRenderer } from "./tool-run-renderer";
 
 /**
  * Extract modelId from message - checks metadata first (DB messages),
@@ -76,6 +64,11 @@ const PurePreviewMessage = ({
 
   const attachmentsFromMessage = message.parts.filter(
     (part) => part.type === "file"
+  );
+
+  const groupedParts = useMemo(
+    () => groupToolRuns(message.parts ?? []),
+    [message.parts]
   );
 
   return (
@@ -133,43 +126,33 @@ const PurePreviewMessage = ({
             </div>
           )}
 
-          {message.parts?.map((part, index) => {
-            const { type } = part;
+          {groupedParts.map((part, index) => {
             const key = `message-${message.id}-part-${index}`;
 
-            if (type === "reasoning") {
-              const reasoningText = part.text ?? "";
-              const hasReasoningText = reasoningText.trim().length > 0;
-
-              if (!hasReasoningText) {
-                return null;
-              }
-
+            if (part.type === "run-group") {
               return (
-                <MessageReasoning
-                  isLoading={isLoading}
-                  key={key}
-                  reasoning={reasoningText}
+                <ToolRunRenderer
+                  group={part}
+                  isLastAssistantMessage={isLastAssistantMessage}
+                  isMessageLoading={isLoading}
+                  isReadonly={isReadonly}
+                  key={part.key}
                 />
               );
             }
 
-            if (type === "data-imageGenerationFinish") {
+            if (part.type === "data-imageGenerationFinish") {
               const { imageUrl, userPrompt, responseId } = part.data;
 
               const handleDownload = async (propUrl: string) => {
-                const response = await fetch(propUrl);
-                const blob = await response.blob();
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement("a");
-                link.href = url;
-                const filename =
-                  propUrl.split("/").pop() ?? "generated-image.png";
-                link.download = filename;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
+                try {
+                  await downloadFromUrl(propUrl, "generated-image.png");
+                } catch {
+                  toast({
+                    type: "error",
+                    description: t("downloadError"),
+                  });
+                }
               };
 
               return (
@@ -206,22 +189,18 @@ const PurePreviewMessage = ({
               );
             }
 
-            if (type === "data-videoGenerationFinish") {
+            if (part.type === "data-videoGenerationFinish") {
               const { videoUrl, userPrompt, responseId } = part.data;
 
               const handleVideoDownload = async (propUrl: string) => {
-                const response = await fetch(propUrl);
-                const blob = await response.blob();
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement("a");
-                link.href = url;
-                const filename =
-                  propUrl.split("/").pop() ?? "generated-video.mp4";
-                link.download = filename;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
+                try {
+                  await downloadFromUrl(propUrl, "generated-video.mp4");
+                } catch {
+                  toast({
+                    type: "error",
+                    description: t("downloadError"),
+                  });
+                }
               };
 
               return (
@@ -260,7 +239,7 @@ const PurePreviewMessage = ({
               );
             }
 
-            if (type === "text") {
+            if (part.type === "text") {
               if (mode === "view") {
                 return (
                   <div key={key}>
@@ -298,222 +277,6 @@ const PurePreviewMessage = ({
                   </div>
                 );
               }
-            }
-
-            if (type === "tool-getWeather") {
-              const { toolCallId, state } = part;
-
-              return (
-                <Tool defaultOpen={true} key={toolCallId}>
-                  <ToolHeader state={state} type="tool-getWeather" />
-                  <ToolContent>
-                    {state === "input-available" && (
-                      <ToolInput input={part.input} />
-                    )}
-                    {state === "output-available" && (
-                      <ToolOutput
-                        errorText={undefined}
-                        output={<Weather weatherAtLocation={part.output} />}
-                      />
-                    )}
-                  </ToolContent>
-                </Tool>
-              );
-            }
-
-            if (type === "tool-createDocument") {
-              const { toolCallId } = part;
-
-              if (part.output && "error" in part.output) {
-                return (
-                  <div
-                    className="rounded-md border border-destructive/30 bg-destructive/10 p-4 text-destructive"
-                    key={toolCallId}
-                  >
-                    {t("errorCreatingDocument")}: {String(part.output.error)}
-                  </div>
-                );
-              }
-
-              return (
-                <DocumentPreview
-                  isReadonly={isReadonly}
-                  key={toolCallId}
-                  result={part.output}
-                />
-              );
-            }
-
-            if (type === "tool-updateDocument") {
-              const { toolCallId } = part;
-
-              if (part.output && "error" in part.output) {
-                return (
-                  <div
-                    className="rounded-md border border-destructive/30 bg-destructive/10 p-4 text-destructive"
-                    key={toolCallId}
-                  >
-                    {t("errorUpdatingDocument")}: {String(part.output.error)}
-                  </div>
-                );
-              }
-
-              if (part.output) {
-                return (
-                  <DocumentToolResult
-                    isReadonly={isReadonly}
-                    key={toolCallId}
-                    result={{
-                      id: part.output.id,
-                      title: part.output.title,
-                      kind: part.output.kind,
-                    }}
-                    type="update"
-                  />
-                );
-              }
-
-              return null;
-            }
-
-            if (type === "tool-requestSuggestions") {
-              const { toolCallId, state } = part;
-
-              return (
-                <Tool defaultOpen={true} key={toolCallId}>
-                  <ToolHeader state={state} type="tool-requestSuggestions" />
-                  <ToolContent>
-                    {state === "input-available" && (
-                      <ToolInput input={part.input} />
-                    )}
-                    {state === "output-available" && (
-                      <ToolOutput
-                        errorText={undefined}
-                        output={
-                          "error" in part.output ? (
-                            <div className="rounded border p-2 text-red-500">
-                              Error: {String(part.output.error)}
-                            </div>
-                          ) : (
-                            <DocumentToolResult
-                              isReadonly={isReadonly}
-                              result={part.output}
-                              type="request-suggestions"
-                            />
-                          )
-                        }
-                      />
-                    )}
-                  </ToolContent>
-                </Tool>
-              );
-            }
-
-            if (type === "tool-webSearch") {
-              const { state, toolCallId } = part;
-
-              return (
-                <div className="my-2" key={toolCallId}>
-                  {state === "input-available" && (
-                    <WebSearchInputPreview query={part.input.query} />
-                  )}
-                  {state === "output-available" &&
-                    ("error" in part.output ? (
-                      <div className="rounded border p-2 text-red-500">
-                        Error: {String(part.output.error)}
-                      </div>
-                    ) : (
-                      <WebSearchResult
-                        cached={part.output.cached}
-                        query={part.output.query}
-                        responseTime={part.output.responseTime}
-                        results={part.output.results}
-                      />
-                    ))}
-                </div>
-              );
-            }
-
-            if (type === "tool-extractUrl") {
-              const { state, toolCallId } = part;
-
-              return (
-                <div className="my-2" key={toolCallId}>
-                  {state === "input-available" && (
-                    <UrlExtractInputPreview urls={part.input.urls} />
-                  )}
-                  {state === "output-available" &&
-                    ("error" in part.output ? (
-                      <div className="rounded border p-2 text-red-500">
-                        Error: {String(part.output.error)}
-                      </div>
-                    ) : (
-                      <UrlExtractResult results={part.output.results} />
-                    ))}
-                </div>
-              );
-            }
-
-            if (type === "tool-generateImage") {
-              const { toolCallId, state } = part;
-
-              const handleDownload = async (imageUrl: string) => {
-                const response = await fetch(imageUrl);
-                const blob = await response.blob();
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement("a");
-                link.href = url;
-                const filename =
-                  imageUrl.split("/").pop() ?? "generated-image.png";
-                link.download = filename;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
-              };
-
-              return (
-                <div
-                  className="group/image relative overflow-hidden rounded-lg"
-                  key={toolCallId}
-                >
-                  {state === "output-available" && part.output.imageUrl ? (
-                    <>
-                      <picture>
-                        {/* biome-ignore lint/nursery/useImageSize: "Generated image" */}
-                        <img
-                          alt={part.input.prompt}
-                          className="max-w-full rounded-lg"
-                          src={part.output.imageUrl}
-                        />
-                      </picture>
-                      <button
-                        className="absolute right-2 bottom-2 flex size-8 items-center justify-center rounded-lg bg-black/50 text-white transition-opacity hover:bg-black/70 md:opacity-0 md:group-hover/image:opacity-100"
-                        onClick={() => {
-                          if (part.output.imageUrl) {
-                            handleDownload(part.output.imageUrl);
-                          } else {
-                            toast({
-                              type: "error",
-                              description: t("downloadError"),
-                            });
-                          }
-                        }}
-                        title={t("download")}
-                        type="button"
-                      >
-                        <DownloadIcon size={16} />
-                      </button>
-                    </>
-                  ) : (
-                    <div className="flex items-center gap-2 rounded-lg border p-4 text-muted-foreground">
-                      <span className="animate-pulse">
-                        {t("generatingImage")}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              );
             }
 
             return null;

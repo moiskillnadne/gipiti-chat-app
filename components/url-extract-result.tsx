@@ -4,18 +4,11 @@ import { CheckCircle2Icon, LinkIcon, XCircleIcon } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import type { UrlExtractResult as UrlExtractResultType } from "@/lib/search/search-types";
+import { extractDomain, faviconUrl } from "@/lib/url";
 
 type UrlExtractResultProps = {
   results: UrlExtractResultType[];
 };
-
-function extractDomain(url: string): string {
-  try {
-    return new URL(url).hostname;
-  } catch {
-    return url;
-  }
-}
 
 function UrlPill({ url, success }: { url: string; success: boolean }) {
   const domain = extractDomain(url);
@@ -31,7 +24,7 @@ function UrlPill({ url, success }: { url: string; success: boolean }) {
         alt=""
         className="size-4 rounded-sm"
         height={12}
-        src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
+        src={faviconUrl(domain)}
         width={12}
       />
       <span className="max-w-[150px] truncate">{domain}</span>

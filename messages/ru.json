@@ -531,6 +531,32 @@
         "calculating": "Вычисление...",
         "result": "Результат",
         "error": "Неверное выражение"
+      },
+      "run": {
+        "researching": "Исследую",
+        "researched": "Нашёл ответ",
+        "lookedItUp": "Уточнил",
+        "thoughtFor": "Думал {duration} с",
+        "earlierSteps": "{count, plural, one {# предыдущий шаг} few {# предыдущих шага} many {# предыдущих шагов} other {# предыдущих шагов}}",
+        "earlierStepsHint": "{count, plural, one {первая мысль или запрос} few {первые мысли и запросы} many {первые мысли и запросы} other {первые мысли и запросы}}",
+        "elapsed": "{seconds} с прошло",
+        "totalSeconds": "{seconds} с",
+        "searches": "{count, plural, one {# запрос} few {# запроса} many {# запросов} other {# запросов}}",
+        "sources": "{count, plural, one {# источник} few {# источника} many {# источников} other {# источников}}",
+        "verb": {
+          "thought": "Подумал —",
+          "searched": "Искал",
+          "searching": "Ищу —",
+          "extracted": "Прочитал",
+          "extracting": "Читаю —",
+          "calculated": "Вычислил",
+          "calculating": "Вычисляю —",
+          "weather": "Уточнил погоду в",
+          "createdDocument": "Создал документ",
+          "updatedDocument": "Обновил документ",
+          "requestedSuggestions": "Предложил правки к",
+          "generatedImage": "Сгенерировал изображение —"
+        }
       }
     },
     "quota": {

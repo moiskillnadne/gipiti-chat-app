@@ -4,6 +4,7 @@ import { GlobeIcon } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import type { WebSearchResult as WebSearchResultType } from "@/lib/search/search-types";
+import { extractDomain, faviconUrl } from "@/lib/url";
 
 type WebSearchResultProps = {
   query: string;
@@ -13,14 +14,6 @@ type WebSearchResultProps = {
 };
 
 const MAX_VISIBLE_DOMAINS = 4;
-
-function extractDomain(url: string): string {
-  try {
-    return new URL(url).hostname;
-  } catch {
-    return url;
-  }
-}
 
 function DomainPill({ domain, url }: { domain: string; url: string }) {
   return (
@@ -34,7 +27,7 @@ function DomainPill({ domain, url }: { domain: string; url: string }) {
         alt=""
         className="size-4 rounded-sm"
         height={12}
-        src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
+        src={faviconUrl(domain)}
         width={12}
       />
       <span className="max-w-[120px] truncate">{domain}</span>
