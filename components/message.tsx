@@ -266,17 +266,12 @@ const PurePreviewMessage = ({
                   <div key={key}>
                     <MessageContent
                       className={cn({
-                        "w-fit break-all rounded-2xl px-3 py-2 text-left text-white":
+                        "w-fit break-words rounded-lg rounded-br-xs bg-ink px-4 py-2.5 text-left text-paper shadow-sm":
                           message.role === "user",
                         "bg-transparent px-0 py-0 text-left":
                           message.role === "assistant",
                       })}
                       data-testid="message-content"
-                      style={
-                        message.role === "user"
-                          ? { backgroundColor: "#006cff" }
-                          : undefined
-                      }
                     >
                       <Response>{sanitizeText(part.text)}</Response>
                     </MessageContent>
@@ -332,7 +327,7 @@ const PurePreviewMessage = ({
               if (part.output && "error" in part.output) {
                 return (
                   <div
-                    className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-500 dark:bg-red-950/50"
+                    className="rounded-md border border-destructive/30 bg-destructive/10 p-4 text-destructive"
                     key={toolCallId}
                   >
                     {t("errorCreatingDocument")}: {String(part.output.error)}
@@ -355,7 +350,7 @@ const PurePreviewMessage = ({
               if (part.output && "error" in part.output) {
                 return (
                   <div
-                    className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-500 dark:bg-red-950/50"
+                    className="rounded-md border border-destructive/30 bg-destructive/10 p-4 text-destructive"
                     key={toolCallId}
                   >
                     {t("errorUpdatingDocument")}: {String(part.output.error)}

@@ -106,20 +106,25 @@ export const ReasoningTrigger = memo(
     return (
       <CollapsibleTrigger
         className={cn(
-          "flex items-center gap-1.5 text-muted-foreground text-xs transition-colors hover:text-foreground",
+          "inline-flex items-center gap-1.5 rounded-pill bg-paper-2 px-3 py-1 font-mono text-[11px] text-ink-3 uppercase leading-none tracking-[0.06em] transition-colors duration-fast ease-canon hover:bg-paper-3 hover:text-ink",
           className
         )}
         {...props}
       >
         {children ?? (
           <>
-            <BrainIcon className="size-4" />
-            <p>
+            <BrainIcon
+              className={cn(
+                "size-3.5",
+                isInProgress && "animate-breathe text-citrus-deep"
+              )}
+            />
+            <span className="font-mono">
               {isInProgress ? t("thinking") : t("thoughtFor", { duration })}
-            </p>
+            </span>
             <ChevronDownIcon
               className={cn(
-                "size-3 text-muted-foreground transition-transform",
+                "size-3 text-ink-3 transition-transform duration-fast ease-canon",
                 isOpen ? "rotate-180" : "rotate-0"
               )}
             />
@@ -140,7 +145,7 @@ export const ReasoningContent = memo(
   ({ className, children, ...props }: ReasoningContentProps) => (
     <CollapsibleContent
       className={cn(
-        "mt-2 text-muted-foreground text-xs",
+        "mt-2 border-citrus border-l-2 pl-4 text-ink-2 text-xs",
         "data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 outline-hidden data-[state=closed]:animate-out data-[state=open]:animate-in",
         className
       )}

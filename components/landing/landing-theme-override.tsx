@@ -1,39 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
-
-const LANDING_THEME_COLOR = "#09090b";
-
-export const LandingThemeOverride = () => {
-  useEffect(() => {
-    const meta = document.querySelector('meta[name="theme-color"]');
-    if (!meta) {
-      return;
-    }
-
-    meta.setAttribute("content", LANDING_THEME_COLOR);
-
-    const observer = new MutationObserver(() => {
-      if (meta.getAttribute("content") !== LANDING_THEME_COLOR) {
-        meta.setAttribute("content", LANDING_THEME_COLOR);
-      }
-    });
-
-    observer.observe(meta, {
-      attributes: true,
-      attributeFilter: ["content"],
-    });
-
-    return () => {
-      observer.disconnect();
-
-      const isDark = document.documentElement.classList.contains("dark");
-      meta.setAttribute(
-        "content",
-        isDark ? "hsl(240deg 10% 3.92%)" : "hsl(0 0% 100%)"
-      );
-    };
-  }, []);
-
-  return null;
-};
+/**
+ * Dormant since dark mode was disabled. Kept as a component
+ * boundary so the landing layout import doesn't churn during
+ * the Slate & Citrus migration. Reintroduce a body if landing
+ * needs a distinct theme-color again.
+ */
+export const LandingThemeOverride = () => null;

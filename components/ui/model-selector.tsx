@@ -18,6 +18,7 @@ import {
   PlayIcon,
 } from "../icons";
 import { Button } from "./button";
+import { inferModelProvider, ModelDot } from "./model-dot";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { RadioGroup, RadioGroupItem } from "./radio-group";
 
@@ -50,7 +51,13 @@ export function ModelSelector() {
 
     // Convert to array and sort providers in consistent order
     const providerOrder = [
-      "openai", "google", "anthropic", "xai", "bfl", "recraft", "other",
+      "openai",
+      "google",
+      "anthropic",
+      "xai",
+      "bfl",
+      "recraft",
+      "other",
     ];
     return Array.from(groups.entries())
       .map(([provider, models]) => ({
@@ -73,16 +80,22 @@ export function ModelSelector() {
     <Popover onOpenChange={setOpen} open={open}>
       <PopoverTrigger asChild>
         <Button
-          className="gap-2 rounded-2xl px-3"
+          className="gap-2 px-3"
           data-testid="model-selector-trigger"
           variant="ghost"
         >
+          {currentModel ? (
+            <ModelDot
+              provider={inferModelProvider(currentModel.id)}
+              size="sm"
+            />
+          ) : null}
           <span className="text-lg">
             {currentModel ? t(currentModel.name) : "Select Model"}
           </span>
           <span
             className={cn(
-              "transition-transform duration-200",
+              "transition-transform duration-fast ease-canon",
               open && "rotate-180"
             )}
           >
@@ -92,7 +105,7 @@ export function ModelSelector() {
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="w-[320px] rounded-2xl p-0 shadow-lg"
+        className="w-[320px] rounded-lg p-2 shadow-lg"
       >
         <div className="max-h-[400px] overflow-y-scroll">
           <RadioGroup
@@ -113,8 +126,9 @@ export function ModelSelector() {
                   return (
                     <label
                       className={cn(
-                        "group flex min-h-[44px] cursor-pointer items-start gap-3 px-3 py-2.5 transition-colors hover:bg-accent",
-                        isSelected && "bg-accent/50"
+                        "group relative flex min-h-[44px] cursor-pointer items-start gap-3 rounded-sm px-3 py-2.5 transition-colors duration-fast ease-canon hover:bg-paper-2",
+                        isSelected &&
+                          "before:-translate-y-1/2 bg-paper-2 before:absolute before:top-1/2 before:left-0 before:h-4 before:w-[3px] before:rounded-r-xs before:bg-citrus before:content-['']"
                       )}
                       data-testid={`model-option-${model.id}`}
                       htmlFor={`model-${model.id}`}
@@ -124,6 +138,11 @@ export function ModelSelector() {
                         className="sr-only"
                         id={`model-${model.id}`}
                         value={model.id}
+                      />
+                      <ModelDot
+                        className="mt-1.5"
+                        provider={inferModelProvider(model.id)}
+                        size="sm"
                       />
                       <div className="flex-1">
                         <div className="flex items-center gap-1.5 font-medium text-sm leading-tight">

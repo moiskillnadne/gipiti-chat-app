@@ -6,7 +6,6 @@ import Link from "next/link";
 import type { User } from "next-auth";
 import { signOut, useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
-import { useTheme } from "next-themes";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,10 +38,8 @@ import { toast } from "./toast";
 
 export function SidebarUserNav({ user }: { user: User }) {
   const t = useTranslations("common");
-  const tSettings = useTranslations("settings.theme");
   const tSupport = useTranslations("legal.support");
   const { status } = useSession();
-  const { setTheme, resolvedTheme } = useTheme();
 
   // Temporarily hidden - language selection disabled
   // To re-enable, uncomment the following:
@@ -143,18 +140,6 @@ export function SidebarUserNav({ user }: { user: User }) {
             </DropdownMenuSub>
             <DropdownMenuSeparator />
             */}
-            <DropdownMenuItem
-              className="cursor-pointer"
-              data-testid="user-nav-item-theme"
-              onSelect={() =>
-                setTheme(resolvedTheme === "dark" ? "light" : "dark")
-              }
-            >
-              {resolvedTheme === "light"
-                ? tSettings("toggleDark")
-                : tSettings("toggleLight")}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
             <DropdownMenuItem asChild data-testid="user-nav-item-subscription">
               <Link href="/subscription">{t("navigation.subscription")}</Link>
             </DropdownMenuItem>
