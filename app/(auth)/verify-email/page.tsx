@@ -218,14 +218,10 @@ function VerifyEmailPage() {
     return (
       <AuthPageLayout>
         <div className="flex flex-col items-center justify-center gap-2 px-4 text-center sm:px-16">
-          <h3 className="font-semibold text-2xl dark:text-zinc-50">
-            {t("title")}
-          </h3>
-          <p className="text-gray-500 text-sm dark:text-zinc-400">
-            {t("noEmail")}
-          </p>
+          <h3 className="font-semibold text-2xl">{t("title")}</h3>
+          <p className="text-gray-500 text-sm">{t("noEmail")}</p>
           <Link
-            className="mt-4 font-semibold text-gray-800 hover:underline dark:text-zinc-200"
+            className="mt-4 font-semibold text-gray-800 hover:underline"
             href="/register"
           >
             {t("backToRegister")}
@@ -240,12 +236,8 @@ function VerifyEmailPage() {
   return (
     <AuthPageLayout>
       <div className="flex flex-col items-center justify-center gap-2 px-4 text-center sm:px-16">
-        <h3 className="font-semibold text-2xl dark:text-zinc-50">
-          {t("title")}
-        </h3>
-        <p className="text-gray-500 text-sm dark:text-zinc-400">
-          {t("subtitle")}
-        </p>
+        <h3 className="font-semibold text-2xl">{t("title")}</h3>
+        <p className="text-gray-500 text-sm">{t("subtitle")}</p>
         <p className="mt-2 text-muted-foreground text-sm">
           {t("sentTo")} <strong>{email}</strong>
         </p>
@@ -292,7 +284,7 @@ function VerifyEmailPage() {
         </Button>
 
         <button
-          className="mt-2 font-semibold text-gray-800 hover:underline disabled:cursor-not-allowed disabled:opacity-50 dark:text-zinc-200"
+          className="mt-2 font-semibold text-gray-800 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
           disabled={isUpdatingSession}
           onClick={() => signOut({ callbackUrl: "/login" })}
           type="button"

@@ -7,7 +7,7 @@ type SupportLinkProps = {
 
 export function SupportLink({ text, linkText }: SupportLinkProps) {
   return (
-    <p className="fixed right-4 bottom-4 z-50 text-gray-500 text-xs dark:text-zinc-500">
+    <p className="fixed right-4 bottom-4 z-50 text-gray-500 text-xs">
       {text}{" "}
       <Link className="hover:underline" href="/legal/support">
         {linkText}

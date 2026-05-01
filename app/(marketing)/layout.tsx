@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 
-import { LandingThemeOverride } from "@/components/landing/landing-theme-override";
-
 export const metadata: Metadata = {
   title: "GIPITI - AI-чат с ChatGPT, Gemini, Claude и Grok",
   description:
@@ -16,7 +14,6 @@ export default function MarketingLayout({
   return (
     <>
       <style>{"html, body { background-color: #09090b; }"}</style>
-      <LandingThemeOverride />
       {children}
     </>
   );

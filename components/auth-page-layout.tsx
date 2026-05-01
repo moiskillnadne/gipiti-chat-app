@@ -17,13 +17,7 @@ export function AuthPageLayout({ children }: AuthPageLayoutProps) {
     <div className="flex h-dvh w-screen items-start justify-center bg-background pt-12 md:items-center md:pt-0">
       <div className="flex w-full max-w-md flex-col gap-12 overflow-hidden rounded-2xl">
         <Link className="flex justify-center" href="/">
-          <Image
-            alt="GIPITI"
-            className="dark:invert"
-            height={64}
-            src="/icon.png"
-            width={64}
-          />
+          <Image alt="GIPITI" height={64} src="/icon.png" width={64} />
         </Link>
         {children}
       </div>

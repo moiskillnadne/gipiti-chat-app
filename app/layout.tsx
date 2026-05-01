@@ -6,7 +6,6 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { Toaster } from "sonner";
 import { ErrorLogger } from "@/components/error-logger";
-import { ThemeProvider } from "@/components/theme-provider";
 import { UtmCapture } from "@/components/utm-capture";
 import { YandexMetrika } from "@/components/yandex-metrika";
 import "./globals.css";
@@ -103,14 +102,8 @@ export default async function RootLayout({
         <UtmCapture />
         <SpeedInsights />
         <NextIntlClientProvider messages={messages}>
-          <ThemeProvider
-            attribute="class"
-            disableTransitionOnChange
-            forcedTheme="light"
-          >
-            <Toaster position="top-center" />
-            <SessionProvider>{children}</SessionProvider>
-          </ThemeProvider>
+          <Toaster position="top-center" />
+          <SessionProvider>{children}</SessionProvider>
         </NextIntlClientProvider>
         <Analytics />
         <YandexMetrika />

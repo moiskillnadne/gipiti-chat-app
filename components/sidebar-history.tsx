@@ -349,7 +349,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
               {t("endOfHistory")}
             </div>
           ) : (
-            <div className="mt-8 flex flex-row items-center gap-2 p-2 text-zinc-500 dark:text-zinc-400">
+            <div className="mt-8 flex flex-row items-center gap-2 p-2 text-zinc-500">
               <div className="animate-spin">
                 <LoaderIcon />
               </div>

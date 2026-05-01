@@ -12,22 +12,22 @@ export function FeaturesTable() {
 
   return (
     <div className="mx-auto w-full max-w-2xl">
-      <h4 className="mb-6 text-center font-medium text-gray-900 text-lg dark:text-zinc-100">
+      <h4 className="mb-6 text-center font-medium text-gray-900 text-lg">
         {t("title")}
       </h4>
 
       {/* Table container with horizontal scroll on mobile */}
-      <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700">
+      <div className="overflow-x-auto rounded-xl border border-gray-200">
         <table className="w-full min-w-[500px] text-sm">
           {/* Header */}
           <thead>
-            <tr className="border-gray-200 border-b bg-gray-50 dark:border-zinc-700 dark:bg-zinc-800/50">
-              <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-zinc-400">
+            <tr className="border-gray-200 border-b bg-gray-50">
+              <th className="px-4 py-3 text-left font-medium text-gray-600">
                 {t("table.feature")}
               </th>
               {periods.map((period) => (
                 <th
-                  className="px-4 py-3 text-center font-medium text-gray-600 dark:text-zinc-400"
+                  className="px-4 py-3 text-center font-medium text-gray-600"
                   key={period}
                 >
                   {t(`periods.${period}`)}
@@ -36,15 +36,15 @@ export function FeaturesTable() {
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-gray-200 dark:divide-zinc-700">
+          <tbody className="divide-y divide-gray-200">
             {/* Tokens row */}
-            <tr className="bg-white dark:bg-zinc-900">
-              <td className="px-4 py-3 font-medium text-gray-900 dark:text-zinc-100">
+            <tr className="bg-white">
+              <td className="px-4 py-3 font-medium text-gray-900">
                 {t("table.tokens")}
               </td>
               {periods.map((period) => (
                 <td
-                  className="px-4 py-3 text-center text-gray-700 dark:text-zinc-300"
+                  className="px-4 py-3 text-center text-gray-700"
                   key={period}
                 >
                   {t(`values.${period}.tokens`)}
@@ -53,13 +53,13 @@ export function FeaturesTable() {
             </tr>
 
             {/* Messages row */}
-            <tr className="bg-gray-50/50 dark:bg-zinc-800/30">
-              <td className="px-4 py-3 font-medium text-gray-900 dark:text-zinc-100">
+            <tr className="bg-gray-50/50">
+              <td className="px-4 py-3 font-medium text-gray-900">
                 {t("table.messages")}
               </td>
               {periods.map((period) => (
                 <td
-                  className="px-4 py-3 text-center text-gray-700 dark:text-zinc-300"
+                  className="px-4 py-3 text-center text-gray-700"
                   key={period}
                 >
                   {t(`values.${period}.messages`)}
@@ -68,13 +68,13 @@ export function FeaturesTable() {
             </tr>
 
             {/* Web searches row */}
-            <tr className="bg-white dark:bg-zinc-900">
-              <td className="px-4 py-3 font-medium text-gray-900 dark:text-zinc-100">
+            <tr className="bg-white">
+              <td className="px-4 py-3 font-medium text-gray-900">
                 {t("table.searches")}
               </td>
               {periods.map((period) => (
                 <td
-                  className="px-4 py-3 text-center text-gray-700 dark:text-zinc-300"
+                  className="px-4 py-3 text-center text-gray-700"
                   key={period}
                 >
                   {t(`values.${period}.searches`)}
@@ -83,12 +83,12 @@ export function FeaturesTable() {
             </tr>
 
             {/* Models row - merged cell */}
-            <tr className="bg-gray-50/50 dark:bg-zinc-800/30">
-              <td className="px-4 py-3 font-medium text-gray-900 dark:text-zinc-100">
+            <tr className="bg-gray-50/50">
+              <td className="px-4 py-3 font-medium text-gray-900">
                 {t("table.models")}
               </td>
               <td
-                className="px-4 py-3 text-center text-gray-700 text-xs dark:text-zinc-300"
+                className="px-4 py-3 text-center text-gray-700 text-xs"
                 colSpan={3}
               >
                 {t("table.modelsList")}
@@ -96,8 +96,8 @@ export function FeaturesTable() {
             </tr>
 
             {/* Reasoning row - checkmarks */}
-            <tr className="bg-white dark:bg-zinc-900">
-              <td className="px-4 py-3 font-medium text-gray-900 dark:text-zinc-100">
+            <tr className="bg-white">
+              <td className="px-4 py-3 font-medium text-gray-900">
                 {t("table.reasoning")}
               </td>
               {periods.map((period) => (
@@ -108,12 +108,12 @@ export function FeaturesTable() {
             </tr>
 
             {/* Image generation row - merged cell */}
-            <tr className="bg-gray-50/50 dark:bg-zinc-800/30">
-              <td className="px-4 py-3 font-medium text-gray-900 dark:text-zinc-100">
+            <tr className="bg-gray-50/50">
+              <td className="px-4 py-3 font-medium text-gray-900">
                 {t("table.imageGeneration")}
               </td>
               <td
-                className="px-4 py-3 text-center text-gray-700 text-xs dark:text-zinc-300"
+                className="px-4 py-3 text-center text-gray-700 text-xs"
                 colSpan={3}
               >
                 {t("table.imageModels")}
@@ -121,13 +121,13 @@ export function FeaturesTable() {
             </tr>
 
             {/* Video generation row */}
-            <tr className="bg-white dark:bg-zinc-900">
-              <td className="px-4 py-3 font-medium text-gray-900 dark:text-zinc-100">
+            <tr className="bg-white">
+              <td className="px-4 py-3 font-medium text-gray-900">
                 {t("table.videoGeneration")}
               </td>
               {periods.map((period) => (
                 <td
-                  className="px-4 py-3 text-center text-gray-700 dark:text-zinc-300"
+                  className="px-4 py-3 text-center text-gray-700"
                   key={period}
                 >
                   {t(`values.${period}.videoGenerations`)}
@@ -136,14 +136,11 @@ export function FeaturesTable() {
             </tr>
 
             {/* File analysis row - merged cell */}
-            <tr className="bg-white dark:bg-zinc-900">
-              <td className="px-4 py-3 font-medium text-gray-900 dark:text-zinc-100">
+            <tr className="bg-white">
+              <td className="px-4 py-3 font-medium text-gray-900">
                 {t("table.fileAnalysis")}
               </td>
-              <td
-                className="px-4 py-3 text-center text-gray-700 dark:text-zinc-300"
-                colSpan={3}
-              >
+              <td className="px-4 py-3 text-center text-gray-700" colSpan={3}>
                 {t("table.fileTypes")}
               </td>
             </tr>

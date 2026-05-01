@@ -6,15 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { chatModels, type ModelProvider } from "@/lib/ai/models";
 
 const providerStyles: Record<ModelProvider | "unknown", string> = {
-  openai:
-    "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
-  google: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-  anthropic:
-    "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
-  xai: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
-  bfl: "bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-400",
-  recraft: "bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-400",
-  unknown: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
+  openai: "bg-emerald-100 text-emerald-800",
+  google: "bg-blue-100 text-blue-800",
+  anthropic: "bg-orange-100 text-orange-800",
+  xai: "bg-purple-100 text-purple-800",
+  bfl: "bg-pink-100 text-pink-800",
+  recraft: "bg-rose-100 text-rose-800",
+  unknown: "bg-gray-100 text-gray-800",
 };
 
 type ModelBadgeProps = {

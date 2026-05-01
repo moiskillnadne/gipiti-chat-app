@@ -208,16 +208,16 @@ export default async function SubscriptionPage() {
           {subscription.isTrial &&
             subscription.trialEndsAt &&
             new Date() < subscription.trialEndsAt && (
-              <div className="rounded-lg border border-purple-200 bg-purple-50 p-4 dark:border-purple-800 dark:bg-purple-950/30">
-                <h3 className="font-semibold text-purple-800 dark:text-purple-200">
+              <div className="rounded-lg border border-purple-200 bg-purple-50 p-4">
+                <h3 className="font-semibold text-purple-800">
                   {t("trialInfo.title")}
                 </h3>
-                <p className="mt-1 text-purple-700 text-sm dark:text-purple-300">
+                <p className="mt-1 text-purple-700 text-sm">
                   {t("trialInfo.daysRemaining", {
                     days: getTrialDaysRemaining(subscription.trialEndsAt),
                   })}
                 </p>
-                <p className="mt-1 text-purple-600 text-sm dark:text-purple-400">
+                <p className="mt-1 text-purple-600 text-sm">
                   {t("trialInfo.chargeDate", {
                     date: formatDate(subscription.trialEndsAt),
                     amount: formatCurrency(

@@ -130,10 +130,10 @@ function RegisterPage() {
         >
           {t("signUpButton")}
         </SubmitButton>
-        <p className="mt-4 text-center text-gray-600 text-sm dark:text-zinc-400">
+        <p className="mt-4 text-center text-gray-600 text-sm">
           {t("hasAccount")}{" "}
           <Link
-            className="font-semibold text-gray-800 hover:underline dark:text-zinc-200"
+            className="font-semibold text-gray-800 hover:underline"
             href="/login"
           >
             {t("signInLink")}

@@ -24,7 +24,7 @@ export function TesterPlan({
 
   return (
     <div className="mx-auto max-w-md">
-      <div className="relative flex flex-col rounded-2xl border-2 border-blue-500 bg-blue-50/50 p-6 text-left dark:border-blue-400 dark:bg-blue-950/30">
+      <div className="relative flex flex-col rounded-2xl border-2 border-blue-500 bg-blue-50/50 p-6 text-left">
         {/* Show trial badge if trial available, otherwise show Tester badge */}
         {canStartTrial ? (
           <span className="-top-3 absolute right-4 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 px-3 py-1 font-medium text-white text-xs">
@@ -37,21 +37,15 @@ export function TesterPlan({
         )}
 
         <div className="mb-4">
-          <h3 className="font-semibold text-xl dark:text-zinc-50">
-            {t("tester.name")}
-          </h3>
+          <h3 className="font-semibold text-xl">{t("tester.name")}</h3>
         </div>
 
         <div className="mb-4">
-          <span className="font-bold text-4xl dark:text-zinc-50">
-            {formattedPrice}
-          </span>
-          <span className="text-gray-500 dark:text-zinc-400">
-            {t("tester.period")}
-          </span>
+          <span className="font-bold text-4xl">{formattedPrice}</span>
+          <span className="text-gray-500">{t("tester.period")}</span>
         </div>
 
-        <p className="mb-6 text-gray-600 text-sm dark:text-zinc-400">
+        <p className="mb-6 text-gray-600 text-sm">
           {canStartTrial
             ? t("trial.descriptionWithPrice", {
                 days: trialDays,

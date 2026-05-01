@@ -87,9 +87,9 @@ const getWarningColor = (state: ReturnType<typeof getWarningState>) => {
     case "exceeded":
       return "text-destructive";
     case "critical":
-      return "text-orange-600 dark:text-orange-400";
+      return "text-orange-600";
     case "warning":
-      return "text-yellow-600 dark:text-yellow-400";
+      return "text-yellow-600";
     default:
       return "text-muted-foreground";
   }
@@ -205,9 +205,8 @@ export const UsageHint = ({ className, usage }: UsageHintProps) => {
           className={cn(
             "h-2",
             warningState === "exceeded" && "bg-destructive/20",
-            warningState === "critical" &&
-              "bg-orange-200 dark:bg-orange-900/20",
-            warningState === "warning" && "bg-yellow-200 dark:bg-yellow-900/20",
+            warningState === "critical" && "bg-orange-200",
+            warningState === "warning" && "bg-yellow-200",
             warningState === "normal" && "bg-muted"
           )}
           value={percent}
@@ -219,10 +218,8 @@ export const UsageHint = ({ className, usage }: UsageHintProps) => {
               "rounded-md p-2 text-xs",
               warningState === "exceeded" &&
                 "bg-destructive/10 text-destructive",
-              warningState === "critical" &&
-                "bg-orange-100 text-orange-900 dark:bg-orange-900/20 dark:text-orange-300",
-              warningState === "warning" &&
-                "bg-yellow-100 text-yellow-900 dark:bg-yellow-900/20 dark:text-yellow-300"
+              warningState === "critical" && "bg-orange-100 text-orange-900",
+              warningState === "warning" && "bg-yellow-100 text-yellow-900"
             )}
           >
             {t(`warning.${warningState}`)}

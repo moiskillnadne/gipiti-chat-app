@@ -109,10 +109,7 @@ function ForgotPasswordPage() {
 
       <Form action={handleSubmit} className="flex flex-col gap-4 px-4 sm:px-16">
         <div className="flex flex-col gap-2">
-          <Label
-            className="font-normal text-zinc-600 dark:text-zinc-400"
-            htmlFor="email"
-          >
+          <Label className="font-normal text-zinc-600" htmlFor="email">
             {t("emailLabel")}
           </Label>
 
@@ -132,9 +129,9 @@ function ForgotPasswordPage() {
 
         <SubmitButton isSuccessful={isSuccessful}>{t("submit")}</SubmitButton>
 
-        <p className="mt-4 text-center text-gray-600 text-sm dark:text-zinc-400">
+        <p className="mt-4 text-center text-gray-600 text-sm">
           <Link
-            className="font-semibold text-gray-800 hover:underline dark:text-zinc-200"
+            className="font-semibold text-gray-800 hover:underline"
             href="/login"
           >
             {t("backToLogin")}

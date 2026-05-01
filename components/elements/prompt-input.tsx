@@ -119,7 +119,7 @@ export const PromptInputTextarea = forwardRef<
         className={cn(
           "w-full resize-none rounded-none border-none p-3 shadow-none outline-hidden ring-0",
           "overflow-y-auto",
-          "bg-transparent dark:bg-transparent",
+          "bg-transparent",
           "focus-visible:ring-0",
           className
         )}

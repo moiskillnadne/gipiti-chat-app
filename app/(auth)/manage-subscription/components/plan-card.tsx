@@ -44,9 +44,7 @@ export function PlanCard({
   return (
     <div
       className={`relative flex flex-col rounded-2xl border-2 p-6 text-left transition-all ${
-        isRecommended
-          ? "border-blue-500 bg-blue-50/50 dark:border-blue-400 dark:bg-blue-950/30"
-          : "border-gray-200 dark:border-zinc-700"
+        isRecommended ? "border-blue-500 bg-blue-50/50" : "border-gray-200"
       }`}
     >
       {/* Show trial badge if trial available, otherwise show regular badge */}
@@ -63,20 +61,16 @@ export function PlanCard({
       )}
 
       <div className="mb-4">
-        <h3 className="font-semibold text-xl dark:text-zinc-50">
-          {t(nameKey)}
-        </h3>
+        <h3 className="font-semibold text-xl">{t(nameKey)}</h3>
       </div>
 
       <div className="mb-4">
-        <span className="font-bold text-4xl dark:text-zinc-50">
-          {formattedPrice}
-        </span>
-        <span className="text-gray-500 dark:text-zinc-400">{t(periodKey)}</span>
+        <span className="font-bold text-4xl">{formattedPrice}</span>
+        <span className="text-gray-500">{t(periodKey)}</span>
       </div>
 
       {canStartTrial && badge && (
-        <p className="mb-2 flex items-center gap-1.5 font-medium text-emerald-600 text-sm dark:text-emerald-400">
+        <p className="mb-2 flex items-center gap-1.5 font-medium text-emerald-600 text-sm">
           <svg
             className="size-4"
             fill="none"
@@ -94,7 +88,7 @@ export function PlanCard({
         </p>
       )}
 
-      <p className="mb-6 flex-1 text-gray-600 text-sm dark:text-zinc-400">
+      <p className="mb-6 flex-1 text-gray-600 text-sm">
         {canStartTrial
           ? t("trial.descriptionWithPrice", {
               days: trialDays,

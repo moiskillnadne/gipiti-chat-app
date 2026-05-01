@@ -25,10 +25,10 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useSessionStorage, useWindowSize } from "usehooks-ts";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { useModel } from "@/contexts/model-context";
 import { useProject } from "@/contexts/project-context";
 import { useStyle } from "@/contexts/style-context";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   getModelById,
   type ImageGenSetting,
@@ -1125,7 +1125,7 @@ function PureMultimodalInput({
           />{" "}
           <Context {...contextProps} />
         </div>
-        <PromptInputToolbar className="!border-top-0 border-t-0! p-0 shadow-none dark:border-0 dark:border-transparent!">
+        <PromptInputToolbar className="!border-top-0 border-t-0! p-0 shadow-none">
           <PromptInputTools className="gap-0 sm:gap-0.5">
             <AttachmentsButton fileInputRef={fileInputRef} status={status} />
             <ToolsPopover />

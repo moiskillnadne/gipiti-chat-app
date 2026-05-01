@@ -3,17 +3,12 @@
 /* include utility classes in streamdown */
 @source '../node_modules/streamdown/dist/index.js';
 
-/* dark variant kept defined; .dark block below is dormant under forcedTheme="light" */
-@custom-variant dark (&:is(.dark, .dark *));
-
 /* include plugins */
 @plugin "tailwindcss-animate";
 @plugin "@tailwindcss/typography";
 
 /* ============================================================
    GIPITI · Slate & Citrus · light-only design tokens
-   The kit is light-first; dark is intentionally not redefined.
-   ThemeProvider mounts with forcedTheme="light".
    ============================================================ */
 :root {
   /* Color · paper */
@@ -98,11 +93,6 @@
 
   /* derived shadcn radius (10px = kit's --r-md) */
   --radius: 0.625rem;
-}
-
-/* dormant — single source of truth is :root; cleanup PR removes lingering dark: classes */
-.dark {
-  /* intentionally empty */
 }
 
 /* ============================================================

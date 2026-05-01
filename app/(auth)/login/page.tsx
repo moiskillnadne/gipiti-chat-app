@@ -130,7 +130,7 @@ function LoginPage() {
       <AuthForm action={formAction} mode="login">
         <div className="flex items-center justify-end">
           <Link
-            className="text-gray-600 text-sm hover:underline dark:text-zinc-400"
+            className="text-gray-600 text-sm hover:underline"
             href="/forgot-password"
           >
             {t("forgotPasswordLink")}
@@ -139,10 +139,10 @@ function LoginPage() {
         <SubmitButton isSuccessful={isSuccessful}>
           {t("signInButton")}
         </SubmitButton>
-        <p className="mt-4 text-center text-gray-600 text-sm dark:text-zinc-400">
+        <p className="mt-4 text-center text-gray-600 text-sm">
           {t("noAccount")}{" "}
           <Link
-            className="font-semibold text-gray-800 hover:underline dark:text-zinc-200"
+            className="font-semibold text-gray-800 hover:underline"
             href="/register"
           >
             {t("signUpLink")}

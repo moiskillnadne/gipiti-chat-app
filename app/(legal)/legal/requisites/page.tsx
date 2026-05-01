@@ -14,14 +14,12 @@ export default async function RequisitesPage() {
   return (
     <div className="flex min-h-dvh w-screen items-start justify-center bg-background py-12 md:py-16">
       <div className="w-full max-w-2xl px-4">
-        <h1 className="mb-8 font-bold text-2xl md:text-3xl dark:text-zinc-50">
-          {t("title")}
-        </h1>
+        <h1 className="mb-8 font-bold text-2xl md:text-3xl">{t("title")}</h1>
 
         <div className="space-y-8">
           {/* Business Info */}
           <section>
-            <h2 className="mb-4 border-border border-b pb-2 font-semibold text-lg dark:text-zinc-100">
+            <h2 className="mb-4 border-border border-b pb-2 font-semibold text-lg">
               {t("sections.businessInfo")}
             </h2>
             <dl className="space-y-3">
@@ -66,7 +64,7 @@ export default async function RequisitesPage() {
 
           {/* Address */}
           <section>
-            <h2 className="mb-4 border-border border-b pb-2 font-semibold text-lg dark:text-zinc-100">
+            <h2 className="mb-4 border-border border-b pb-2 font-semibold text-lg">
               {t("sections.address")}
             </h2>
             <dl className="space-y-3">
@@ -91,7 +89,7 @@ export default async function RequisitesPage() {
 
           {/* Bank Details */}
           <section>
-            <h2 className="mb-4 border-border border-b pb-2 font-semibold text-lg dark:text-zinc-100">
+            <h2 className="mb-4 border-border border-b pb-2 font-semibold text-lg">
               {t("sections.bankDetails")}
             </h2>
             <dl className="space-y-3">
@@ -128,7 +126,7 @@ export default async function RequisitesPage() {
 
           {/* Contact Info */}
           <section>
-            <h2 className="mb-4 border-border border-b pb-2 font-semibold text-lg dark:text-zinc-100">
+            <h2 className="mb-4 border-border border-b pb-2 font-semibold text-lg">
               {t("sections.contactInfo")}
             </h2>
             <dl className="space-y-3">
@@ -138,7 +136,7 @@ export default async function RequisitesPage() {
                 </dt>
                 <dd className="text-sm sm:col-span-2">
                   <a
-                    className="text-blue-600 hover:underline dark:text-blue-400"
+                    className="text-blue-600 hover:underline"
                     href={`mailto:${t("values.email")}`}
                   >
                     {t("values.email")}
@@ -151,7 +149,7 @@ export default async function RequisitesPage() {
                 </dt>
                 <dd className="text-sm sm:col-span-2">
                   <a
-                    className="text-blue-600 hover:underline dark:text-blue-400"
+                    className="text-blue-600 hover:underline"
                     href={`tel:${t("values.phone")}`}
                   >
                     {t("values.phone")}
@@ -164,7 +162,7 @@ export default async function RequisitesPage() {
                 </dt>
                 <dd className="text-sm sm:col-span-2">
                   <a
-                    className="text-blue-600 hover:underline dark:text-blue-400"
+                    className="text-blue-600 hover:underline"
                     href={t("values.website")}
                     rel="noopener noreferrer"
                     target="_blank"

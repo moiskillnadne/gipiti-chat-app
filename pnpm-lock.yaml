@@ -185,9 +185,6 @@ importers:
       next-intl:
         specifier: ^4.4.0
         version: 4.4.0(next@16.0.7(@opentelemetry/api@1.9.0)(@playwright/test@1.51.0)(react-dom@19.2.1(react@19.2.1))(react@19.2.1))(react@19.2.1)(typescript@5.8.2)
-      next-themes:
-        specifier: ^0.3.0
-        version: 0.3.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       openai:
         specifier: ^6.15.0
         version: 6.15.0(ws@8.18.1(bufferutil@4.0.9))(zod@3.25.76)
@@ -3867,12 +3864,6 @@ packages:
     peerDependenciesMeta:
       typescript:
         optional: true
-
-  next-themes@0.3.0:
-    resolution: {integrity: sha512-/QHIrsYpd6Kfk7xakK4svpDI5mmXP0gfvCoJdGpZQ2TOrQZmsW0QxjaiLn8wbIKjtm4BTSqLoix4lxYYOnLJ/w==}
-    peerDependencies:
-      react: ^16.8 || ^17 || ^18
-      react-dom: ^16.8 || ^17 || ^18
 
   next@16.0.7:
     resolution: {integrity: sha512-3mBRJyPxT4LOxAJI6IsXeFtKfiJUbjCLgvXO02fV8Wy/lIhPvP94Fe7dGhUgHXcQy4sSuYwQNcOLhIfOm0rL0A==}
@@ -8344,11 +8335,6 @@ snapshots:
       use-intl: 4.4.0(react@19.2.1)
     optionalDependencies:
       typescript: 5.8.2
-
-  next-themes@0.3.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1):
-    dependencies:
-      react: 19.2.1
-      react-dom: 19.2.1(react@19.2.1)
 
   next@16.0.7(@opentelemetry/api@1.9.0)(@playwright/test@1.51.0)(react-dom@19.2.1(react@19.2.1))(react@19.2.1):
     dependencies:
