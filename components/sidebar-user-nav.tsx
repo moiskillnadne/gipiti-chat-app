@@ -1,24 +1,12 @@
 "use client";
 
-import { ChevronUp } from "lucide-react";
+import { LogOut } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import type { User } from "next-auth";
 import { signOut, useSession } from "next-auth/react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar";
 import { useTranslations } from "@/lib/i18n/translate";
-import { LoaderIcon } from "./icons";
+import { HelpIcon, LoaderIcon } from "./icons";
 import { toast } from "./toast";
 
 export function SidebarUserNav({ user }: { user: User }) {
@@ -26,78 +14,81 @@ export function SidebarUserNav({ user }: { user: User }) {
   const tSupport = useTranslations("legal.support");
   const { status } = useSession();
 
-  return (
-    <SidebarMenu>
-      <SidebarMenuItem>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            {status === "loading" ? (
-              <SidebarMenuButton className="h-10 justify-between bg-background data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                <div className="flex flex-row gap-2">
-                  <div className="size-6 animate-pulse rounded-full bg-zinc-500/30" />
-                  <span className="animate-pulse rounded-md bg-zinc-500/30 text-transparent">
-                    {t("navigation.loadingAuthStatus")}
-                  </span>
-                </div>
-                <div className="animate-spin text-zinc-500">
-                  <LoaderIcon />
-                </div>
-              </SidebarMenuButton>
-            ) : (
-              <SidebarMenuButton
-                className="h-10 bg-background data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-                data-testid="user-nav-button"
-              >
-                <Image
-                  alt={user.email ?? "User Avatar"}
-                  className="rounded-full"
-                  height={24}
-                  src={`https://avatar.vercel.sh/${user.email}`}
-                  width={24}
-                />
-                <span className="truncate" data-testid="user-email">
-                  {user?.email ?? t("navigation.account")}
-                </span>
-                <ChevronUp className="ml-auto" />
-              </SidebarMenuButton>
-            )}
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            className="w-(--radix-popper-anchor-width)"
-            data-testid="user-nav-menu"
-            side="top"
-          >
-            <DropdownMenuItem asChild data-testid="user-nav-item-subscription">
-              <Link href="/subscription">{t("navigation.subscription")}</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild data-testid="user-nav-item-support">
-              <Link href="/legal/support">{tSupport("linkText")}</Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild data-testid="user-nav-item-auth">
-              <button
-                className="w-full cursor-pointer"
-                onClick={() => {
-                  if (status === "loading") {
-                    toast({
-                      type: "error",
-                      description: t("navigation.checkingAuthStatus"),
-                    });
+  if (status === "loading") {
+    return (
+      <div className="-mx-2 flex items-center gap-2.5 border-rule border-t px-3 py-3">
+        <div className="size-7 animate-pulse rounded-full bg-paper-3" />
+        <span className="flex-1 animate-pulse rounded-md bg-paper-3 text-transparent">
+          {t("navigation.loadingAuthStatus")}
+        </span>
+        <div className="animate-spin text-ink-3">
+          <LoaderIcon />
+        </div>
+      </div>
+    );
+  }
 
-                    return;
-                  }
-                  signOut({
-                    redirectTo: "/login",
-                  });
-                }}
-                type="button"
-              >
-                {t("navigation.signOut")}
-              </button>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </SidebarMenuItem>
-    </SidebarMenu>
+  const planCaption = user.hasActiveSubscription
+    ? t("navigation.planPro")
+    : user.isTester
+      ? t("navigation.planTester")
+      : t("navigation.planFree");
+  const displayName = user.email ?? t("navigation.account");
+
+  const handleSignOut = () => {
+    if (status !== "authenticated") {
+      toast({
+        type: "error",
+        description: t("navigation.checkingAuthStatus"),
+      });
+      return;
+    }
+    signOut({ redirectTo: "/login" });
+  };
+
+  return (
+    <div className="-mx-2 flex items-center border-rule border-t">
+      <Link
+        className="flex min-w-0 flex-1 items-center gap-2.5 px-3 py-3 transition-colors duration-fast ease-canon hover:bg-paper-3"
+        data-testid="user-nav-button"
+        href="/subscription"
+        title={t("navigation.account")}
+      >
+        <Image
+          alt={displayName}
+          className="size-7 shrink-0 rounded-full"
+          height={28}
+          src={`https://avatar.vercel.sh/${user.email}`}
+          width={28}
+        />
+        <span className="min-w-0 flex-1 leading-tight">
+          <span
+            className="block truncate font-medium text-[13px] text-ink"
+            data-testid="user-email"
+          >
+            {displayName}
+          </span>
+          <span className="block text-[11px] text-ink-3">{planCaption}</span>
+        </span>
+      </Link>
+      <div className="flex items-center gap-0.5 pr-3">
+        <Link
+          className="inline-flex size-7 items-center justify-center rounded-sm text-ink-3 transition-colors duration-fast ease-canon hover:bg-paper-3 hover:text-ink"
+          href="/legal/support"
+          title={tSupport("linkText")}
+        >
+          <HelpIcon size={14} />
+        </Link>
+        <button
+          className="inline-flex size-7 items-center justify-center rounded-sm text-ink-3 transition-colors duration-fast ease-canon hover:bg-paper-3 hover:text-ink"
+          data-testid="user-nav-item-auth"
+          onClick={handleSignOut}
+          title={t("navigation.signOut")}
+          type="button"
+        >
+          <LogOut size={14} />
+        </button>
+      </div>
+    </div>
   );
 }

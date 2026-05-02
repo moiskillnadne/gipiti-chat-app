@@ -234,7 +234,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                   <div className="flex flex-col gap-6">
                     {groupedChats.today.length > 0 && (
                       <div>
-                        <div className="px-2 py-1 text-sidebar-foreground/50 text-xs">
+                        <div className="px-3 py-1.5 font-mono text-[10px] text-ink-3 uppercase tracking-[0.1em]">
                           {t("today")}
                         </div>
                         {groupedChats.today.map((chat) => (

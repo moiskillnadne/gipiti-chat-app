@@ -35,7 +35,10 @@
       "account": "Аккаунт",
       "checkingAuthStatus": "Проверка статуса авторизации, попробуйте снова!",
       "signOut": "Выйти",
-      "subscription": "Подписка"
+      "subscription": "Подписка",
+      "planPro": "Pro · подписка активна",
+      "planTester": "Tester · бесплатный план",
+      "planFree": "Free · без подписки"
     },
     "language": {
       "switchLanguage": "Сменить язык",

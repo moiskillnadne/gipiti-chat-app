@@ -17,7 +17,6 @@ import {
   ImageIcon,
   PlayIcon,
 } from "../icons";
-import { Button } from "./button";
 import { inferModelProvider, ModelDot } from "./model-dot";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { RadioGroup, RadioGroupItem } from "./radio-group";
@@ -79,29 +78,24 @@ export function ModelSelector() {
   return (
     <Popover onOpenChange={setOpen} open={open}>
       <PopoverTrigger asChild>
-        <Button
-          className="gap-2 px-3"
+        <button
+          className="inline-flex items-center gap-1.5 rounded-pill bg-paper-2 px-2.5 py-1 font-normal text-[12px] text-ink-2 transition-colors duration-fast ease-canon hover:bg-paper-3"
           data-testid="model-selector-trigger"
-          variant="ghost"
+          type="button"
         >
-          {currentModel ? (
-            <ModelDot
-              provider={inferModelProvider(currentModel.id)}
-              size="sm"
-            />
-          ) : null}
-          <span className="text-lg">
+          <span className="size-1.5 shrink-0 rounded-full bg-success" />
+          <span className="whitespace-nowrap">
             {currentModel ? t(currentModel.name) : "Select Model"}
           </span>
           <span
             className={cn(
-              "transition-transform duration-fast ease-canon",
+              "text-ink-3 transition-transform duration-fast ease-canon",
               open && "rotate-180"
             )}
           >
-            <ChevronDownIcon size={24} />
+            <ChevronDownIcon size={12} />
           </span>
-        </Button>
+        </button>
       </PopoverTrigger>
       <PopoverContent
         align="start"
