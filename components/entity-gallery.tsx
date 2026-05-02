@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 import { useCallback, useMemo, useState } from "react";
 
 import { useTranslations } from "@/lib/i18n/translate";
-import { getSwatchClass } from "@/lib/utils/swatch";
+import { getSwatchClass, resolveSwatchClass } from "@/lib/utils/swatch";
 
 import { toast } from "./toast";
 import {
@@ -38,6 +38,7 @@ export type GalleryEntity = {
   pinned: boolean;
   usageCount: number;
   createdAt: Date | string;
+  swatch?: string | null;
 };
 
 export type GalleryTemplate = {
@@ -52,7 +53,6 @@ export type EntityGalleryLabels = {
   headlineEm: string;
   description: string;
   eyebrow: (params: { count: number; tplCount: number }) => string;
-  importLabel: string;
   createCta: string;
   yourEntities: string;
   newCardLabel: string;
@@ -299,9 +299,6 @@ export function EntityGallery<T extends GalleryEntity>({
           </p>
         </div>
         <div className="flex flex-shrink-0 items-center gap-2">
-          <Button size="sm" variant="outline">
-            {labels.importLabel}
-          </Button>
           <Button onClick={() => setIsCreateOpen(true)} size="sm">
             <Plus className="size-3.5" />
             {labels.createCta}
@@ -568,7 +565,7 @@ function EntityCard<T extends GalleryEntity>({
 }: EntityCardProps<T>) {
   const router = useRouter();
   const preview = getPreview(item);
-  const swatch = getSwatchClass(item.id);
+  const swatch = resolveSwatchClass(item.swatch, item.id);
 
   const navigate = () => router.push(detailRoute(item.id));
 

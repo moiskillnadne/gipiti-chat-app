@@ -36,7 +36,6 @@ export function ProjectManager() {
     description: t("pageDescription"),
     eyebrow: ({ count, tplCount }) =>
       t("eyebrow", { count, tplCount: tplCount.toString() }),
-    importLabel: t("import"),
     createCta: t("createProject"),
     yourEntities: t("yourProjects"),
     newCardLabel: t("newProject"),

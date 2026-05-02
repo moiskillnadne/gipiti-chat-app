@@ -34,7 +34,6 @@ export function StyleManager() {
     description: t("pageDescription"),
     eyebrow: ({ count, tplCount }) =>
       t("eyebrow", { count, tplCount: tplCount.toString() }),
-    importLabel: t("import"),
     createCta: t("createStyle"),
     yourEntities: t("yourStyles"),
     newCardLabel: t("newStyle"),
