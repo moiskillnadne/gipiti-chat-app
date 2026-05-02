@@ -45,6 +45,7 @@ export {
 export {
   createUserSubscription,
   getActiveUserSubscription,
+  getLatestUserSubscriptionWithPlan,
   getSubscriptionPlanByName,
   getSubscriptionPlans,
   getUserSubscriptionWithPlan,
