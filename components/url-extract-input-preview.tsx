@@ -1,7 +1,7 @@
 "use client";
 
 import { LinkIcon } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/lib/i18n/translate";
 
 type UrlExtractInputPreviewProps = {
   urls: string[];

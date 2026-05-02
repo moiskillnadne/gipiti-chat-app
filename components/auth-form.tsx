@@ -1,8 +1,8 @@
 "use client";
 
 import Form from "next/form";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { useTranslations } from "@/lib/i18n/translate";
 import { PasswordInput } from "./password-input";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";

@@ -3,18 +3,17 @@
 import Form from "next/form";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useLocale, useTranslations } from "next-intl";
 import { Suspense, useActionState, useEffect, useState } from "react";
-
 import { PasswordInput } from "@/components/password-input";
 import { SubmitButton } from "@/components/submit-button";
 import { toast } from "@/components/toast";
+import { useTranslations } from "@/lib/i18n/translate";
 
 import { type ResetPasswordActionState, resetPassword } from "../actions";
 
 function SupportLink({ text, linkText }: { text: string; linkText: string }) {
   return (
-    <p className="fixed right-4 bottom-4 z-50 text-gray-500 text-xs dark:text-zinc-500">
+    <p className="fixed right-4 bottom-4 z-50 text-gray-500 text-xs">
       {text}{" "}
       <Link className="hover:underline" href="/legal/support">
         {linkText}
@@ -38,12 +37,8 @@ function ResetPasswordPageFallback() {
     <div className="flex h-dvh w-screen items-start justify-center bg-background pt-12 md:items-center md:pt-0">
       <div className="flex w-full max-w-md flex-col gap-12 overflow-hidden rounded-2xl">
         <div className="flex flex-col items-center justify-center gap-2 px-4 text-center sm:px-16">
-          <h3 className="font-semibold text-xl dark:text-zinc-50">
-            {t("title")}
-          </h3>
-          <p className="text-gray-500 text-sm dark:text-zinc-400">
-            {t("subtitle")}
-          </p>
+          <h3 className="font-semibold text-xl">{t("title")}</h3>
+          <p className="text-gray-500 text-sm">{t("subtitle")}</p>
         </div>
       </div>
     </div>
@@ -56,7 +51,6 @@ function ResetPasswordPage() {
   const tSupport = useTranslations("legal.support");
   const router = useRouter();
   const searchParams = useSearchParams();
-  const locale = useLocale();
 
   const token = searchParams?.get("token") || "";
   const [password, setPassword] = useState("");
@@ -130,7 +124,6 @@ function ResetPasswordPage() {
 
     setPasswordMismatch(false);
     formData.append("token", token);
-    formData.append("locale", locale);
     formAction(formData);
   };
 
@@ -140,14 +133,10 @@ function ResetPasswordPage() {
       <div className="flex h-dvh w-screen items-start justify-center bg-background pt-12 md:items-center md:pt-0">
         <div className="flex w-full max-w-md flex-col gap-12 overflow-hidden rounded-2xl">
           <div className="flex flex-col items-center justify-center gap-6 px-4 text-center sm:px-16">
-            <h3 className="font-semibold text-2xl dark:text-zinc-50">
-              {t("invalidToken")}
-            </h3>
-            <p className="text-gray-500 text-sm dark:text-zinc-400">
-              {t("invalidTokenMessage")}
-            </p>
+            <h3 className="font-semibold text-2xl">{t("invalidToken")}</h3>
+            <p className="text-gray-500 text-sm">{t("invalidTokenMessage")}</p>
             <Link
-              className="font-semibold text-gray-800 hover:underline dark:text-zinc-200"
+              className="font-semibold text-gray-800 hover:underline"
               href="/forgot-password"
             >
               {t("requestNewLink")}
@@ -166,12 +155,8 @@ function ResetPasswordPage() {
     <div className="flex h-dvh w-screen items-start justify-center bg-background pt-12 md:items-center md:pt-0">
       <div className="flex w-full max-w-md flex-col gap-12 overflow-hidden rounded-2xl">
         <div className="flex flex-col items-center justify-center gap-2 px-4 text-center sm:px-16">
-          <h3 className="font-semibold text-2xl dark:text-zinc-50">
-            {t("title")}
-          </h3>
-          <p className="text-gray-500 text-sm dark:text-zinc-400">
-            {t("subtitle")}
-          </p>
+          <h3 className="font-semibold text-2xl">{t("title")}</h3>
+          <p className="text-gray-500 text-sm">{t("subtitle")}</p>
         </div>
 
         <Form
@@ -217,7 +202,7 @@ function ResetPasswordPage() {
                   <>
                     <svg
                       aria-hidden="true"
-                      className="size-4 text-green-600 dark:text-green-400"
+                      className="size-4 text-green-600"
                       fill="none"
                       stroke="currentColor"
                       strokeWidth={2}
@@ -229,7 +214,7 @@ function ResetPasswordPage() {
                         strokeLinejoin="round"
                       />
                     </svg>
-                    <span className="text-green-600 dark:text-green-400">
+                    <span className="text-green-600">
                       {t("passwordMatches")}
                     </span>
                   </>
@@ -237,7 +222,7 @@ function ResetPasswordPage() {
                   <>
                     <svg
                       aria-hidden="true"
-                      className="size-4 text-red-600 dark:text-red-400"
+                      className="size-4 text-red-600"
                       fill="none"
                       stroke="currentColor"
                       strokeWidth={2}
@@ -249,7 +234,7 @@ function ResetPasswordPage() {
                         strokeLinejoin="round"
                       />
                     </svg>
-                    <span className="text-red-600 dark:text-red-400">
+                    <span className="text-red-600">
                       {t("passwordMismatch")}
                     </span>
                   </>
@@ -260,9 +245,9 @@ function ResetPasswordPage() {
 
           <SubmitButton isSuccessful={isSuccessful}>{t("submit")}</SubmitButton>
 
-          <p className="mt-4 text-center text-gray-600 text-sm dark:text-zinc-400">
+          <p className="mt-4 text-center text-gray-600 text-sm">
             <Link
-              className="font-semibold text-gray-800 hover:underline dark:text-zinc-200"
+              className="font-semibold text-gray-800 hover:underline"
               href="/login"
             >
               {t("backToLogin")}

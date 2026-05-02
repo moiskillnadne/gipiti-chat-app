@@ -219,7 +219,7 @@ export async function handlePayWebhook(
         .insert(subscriptionPlan)
         .values({
           name: tier.name,
-          displayName: tier.displayName.en,
+          displayName: tier.displayName,
           billingPeriod: tier.billingPeriod,
           billingPeriodCount: tier.billingPeriodCount,
           tokenQuota: tier.tokenQuota,
@@ -412,7 +412,7 @@ export async function handlePayWebhook(
         externalTransactionId: transactionId,
         expiresAt: now,
         metadata: {
-          planDisplayName: tier.displayName.en,
+          planDisplayName: tier.displayName,
           billingPeriod: `${tier.billingPeriodCount} ${tier.billingPeriod}`,
         },
       });
@@ -499,7 +499,7 @@ async function handleTrialPayment({
       token: token ?? "",
       email,
       accountId,
-      description: tier.displayName.en,
+      description: tier.displayName,
       amount: tier.price.RUB,
       currency: "RUB",
       interval: recurrentConfig.interval,
@@ -534,7 +534,7 @@ async function handleTrialPayment({
         .insert(subscriptionPlan)
         .values({
           name: tier.name,
-          displayName: tier.displayName.en,
+          displayName: tier.displayName,
           billingPeriod: tier.billingPeriod,
           billingPeriodCount: tier.billingPeriodCount,
           tokenQuota: tier.tokenQuota,

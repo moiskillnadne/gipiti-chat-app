@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useTranslations } from "next-intl";
 import {
   Suspense,
   useActionState,
@@ -11,13 +10,13 @@ import {
   useEffect,
   useState,
 } from "react";
-
 import { AuthForm } from "@/components/auth-form";
 import { AuthPageHeader } from "@/components/auth-page-header";
 import { AuthPageLayout } from "@/components/auth-page-layout";
 import { Loader } from "@/components/elements/loader";
 import { SubmitButton } from "@/components/submit-button";
 import { toast } from "@/components/toast";
+import { useTranslations } from "@/lib/i18n/translate";
 import { type LoginActionState, login } from "../actions";
 
 export default function Page() {
@@ -130,7 +129,7 @@ function LoginPage() {
       <AuthForm action={formAction} mode="login">
         <div className="flex items-center justify-end">
           <Link
-            className="text-gray-600 text-sm hover:underline dark:text-zinc-400"
+            className="text-gray-600 text-sm hover:underline"
             href="/forgot-password"
           >
             {t("forgotPasswordLink")}
@@ -139,10 +138,10 @@ function LoginPage() {
         <SubmitButton isSuccessful={isSuccessful}>
           {t("signInButton")}
         </SubmitButton>
-        <p className="mt-4 text-center text-gray-600 text-sm dark:text-zinc-400">
+        <p className="mt-4 text-center text-gray-600 text-sm">
           {t("noAccount")}{" "}
           <Link
-            className="font-semibold text-gray-800 hover:underline dark:text-zinc-200"
+            className="font-semibold text-gray-800 hover:underline"
             href="/register"
           >
             {t("signUpLink")}

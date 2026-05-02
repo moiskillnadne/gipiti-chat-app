@@ -2,11 +2,8 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import { Geist_Mono, Rubik } from "next/font/google";
-import { NextIntlClientProvider } from "next-intl";
-import { getLocale, getMessages } from "next-intl/server";
 import { Toaster } from "sonner";
 import { ErrorLogger } from "@/components/error-logger";
-import { ThemeProvider } from "@/components/theme-provider";
 import { UtmCapture } from "@/components/utm-capture";
 import { YandexMetrika } from "@/components/yandex-metrika";
 import "./globals.css";
@@ -78,64 +75,29 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
 });
 
-const LIGHT_THEME_COLOR = "hsl(0 0% 100%)";
-const DARK_THEME_COLOR = "hsl(240deg 10% 3.92%)";
-const THEME_COLOR_SCRIPT = `\
-(function() {
-  var html = document.documentElement;
-  var meta = document.querySelector('meta[name="theme-color"]');
-  if (!meta) {
-    meta = document.createElement('meta');
-    meta.setAttribute('name', 'theme-color');
-    document.head.appendChild(meta);
-  }
-  function updateThemeColor() {
-    var isDark = html.classList.contains('dark');
-    meta.setAttribute('content', isDark ? '${DARK_THEME_COLOR}' : '${LIGHT_THEME_COLOR}');
-  }
-  var observer = new MutationObserver(updateThemeColor);
-  observer.observe(html, { attributes: true, attributeFilter: ['class'] });
-  updateThemeColor();
-})();`;
+const PAPER_THEME_COLOR = "#fafaf9";
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const locale = await getLocale();
-  const messages = await getMessages();
-
   return (
     <html
       className={`${rubik.variable} ${geistMono.variable} scroll-smooth`}
-      lang={locale}
+      lang="ru"
       suppressHydrationWarning
     >
       <head>
-        <script
-          // biome-ignore lint/security/noDangerouslySetInnerHtml: <This is a script>
-          dangerouslySetInnerHTML={{
-            __html: THEME_COLOR_SCRIPT,
-          }}
-        />
+        <meta content={PAPER_THEME_COLOR} name="theme-color" />
         <script src="https://widget.cloudpayments.ru/bundles/cloudpayments.js" />
       </head>
       <body className="antialiased" suppressHydrationWarning>
         <ErrorLogger />
         <UtmCapture />
         <SpeedInsights />
-        <NextIntlClientProvider messages={messages}>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            disableTransitionOnChange
-            enableSystem
-          >
-            <Toaster position="top-center" />
-            <SessionProvider>{children}</SessionProvider>
-          </ThemeProvider>
-        </NextIntlClientProvider>
+        <Toaster position="top-center" />
+        <SessionProvider>{children}</SessionProvider>
         <Analytics />
         <YandexMetrika />
       </body>

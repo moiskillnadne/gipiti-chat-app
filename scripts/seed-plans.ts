@@ -33,7 +33,7 @@ async function main() {
         await db
           .update(subscriptionPlan)
           .set({
-            displayName: tier.displayName.en,
+            displayName: tier.displayName,
             billingPeriod: tier.billingPeriod,
             billingPeriodCount: tier.billingPeriodCount,
             tokenQuota: tier.tokenQuota,
@@ -44,13 +44,13 @@ async function main() {
           })
           .where(eq(subscriptionPlan.id, existing[0].id));
 
-        console.log(`✅ Updated plan: ${tier.displayName.en}`);
+        console.log(`✅ Updated plan: ${tier.displayName}`);
         updated++;
       } else {
         // Create new plan
         await db.insert(subscriptionPlan).values({
           name: tier.name,
-          displayName: tier.displayName.en,
+          displayName: tier.displayName,
           billingPeriod: tier.billingPeriod,
           billingPeriodCount: tier.billingPeriodCount,
           tokenQuota: tier.tokenQuota,
@@ -59,11 +59,11 @@ async function main() {
           isTesterPlan: tier.isTesterPlan || false,
         });
 
-        console.log(`✅ Created plan: ${tier.displayName.en}`);
+        console.log(`✅ Created plan: ${tier.displayName}`);
         created++;
       }
     } catch (error) {
-      console.error(`❌ Failed to seed plan ${tier.displayName.en}:`, error);
+      console.error(`❌ Failed to seed plan ${tier.displayName}:`, error);
     }
   }
 

@@ -1,8 +1,8 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { type Dispatch, memo, type SetStateAction, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "@/lib/i18n/translate";
 import { cn } from "@/lib/utils";
 import { artifactDefinitions, type UIArtifact } from "./artifact";
 import type { ArtifactActionContext } from "./create-artifact";
@@ -61,7 +61,7 @@ function PureArtifactActions({
         <Tooltip key={action.description}>
           <TooltipTrigger asChild>
             <Button
-              className={cn("h-fit dark:hover:bg-zinc-700", {
+              className={cn("h-fit", {
                 "p-2": !action.label,
                 "px-2 py-1.5": action.label,
               })}

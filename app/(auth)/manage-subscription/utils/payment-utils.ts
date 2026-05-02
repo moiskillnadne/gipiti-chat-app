@@ -1,4 +1,3 @@
-import type { Locale } from "@/i18n/config";
 import type {
   CloudPaymentsReceipt,
   CloudPaymentsWidgetOptions,
@@ -41,14 +40,11 @@ export function buildReceipt(
 }
 
 /**
- * Format price for display based on locale
+ * Format price for display (always RUB)
  */
-export function formatPrice(plan: PlanType, locale: Locale): string {
+export function formatPrice(plan: PlanType): string {
   const tier = SUBSCRIPTION_TIERS[plan];
-  if (locale === "ru") {
-    return `${tier.price.RUB.toLocaleString("ru-RU")} ₽`;
-  }
-  return `$${tier.price.USD}`;
+  return `${tier.price.RUB.toLocaleString("ru-RU")} ₽`;
 }
 
 /**
@@ -74,9 +70,9 @@ export function getCurrency(): Currency {
 /**
  * Get the display name for a plan
  */
-export function getPlanDisplayName(plan: PlanType, locale: Locale): string {
+export function getPlanDisplayName(plan: PlanType): string {
   const tier = SUBSCRIPTION_TIERS[plan];
-  return tier.displayName[locale];
+  return tier.displayName;
 }
 
 /**
@@ -102,12 +98,9 @@ export function getRecurrentConfig(plan: PlanType): {
 /**
  * Create CloudPayments widget options with consistent configuration
  */
-export function createWidgetOptions(
-  locale: Locale,
-  email: string
-): CloudPaymentsWidgetOptions {
+export function createWidgetOptions(email: string): CloudPaymentsWidgetOptions {
   return {
-    language: locale,
+    language: "ru",
     email,
     applePaySupport: false,
     googlePaySupport: false,

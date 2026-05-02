@@ -11,9 +11,8 @@ type PureChatHeaderProps = {
 
 function PureChatHeader(_props: PureChatHeaderProps) {
   return (
-    <header className="sticky top-0 flex items-center gap-2 bg-background px-2 py-1.5 md:px-2">
+    <header className="sticky top-0 z-10 flex items-center gap-3 border-rule border-b bg-paper/85 px-4 py-3 backdrop-blur-md md:px-6">
       <SidebarToggle />
-
       <ModelSelector />
     </header>
   );

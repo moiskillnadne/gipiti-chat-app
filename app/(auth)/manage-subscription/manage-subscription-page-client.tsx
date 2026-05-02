@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { useTranslations } from "next-intl";
 import { Suspense } from "react";
 import { Loader } from "@/components/elements/loader";
 import { PaymentLoadingOverlay } from "@/components/payment-loading-overlay";
+import { useTranslations } from "@/lib/i18n/translate";
 import { FAQ } from "./components/faq";
 import { FeaturesTable } from "./components/features-table";
 import { PlanSelector } from "./components/plan-selector";
@@ -14,7 +14,7 @@ import { usePayment } from "./hooks/use-payment";
 
 function SupportLink({ text, linkText }: { text: string; linkText: string }) {
   return (
-    <p className="fixed right-4 bottom-4 z-50 text-gray-500 text-xs dark:text-zinc-500">
+    <p className="fixed right-4 bottom-4 z-50 text-gray-500 text-xs">
       {text}{" "}
       <Link className="hover:underline" href="/legal/support">
         {linkText}
@@ -38,10 +38,8 @@ function ManageSubscriptionFallback() {
     <div className="flex min-h-dvh w-screen items-start justify-center bg-background pt-12 md:items-center md:pt-0">
       <div className="flex w-full max-w-3xl flex-col gap-8 px-4">
         <div className="flex flex-col items-center justify-center gap-2 text-center">
-          <h1 className="font-bold text-3xl dark:text-zinc-50">{t("title")}</h1>
-          <p className="text-gray-500 text-lg dark:text-zinc-400">
-            {t("subtitle")}
-          </p>
+          <h1 className="font-bold text-3xl">{t("title")}</h1>
+          <p className="text-gray-500 text-lg">{t("subtitle")}</p>
         </div>
       </div>
     </div>
@@ -73,10 +71,8 @@ function ManageSubscriptionContent() {
       <div className="flex w-full max-w-3xl flex-col gap-10 px-4 py-8">
         {/* Header */}
         <div className="flex flex-col items-center justify-center gap-2 text-center">
-          <h1 className="font-bold text-3xl dark:text-zinc-50">{t("title")}</h1>
-          <p className="text-gray-500 text-lg dark:text-zinc-400">
-            {t("subtitle")}
-          </p>
+          <h1 className="font-bold text-3xl">{t("title")}</h1>
+          <p className="text-gray-500 text-lg">{t("subtitle")}</p>
         </div>
 
         {/* Loading State */}
@@ -113,7 +109,7 @@ function ManageSubscriptionContent() {
         {/* Footer Links */}
         <div className="flex flex-col items-center gap-4">
           <Link
-            className="my-2 font-medium text-gray-600 text-sm hover:underline dark:text-zinc-400"
+            className="my-2 font-medium text-gray-600 text-sm hover:underline"
             href="/subscription"
           >
             {tManage("backToSubscription")}
@@ -121,21 +117,21 @@ function ManageSubscriptionContent() {
 
           <div className="mb-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
             <Link
-              className="font-medium text-gray-500 text-xs hover:underline dark:text-zinc-500"
+              className="font-medium text-gray-500 text-xs hover:underline"
               href="/legal/offer"
               target="_blank"
             >
               {tLegal("offer.linkText")}
             </Link>
             <Link
-              className="font-medium text-gray-500 text-xs hover:underline dark:text-zinc-500"
+              className="font-medium text-gray-500 text-xs hover:underline"
               href="/legal/privacy"
               target="_blank"
             >
               {tLegal("privacy.linkText")}
             </Link>
             <Link
-              className="font-medium text-gray-500 text-xs hover:underline dark:text-zinc-500"
+              className="font-medium text-gray-500 text-xs hover:underline"
               href="/legal/requisites"
               target="_blank"
             >

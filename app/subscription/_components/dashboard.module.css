@@ -1,0 +1,934 @@
+/* ============================================================
+   GIPITI · Subscription Dashboard · Slate & Citrus
+   Scoped styles ported from the design handoff prototype.
+   ============================================================ */
+
+.topnav {
+  align-items: center;
+  backdrop-filter: blur(10px);
+  background: rgb(250 250 249 / 0.85);
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  gap: 14px;
+  padding: 18px 40px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.back {
+  align-items: center;
+  color: var(--ink-2);
+  display: inline-flex;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  gap: 6px;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color var(--d-fast) var(--ease-canon);
+}
+
+.back:hover {
+  color: var(--ink);
+}
+
+.back svg {
+  height: 12px;
+  width: 12px;
+}
+
+.crumb {
+  color: var(--ink-3);
+  font-size: 13px;
+  margin-left: 8px;
+}
+
+.crumbSep {
+  color: var(--ink-4);
+  margin: 0 6px;
+}
+
+.crumbActive {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.navSpacer {
+  flex: 1;
+}
+
+.pill {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  gap: 6px;
+  letter-spacing: 0.06em;
+  padding: 4px 10px;
+  text-transform: uppercase;
+}
+
+.pill::before {
+  background: currentcolor;
+  border-radius: 50%;
+  content: "";
+  height: 6px;
+  width: 6px;
+}
+
+.pillActive {
+  background: var(--citrus-soft);
+  color: var(--ink);
+}
+
+.pillActive::before {
+  background: var(--success);
+}
+
+.pillTrial {
+  background: var(--info-soft);
+  color: var(--info);
+}
+
+.pillTrial::before {
+  background: var(--info);
+}
+
+.pillCancelled {
+  background: var(--paper-2);
+  color: var(--ink-3);
+}
+
+.pillCancelled::before {
+  background: var(--ink-4);
+}
+
+.pillPastDue {
+  animation: pillPulse 2.4s var(--ease-canon) infinite;
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.pillPastDue::before {
+  background: var(--danger);
+}
+
+.pillNone {
+  background: var(--paper-2);
+  color: var(--ink-3);
+}
+
+.pillNone::before {
+  background: var(--ink-4);
+}
+
+@keyframes pillPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.body {
+  margin: 0 auto;
+  max-width: 1080px;
+  padding: 32px 40px 80px;
+}
+
+.head {
+  align-items: flex-end;
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding-bottom: 22px;
+}
+
+.headTitle {
+  font-size: 32px;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+
+.headTitle em {
+  font-style: italic;
+  font-weight: 300;
+}
+
+.headLede {
+  color: var(--ink-3);
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.cycle {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.cycle b {
+  color: var(--ink);
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin-top: 2px;
+  text-transform: none;
+}
+
+.grid {
+  display: grid;
+  gap: 16px;
+  grid-auto-rows: min-content;
+  grid-template-columns: 1fr 1fr;
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  transition: opacity 200ms var(--ease-canon);
+}
+
+.cardDimmed {
+  opacity: 0.55;
+}
+
+.cardSpan2 {
+  grid-column: 1 / -1;
+}
+
+.cardHead {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  color: var(--ink-2);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cardBadge {
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  padding: 3px 8px;
+  text-transform: uppercase;
+}
+
+.cardBadgeWarn {
+  background: var(--warn-soft);
+  border-color: color-mix(in oklch, var(--warn) 35%, transparent);
+  color: var(--warn);
+}
+
+.cardLink {
+  color: var(--ink-2);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color var(--d-fast) var(--ease-canon);
+}
+
+.cardLink:hover {
+  color: var(--ink);
+}
+
+.gaugeWrap {
+  align-items: center;
+  display: grid;
+  gap: 28px;
+  grid-template-columns: auto 1fr;
+  padding: 4px 0 0;
+}
+
+.gauge {
+  height: 180px;
+  position: relative;
+  width: 180px;
+}
+
+.gauge svg {
+  height: 100%;
+  transform: rotate(-90deg);
+  width: 100%;
+}
+
+.gaugeTrack {
+  fill: none;
+  stroke: var(--paper-2);
+  stroke-width: 14;
+}
+
+.gaugeFill {
+  fill: none;
+  stroke: var(--ink);
+  stroke-linecap: round;
+  stroke-width: 14;
+  transition:
+    stroke-dasharray 600ms var(--ease-canon),
+    stroke 200ms var(--ease-canon);
+}
+
+.gaugeFillTrial {
+  stroke: var(--info);
+}
+
+.gaugeFillWarn {
+  stroke: var(--warn);
+}
+
+.gaugeFillDanger {
+  stroke: var(--danger);
+}
+
+.gaugeFillCancelled {
+  stroke: var(--ink-3);
+}
+
+.gaugeCenter {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  inset: 0;
+  justify-content: center;
+  position: absolute;
+}
+
+.gaugePct {
+  font-feature-settings: "tnum";
+  font-size: 36px;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.gaugePctSym {
+  color: var(--ink-3);
+  font-size: 18px;
+  margin-left: 2px;
+}
+
+.gaugeCenterLbl {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  margin-top: 6px;
+  text-transform: uppercase;
+}
+
+.gaugeStats {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.gaugeStat {
+  align-items: baseline;
+  border-bottom: 1px dashed var(--rule);
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  padding: 12px 0;
+}
+
+.gaugeStat:last-child {
+  border: none;
+}
+
+.gaugeStatLbl {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.gaugeStatVal {
+  font-feature-settings: "tnum";
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.gaugeStatSub {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  margin-left: 4px;
+}
+
+.planRow {
+  align-items: baseline;
+  border-bottom: 1px dashed var(--rule);
+  display: flex;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 4px 0 14px;
+}
+
+.planNm {
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.planNmEm {
+  color: var(--ink-2);
+  font-size: 14px;
+  font-style: italic;
+  font-weight: 300;
+  margin-left: 4px;
+}
+
+.planPr {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  margin-left: auto;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.planPr b {
+  color: var(--ink);
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin-top: 2px;
+  text-transform: none;
+}
+
+.planMeta {
+  display: grid;
+  gap: 14px 16px;
+  grid-template-columns: 1fr 1fr;
+  padding-bottom: 18px;
+}
+
+.planMetaK {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.planMetaV {
+  color: var(--ink);
+  font-size: 14px;
+  margin-top: 2px;
+}
+
+.planMetaVStrike {
+  color: var(--ink-3);
+  margin-right: 6px;
+  text-decoration: line-through;
+}
+
+.btn {
+  align-items: center;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  font-size: 14px;
+  font-weight: 500;
+  gap: 8px;
+  justify-content: center;
+  padding: 11px 18px;
+  transition: all var(--d-fast) var(--ease-canon);
+  white-space: nowrap;
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.btnFull {
+  width: 100%;
+}
+
+.btn svg {
+  height: 14px;
+  width: 14px;
+}
+
+.btnPrimary {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.btnPrimary:hover:not(:disabled) {
+  background: var(--ink-2);
+}
+
+.btnAccent {
+  background: var(--citrus-deep);
+  color: white;
+}
+
+.btnAccent:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.btnOutline {
+  background: var(--paper);
+  border: 1px solid var(--rule-strong);
+  color: var(--ink);
+}
+
+.btnOutline:hover:not(:disabled) {
+  border-color: var(--ink);
+}
+
+.btnDanger {
+  background: var(--danger);
+  color: white;
+}
+
+.btnDanger:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.btnSm {
+  border-radius: 8px;
+  font-size: 12px;
+  padding: 7px 12px;
+}
+
+.limits {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 4px;
+}
+
+.limitRow {
+  align-items: center;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: auto 1fr;
+}
+
+.limitIcon {
+  align-items: center;
+  background: var(--paper-2);
+  border-radius: var(--radius-sm);
+  color: var(--ink-2);
+  display: inline-flex;
+  height: 28px;
+  justify-content: center;
+  width: 28px;
+}
+
+.limitIcon svg {
+  height: 14px;
+  width: 14px;
+}
+
+.limitMid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.limitName {
+  align-items: baseline;
+  color: var(--ink);
+  display: flex;
+  font-size: 13px;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.limitNameLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.limitNameRight {
+  color: var(--ink-3);
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.limitNameRight b {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.meter {
+  background: var(--paper-2);
+  border-radius: 999px;
+  height: 4px;
+  overflow: hidden;
+}
+
+.meterFill {
+  background: var(--ink);
+  border-radius: 999px;
+  height: 100%;
+  transition: width var(--d-slow) var(--ease-canon);
+}
+
+.meterWarn .meterFill {
+  background: var(--warn);
+}
+
+.meterDanger .meterFill {
+  background: var(--danger);
+}
+
+.danger {
+  align-items: center;
+  background: var(--danger-soft);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-md);
+  display: flex;
+  gap: 16px;
+  padding: 16px 22px;
+}
+
+.dangerIcon {
+  color: var(--danger);
+  flex-shrink: 0;
+  height: 20px;
+  width: 20px;
+}
+
+.dangerText {
+  flex: 1;
+}
+
+.dangerText b {
+  color: var(--ink);
+  display: block;
+  font-size: 14px;
+}
+
+.dangerText span {
+  color: var(--ink-2);
+  font-size: 12px;
+}
+
+.banner {
+  align-items: flex-start;
+  border-radius: var(--radius-lg);
+  display: flex;
+  gap: 14px;
+  margin-bottom: 24px;
+  padding: 16px 22px;
+}
+
+.bannerIcon {
+  flex-shrink: 0;
+  height: 20px;
+  margin-top: 1px;
+  width: 20px;
+}
+
+.bannerBody {
+  flex: 1;
+}
+
+.bannerBody b {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.bannerBody span {
+  display: block;
+  font-size: 13px;
+  margin-top: 2px;
+  opacity: 0.85;
+}
+
+.bannerActions {
+  align-items: center;
+  display: flex;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.bannerTrial {
+  background: var(--info-soft);
+  border: 1px solid color-mix(in oklch, var(--info) 25%, transparent);
+  color: var(--ink);
+}
+
+.bannerTrial .bannerIcon {
+  color: var(--info);
+}
+
+.bannerCancelled {
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  color: var(--ink-2);
+}
+
+.bannerCancelled .bannerIcon {
+  color: var(--ink-3);
+}
+
+.bannerPastDue {
+  background: var(--danger-soft);
+  border: 1px solid color-mix(in oklch, var(--danger) 35%, transparent);
+  color: var(--ink);
+}
+
+.bannerPastDue .bannerIcon {
+  color: var(--danger);
+}
+
+.bannerNone {
+  background: linear-gradient(135deg, oklch(0.96 0.06 95), oklch(0.94 0.04 60));
+  border: 1px solid color-mix(in oklch, var(--citrus-deep) 25%, transparent);
+  color: var(--ink);
+  padding: 22px 26px;
+}
+
+.bannerNone .bannerIcon {
+  color: var(--citrus-deep);
+  height: 22px;
+  width: 22px;
+}
+
+.planGrid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.planCard {
+  background: var(--card-bg);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 22px;
+  position: relative;
+  transition: all var(--d-fast) var(--ease-canon);
+}
+
+.planCard:hover {
+  border-color: var(--rule-strong);
+}
+
+.planCardFeatured {
+  background: linear-gradient(180deg, var(--paper) 0%, var(--card-bg) 60%);
+  border: 1.5px solid var(--ink);
+}
+
+.planCardRibbon {
+  background: var(--ink);
+  border-radius: 999px;
+  color: var(--paper);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  padding: 3px 10px;
+  position: absolute;
+  right: 16px;
+  text-transform: uppercase;
+  top: -10px;
+}
+
+.planCardName {
+  font-size: 17px;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+}
+
+.planCardPrice {
+  align-items: baseline;
+  border-bottom: 1px dashed var(--rule);
+  display: flex;
+  gap: 4px;
+  padding-bottom: 12px;
+}
+
+.planCardPriceNum {
+  font-size: 32px;
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.planCardPricePer {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.planCardList {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+}
+
+.planCardItem {
+  align-items: flex-start;
+  color: var(--ink-2);
+  display: flex;
+  font-size: 13px;
+  gap: 8px;
+}
+
+.planCardItem svg {
+  color: var(--citrus-deep);
+  flex-shrink: 0;
+  height: 13px;
+  margin-top: 4px;
+  width: 13px;
+}
+
+.freeQuota {
+  align-items: center;
+  background: var(--card-bg);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  display: grid;
+  gap: 18px;
+  grid-template-columns: 1fr auto;
+  margin-bottom: 16px;
+  padding: 18px 22px;
+}
+
+.freeQuotaLhs {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.freeQuotaLbl {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.freeQuotaValue {
+  font-size: 18px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+.freeQuotaValue em {
+  color: var(--ink-2);
+  font-style: italic;
+  font-weight: 300;
+}
+
+.freeQuotaMeter {
+  background: var(--paper-2);
+  border-radius: 999px;
+  height: 6px;
+  overflow: hidden;
+  width: 280px;
+}
+
+.freeQuotaMeterFill {
+  background: var(--ink);
+  border-radius: 999px;
+  height: 100%;
+}
+
+.plansSectionHead {
+  align-items: baseline;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  padding: 0 4px;
+}
+
+.plansSectionTitle {
+  color: var(--ink-2);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.plansSectionHint {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+@media (max-width: 720px) {
+  .topnav {
+    padding: 14px 20px;
+  }
+  .body {
+    padding: 24px 20px 64px;
+  }
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .planGrid {
+    grid-template-columns: 1fr;
+  }
+  .gaugeWrap {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+  .head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .banner {
+    flex-direction: column;
+  }
+  .bannerActions {
+    width: 100%;
+  }
+  .freeQuota {
+    grid-template-columns: 1fr;
+  }
+  .freeQuotaMeter {
+    width: 100%;
+  }
+}

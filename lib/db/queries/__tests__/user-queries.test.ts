@@ -30,7 +30,6 @@ const mockUser = {
   email: "test@example.com",
   password: "hashed_password_123",
   currentPlan: null,
-  preferredLanguage: "ru",
   emailVerified: false,
   isTester: false,
   tokenBalance: 0,
@@ -46,23 +45,10 @@ describe("user-queries", () => {
   // ── createUser ────────────────────────────────────────────────────
 
   describe("createUser", () => {
-    it("creates user with hashed password and default language", async () => {
+    it("creates user with hashed password", async () => {
       setResult([mockUser]);
       const result = await createUser("test@example.com", "password123");
       expect(result).toEqual(mockUser);
-    });
-
-    it("uses custom preferred language", async () => {
-      const enUser = { ...mockUser, preferredLanguage: "en" };
-      setResult([enUser]);
-      const result = await createUser("test@example.com", "password123", "en");
-      expect(result.preferredLanguage).toBe("en");
-    });
-
-    it("defaults to Russian language", async () => {
-      setResult([mockUser]);
-      const result = await createUser("test@example.com", "password123");
-      expect(result.preferredLanguage).toBe("ru");
     });
 
     it("throws ChatSDKError on database error", async () => {

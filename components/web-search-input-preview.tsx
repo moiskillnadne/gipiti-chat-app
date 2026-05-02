@@ -1,5 +1,5 @@
 import { GlobeIcon } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/lib/i18n/translate";
 
 type Props = {
   query: string;

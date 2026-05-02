@@ -1,7 +1,7 @@
 import { ChevronLeftIcon } from "lucide-react";
 import Link from "next/link";
-import { getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/button";
+import { getTranslations } from "@/lib/i18n/translate";
 
 export async function generateMetadata() {
   const t = await getTranslations("legal.support");
@@ -26,22 +26,18 @@ export default async function SupportPage() {
             </Button>
           </Link>
         </div>
-        <h1 className="mb-4 font-bold text-2xl md:text-3xl dark:text-zinc-50">
-          {t("title")}
-        </h1>
+        <h1 className="mb-4 font-bold text-2xl md:text-3xl">{t("title")}</h1>
         <p className="mb-8 text-muted-foreground leading-relaxed">
           {t("description")}
         </p>
 
         <div className="rounded-lg border border-border bg-muted/30 p-6">
-          <h2 className="mb-3 font-semibold text-lg dark:text-zinc-100">
-            {t("contactTitle")}
-          </h2>
+          <h2 className="mb-3 font-semibold text-lg">{t("contactTitle")}</h2>
           <p className="mb-4 text-muted-foreground text-sm">
             {t("contactDescription")}
           </p>
           <a
-            className="inline-flex items-center gap-2 font-medium text-blue-600 hover:underline dark:text-blue-400"
+            className="inline-flex items-center gap-2 font-medium text-blue-600 hover:underline"
             href={`mailto:${t("email")}`}
           >
             <svg

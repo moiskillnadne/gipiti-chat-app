@@ -11,7 +11,6 @@ import {
   SlidersHorizontalIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
 import {
   type ChangeEvent,
   type Dispatch,
@@ -25,10 +24,10 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useSessionStorage, useWindowSize } from "usehooks-ts";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { useModel } from "@/contexts/model-context";
 import { useProject } from "@/contexts/project-context";
 import { useStyle } from "@/contexts/style-context";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   getModelById,
   type ImageGenSetting,
@@ -40,6 +39,7 @@ import {
   type ThinkingSetting,
 } from "@/lib/ai/models";
 import { myProvider } from "@/lib/ai/providers";
+import { useTranslations } from "@/lib/i18n/translate";
 import type { Attachment, ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
 import { cn } from "@/lib/utils";
@@ -1125,7 +1125,7 @@ function PureMultimodalInput({
           />{" "}
           <Context {...contextProps} />
         </div>
-        <PromptInputToolbar className="!border-top-0 border-t-0! p-0 shadow-none dark:border-0 dark:border-transparent!">
+        <PromptInputToolbar className="!border-top-0 border-t-0! p-0 shadow-none">
           <PromptInputTools className="gap-0 sm:gap-0.5">
             <AttachmentsButton fileInputRef={fileInputRef} status={status} />
             <ToolsPopover />

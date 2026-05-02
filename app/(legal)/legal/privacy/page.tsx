@@ -1,4 +1,4 @@
-import { getTranslations } from "next-intl/server";
+import { getTranslations } from "@/lib/i18n/translate";
 
 export async function generateMetadata() {
   const t = await getTranslations("legal.privacy");
@@ -14,9 +14,7 @@ export default async function PrivacyPage() {
   return (
     <div className="flex min-h-dvh w-screen items-start justify-center bg-background py-12 md:py-16">
       <div className="w-full max-w-3xl px-4">
-        <h1 className="mb-2 font-bold text-2xl md:text-3xl dark:text-zinc-50">
-          {t("title")}
-        </h1>
+        <h1 className="mb-2 font-bold text-2xl md:text-3xl">{t("title")}</h1>
         <p className="mb-8 text-muted-foreground text-sm">
           {t("effectiveDate")}
         </p>
@@ -24,7 +22,7 @@ export default async function PrivacyPage() {
         <div className="space-y-8">
           {/* 1. General Provisions */}
           <section>
-            <h2 className="mb-4 border-border border-b pb-2 font-semibold text-lg dark:text-zinc-100">
+            <h2 className="mb-4 border-border border-b pb-2 font-semibold text-lg">
               {t("sections.general.title")}
             </h2>
             <div className="space-y-3 text-muted-foreground text-sm leading-relaxed">
@@ -36,7 +34,7 @@ export default async function PrivacyPage() {
 
           {/* 2. Data Controller */}
           <section>
-            <h2 className="mb-4 border-border border-b pb-2 font-semibold text-lg dark:text-zinc-100">
+            <h2 className="mb-4 border-border border-b pb-2 font-semibold text-lg">
               {t("sections.controller.title")}
             </h2>
             <dl className="space-y-2 text-sm">
@@ -70,7 +68,7 @@ export default async function PrivacyPage() {
                 </dt>
                 <dd className="sm:col-span-2">
                   <a
-                    className="text-blue-600 hover:underline dark:text-blue-400"
+                    className="text-blue-600 hover:underline"
                     href={`mailto:${t("sections.controller.emailValue")}`}
                   >
                     {t("sections.controller.emailValue")}
@@ -82,7 +80,7 @@ export default async function PrivacyPage() {
 
           {/* 3. Data Collected */}
           <section>
-            <h2 className="mb-4 border-border border-b pb-2 font-semibold text-lg dark:text-zinc-100">
+            <h2 className="mb-4 border-border border-b pb-2 font-semibold text-lg">
               {t("sections.dataCollected.title")}
             </h2>
             <div className="space-y-3 text-muted-foreground text-sm leading-relaxed">
@@ -99,7 +97,7 @@ export default async function PrivacyPage() {
 
           {/* 4. Purpose of Processing */}
           <section>
-            <h2 className="mb-4 border-border border-b pb-2 font-semibold text-lg dark:text-zinc-100">
+            <h2 className="mb-4 border-border border-b pb-2 font-semibold text-lg">
               {t("sections.purpose.title")}
             </h2>
             <div className="space-y-3 text-muted-foreground text-sm leading-relaxed">
@@ -116,7 +114,7 @@ export default async function PrivacyPage() {
 
           {/* 5. Legal Basis */}
           <section>
-            <h2 className="mb-4 border-border border-b pb-2 font-semibold text-lg dark:text-zinc-100">
+            <h2 className="mb-4 border-border border-b pb-2 font-semibold text-lg">
               {t("sections.legalBasis.title")}
             </h2>
             <div className="space-y-3 text-muted-foreground text-sm leading-relaxed">
@@ -131,7 +129,7 @@ export default async function PrivacyPage() {
 
           {/* 6. Third Party Disclosure */}
           <section>
-            <h2 className="mb-4 border-border border-b pb-2 font-semibold text-lg dark:text-zinc-100">
+            <h2 className="mb-4 border-border border-b pb-2 font-semibold text-lg">
               {t("sections.thirdParty.title")}
             </h2>
             <div className="space-y-3 text-muted-foreground text-sm leading-relaxed">
@@ -147,7 +145,7 @@ export default async function PrivacyPage() {
 
           {/* 7. User Rights */}
           <section>
-            <h2 className="mb-4 border-border border-b pb-2 font-semibold text-lg dark:text-zinc-100">
+            <h2 className="mb-4 border-border border-b pb-2 font-semibold text-lg">
               {t("sections.userRights.title")}
             </h2>
             <div className="space-y-3 text-muted-foreground text-sm leading-relaxed">
@@ -165,7 +163,7 @@ export default async function PrivacyPage() {
 
           {/* 8. Data Security */}
           <section>
-            <h2 className="mb-4 border-border border-b pb-2 font-semibold text-lg dark:text-zinc-100">
+            <h2 className="mb-4 border-border border-b pb-2 font-semibold text-lg">
               {t("sections.security.title")}
             </h2>
             <div className="space-y-3 text-muted-foreground text-sm leading-relaxed">
@@ -181,7 +179,7 @@ export default async function PrivacyPage() {
 
           {/* 9. Cookies */}
           <section>
-            <h2 className="mb-4 border-border border-b pb-2 font-semibold text-lg dark:text-zinc-100">
+            <h2 className="mb-4 border-border border-b pb-2 font-semibold text-lg">
               {t("sections.cookies.title")}
             </h2>
             <div className="space-y-3 text-muted-foreground text-sm leading-relaxed">
@@ -192,7 +190,7 @@ export default async function PrivacyPage() {
 
           {/* 10. Data Retention */}
           <section>
-            <h2 className="mb-4 border-border border-b pb-2 font-semibold text-lg dark:text-zinc-100">
+            <h2 className="mb-4 border-border border-b pb-2 font-semibold text-lg">
               {t("sections.retention.title")}
             </h2>
             <div className="space-y-3 text-muted-foreground text-sm leading-relaxed">
@@ -203,7 +201,7 @@ export default async function PrivacyPage() {
 
           {/* 11. Policy Changes */}
           <section>
-            <h2 className="mb-4 border-border border-b pb-2 font-semibold text-lg dark:text-zinc-100">
+            <h2 className="mb-4 border-border border-b pb-2 font-semibold text-lg">
               {t("sections.changes.title")}
             </h2>
             <div className="space-y-3 text-muted-foreground text-sm leading-relaxed">

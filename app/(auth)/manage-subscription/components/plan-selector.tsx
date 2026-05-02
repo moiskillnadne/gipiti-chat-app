@@ -1,7 +1,6 @@
 "use client";
 
-import { useLocale, useTranslations } from "next-intl";
-import type { Locale } from "@/i18n/config";
+import { useTranslations } from "@/lib/i18n/translate";
 import type { PlanType } from "../hooks/payment-reducer";
 import { formatPrice } from "../utils/payment-utils";
 import { PlanCard } from "./plan-card";
@@ -20,14 +19,13 @@ export function PlanSelector({
   loadingPlan,
 }: PlanSelectorProps) {
   const t = useTranslations("auth.subscription");
-  const locale = useLocale() as Locale;
 
   return (
     <div className="grid gap-6 md:grid-cols-3">
       <PlanCard
         canStartTrial={canStartTrial}
         descriptionKey="monthly.description"
-        formattedPrice={formatPrice("basic_monthly", locale)}
+        formattedPrice={formatPrice("basic_monthly")}
         isDisabled={isLoading && loadingPlan !== "basic_monthly"}
         isLoading={loadingPlan === "basic_monthly"}
         nameKey="monthly.name"
@@ -41,7 +39,7 @@ export function PlanSelector({
         badge={t("quarterly.badge")}
         canStartTrial={canStartTrial}
         descriptionKey="quarterly.description"
-        formattedPrice={formatPrice("basic_quarterly", locale)}
+        formattedPrice={formatPrice("basic_quarterly")}
         isDisabled={isLoading && loadingPlan !== "basic_quarterly"}
         isLoading={loadingPlan === "basic_quarterly"}
         isRecommended
@@ -56,7 +54,7 @@ export function PlanSelector({
         badge={t("annual.badge")}
         canStartTrial={canStartTrial}
         descriptionKey="annual.description"
-        formattedPrice={formatPrice("basic_annual", locale)}
+        formattedPrice={formatPrice("basic_annual")}
         isDisabled={isLoading && loadingPlan !== "basic_annual"}
         isLoading={loadingPlan === "basic_annual"}
         nameKey="annual.name"

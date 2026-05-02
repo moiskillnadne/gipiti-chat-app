@@ -10,7 +10,6 @@ import {
 
 type SendVerificationEmailParams = {
   email: string;
-  locale: string;
 };
 
 /**
@@ -44,12 +43,11 @@ export function createVerificationCode(): {
 
 /**
  * Send email verification code
- * @param params Email address and locale
+ * @param params Email address
  * @returns Success status and any error message
  */
 export async function sendVerificationEmail({
   email,
-  locale = "en",
 }: SendVerificationEmailParams): Promise<{
   success: boolean;
   error?: string;
@@ -65,20 +63,16 @@ export async function sendVerificationEmail({
       expiresAt,
     });
 
-    // Get localized subject
-    const subject = getEmailVerificationSubject(locale);
+    const subject = getEmailVerificationSubject();
 
-    // Generate email HTML and text
     const html = getEmailVerificationHtml({
       code,
       email,
-      locale,
     });
 
     const text = getEmailVerificationText({
       code,
       email,
-      locale,
     });
 
     // Send email via Resend

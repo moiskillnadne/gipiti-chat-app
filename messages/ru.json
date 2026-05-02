@@ -35,7 +35,10 @@
       "account": "Аккаунт",
       "checkingAuthStatus": "Проверка статуса авторизации, попробуйте снова!",
       "signOut": "Выйти",
-      "subscription": "Подписка"
+      "subscription": "Подписка",
+      "planPro": "Pro · подписка активна",
+      "planTester": "Tester · бесплатный план",
+      "planFree": "Free · без подписки"
     },
     "language": {
       "switchLanguage": "Сменить язык",
@@ -164,8 +167,7 @@
       "resetFailed": "Не удалось сбросить пароль. Попробуйте снова",
       "invalidCode": "Неверный код подтверждения",
       "expiredCode": "Код подтверждения истёк",
-      "emailNotVerified": "Пожалуйста, подтвердите email перед входом",
-      "captchaFailed": "Проверка капчи не пройдена. Попробуйте снова."
+      "emailNotVerified": "Пожалуйста, подтвердите email перед входом"
     },
     "logout": {
       "confirm": "Вы уверены, что хотите выйти?",
@@ -414,6 +416,159 @@
         "pagination": {
           "showing": "Показано {start}-{end} из {total}"
         }
+      },
+      "dashboard": {
+        "topnav": {
+          "back": "Назад",
+          "crumbAccount": "Аккаунт",
+          "crumbSubscription": "Подписка"
+        },
+        "pill": {
+          "active": "Активна",
+          "trial": "Пробный период",
+          "cancelled": "Отменена",
+          "pastDue": "Платёж не прошёл",
+          "none": "Без подписки"
+        },
+        "title": "Подписка",
+        "titleSuffix": {
+          "overview": " · обзор",
+          "plans": " · тарифы"
+        },
+        "lede": {
+          "overview": "Снимок текущего расчётного периода — план, токены, лимиты.",
+          "plans": "Выберите тариф — каждый можно отменить в любой момент."
+        },
+        "cycle": {
+          "label": "Период",
+          "trialLabel": "До конца пробы",
+          "cancelledLabel": "Доступ до",
+          "trialDaysValue": "{days} {dayWord}"
+        },
+        "history": "История",
+        "gauge": {
+          "title": "Использование токенов",
+          "lbl": "использовано",
+          "quota": "Квота",
+          "spent": "Потрачено",
+          "remaining": "Осталось",
+          "tokensWord": "токенов",
+          "remainingHint": {
+            "default": "до завтра",
+            "trial": "до конца пробы",
+            "cancelled": "до окончания"
+          }
+        },
+        "plan": {
+          "title": "Тариф",
+          "billingPeriod": {
+            "daily": "Ежедневно",
+            "weekly": "Еженедельно",
+            "monthly": "Ежемесячно",
+            "annual": "Ежегодно"
+          },
+          "priceLabel": "Цена",
+          "priceValue": {
+            "daily": "{amount} /день",
+            "weekly": "{amount} /нед",
+            "monthly": "{amount} /мес",
+            "annual": "{amount} /год"
+          },
+          "meta": {
+            "period": "Период",
+            "nextPayment": "Следующий платёж",
+            "lastPayment": "Последняя оплата",
+            "card": "Карта",
+            "startCharging": "Старт списаний",
+            "accessUntil": "Доступ до",
+            "nextRetry": "След. попытка",
+            "lastPaymentRejected": "отклонено",
+            "lastPaymentTrial": "— · бесплатно",
+            "notAvailable": "—"
+          },
+          "lastPaymentValue": "{date} · {amount}",
+          "cta": {
+            "manage": "Управление подпиской",
+            "upgrade": "Перейти на платный",
+            "resume": "Возобновить подписку",
+            "updateCard": "Обновить способ оплаты"
+          },
+          "badge": {
+            "trial": "Пробный",
+            "cancelled": "Заканчивается",
+            "pastDue": "Просрочено"
+          }
+        },
+        "limits": {
+          "title": "Лимиты периода",
+          "messages": "Сообщения",
+          "webSearch": "Поиск в интернете",
+          "imageGeneration": "Генерация изображений",
+          "videoGeneration": "Генерация видео",
+          "unlimited": "без огр."
+        },
+        "danger": {
+          "title": "Опасная зона",
+          "description": "Отмена прекратит подписку в конце текущего периода.",
+          "cancelButton": "Отменить подписку"
+        },
+        "banner": {
+          "trial": {
+            "title": "Пробный период · осталось {days} {dayWord}",
+            "body": "После {endDate} начнётся платная подписка по тарифу {planName} · {price}. Можно отменить в любой момент.",
+            "cancel": "Отменить пробу",
+            "upgrade": "Перейти на платный"
+          },
+          "cancelled": {
+            "title": "Подписка отменена · доступ до {endDate}",
+            "body": "Лимиты и история сохраняются. Возобновите подписку до окончания периода, чтобы не потерять доступ.",
+            "resume": "Возобновить"
+          },
+          "pastDue": {
+            "title": "Платёж не прошёл · доступ ограничен",
+            "body": "Списание {price} с {cardMask} отклонено. Обновите способ оплаты, чтобы избежать блокировки.",
+            "retry": "Повторить",
+            "updateCard": "Обновить карту"
+          },
+          "none": {
+            "title": "Подписка не оформлена",
+            "body": "Доступен бесплатный план: ограниченные возможности. Подпишитесь, чтобы открыть полный набор инструментов."
+          }
+        },
+        "freeQuota": {
+          "label": "Бесплатный режим · сегодня",
+          "ofLimit": "из {limit} сообщений",
+          "ofUnlimited": "сообщений · без ограничений"
+        },
+        "plans": {
+          "title": "Доступные тарифы",
+          "subtitle": "Без обязательств · отмена в один клик",
+          "subscribe": "Подписаться",
+          "ribbon": "Рекомендуем",
+          "items": {
+            "tester": {
+              "name": "Tester",
+              "f1": "100 сообщений в день",
+              "f2": "40 поисков в интернете",
+              "f3": "10 изображений · 5 видео",
+              "f4": "Базовые модели"
+            },
+            "monthly": {
+              "name": "Базовый",
+              "f1": "1 500 сообщений в месяц",
+              "f2": "250 поисков в интернете",
+              "f3": "50 изображений · 5 видео",
+              "f4": "Все модели · GPT-5, Opus, Gemini 3"
+            },
+            "quarterly": {
+              "name": "Квартальный",
+              "f1": "4 500 сообщений на 3 месяца",
+              "f2": "750 поисков в интернете",
+              "f3": "150 изображений · 15 видео",
+              "f4": "Все модели · экономия 17%"
+            }
+          }
+        }
       }
     }
   },
@@ -531,6 +686,32 @@
         "calculating": "Вычисление...",
         "result": "Результат",
         "error": "Неверное выражение"
+      },
+      "run": {
+        "researching": "Исследую",
+        "researched": "Нашёл ответ",
+        "lookedItUp": "Уточнил",
+        "thoughtFor": "Думал {duration} с",
+        "earlierSteps": "{count, plural, one {# предыдущий шаг} few {# предыдущих шага} many {# предыдущих шагов} other {# предыдущих шагов}}",
+        "earlierStepsHint": "{count, plural, one {первая мысль или запрос} few {первые мысли и запросы} many {первые мысли и запросы} other {первые мысли и запросы}}",
+        "elapsed": "{seconds} с прошло",
+        "totalSeconds": "{seconds} с",
+        "searches": "{count, plural, one {# запрос} few {# запроса} many {# запросов} other {# запросов}}",
+        "sources": "{count, plural, one {# источник} few {# источника} many {# источников} other {# источников}}",
+        "verb": {
+          "thought": "Подумал —",
+          "searched": "Искал",
+          "searching": "Ищу —",
+          "extracted": "Прочитал",
+          "extracting": "Читаю —",
+          "calculated": "Вычислил",
+          "calculating": "Вычисляю —",
+          "weather": "Уточнил погоду в",
+          "createdDocument": "Создал документ",
+          "updatedDocument": "Обновил документ",
+          "requestedSuggestions": "Предложил правки к",
+          "generatedImage": "Сгенерировал изображение —"
+        }
       }
     },
     "quota": {
@@ -1071,7 +1252,51 @@
     "noExamplesYet": "Примеров пока нет",
     "noExamplesDescription": "Добавьте примеры текста, чтобы научить ИИ вашему стилю письма.",
     "renameSuccess": "Стиль успешно переименован",
-    "editName": "Переименовать стиль"
+    "editName": "Переименовать стиль",
+    "headlineEm": "письма",
+    "eyebrow": "Стили · {count} ваших · {tplCount} шаблонов",
+    "yourStyles": "Ваши стили",
+    "newStyle": "Новый стиль",
+    "newStyleHint": "с нуля или из шаблона",
+    "searchPlaceholder": "Поиск стилей...",
+    "filterAll": "Все",
+    "filterPinned": "Закреплённые",
+    "filterRecent": "Недавние",
+    "sortBy": "Сорт. по",
+    "sortByUses": "Использованию",
+    "sortByName": "Имени",
+    "sortByDate": "Дате",
+    "usesLabel": "использований",
+    "templatesHeading": "Шаблоны",
+    "templatesHint": "начните с готового — отредактируйте под себя",
+    "emptyFilteredTitle": "Ничего не найдено",
+    "emptyFilteredDescription": "Попробуйте другой фильтр или создайте новый стиль.",
+    "pin": "Закрепить",
+    "unpin": "Открепить",
+    "templates": {
+      "brief": {
+        "name": "Краткий",
+        "preview": "Без воды. Один-два абзаца, без длинных вступлений. Списки только когда без них никак."
+      },
+      "technical": {
+        "name": "Технический",
+        "preview": "Точная терминология, версии, флаги, edge-кейсы. Как в хорошей документации."
+      },
+      "friendly": {
+        "name": "Дружелюбный",
+        "preview": "Тёплый разговорный тон. Объясняй так, будто рассказываешь другу за кофе."
+      },
+      "teacher": {
+        "name": "Преподаватель",
+        "preview": "С нуля и пошагово. Проверочные вопросы, наглядные аналогии."
+      }
+    },
+    "editor": {
+      "untitledStyle": "Новый стиль",
+      "descriptionPlaceholder": "Зачем этот стиль, в одном предложении",
+      "itemsHelpStyle": "Короткие примеры того, как должен звучать ответ. Чем больше — тем точнее модель попадёт в ваш голос.",
+      "emptyDescriptionStyle": "Добавьте 1–2 примера, и модель начнёт говорить вашим голосом уже в этом чате."
+    }
   },
   "projects": {
     "noProject": "Без проекта",
@@ -1106,6 +1331,92 @@
     "noProjectsYet": "Проектов пока нет",
     "noProjectsDescription": "Создайте проект, чтобы дать ИИ контекст о вашей работе.",
     "noProjectsYetShort": "У вас ещё нет проектов",
-    "projectTitle": "Проект: {name}"
+    "projectTitle": "Проект: {name}",
+    "headlineEm": "работы",
+    "eyebrow": "Проекты · {count} ваших · {tplCount} шаблонов",
+    "yourProjects": "Ваши проекты",
+    "newProject": "Новый проект",
+    "newProjectHint": "с нуля или из шаблона",
+    "searchPlaceholder": "Поиск проектов...",
+    "filterAll": "Все",
+    "filterPinned": "Закреплённые",
+    "filterRecent": "Недавние",
+    "sortBy": "Сорт. по",
+    "sortByUses": "Использованию",
+    "sortByName": "Имени",
+    "sortByDate": "Дате",
+    "usesLabel": "использований",
+    "templatesHeading": "Шаблоны",
+    "templatesHint": "начните с готового — отредактируйте под себя",
+    "emptyFilteredTitle": "Ничего не найдено",
+    "emptyFilteredDescription": "Попробуйте другой фильтр или создайте новый проект.",
+    "pin": "Закрепить",
+    "unpin": "Открепить",
+    "templates": {
+      "coursework": {
+        "name": "Курсовая работа",
+        "preview": "Академический контекст: тема, источники, требования к оформлению ссылок."
+      },
+      "blog": {
+        "name": "Блог / Newsletter",
+        "preview": "Тон, длина, структура поста, целевой читатель."
+      },
+      "legal": {
+        "name": "Юр. документы",
+        "preview": "Реквизиты, подпись, регистр обращения, обязательные формулировки."
+      }
+    },
+    "editor": {
+      "untitledProject": "Новый проект",
+      "descriptionPlaceholder": "Зачем этот проект, в одном предложении",
+      "itemsHelpProject": "Контекст, который ИИ всегда видит в этом проекте: тема, материалы, требования к оформлению, реквизиты.",
+      "emptyDescriptionProject": "Добавьте первую запись — например, тему работы, источники, требования к ссылкам."
+    }
+  },
+  "editorShared": {
+    "addBtn": "Добавить",
+    "addItem": "Добавить {item}",
+    "newSuffix": "новый",
+    "usageMeta": "{count, plural, one {# использование} few {# использования} many {# использований} other {# использований}} · создан {date}",
+    "nouns": {
+      "example": "пример",
+      "examplesPl": "примеры",
+      "exampleLabel": "Пример",
+      "entry": "запись",
+      "entriesPl": "записи",
+      "entryLabel": "Запись"
+    },
+    "status": {
+      "saved": "Сохранено",
+      "saving": "Сохранение…",
+      "error": "Ошибка"
+    },
+    "saveBar": {
+      "autosave": "Автосохранение включено",
+      "backToList": "Готово"
+    },
+    "settings": {
+      "heading": "Настройки",
+      "pinTitle": "Закрепить в списке",
+      "pinHelp": "Будет наверху галереи и в быстром выборе",
+      "defaultTitle": "По умолчанию для новых чатов",
+      "defaultHelp": "Применять автоматически, если не выбран другой стиль"
+    },
+    "empty": {
+      "title": "Пока нет {itemPl}",
+      "cta": "Первый {item}"
+    },
+    "files": {
+      "heading": "Файлы",
+      "help": "PDF, DOCX, TXT — до 25 МБ каждый. Модель прочитает их перед ответом.",
+      "dropzone": "Перетащите файл или нажмите, чтобы выбрать",
+      "uploading": "Загрузка…",
+      "uploadError": "Не удалось загрузить файл",
+      "deleteError": "Не удалось удалить файл",
+      "fileCount": "{count, plural, =0 {нет файлов} one {# файл} few {# файла} many {# файлов} other {# файлов}}"
+    },
+    "swatchPicker": {
+      "label": "Цвет"
+    }
   }
 }

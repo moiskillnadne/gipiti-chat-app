@@ -1,9 +1,9 @@
 "use client";
 
 import { AlertCircle, CheckCircle2, XCircle } from "lucide-react";
-import { useTranslations } from "next-intl";
 import { Loader } from "@/components/elements/loader";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "@/lib/i18n/translate";
 import type { PaymentStatus } from "@/lib/types";
 
 type PaymentLoadingOverlayProps = {

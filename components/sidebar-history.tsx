@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
 import type { User } from "next-auth";
-import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWRInfinite from "swr/infinite";
@@ -24,6 +23,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import type { Chat } from "@/lib/db/schema";
+import { useTranslations } from "@/lib/i18n/translate";
 import { fetcher } from "@/lib/utils";
 import { LoaderIcon } from "./icons";
 import { ChatItem } from "./sidebar-history-item";
@@ -234,7 +234,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                   <div className="flex flex-col gap-6">
                     {groupedChats.today.length > 0 && (
                       <div>
-                        <div className="px-2 py-1 text-sidebar-foreground/50 text-xs">
+                        <div className="px-3 py-1.5 font-mono text-[10px] text-ink-3 uppercase tracking-[0.1em]">
                           {t("today")}
                         </div>
                         {groupedChats.today.map((chat) => (
@@ -349,7 +349,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
               {t("endOfHistory")}
             </div>
           ) : (
-            <div className="mt-8 flex flex-row items-center gap-2 p-2 text-zinc-500 dark:text-zinc-400">
+            <div className="mt-8 flex flex-row items-center gap-2 p-2 text-zinc-500">
               <div className="animate-spin">
                 <LoaderIcon />
               </div>

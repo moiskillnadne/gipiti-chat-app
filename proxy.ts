@@ -1,35 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
-import { LOCALE_COOKIE_NAME, type Locale } from "./i18n/config";
 import { getAuthSecret } from "./lib/auth/secret";
 import { isDevelopmentEnvironment } from "./lib/constants";
-
-// Temporarily force Russian locale for all users
-// To restore browser-based detection, replace this function with the original below
-function getLocaleFromRequest(_request: NextRequest): Locale {
-  return "ru";
-}
-
-// Original locale detection (commented out for temporary Russian-only mode):
-// function getLocaleFromRequest(request: NextRequest): Locale {
-//   const localeCookie = request.cookies.get(LOCALE_COOKIE_NAME)?.value as
-//     | Locale
-//     | undefined;
-//
-//   if (localeCookie && locales.includes(localeCookie)) {
-//     return localeCookie;
-//   }
-//
-//   const acceptLanguage = request.headers.get("accept-language");
-//   if (acceptLanguage) {
-//     const browserLocale = acceptLanguage.split(",")[0]?.split("-")[0] as Locale;
-//     if (locales.includes(browserLocale)) {
-//       return browserLocale;
-//     }
-//   }
-//
-//   return defaultLocale;
-// }
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -52,17 +24,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const locale = getLocaleFromRequest(request);
   const response = NextResponse.next();
-
-  if (!request.cookies.has(LOCALE_COOKIE_NAME)) {
-    response.cookies.set(LOCALE_COOKIE_NAME, locale, {
-      maxAge: 60 * 60 * 24 * 365,
-      path: "/",
-      sameSite: "lax",
-      secure: !isDevelopmentEnvironment,
-    });
-  }
 
   const token = await getToken({
     req: request,

@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { User } from "next-auth";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useSWRConfig } from "swr";
@@ -23,9 +22,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useTranslations } from "@/lib/i18n/translate";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -68,86 +67,90 @@ export function AppSidebar({ user }: { user: User | undefined }) {
   return (
     <>
       <Sidebar className="group-data-[side=left]:border-r-0">
-        <SidebarHeader>
-          <SidebarMenu>
-            <div className="flex flex-row items-center justify-between">
-              <Link
-                className="flex flex-row items-center gap-3"
-                href="/"
-                onClick={() => {
-                  setOpenMobile(false);
-                }}
-              >
-                <span className="cursor-pointer rounded-md px-2 font-semibold text-lg hover:bg-muted">
-                  GIPITI
-                </span>
-              </Link>
-              {user && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      className="h-8 p-1 md:h-fit md:p-2"
-                      onClick={() => setShowDeleteAllDialog(true)}
-                      type="button"
-                      variant="ghost"
-                    >
-                      <TrashIcon />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent align="end" className="hidden md:block">
-                    {t("deleteAllChats")}
-                  </TooltipContent>
-                </Tooltip>
-              )}
-            </div>
-          </SidebarMenu>
+        <SidebarHeader className="px-3 pt-4 pb-2">
+          <div className="flex items-center justify-between">
+            <Link
+              className="flex items-center"
+              href="/"
+              onClick={() => {
+                setOpenMobile(false);
+              }}
+            >
+              <span className="cursor-pointer rounded-sm px-2 py-0.5 font-medium text-ink text-lg tracking-tight hover:bg-paper-3">
+                GIPITI
+              </span>
+            </Link>
+            {user && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    className="size-[26px] rounded-sm p-0 text-ink-3 hover:bg-paper-3 hover:text-ink"
+                    onClick={() => setShowDeleteAllDialog(true)}
+                    type="button"
+                    variant="ghost"
+                  >
+                    <TrashIcon size={14} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent align="end" className="hidden md:block">
+                  {t("deleteAllChats")}
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </div>
         </SidebarHeader>
-        <div className="px-2 py-1">
-          <SidebarMenu>
+
+        <div className="px-3 pb-2">
+          <SidebarMenuButton
+            className="mb-3 h-10 gap-2.5 rounded-md border border-rule bg-card px-3 font-medium text-[14px] shadow-sm hover:border-rule-strong hover:bg-card"
+            onClick={() => {
+              setOpenMobile(false);
+              router.push("/");
+              router.refresh();
+            }}
+          >
+            <PlusIcon size={16} />
+            <span>{t("newChat")}</span>
+            <span className="ml-auto rounded-xs border border-rule bg-paper-2 px-1.5 py-0.5 font-mono text-[10px] text-ink-3">
+              ⌘ K
+            </span>
+          </SidebarMenuButton>
+
+          <SidebarMenu className="gap-px">
             <SidebarMenuItem>
               <SidebarMenuButton
-                className="h-10 gap-2"
-                onClick={() => {
-                  setOpenMobile(false);
-                  router.push("/");
-                  router.refresh();
-                }}
-              >
-                <PlusIcon />
-                <span>{t("newChat")}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                className="h-10 gap-2"
+                className="h-9 gap-2.5 rounded-sm px-3 text-[13px] text-ink-2 hover:bg-paper-3 hover:text-ink"
                 onClick={() => {
                   setOpenMobile(false);
                   router.push("/styles");
                 }}
               >
-                <PenIcon />
+                <PenIcon size={14} />
                 <span>{tTextStyles("manageStyles")}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton
-                className="h-10 gap-2"
+                className="h-9 gap-2.5 rounded-sm px-3 text-[13px] text-ink-2 hover:bg-paper-3 hover:text-ink"
                 onClick={() => {
                   setOpenMobile(false);
                   router.push("/projects");
                 }}
               >
-                <FolderIcon />
+                <FolderIcon size={14} />
                 <span>{tProjects("manageProjects")}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
-          <SidebarSeparator className="mt-2" />
         </div>
-        <SidebarContent>
+
+        <SidebarContent className="px-3">
           <SidebarHistory user={user} />
         </SidebarContent>
-        <SidebarFooter>{user && <SidebarUserNav user={user} />}</SidebarFooter>
+
+        <SidebarFooter className="p-0">
+          {user && <SidebarUserNav user={user} />}
+        </SidebarFooter>
       </Sidebar>
 
       <AlertDialog

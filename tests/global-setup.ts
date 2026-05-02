@@ -36,7 +36,6 @@ async function globalSetup(): Promise<void> {
       email: TEST_USER.email,
       password: hashedPassword,
       emailVerified: true,
-      preferredLanguage: "en",
     });
 
     console.log(`Created test user: ${TEST_USER.email}`);

@@ -2,8 +2,8 @@
 
 import type { UseChatHelpers } from "@ai-sdk/react";
 import { motion } from "framer-motion";
-import { useTranslations } from "next-intl";
 import { memo } from "react";
+import { useTranslations } from "@/lib/i18n/translate";
 import type { ChatMessage } from "@/lib/types";
 import { Suggestion } from "./elements/suggestion";
 

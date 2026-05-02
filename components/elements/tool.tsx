@@ -9,7 +9,6 @@ import {
   WrenchIcon,
   XCircleIcon,
 } from "lucide-react";
-import { useTranslations } from "next-intl";
 import type { ComponentProps, ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -17,6 +16,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { useTranslations } from "@/lib/i18n/translate";
 import { cn } from "@/lib/utils";
 import { CodeBlock } from "./code-block";
 

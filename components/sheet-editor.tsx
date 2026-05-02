@@ -1,6 +1,5 @@
 "use client";
 
-import { useTheme } from "next-themes";
 import { parse, unparse } from "papaparse";
 import { memo, useEffect, useMemo, useState } from "react";
 import DataGrid, { textEditor } from "react-data-grid";
@@ -26,8 +25,6 @@ const MIN_ROWS = 50;
 const MIN_COLS = 26;
 
 const PureSpreadsheetEditor = ({ content, saveContent }: SheetEditorProps) => {
-  const { resolvedTheme } = useTheme();
-
   const parseData = useMemo(() => {
     if (!content) {
       return new Array(MIN_ROWS).fill(new Array(MIN_COLS).fill(""));
@@ -56,8 +53,8 @@ const PureSpreadsheetEditor = ({ content, saveContent }: SheetEditorProps) => {
       frozen: true,
       width: 50,
       renderCell: ({ rowIdx }: { rowIdx: number }) => rowIdx + 1,
-      cellClass: "border-t border-r dark:bg-zinc-950 dark:text-zinc-50",
-      headerCellClass: "border-t border-r dark:bg-zinc-900 dark:text-zinc-50",
+      cellClass: "border-t border-r",
+      headerCellClass: "border-t border-r",
     };
 
     const dataColumns = Array.from({ length: MIN_COLS }, (_, i) => ({
@@ -65,10 +62,10 @@ const PureSpreadsheetEditor = ({ content, saveContent }: SheetEditorProps) => {
       name: String.fromCharCode(65 + i),
       renderEditCell: textEditor,
       width: 120,
-      cellClass: cn("border-t dark:bg-zinc-950 dark:text-zinc-50", {
+      cellClass: cn("border-t", {
         "border-l": i !== 0,
       }),
-      headerCellClass: cn("border-t dark:bg-zinc-900 dark:text-zinc-50", {
+      headerCellClass: cn("border-t", {
         "border-l": i !== 0,
       }),
     }));
@@ -114,7 +111,7 @@ const PureSpreadsheetEditor = ({ content, saveContent }: SheetEditorProps) => {
 
   return (
     <DataGrid
-      className={resolvedTheme === "dark" ? "rdg-dark" : "rdg-light"}
+      className="rdg-light"
       columns={columns}
       defaultColumnOptions={{
         resizable: true,

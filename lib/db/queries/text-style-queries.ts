@@ -3,7 +3,7 @@
  * Handles CRUD for user-defined writing styles with example texts,
  * including default style selection per user.
  */
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 
 import { ChatSDKError } from "../../errors";
 import { type TextStyle, textStyle } from "../schema";
@@ -50,11 +50,15 @@ export async function getTextStyleById({
 export async function createTextStyle({
   userId,
   name,
+  description,
+  swatch,
   examples = [],
   isDefault = false,
 }: {
   userId: string;
   name: string;
+  description?: string | null;
+  swatch?: string | null;
   examples?: string[];
   isDefault?: boolean;
 }): Promise<TextStyle> {
@@ -68,7 +72,14 @@ export async function createTextStyle({
 
     const [created] = await db
       .insert(textStyle)
-      .values({ userId, name, examples, isDefault })
+      .values({
+        userId,
+        name,
+        description: description ?? null,
+        swatch: swatch ?? null,
+        examples,
+        isDefault,
+      })
       .returning();
     return created;
   } catch (_error) {
@@ -83,14 +94,20 @@ export async function updateTextStyle({
   id,
   userId,
   name,
+  description,
+  swatch,
   examples,
   isDefault,
+  pinned,
 }: {
   id: string;
   userId: string;
   name?: string;
+  description?: string | null;
+  swatch?: string | null;
   examples?: string[];
   isDefault?: boolean;
+  pinned?: boolean;
 }): Promise<TextStyle> {
   try {
     if (isDefault) {
@@ -102,19 +119,31 @@ export async function updateTextStyle({
 
     const updates: Partial<{
       name: string;
+      description: string | null;
+      swatch: string | null;
       examples: string[];
       isDefault: boolean;
+      pinned: boolean;
       updatedAt: Date;
     }> = { updatedAt: new Date() };
 
     if (name !== undefined) {
       updates.name = name;
     }
+    if (description !== undefined) {
+      updates.description = description;
+    }
+    if (swatch !== undefined) {
+      updates.swatch = swatch;
+    }
     if (examples !== undefined) {
       updates.examples = examples;
     }
     if (isDefault !== undefined) {
       updates.isDefault = isDefault;
+    }
+    if (pinned !== undefined) {
+      updates.pinned = pinned;
     }
 
     const [updated] = await db
@@ -127,6 +156,26 @@ export async function updateTextStyle({
     throw new ChatSDKError(
       "bad_request:database",
       "Failed to update text style"
+    );
+  }
+}
+
+export async function incrementTextStyleUsage({
+  id,
+  userId,
+}: {
+  id: string;
+  userId: string;
+}): Promise<void> {
+  try {
+    await db
+      .update(textStyle)
+      .set({ usageCount: sql`${textStyle.usageCount} + 1` })
+      .where(and(eq(textStyle.id, id), eq(textStyle.userId, userId)));
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to increment text style usage"
     );
   }
 }

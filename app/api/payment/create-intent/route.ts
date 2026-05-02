@@ -55,7 +55,7 @@ export async function POST(request: Request) {
       currency: "RUB",
       status: "pending",
       metadata: {
-        planDisplayName: tier.displayName.ru,
+        planDisplayName: tier.displayName,
         billingPeriod: `${tier.billingPeriodCount} ${tier.billingPeriod}`,
         clientIp: clientIp || undefined,
         userAgent: userAgent || undefined,

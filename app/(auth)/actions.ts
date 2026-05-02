@@ -3,7 +3,6 @@
 import { cookies } from "next/headers";
 import { z } from "zod";
 import { createPasswordResetToken, hashToken } from "@/lib/auth/reset-token";
-import { validateCaptcha } from "@/lib/captcha/validate-captcha";
 import {
   createUser,
   getUserByResetToken,
@@ -92,8 +91,7 @@ export type RegisterActionState = {
     | "success"
     | "failed"
     | "user_exists"
-    | "invalid_data"
-    | "captcha_failed";
+    | "invalid_data";
   email?: string;
 };
 
@@ -102,20 +100,10 @@ export const register = async (
   formData: FormData
 ): Promise<RegisterActionState> => {
   try {
-    // Validate captcha before any other processing
-    const captchaToken = formData.get("captcha-token") as string;
-    const captchaResult = await validateCaptcha(captchaToken);
-
-    if (!captchaResult.isValid) {
-      return { status: "captcha_failed" };
-    }
-
     const validatedData = registerFormSchema.parse({
       email: formData.get("email"),
       password: formData.get("password"),
     });
-
-    const locale = (formData.get("locale") as string) || "en";
 
     const [existingUser] = await getUserByEmail(validatedData.email);
 
@@ -133,7 +121,6 @@ export const register = async (
     const newUser = await createUser(
       validatedData.email,
       validatedData.password,
-      locale,
       utmData ?? undefined
     );
 
@@ -156,7 +143,6 @@ export const register = async (
     // Send verification email
     const emailResult = await sendVerificationEmail({
       email: validatedData.email,
-      locale,
     });
 
     if (!emailResult.success) {
@@ -248,7 +234,6 @@ export const verifyEmail = async (
 // Resend verification code schema
 const resendVerificationFormSchema = z.object({
   email: z.string().email(),
-  locale: z.string().optional().default("en"),
 });
 
 export type ResendVerificationActionState = {
@@ -269,7 +254,6 @@ export const resendVerificationCode = async (
   try {
     const validatedData = resendVerificationFormSchema.parse({
       email: formData.get("email"),
-      locale: formData.get("locale"),
     });
 
     // Check rate limit (60 seconds cooldown)
@@ -291,10 +275,9 @@ export const resendVerificationCode = async (
       return { status: "success" };
     }
 
-    // Send new verification email using user's preferred language
+    // Send new verification email
     const emailResult = await sendVerificationEmail({
       email: validatedData.email,
-      locale: foundUser.preferredLanguage || "en",
     });
 
     if (!emailResult.success) {
@@ -316,7 +299,6 @@ export const resendVerificationCode = async (
 // Forgot password schema
 const forgotPasswordFormSchema = z.object({
   email: z.string().email(),
-  locale: z.string().optional().default("en"),
 });
 
 export type ForgotPasswordActionState = {
@@ -337,7 +319,6 @@ export const requestPasswordReset = async (
   try {
     const validatedData = forgotPasswordFormSchema.parse({
       email: formData.get("email"),
-      locale: formData.get("locale"),
     });
 
     // Check rate limit
@@ -374,7 +355,6 @@ export const requestPasswordReset = async (
     const emailResult = await sendPasswordResetEmail({
       email: validatedData.email,
       resetToken: token, // Send plain token in email
-      locale: validatedData.locale,
     });
 
     if (!emailResult.success) {
@@ -406,7 +386,6 @@ const resetPasswordFormSchema = z.object({
       /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/,
       "Password must contain at least one special character"
     ),
-  locale: z.string().optional().default("en"),
 });
 
 export type ResetPasswordActionState = {
@@ -427,7 +406,6 @@ export const resetPassword = async (
     const validatedData = resetPasswordFormSchema.parse({
       token: formData.get("token"),
       password: formData.get("password"),
-      locale: formData.get("locale"),
     });
 
     // Hash the token to match database storage
@@ -452,7 +430,6 @@ export const resetPassword = async (
     // Send confirmation email
     await sendPasswordChangedEmail({
       email: foundUser.email,
-      locale: validatedData.locale,
     });
 
     return { status: "success" };

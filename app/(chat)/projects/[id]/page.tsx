@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/app/(auth)/auth";
 import { ProjectDetail } from "@/components/project-detail";
-import { getProjectById } from "@/lib/db/queries";
+import { getProjectById, getProjectFiles } from "@/lib/db/queries";
 
 export default async function ProjectDetailPage({
   params,
@@ -21,5 +21,10 @@ export default async function ProjectDetailPage({
     redirect("/projects");
   }
 
-  return <ProjectDetail initialProject={proj} />;
+  const files = await getProjectFiles({
+    projectId: id,
+    userId: session.user.id,
+  });
+
+  return <ProjectDetail initialFiles={files} initialProject={proj} />;
 }

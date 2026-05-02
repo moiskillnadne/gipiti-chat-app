@@ -2,7 +2,6 @@
 
 import { ExternalLinkIcon } from "lucide-react";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
 import useSWR from "swr";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +14,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatTokenBalance } from "@/lib/format-tokens";
+import { useTranslations } from "@/lib/i18n/translate";
 import { fetcher } from "@/lib/utils";
 
 type UsageSummary = {
