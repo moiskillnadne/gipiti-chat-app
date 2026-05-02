@@ -1,4 +1,3 @@
-import { useTranslations } from "next-intl";
 import type { ComponentProps } from "react";
 import { type SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import {
@@ -6,6 +5,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useTranslations } from "@/lib/i18n/translate";
 import { cn } from "@/lib/utils";
 import { SidebarLeftIcon } from "./icons";
 import { Button } from "./ui/button";

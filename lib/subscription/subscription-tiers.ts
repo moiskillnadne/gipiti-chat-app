@@ -4,10 +4,7 @@ export type BillingPeriod = "daily" | "weekly" | "monthly" | "annual";
 
 export type SubscriptionTierConfig = {
   name: string;
-  displayName: {
-    en: string;
-    ru: string;
-  };
+  displayName: string;
   billingPeriod: BillingPeriod;
   billingPeriodCount: number;
   tokenQuota: number;
@@ -36,10 +33,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
   // FREE PLAN - Auto-assigned to every new user on registration
   free: {
     name: "free",
-    displayName: {
-      en: "Free Plan",
-      ru: "Бесплатный план",
-    },
+    displayName: "Бесплатный план",
     billingPeriod: "daily",
     billingPeriodCount: 1,
     tokenQuota: 35_000, // 35K tokens per day
@@ -74,10 +68,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
   // TESTER PLAN - Daily reset for easy testing (not for production use)
   tester: {
     name: "tester",
-    displayName: {
-      en: "Tester Plan [Daily, Free]",
-      ru: "Тестовый план [Ежедневный, Бесплатный]",
-    },
+    displayName: "Тестовый план [Ежедневный, Бесплатный]",
     billingPeriod: "daily",
     billingPeriodCount: 1,
     tokenQuota: 200_000, // 200K tokens per day
@@ -124,10 +115,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
   // PAID TESTER PLAN - Daily recurring subscription for testers
   tester_paid: {
     name: "tester_paid",
-    displayName: {
-      en: "Tester Plan [Daily, Paid]",
-      ru: "Тестовый план [Ежедневный, Платный]",
-    },
+    displayName: "Тестовый план [Ежедневный, Платный]",
     billingPeriod: "daily",
     billingPeriodCount: 1,
     tokenQuota: 200_000, // 200K tokens per day
@@ -175,10 +163,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
   // via reset-quotas cron (which must include "unlim" in its filter).
   unlim: {
     name: "unlim",
-    displayName: {
-      en: "БЕЗЛИМИТИЩЕ",
-      ru: "БЕЗЛИМИТИЩЕ",
-    },
+    displayName: "БЕЗЛИМИТИЩЕ",
     billingPeriod: "daily",
     billingPeriodCount: 1,
     tokenQuota: 5_000_000, // 5M tokens per day
@@ -225,10 +210,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
   // BASIC PLAN - Entry-level subscription for paywall
   basic_monthly: {
     name: "basic_monthly",
-    displayName: {
-      en: "Basic Monthly Plan",
-      ru: "Базовый месячный план ",
-    },
+    displayName: "Базовый месячный план ",
     billingPeriod: "monthly",
     billingPeriodCount: 1,
     tokenQuota: 3_000_000, // 3M tokens per month
@@ -274,10 +256,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
   // QUARTERLY PLAN - 3-month subscription
   basic_quarterly: {
     name: "basic_quarterly",
-    displayName: {
-      en: "Basic Quarterly Plan",
-      ru: "Базовый квартальный план",
-    },
+    displayName: "Базовый квартальный план",
     billingPeriod: "monthly",
     billingPeriodCount: 3,
     tokenQuota: 9_000_000, // 9M tokens per quarter (3M/month equivalent)
@@ -322,10 +301,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
 
   basic_annual: {
     name: "basic_annual",
-    displayName: {
-      en: "Basic Annual Plan",
-      ru: "Базовый годовой план",
-    },
+    displayName: "Базовый годовой план",
     billingPeriod: "annual",
     billingPeriodCount: 1,
     tokenQuota: 36_000_000, // 36M tokens per year (3M/month equivalent)

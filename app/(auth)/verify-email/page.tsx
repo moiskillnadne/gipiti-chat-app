@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
-import { useLocale, useTranslations } from "next-intl";
 import {
   Suspense,
   startTransition,
@@ -13,7 +12,6 @@ import {
   useRef,
   useState,
 } from "react";
-
 import { AuthPageHeader } from "@/components/auth-page-header";
 import { AuthPageLayout } from "@/components/auth-page-layout";
 import { Loader } from "@/components/elements/loader";
@@ -25,6 +23,7 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
+import { useTranslations } from "@/lib/i18n/translate";
 import {
   type ResendVerificationActionState,
   resendVerificationCode,
@@ -52,7 +51,6 @@ function VerifyEmailPageFallback() {
 }
 
 function VerifyEmailPage() {
-  const locale = useLocale();
   const t = useTranslations("auth.verification");
   const tErrors = useTranslations("auth.errors");
   const tNotifications = useTranslations("common.notifications");
@@ -204,11 +202,10 @@ function VerifyEmailPage() {
 
     const formData = new FormData();
     formData.set("email", email);
-    formData.set("locale", locale);
     startTransition(() => {
       resendAction(formData);
     });
-  }, [email, locale, cooldown, resendAction]);
+  }, [email, cooldown, resendAction]);
 
   if (status === "loading") {
     return <VerifyEmailPageFallback />;

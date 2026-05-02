@@ -3,12 +3,11 @@
 import Form from "next/form";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useLocale, useTranslations } from "next-intl";
 import { Suspense, useActionState, useEffect, useState } from "react";
-
 import { PasswordInput } from "@/components/password-input";
 import { SubmitButton } from "@/components/submit-button";
 import { toast } from "@/components/toast";
+import { useTranslations } from "@/lib/i18n/translate";
 
 import { type ResetPasswordActionState, resetPassword } from "../actions";
 
@@ -52,7 +51,6 @@ function ResetPasswordPage() {
   const tSupport = useTranslations("legal.support");
   const router = useRouter();
   const searchParams = useSearchParams();
-  const locale = useLocale();
 
   const token = searchParams?.get("token") || "";
   const [password, setPassword] = useState("");
@@ -126,7 +124,6 @@ function ResetPasswordPage() {
 
     setPasswordMismatch(false);
     formData.append("token", token);
-    formData.append("locale", locale);
     formAction(formData);
   };
 

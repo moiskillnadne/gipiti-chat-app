@@ -2,7 +2,6 @@
 
 import { format, parseISO } from "date-fns";
 import { InfoIcon } from "lucide-react";
-import { useTranslations } from "next-intl";
 import useSWR from "swr";
 import {
   Popover,
@@ -10,6 +9,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Progress } from "@/components/ui/progress";
+import { useTranslations } from "@/lib/i18n/translate";
 import type { AppUsage } from "@/lib/usage";
 import { cn, fetcher } from "@/lib/utils";
 

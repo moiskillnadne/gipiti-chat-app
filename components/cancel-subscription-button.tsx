@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { CancellationFeedbackDialog } from "@/components/cancellation-feedback-dialog";
 import { toast } from "@/components/toast";
@@ -16,6 +15,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "@/lib/i18n/translate";
 
 type CancelSubscriptionButtonProps = {
   currentPeriodEnd: Date;

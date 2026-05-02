@@ -11,7 +11,6 @@ import {
   SlidersHorizontalIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
 import {
   type ChangeEvent,
   type Dispatch,
@@ -40,6 +39,7 @@ import {
   type ThinkingSetting,
 } from "@/lib/ai/models";
 import { myProvider } from "@/lib/ai/providers";
+import { useTranslations } from "@/lib/i18n/translate";
 import type { Attachment, ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
 import { cn } from "@/lib/utils";

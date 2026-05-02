@@ -1,8 +1,8 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { useStyle } from "@/contexts/style-context";
 import type { TextStyle } from "@/lib/db/schema";
+import { useTranslations } from "@/lib/i18n/translate";
 
 import { EntityManager, type EntityManagerLabels } from "./entity-manager";
 import { PenIcon } from "./icons";

@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import type { User } from "next-auth";
 import { signOut, useSession } from "next-auth/react";
-import { useTranslations } from "next-intl";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,60 +17,14 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { useTranslations } from "@/lib/i18n/translate";
 import { LoaderIcon } from "./icons";
 import { toast } from "./toast";
-
-// Temporarily hidden - language selection disabled
-// To re-enable, uncomment the imports and code below:
-// import { useRouter } from "next/navigation";
-// import { useLocale } from "next-intl";
-// import { useTransition } from "react";
-// import { setUserLocale } from "@/app/actions/locale";
-// import {
-//   DropdownMenuRadioGroup,
-//   DropdownMenuRadioItem,
-//   DropdownMenuSub,
-//   DropdownMenuSubContent,
-//   DropdownMenuSubTrigger,
-// } from "@/components/ui/dropdown-menu";
-// import { type Locale, localeFlags, localeNames, locales } from "@/i18n/config";
 
 export function SidebarUserNav({ user }: { user: User }) {
   const t = useTranslations("common");
   const tSupport = useTranslations("legal.support");
   const { status } = useSession();
-
-  // Temporarily hidden - language selection disabled
-  // To re-enable, uncomment the following:
-  // const router = useRouter();
-  // const [isPending, startTransition] = useTransition();
-  // const currentLocale = useLocale() as Locale;
-  //
-  // const handleLocaleChange = (newLocale: string) => {
-  //   const locale = newLocale as Locale;
-  //
-  //   startTransition(async () => {
-  //     try {
-  //       const result = await setUserLocale(locale);
-  //
-  //       if (!result.success) {
-  //         toast({
-  //           type: "error",
-  //           description: result.error || "Failed to change language",
-  //         });
-  //         return;
-  //       }
-  //
-  //       router.refresh();
-  //     } catch (error) {
-  //       console.error("Failed to change locale:", error);
-  //       toast({
-  //         type: "error",
-  //         description: "Failed to change language",
-  //       });
-  //     }
-  //   });
-  // };
 
   return (
     <SidebarMenu>
@@ -114,32 +67,6 @@ export function SidebarUserNav({ user }: { user: User }) {
             data-testid="user-nav-menu"
             side="top"
           >
-            {/* Temporarily hidden - language selection disabled
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger disabled={isPending}>
-                <span className="flex items-center gap-2">
-                  <span>{localeFlags[currentLocale]}</span>
-                  <span>{localeNames[currentLocale]}</span>
-                </span>
-              </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent>
-                <DropdownMenuRadioGroup
-                  onValueChange={handleLocaleChange}
-                  value={currentLocale}
-                >
-                  {locales.map((locale) => (
-                    <DropdownMenuRadioItem key={locale} value={locale}>
-                      <span className="flex items-center gap-2">
-                        <span>{localeFlags[locale]}</span>
-                        <span>{localeNames[locale]}</span>
-                      </span>
-                    </DropdownMenuRadioItem>
-                  ))}
-                </DropdownMenuRadioGroup>
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
-            <DropdownMenuSeparator />
-            */}
             <DropdownMenuItem asChild data-testid="user-nav-item-subscription">
               <Link href="/subscription">{t("navigation.subscription")}</Link>
             </DropdownMenuItem>

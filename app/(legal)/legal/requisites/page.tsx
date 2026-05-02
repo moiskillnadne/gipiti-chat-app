@@ -1,4 +1,4 @@
-import { getTranslations } from "next-intl/server";
+import { getTranslations } from "@/lib/i18n/translate";
 
 export async function generateMetadata() {
   const t = await getTranslations("legal.requisites");

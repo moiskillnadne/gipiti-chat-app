@@ -1,7 +1,6 @@
 import { ChevronLeftIcon } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getTranslations } from "next-intl/server";
 import { auth } from "@/app/(auth)/auth";
 import { CancelSubscriptionButton } from "@/components/cancel-subscription-button";
 import { TokenUsageSummary } from "@/components/token-usage-summary";
@@ -16,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import { UsageLimitsWidget } from "@/components/usage-limits-widget";
 import { getUserSubscriptionWithPlan } from "@/lib/db/queries";
+import { getTranslations } from "@/lib/i18n/translate";
 import { SUBSCRIPTION_TIERS } from "../../lib/subscription/subscription-tiers";
 
 export default async function SubscriptionPage() {

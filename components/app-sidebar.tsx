@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { User } from "next-auth";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useSWRConfig } from "swr";
@@ -26,6 +25,7 @@ import {
   SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useTranslations } from "@/lib/i18n/translate";
 import {
   AlertDialog,
   AlertDialogAction,

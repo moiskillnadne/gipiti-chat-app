@@ -1,7 +1,7 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { useTranslations } from "@/lib/i18n/translate";
 
 const FAQ_ITEMS = ["q1", "q2", "q3", "q4", "q5", "q6"] as const;
 

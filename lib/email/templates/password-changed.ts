@@ -1,75 +1,47 @@
 import { emailConfig } from "../client";
 
 type PasswordChangedEmailProps = {
-  locale: string;
   timestamp: Date;
   resetUrl: string;
 };
 
-type LocaleContent = {
-  subject: string;
-  greeting: string;
-  confirmationText: string;
-  timestampLabel: string;
-  securityWarning: string;
-  actionText: string;
-  buttonText: string;
-  supportText: string;
+const content = {
+  subject: "Ваш пароль был изменен",
+  greeting: "Здравствуйте,",
+  confirmationText:
+    "Это письмо подтверждает, что ваш пароль был успешно изменен.",
+  timestampLabel: "Изменено:",
+  securityWarning:
+    "Если вы не вносили это изменение, ваша учетная запись может быть скомпрометирована. Пожалуйста, немедленно сбросьте пароль и свяжитесь с нашей службой поддержки.",
+  actionText: "Сбросить пароль еще раз",
+  buttonText: "Сбросить пароль сейчас",
+  supportText: "Есть вопросы? Свяжитесь с нашей службой поддержки.",
 };
 
-const content: Record<string, LocaleContent> = {
-  en: {
-    subject: "Your password was changed",
-    greeting: "Hello,",
-    confirmationText:
-      "This email confirms that your password was successfully changed.",
-    timestampLabel: "Changed on:",
-    securityWarning:
-      "If you did not make this change, your account may have been compromised. Please reset your password immediately and contact our support team.",
-    actionText: "Reset your password again",
-    buttonText: "Reset Password Now",
-    supportText: "Questions? Contact our support team.",
-  },
-  ru: {
-    subject: "Ваш пароль был изменен",
-    greeting: "Здравствуйте,",
-    confirmationText:
-      "Это письмо подтверждает, что ваш пароль был успешно изменен.",
-    timestampLabel: "Изменено:",
-    securityWarning:
-      "Если вы не вносили это изменение, ваша учетная запись может быть скомпрометирована. Пожалуйста, немедленно сбросьте пароль и свяжитесь с нашей службой поддержки.",
-    actionText: "Сбросить пароль еще раз",
-    buttonText: "Сбросить пароль сейчас",
-    supportText: "Есть вопросы? Свяжитесь с нашей службой поддержки.",
-  },
-};
+export function getPasswordChangedEmailSubject(): string {
+  return content.subject;
+}
 
-export function getPasswordChangedEmailSubject(locale: string): string {
-  return content[locale]?.subject || content.en.subject;
+function formatTimestamp(timestamp: Date): string {
+  return timestamp.toLocaleString("ru-RU", {
+    dateStyle: "long",
+    timeStyle: "short",
+  });
 }
 
 export function getPasswordChangedEmailHtml({
-  locale,
   timestamp,
   resetUrl,
 }: PasswordChangedEmailProps): string {
-  const t = content[locale] || content.en;
-
-  const formattedTimestamp = timestamp.toLocaleString(
-    locale === "ru" ? "ru-RU" : "en-US",
-    {
-      dateStyle: "long",
-      timeStyle: "short",
-    }
-  );
+  const formattedTimestamp = formatTimestamp(timestamp);
 
   return `
 <!DOCTYPE html>
-<html lang="${locale}">
+<html lang="ru">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${t.subject}</title>
+  <title>${content.subject}</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f6f6f6;">
   <table role="presentation" style="width: 100%; border-collapse: collapse;">
@@ -84,7 +56,7 @@ export function getPasswordChangedEmailHtml({
                 <span style="font-size: 32px;">✓</span>
               </div>
               <h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #1a1a1a;">
-                ${t.subject}
+                ${content.subject}
               </h1>
             </td>
           </tr>
@@ -93,32 +65,32 @@ export function getPasswordChangedEmailHtml({
           <tr>
             <td style="padding: 0 40px 40px 40px;">
               <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 24px; color: #4a4a4a;">
-                ${t.greeting}
+                ${content.greeting}
               </p>
               <p style="margin: 0 0 24px 0; font-size: 16px; line-height: 24px; color: #4a4a4a;">
-                ${t.confirmationText}
+                ${content.confirmationText}
               </p>
 
               <!-- Timestamp -->
               <div style="margin: 24px 0; padding: 16px; background-color: #f0fdf4; border-left: 4px solid #10b981; border-radius: 4px;">
                 <p style="margin: 0; font-size: 14px; line-height: 20px; color: #166534;">
-                  <strong>${t.timestampLabel}</strong> ${formattedTimestamp}
+                  <strong>${content.timestampLabel}</strong> ${formattedTimestamp}
                 </p>
               </div>
 
               <!-- Security Warning -->
               <div style="margin: 32px 0; padding: 20px; background-color: #fef2f2; border-left: 4px solid #ef4444; border-radius: 4px;">
                 <p style="margin: 0 0 16px 0; font-size: 14px; line-height: 20px; color: #991b1b; font-weight: 500;">
-                  🔐 ${t.securityWarning}
+                  🔐 ${content.securityWarning}
                 </p>
                 <p style="margin: 0 0 16px 0; font-size: 14px; line-height: 20px; color: #991b1b;">
-                  ${t.actionText}:
+                  ${content.actionText}:
                 </p>
                 <table role="presentation" style="margin: 0; width: 100%;">
                   <tr>
                     <td align="left">
                       <a href="${resetUrl}" style="display: inline-block; padding: 10px 20px; background-color: #ef4444; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 500;">
-                        ${t.buttonText}
+                        ${content.buttonText}
                       </a>
                     </td>
                   </tr>
@@ -131,7 +103,7 @@ export function getPasswordChangedEmailHtml({
           <tr>
             <td style="padding: 32px 40px; border-top: 1px solid #e6e6e6; text-align: center;">
               <p style="margin: 0; font-size: 14px; line-height: 20px; color: #8a8a8a;">
-                ${t.supportText}
+                ${content.supportText}
               </p>
               <p style="margin: 8px 0 0 0; font-size: 12px; line-height: 18px; color: #a0a0a0;">
                 ${emailConfig.supportEmail}
@@ -148,34 +120,25 @@ export function getPasswordChangedEmailHtml({
 }
 
 export function getPasswordChangedEmailText({
-  locale,
   timestamp,
   resetUrl,
 }: PasswordChangedEmailProps): string {
-  const t = content[locale] || content.en;
-
-  const formattedTimestamp = timestamp.toLocaleString(
-    locale === "ru" ? "ru-RU" : "en-US",
-    {
-      dateStyle: "long",
-      timeStyle: "short",
-    }
-  );
+  const formattedTimestamp = formatTimestamp(timestamp);
 
   return `
-${t.subject}
+${content.subject}
 
-${t.greeting}
+${content.greeting}
 
-${t.confirmationText}
+${content.confirmationText}
 
-${t.timestampLabel} ${formattedTimestamp}
+${content.timestampLabel} ${formattedTimestamp}
 
-${t.securityWarning}
+${content.securityWarning}
 
-${t.actionText}: ${resetUrl}
+${content.actionText}: ${resetUrl}
 
-${t.supportText}
+${content.supportText}
 ${emailConfig.supportEmail}
   `.trim();
 }

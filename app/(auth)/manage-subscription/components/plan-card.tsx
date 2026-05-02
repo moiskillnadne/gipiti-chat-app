@@ -1,5 +1,5 @@
-import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "@/lib/i18n/translate";
 import type { PlanType } from "../hooks/payment-reducer";
 
 type PlanCardProps = {

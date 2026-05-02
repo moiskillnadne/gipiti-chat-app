@@ -1,7 +1,7 @@
 import { ChevronLeftIcon } from "lucide-react";
 import Link from "next/link";
-import { getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/button";
+import { getTranslations } from "@/lib/i18n/translate";
 
 export async function generateMetadata() {
   const t = await getTranslations("legal.support");

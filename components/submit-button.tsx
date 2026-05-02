@@ -1,9 +1,8 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { useFormStatus } from "react-dom";
-
 import { LoaderIcon } from "@/components/icons";
+import { useTranslations } from "@/lib/i18n/translate";
 
 import { Button } from "./ui/button";
 

@@ -3,15 +3,14 @@
 import Form from "next/form";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useLocale, useTranslations } from "next-intl";
 import { Suspense, useActionState, useEffect, useState } from "react";
-
 import { AuthPageHeader } from "@/components/auth-page-header";
 import { AuthPageLayout } from "@/components/auth-page-layout";
 import { SubmitButton } from "@/components/submit-button";
 import { toast } from "@/components/toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useTranslations } from "@/lib/i18n/translate";
 
 import {
   type ForgotPasswordActionState,
@@ -40,7 +39,6 @@ function ForgotPasswordPage() {
   const t = useTranslations("auth.forgotPassword");
   const tErrors = useTranslations("auth.errors");
   const router = useRouter();
-  const locale = useLocale();
 
   const [email, setEmail] = useState("");
   const [isSuccessful, setIsSuccessful] = useState(false);
@@ -99,7 +97,6 @@ function ForgotPasswordPage() {
 
   const handleSubmit = (formData: FormData) => {
     setEmail(formData.get("email") as string);
-    formData.append("locale", locale);
     formAction(formData);
   };
 

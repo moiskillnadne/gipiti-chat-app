@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useTranslations } from "next-intl";
 import {
   Suspense,
   useActionState,
@@ -11,13 +10,13 @@ import {
   useEffect,
   useState,
 } from "react";
-
 import { AuthForm } from "@/components/auth-form";
 import { AuthPageHeader } from "@/components/auth-page-header";
 import { AuthPageLayout } from "@/components/auth-page-layout";
 import { Loader } from "@/components/elements/loader";
 import { SubmitButton } from "@/components/submit-button";
 import { toast } from "@/components/toast";
+import { useTranslations } from "@/lib/i18n/translate";
 import { type LoginActionState, login } from "../actions";
 
 export default function Page() {

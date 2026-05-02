@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
 import type { User } from "next-auth";
-import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWRInfinite from "swr/infinite";
@@ -24,6 +23,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import type { Chat } from "@/lib/db/schema";
+import { useTranslations } from "@/lib/i18n/translate";
 import { fetcher } from "@/lib/utils";
 import { LoaderIcon } from "./icons";
 import { ChatItem } from "./sidebar-history-item";

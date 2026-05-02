@@ -57,7 +57,7 @@ export async function POST(request: Request) {
       status: "pending",
       isTrial: true,
       metadata: {
-        planDisplayName: tier.displayName.ru,
+        planDisplayName: tier.displayName,
         billingPeriod: `${tier.billingPeriodCount} ${tier.billingPeriod}`,
         clientIp: clientIp || undefined,
         userAgent: userAgent || undefined,

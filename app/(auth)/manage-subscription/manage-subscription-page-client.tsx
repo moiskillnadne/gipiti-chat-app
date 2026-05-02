@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { useTranslations } from "next-intl";
 import { Suspense } from "react";
 import { Loader } from "@/components/elements/loader";
 import { PaymentLoadingOverlay } from "@/components/payment-loading-overlay";
+import { useTranslations } from "@/lib/i18n/translate";
 import { FAQ } from "./components/faq";
 import { FeaturesTable } from "./components/features-table";
 import { PlanSelector } from "./components/plan-selector";

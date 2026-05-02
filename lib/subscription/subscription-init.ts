@@ -29,7 +29,7 @@ export async function assignTesterPlan(userId: string) {
       .insert(subscriptionPlan)
       .values({
         name: testerTier.name,
-        displayName: testerTier.displayName.en,
+        displayName: testerTier.displayName,
         billingPeriod: testerTier.billingPeriod,
         billingPeriodCount: testerTier.billingPeriodCount,
         tokenQuota: testerTier.tokenQuota,
@@ -117,7 +117,7 @@ export async function assignFreePlan(userId: string) {
       .insert(subscriptionPlan)
       .values({
         name: freeTier.name,
-        displayName: freeTier.displayName.en,
+        displayName: freeTier.displayName,
         billingPeriod: freeTier.billingPeriod,
         billingPeriodCount: freeTier.billingPeriodCount,
         tokenQuota: freeTier.tokenQuota,
@@ -197,7 +197,7 @@ export async function upgradeToPlan(userId: string, planName: string) {
       .insert(subscriptionPlan)
       .values({
         name: tier.name,
-        displayName: tier.displayName.en,
+        displayName: tier.displayName,
         billingPeriod: tier.billingPeriod,
         billingPeriodCount: tier.billingPeriodCount,
         tokenQuota: tier.tokenQuota,

@@ -2,7 +2,7 @@
 
 import { GlobeIcon } from "lucide-react";
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/lib/i18n/translate";
 import type { WebSearchResult as WebSearchResultType } from "@/lib/search/search-types";
 import { extractDomain, faviconUrl } from "@/lib/url";
 

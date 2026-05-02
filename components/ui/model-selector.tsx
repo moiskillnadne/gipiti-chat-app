@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/lib/i18n/translate";
 import { useMemo, useState } from "react";
 
 import { useModel } from "@/contexts/model-context";

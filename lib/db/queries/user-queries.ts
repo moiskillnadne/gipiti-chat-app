@@ -14,8 +14,6 @@ import { db } from "./connection";
 export async function createUser(
   email: string,
   password: string,
-  // Temporarily default to Russian - was "en"
-  preferredLanguage = "ru",
   utmData?: UtmData
 ) {
   const hashedPassword = generateHashedPassword(password);
@@ -26,7 +24,6 @@ export async function createUser(
       .values({
         email,
         password: hashedPassword,
-        preferredLanguage,
         currentPlan: null, // No default plan - users must subscribe to get access
         ...(utmData && {
           utmSource: utmData.utmSource,

@@ -2,10 +2,10 @@
 import type { UseChatHelpers } from "@ai-sdk/react";
 import equal from "fast-deep-equal";
 import { motion } from "framer-motion";
-import { useTranslations } from "next-intl";
 import { memo, useMemo, useState } from "react";
 import type { Vote } from "@/lib/db/schema";
 import { downloadFromUrl } from "@/lib/download";
+import { useTranslations } from "@/lib/i18n/translate";
 import { groupToolRuns } from "@/lib/messages/group-tool-runs";
 import type { ChatMessage } from "@/lib/types";
 import { cn, sanitizeText } from "@/lib/utils";

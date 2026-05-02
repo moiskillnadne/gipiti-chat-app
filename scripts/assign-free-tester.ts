@@ -75,7 +75,7 @@ async function main() {
         .insert(subscriptionPlan)
         .values({
           name: testerTier.name,
-          displayName: testerTier.displayName.en,
+          displayName: testerTier.displayName,
           billingPeriod: testerTier.billingPeriod,
           billingPeriodCount: testerTier.billingPeriodCount,
           tokenQuota: testerTier.tokenQuota,

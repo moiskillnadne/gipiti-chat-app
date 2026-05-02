@@ -2,8 +2,6 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import { Geist_Mono, Rubik } from "next/font/google";
-import { NextIntlClientProvider } from "next-intl";
-import { getLocale, getMessages } from "next-intl/server";
 import { Toaster } from "sonner";
 import { ErrorLogger } from "@/components/error-logger";
 import { UtmCapture } from "@/components/utm-capture";
@@ -79,18 +77,15 @@ const geistMono = Geist_Mono({
 
 const PAPER_THEME_COLOR = "#fafaf9";
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const locale = await getLocale();
-  const messages = await getMessages();
-
   return (
     <html
       className={`${rubik.variable} ${geistMono.variable} scroll-smooth`}
-      lang={locale}
+      lang="ru"
       suppressHydrationWarning
     >
       <head>
@@ -101,10 +96,8 @@ export default async function RootLayout({
         <ErrorLogger />
         <UtmCapture />
         <SpeedInsights />
-        <NextIntlClientProvider messages={messages}>
-          <Toaster position="top-center" />
-          <SessionProvider>{children}</SessionProvider>
-        </NextIntlClientProvider>
+        <Toaster position="top-center" />
+        <SessionProvider>{children}</SessionProvider>
         <Analytics />
         <YandexMetrika />
       </body>

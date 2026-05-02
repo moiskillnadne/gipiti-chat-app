@@ -2,7 +2,7 @@
 
 import { CheckCircle2Icon, LinkIcon, XCircleIcon } from "lucide-react";
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/lib/i18n/translate";
 import type { UrlExtractResult as UrlExtractResultType } from "@/lib/search/search-types";
 import { extractDomain, faviconUrl } from "@/lib/url";
 

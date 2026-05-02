@@ -2,10 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useReducer, useRef } from "react";
-import type { Locale } from "@/i18n/config";
 import { clientLog } from "@/lib/client-logger";
+import { useTranslations } from "@/lib/i18n/translate";
 import type { CloudPaymentsWidget } from "@/lib/payments/cloudpayments-types";
 import type { PaymentIntentResponse, PaymentStatusResponse } from "@/lib/types";
 import { toast } from "../../../../components/toast";
@@ -45,7 +44,6 @@ export type UsePaymentReturn = {
 export function usePayment(options: UsePaymentOptions): UsePaymentReturn {
   const { isTester, successRedirectUrl = "/chat" } = options;
   const t = useTranslations("auth.subscription");
-  const locale = useLocale() as Locale;
   const router = useRouter();
   const {
     data: session,
@@ -328,13 +326,13 @@ export function usePayment(options: UsePaymentOptions): UsePaymentReturn {
         // Store in localStorage for redirect recovery
         storePaymentSession(intentData.sessionId, intentData.expiresAt, plan);
 
-        const displayName = getPlanDisplayName(plan, locale);
+        const displayName = getPlanDisplayName(plan);
         const currency = getCurrency();
         const amount = getAmount(plan, currency);
         const recurrentConfig = getRecurrentConfig(plan);
         const receipt = buildReceipt(displayName, amount, session.user.email);
         const returnUrl = buildReturnUrl(intentData.sessionId);
-        const widgetOptions = createWidgetOptions(locale, session.user.email);
+        const widgetOptions = createWidgetOptions(session.user.email);
 
         clientLog.info("[Payment] Starting charge", {
           amount,
@@ -408,7 +406,7 @@ export function usePayment(options: UsePaymentOptions): UsePaymentReturn {
         toast({ type: "error", description: t("error") });
       }
     },
-    [session, t, pollPaymentStatus, locale]
+    [session, t, pollPaymentStatus]
   );
 
   const startTrial = useCallback(
@@ -453,7 +451,7 @@ export function usePayment(options: UsePaymentOptions): UsePaymentReturn {
         storePaymentSession(intentData.sessionId, intentData.expiresAt, plan);
 
         const returnUrl = buildReturnUrl(intentData.sessionId);
-        const widgetOptions = createWidgetOptions(locale, session.user.email);
+        const widgetOptions = createWidgetOptions(session.user.email);
 
         const widget: CloudPaymentsWidget = new window.cp.CloudPayments(
           widgetOptions
@@ -511,7 +509,7 @@ export function usePayment(options: UsePaymentOptions): UsePaymentReturn {
         toast({ type: "error", description: t("error") });
       }
     },
-    [session, t, pollPaymentStatus, locale]
+    [session, t, pollPaymentStatus]
   );
 
   const reset = useCallback(() => {

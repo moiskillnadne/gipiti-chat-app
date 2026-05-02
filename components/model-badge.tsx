@@ -1,9 +1,8 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-
 import { Badge } from "@/components/ui/badge";
 import { chatModels, type ModelProvider } from "@/lib/ai/models";
+import { useTranslations } from "@/lib/i18n/translate";
 
 const providerStyles: Record<ModelProvider | "unknown", string> = {
   openai: "bg-emerald-100 text-emerald-800",

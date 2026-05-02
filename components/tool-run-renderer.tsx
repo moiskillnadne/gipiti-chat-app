@@ -1,9 +1,9 @@
 "use client";
 
 import { DownloadIcon } from "lucide-react";
-import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { downloadFromUrl } from "@/lib/download";
+import { useTranslations } from "@/lib/i18n/translate";
 import type { RunGroupPart } from "@/lib/messages/group-tool-runs";
 import type { ChatMessage } from "@/lib/types";
 import { extractDomain, faviconUrl } from "@/lib/url";

@@ -85,7 +85,7 @@ async function main() {
       .insert(subscriptionPlan)
       .values({
         name: unlimTier.name,
-        displayName: unlimTier.displayName.en,
+        displayName: unlimTier.displayName,
         billingPeriod: unlimTier.billingPeriod,
         billingPeriodCount: unlimTier.billingPeriodCount,
         tokenQuota: unlimTier.tokenQuota,

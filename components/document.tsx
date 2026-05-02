@@ -1,9 +1,9 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { memo } from "react";
 import { toast } from "sonner";
 import { useArtifact } from "@/hooks/use-artifact";
+import { useTranslations } from "@/lib/i18n/translate";
 import type { ArtifactKind } from "./artifact";
 import { FileIcon, LoaderIcon, MessageIcon, PencilEditIcon } from "./icons";
 

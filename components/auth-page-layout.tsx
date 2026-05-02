@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
+import { useTranslations } from "@/lib/i18n/translate";
 import { SupportLink } from "./support-link";
 
 type AuthPageLayoutProps = {

@@ -2,7 +2,6 @@
 
 import { format } from "date-fns";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
 import useSWR from "swr";
 import { ModelBadge } from "@/components/model-badge";
@@ -10,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatTokenBalance } from "@/lib/format-tokens";
+import { useTranslations } from "@/lib/i18n/translate";
 import { fetcher } from "@/lib/utils";
 
 type TransactionMetadata = {

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/lib/i18n/translate";
 
 export const Greeting = () => {
   const t = useTranslations("chat.greeting");

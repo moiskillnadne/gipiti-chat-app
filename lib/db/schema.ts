@@ -26,10 +26,6 @@ export const user = pgTable(
     email: varchar("email", { length: 64 }).notNull(),
     password: varchar("password", { length: 64 }),
     currentPlan: varchar("current_plan", { length: 32 }), // No default - new users must subscribe
-    // Temporarily default to Russian - was "en"
-    preferredLanguage: varchar("preferred_language", { length: 8 }).default(
-      "ru"
-    ),
     emailVerified: boolean("email_verified").default(false).notNull(),
     isTester: boolean("is_tester").default(false).notNull(),
     emailVerificationCode: varchar("email_verification_code", { length: 255 }),

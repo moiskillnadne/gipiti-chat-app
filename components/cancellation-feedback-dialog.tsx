@@ -1,6 +1,5 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { useState } from "react";
 import {
   AlertDialog,
@@ -14,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useTranslations } from "@/lib/i18n/translate";
 import {
   CANCELLATION_REASONS,
   type CancellationReasonCode,

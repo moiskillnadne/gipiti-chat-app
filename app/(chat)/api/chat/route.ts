@@ -14,7 +14,6 @@ import {
 } from "ai";
 import { unstable_cache as cache } from "next/cache";
 import { after } from "next/server";
-import { getTranslations } from "next-intl/server";
 import OpenAI from "openai";
 import {
   createResumableStreamContext,
@@ -88,6 +87,7 @@ import {
   updateChatTitle,
 } from "@/lib/db/queries";
 import { ChatSDKError } from "@/lib/errors";
+import { getTranslations } from "@/lib/i18n/translate";
 import type { ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
 import { convertToUIMessages, generateUUID } from "@/lib/utils";

@@ -3,15 +3,14 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useLocale, useTranslations } from "next-intl";
 import { Suspense, useActionState, useEffect, useState } from "react";
-
 import { AuthForm } from "@/components/auth-form";
 import { AuthPageHeader } from "@/components/auth-page-header";
 import { AuthPageLayout } from "@/components/auth-page-layout";
 import { Loader } from "@/components/elements/loader";
 import { SubmitButton } from "@/components/submit-button";
 import { toast } from "@/components/toast";
+import { useTranslations } from "@/lib/i18n/translate";
 import { type RegisterActionState, register } from "../actions";
 
 export default function Page() {
@@ -34,7 +33,6 @@ function RegisterPageFallback() {
 }
 
 function RegisterPage() {
-  const locale = useLocale();
   const t = useTranslations("auth.register");
   const tErrors = useTranslations("auth.errors");
   const tNotifications = useTranslations("common.notifications");
@@ -98,7 +96,6 @@ function RegisterPage() {
     <AuthPageLayout>
       <AuthPageHeader subtitle={t("subtitle")} title={t("title")} />
       <AuthForm action={formAction} mode="register">
-        <input name="locale" type="hidden" value={locale} />
         <SubmitButton isSuccessful={isSuccessful}>
           {t("signUpButton")}
         </SubmitButton>

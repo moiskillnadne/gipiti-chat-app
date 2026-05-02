@@ -6,7 +6,6 @@ import {
   SearchIcon,
   VideoIcon,
 } from "lucide-react";
-import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import useSWR from "swr";
 import {
@@ -18,6 +17,7 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslations } from "@/lib/i18n/translate";
 import { fetcher } from "@/lib/utils";
 
 type UsageLimitItem = {

@@ -1,7 +1,6 @@
 import { compare } from "bcrypt-ts";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { defaultLocale, type Locale } from "@/i18n/config";
 import { getAuthSecret } from "@/lib/auth/secret";
 import { DUMMY_PASSWORD } from "@/lib/constants";
 import { getActiveUserSubscription } from "@/lib/db/queries";
@@ -75,8 +74,6 @@ export const {
           hasActiveSubscription: subscription !== null,
           isTester: user.isTester,
           hasUsedTrial: user.trialUsedAt !== null,
-          preferredLanguage:
-            (user.preferredLanguage as Locale) || defaultLocale,
         };
       },
     }),
@@ -91,8 +88,6 @@ export const {
           false) as boolean;
         token.isTester = (user.isTester ?? false) as boolean;
         token.hasUsedTrial = (user.hasUsedTrial ?? false) as boolean;
-        token.preferredLanguage =
-          (user.preferredLanguage as Locale) || defaultLocale;
       }
 
       // Refresh from database on session update
@@ -117,8 +112,6 @@ export const {
             token.emailVerified = dbUser.emailVerified as boolean;
             token.isTester = dbUser.isTester as boolean;
             token.hasUsedTrial = dbUser.trialUsedAt !== null;
-            token.preferredLanguage =
-              (dbUser.preferredLanguage as Locale) || defaultLocale;
           }
         }
 
@@ -149,8 +142,6 @@ export const {
         session.user.hasActiveSubscription = token.hasActiveSubscription;
         session.user.isTester = token.isTester;
         session.user.hasUsedTrial = token.hasUsedTrial;
-        session.user.preferredLanguage =
-          token.preferredLanguage || defaultLocale;
         console.log("Session callback - emailVerified:", token.emailVerified);
       }
 

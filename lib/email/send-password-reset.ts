@@ -8,43 +8,35 @@ import {
 type SendPasswordResetEmailParams = {
   email: string;
   resetToken: string;
-  locale: string;
 };
 
 /**
  * Send password reset email with reset link
- * @param params Email address, reset token, and locale
+ * @param params Email address and reset token
  * @returns Resend API response
  */
 export async function sendPasswordResetEmail({
   email,
   resetToken,
-  locale = "en",
 }: SendPasswordResetEmailParams): Promise<{
   success: boolean;
   error?: string;
 }> {
   try {
-    // Construct reset URL
     const resetUrl = `${emailConfig.appUrl}/reset-password?token=${resetToken}`;
 
-    // Get localized subject
-    const subject = getPasswordResetEmailSubject(locale);
+    const subject = getPasswordResetEmailSubject();
 
-    // Generate email HTML and text
     const html = getPasswordResetEmailHtml({
       resetUrl,
       email,
-      locale,
     });
 
     const text = getPasswordResetEmailText({
       resetUrl,
       email,
-      locale,
     });
 
-    // Send email via Resend
     const response = await resend.emails.send({
       from: emailConfig.from,
       to: email,

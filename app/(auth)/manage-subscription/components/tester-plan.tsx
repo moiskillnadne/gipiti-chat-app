@@ -1,8 +1,7 @@
 "use client";
 
-import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import type { Locale } from "@/i18n/config";
+import { useTranslations } from "@/lib/i18n/translate";
 import { formatPrice } from "../utils/payment-utils";
 
 type TesterPlanProps = {
@@ -19,8 +18,7 @@ export function TesterPlan({
   trialDays = 3,
 }: TesterPlanProps) {
   const t = useTranslations("auth.subscription");
-  const locale = useLocale() as Locale;
-  const formattedPrice = formatPrice("tester_paid", locale);
+  const formattedPrice = formatPrice("tester_paid");
 
   return (
     <div className="mx-auto max-w-md">

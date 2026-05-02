@@ -1,8 +1,8 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { useProject } from "@/contexts/project-context";
 import type { Project } from "@/lib/db/schema";
+import { useTranslations } from "@/lib/i18n/translate";
 
 import { EntityManager, type EntityManagerLabels } from "./entity-manager";
 import { FolderIcon } from "./icons";
