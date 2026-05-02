@@ -27,48 +27,58 @@ const isRunPart = (part: ChatMessagePart): boolean => {
   return part.type.startsWith(TOOL_PART_TYPE_PREFIX);
 };
 
+const isEmptyReasoning = (part: ChatMessagePart): boolean =>
+  part.type === "reasoning" && !part.text?.trim();
+
 /**
- * Walks an assistant message's parts and bundles consecutive reasoning + tool
- * parts into `run-group` synthetic parts. Empty reasoning parts are dropped
- * (matching the existing filter in `components/message.tsx`). All other parts
- * (text, file, data-*) pass through unchanged in their original order.
+ * Walks an assistant message's parts and bundles ALL reasoning + tool parts
+ * into a single `run-group` synthetic part, regardless of any text/file/data-*
+ * parts interleaved between them. The combined group is inserted at the
+ * position of the first tool/reasoning part; subsequent run parts are absorbed
+ * into that same group. All other parts (text, file, data-*) pass through in
+ * their original order. Empty reasoning parts are dropped.
  */
 export const groupToolRuns = (
   parts: ChatMessage["parts"]
 ): GroupedMessagePart[] => {
-  const result: GroupedMessagePart[] = [];
-  let currentGroup: ChatMessagePart[] | null = null;
-  let groupIndex = 0;
+  const runParts: ChatMessagePart[] = [];
+  let firstRunIndex = -1;
 
-  const flush = () => {
-    if (currentGroup && currentGroup.length > 0) {
-      result.push({
-        type: "run-group",
-        key: `run-group-${groupIndex}`,
-        parts: currentGroup,
-      });
-      groupIndex += 1;
+  parts.forEach((part, index) => {
+    if (isEmptyReasoning(part)) {
+      return;
     }
-    currentGroup = null;
-  };
-
-  for (const part of parts) {
-    if (part.type === "reasoning" && !part.text?.trim()) {
-      continue;
-    }
-
     if (isRunPart(part)) {
-      if (!currentGroup) {
-        currentGroup = [];
+      if (firstRunIndex === -1) {
+        firstRunIndex = index;
       }
-      currentGroup.push(part);
-      continue;
+      runParts.push(part);
     }
+  });
 
-    flush();
-    result.push(part);
+  if (runParts.length === 0) {
+    return parts.filter((part) => !isEmptyReasoning(part));
   }
 
-  flush();
+  const group: RunGroupPart = {
+    type: "run-group",
+    key: "run-group-0",
+    parts: runParts,
+  };
+
+  const result: GroupedMessagePart[] = [];
+  parts.forEach((part, index) => {
+    if (isEmptyReasoning(part)) {
+      return;
+    }
+    if (isRunPart(part)) {
+      if (index === firstRunIndex) {
+        result.push(group);
+      }
+      return;
+    }
+    result.push(part);
+  });
+
   return result;
 };
