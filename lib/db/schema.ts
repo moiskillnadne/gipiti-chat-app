@@ -804,8 +804,12 @@ export const textStyle = pgTable(
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
     name: varchar("name", { length: 128 }).notNull(),
+    description: varchar("description", { length: 280 }),
+    swatch: varchar("swatch", { length: 16 }),
     examples: jsonb("examples").$type<string[]>().notNull(),
     isDefault: boolean("is_default").default(false).notNull(),
+    pinned: boolean("pinned").default(false).notNull(),
+    usageCount: integer("usage_count").default(0).notNull(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
@@ -828,8 +832,12 @@ export const project = pgTable(
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
     name: varchar("name", { length: 128 }).notNull(),
+    description: varchar("description", { length: 280 }),
+    swatch: varchar("swatch", { length: 16 }),
     contextEntries: jsonb("context_entries").$type<string[]>().notNull(),
     isDefault: boolean("is_default").default(false).notNull(),
+    pinned: boolean("pinned").default(false).notNull(),
+    usageCount: integer("usage_count").default(0).notNull(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
@@ -839,3 +847,31 @@ export const project = pgTable(
 );
 
 export type Project = InferSelectModel<typeof project>;
+
+// ============================================================================
+// PROJECT FILE TABLE
+// ============================================================================
+
+export const projectFile = pgTable(
+  "ProjectFile",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => project.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    name: varchar("name", { length: 256 }).notNull(),
+    size: integer("size").notNull(),
+    mimeType: varchar("mime_type", { length: 128 }).notNull(),
+    blobUrl: text("blob_url").notNull(),
+    pathname: text("pathname").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    projectIdIdx: index("project_file_project_id_idx").on(table.projectId),
+  })
+);
+
+export type ProjectFile = InferSelectModel<typeof projectFile>;

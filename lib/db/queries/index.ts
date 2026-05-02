@@ -36,10 +36,15 @@ export {
 } from "./document-queries";
 export {
   createProject,
+  createProjectFile,
   deleteProject,
+  deleteProjectFileRecord,
   getDefaultProject,
   getProjectById,
+  getProjectFileById,
+  getProjectFiles,
   getProjectsByUserId,
+  incrementProjectUsage,
   updateProject,
 } from "./project-queries";
 export {
@@ -57,6 +62,7 @@ export {
   getDefaultTextStyle,
   getTextStyleById,
   getTextStylesByUserId,
+  incrementTextStyleUsage,
   updateTextStyle,
 } from "./text-style-queries";
 export {

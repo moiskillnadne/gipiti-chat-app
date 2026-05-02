@@ -8,8 +8,12 @@ import {
 } from "@/lib/db/queries";
 import { ChatSDKError } from "@/lib/errors";
 
+const SWATCH_VALUES = ["sw1", "sw2", "sw3", "sw4", "sw5", "sw6"] as const;
+
 const createSchema = z.object({
   name: z.string().min(1).max(128),
+  description: z.string().max(280).nullable().optional(),
+  swatch: z.enum(SWATCH_VALUES).nullable().optional(),
   contextEntries: z.array(z.string().min(1).max(2000)).max(20).optional(),
   isDefault: z.boolean().optional(),
 });
@@ -17,8 +21,11 @@ const createSchema = z.object({
 const updateSchema = z.object({
   id: z.string().uuid(),
   name: z.string().min(1).max(128).optional(),
+  description: z.string().max(280).nullable().optional(),
+  swatch: z.enum(SWATCH_VALUES).nullable().optional(),
   contextEntries: z.array(z.string().min(1).max(2000)).max(20).optional(),
   isDefault: z.boolean().optional(),
+  pinned: z.boolean().optional(),
 });
 
 export async function GET() {
@@ -41,11 +48,14 @@ export async function POST(request: Request) {
 
   try {
     const json = await request.json();
-    const { name, contextEntries, isDefault } = createSchema.parse(json);
+    const { name, description, swatch, contextEntries, isDefault } =
+      createSchema.parse(json);
 
     const created = await createProject({
       userId: session.user.id,
       name,
+      description,
+      swatch,
       contextEntries: contextEntries ?? [],
       isDefault,
     });
@@ -71,14 +81,18 @@ export async function PATCH(request: Request) {
 
   try {
     const json = await request.json();
-    const { id, name, contextEntries, isDefault } = updateSchema.parse(json);
+    const { id, name, description, swatch, contextEntries, isDefault, pinned } =
+      updateSchema.parse(json);
 
     const updated = await updateProject({
       id,
       userId: session.user.id,
       name,
+      description,
+      swatch,
       contextEntries,
       isDefault,
+      pinned,
     });
 
     return Response.json(updated);

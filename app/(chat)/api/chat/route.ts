@@ -78,6 +78,8 @@ import {
   getMessagesByChatId,
   getProjectById,
   getTextStyleById,
+  incrementProjectUsage,
+  incrementTextStyleUsage,
   insertImageGenerationUsageLog,
   insertVideoGenerationUsageLog,
   saveChat,
@@ -443,6 +445,35 @@ export async function POST(request: Request) {
           videoQuotaCheck.reason
         ).toResponse();
       }
+    }
+
+    // Fire-and-forget usage increment for the active style / project.
+    // Runs once per chat message that reaches the inference path.
+    if (textStyleRow && textStyleRow.userId === session.user.id) {
+      const styleIdToIncrement = textStyleRow.id;
+      after(async () => {
+        try {
+          await incrementTextStyleUsage({
+            id: styleIdToIncrement,
+            userId: session.user.id,
+          });
+        } catch (error) {
+          console.error("Background style usage increment failed:", error);
+        }
+      });
+    }
+    if (projectRow && projectRow.userId === session.user.id) {
+      const projectIdToIncrement = projectRow.id;
+      after(async () => {
+        try {
+          await incrementProjectUsage({
+            id: projectIdToIncrement,
+            userId: session.user.id,
+          });
+        } catch (error) {
+          console.error("Background project usage increment failed:", error);
+        }
+      });
     }
 
     let finalMergedUsage: AppUsage | undefined;
