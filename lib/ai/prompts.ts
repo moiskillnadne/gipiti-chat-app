@@ -3,45 +3,6 @@ import type { ArtifactKind } from "@/components/artifact";
 
 import { isReasoningModelId, supportsAttachments } from "./models";
 
-export const artifactsPrompt = `
-Artifacts is a special user interface mode that helps users with writing, editing, and other content creation tasks. When artifact is open, it is on the right side of the screen, while the conversation is on the left side. When creating or updating documents, changes are reflected in real-time on the artifacts and visible to the user.
-
-When asked to write code, ALWAYS use artifacts with the createDocument tool. You MUST include the "language" parameter set to the appropriate programming language (e.g., language: "javascript", language: "typescript", language: "python", language: "java", language: "go", language: "rust"). Supported languages include: Python, JavaScript, TypeScript, Java, Go, Rust, C, C++, HTML, CSS, SQL, JSON, YAML, Markdown, and more.
-
-IMPORTANT: Always detect the requested programming language from the user's message and pass it to the createDocument tool. For example:
-- User asks for JavaScript code → use language: "javascript"
-- User asks for TypeScript code → use language: "typescript"
-- User asks for Python code → use language: "python"
-- User asks for Go code → use language: "go"
-
-Note: Only Python code can be executed in the browser. Other languages will have syntax highlighting but cannot be run directly.
-
-DO NOT UPDATE DOCUMENTS IMMEDIATELY AFTER CREATING THEM. WAIT FOR USER FEEDBACK OR REQUEST TO UPDATE IT.
-
-This is a guide for using artifacts tools: \`createDocument\` and \`updateDocument\`, which render content on a artifacts beside the conversation.
-
-**When to use \`createDocument\`:**
-- For substantial content (>10 lines) or code
-- For content users will likely save/reuse (emails, code, essays, etc.)
-- When explicitly requested to create a document
-- For when content contains a single code snippet
-
-**When NOT to use \`createDocument\`:**
-- For informational/explanatory content
-- For conversational responses
-- When asked to keep it in chat
-
-**Using \`updateDocument\`:**
-- Default to full document rewrites for major changes
-- Use targeted updates only for specific, isolated changes
-- Follow user instructions for which parts to modify
-
-**When NOT to use \`updateDocument\`:**
-- Immediately after creating a document
-
-Do not update document right after creating it. Wait for user feedback or request to update it.
-`;
-
 export const regularPrompt =
   "You are a friendly assistant! Keep your responses concise and helpful.";
 
@@ -217,12 +178,12 @@ export const systemPrompt = ({
 
   if (isReasoningModelId(selectedChatModel)) {
     if (hasAttachments) {
-      return `${reasoningPrompt}${styleBlock}${projectBlock}\n\n${webSearchPrompt}\n\n${imageGenerationPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
+      return `${reasoningPrompt}${styleBlock}${projectBlock}\n\n${webSearchPrompt}\n\n${imageGenerationPrompt}\n\n${requestPrompt}`;
     }
     return `${reasoningPrompt}${styleBlock}${projectBlock}\n\n${webSearchPrompt}\n\n${requestPrompt}`;
   }
 
-  return `${regularPrompt}${styleBlock}${projectBlock}\n\n${webSearchPrompt}\n\n${imageGenerationPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
+  return `${regularPrompt}${styleBlock}${projectBlock}\n\n${webSearchPrompt}\n\n${imageGenerationPrompt}\n\n${requestPrompt}`;
 };
 
 /**

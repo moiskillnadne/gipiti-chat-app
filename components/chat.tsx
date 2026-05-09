@@ -22,7 +22,6 @@ import { Progress } from "@/components/ui/progress";
 import { useModel, useModelRefs } from "@/contexts/model-context";
 import { useProjectRef } from "@/contexts/project-context";
 import { useStyleRef } from "@/contexts/style-context";
-import { useArtifactSelector } from "@/hooks/use-artifact";
 import { useAutoResume } from "@/hooks/use-auto-resume";
 import type { Vote } from "@/lib/db/schema";
 import { ChatSDKError } from "@/lib/errors";
@@ -35,7 +34,6 @@ import {
   generateUUID,
   parseQuotaInfo,
 } from "@/lib/utils";
-import { Artifact } from "./artifact";
 import { useDataStream } from "./data-stream-provider";
 import { Messages } from "./messages";
 import { MultimodalInput } from "./multimodal-input";
@@ -229,7 +227,6 @@ export function Chat({
   );
 
   const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
 
   useAutoResume({
     autoResume,
@@ -245,7 +242,6 @@ export function Chat({
 
         <Messages
           chatId={id}
-          isArtifactVisible={isArtifactVisible}
           isReadonly={isReadonly}
           messages={messages}
           regenerate={regenerate}
@@ -271,22 +267,6 @@ export function Chat({
           )}
         </div>
       </div>
-
-      <Artifact
-        attachments={attachments}
-        chatId={id}
-        input={input}
-        isReadonly={isReadonly}
-        messages={messages}
-        regenerate={regenerate}
-        sendMessage={sendMessage}
-        setAttachments={setAttachments}
-        setInput={setInput}
-        setMessages={setMessages}
-        status={status}
-        stop={stop}
-        votes={votes}
-      />
 
       <AlertDialog
         onOpenChange={setShowCreditCardAlert}

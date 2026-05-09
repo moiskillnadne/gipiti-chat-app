@@ -20,7 +20,6 @@ type MessagesProps = {
   setMessages: UseChatHelpers<ChatMessage>["setMessages"];
   regenerate: UseChatHelpers<ChatMessage>["regenerate"];
   isReadonly: boolean;
-  isArtifactVisible: boolean;
 };
 
 function PureMessages({
@@ -136,10 +135,6 @@ function PureMessages({
 }
 
 export const Messages = memo(PureMessages, (prevProps, nextProps) => {
-  if (prevProps.isArtifactVisible && nextProps.isArtifactVisible) {
-    return true;
-  }
-
   if (prevProps.status !== nextProps.status) {
     return false;
   }

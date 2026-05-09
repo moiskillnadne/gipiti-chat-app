@@ -135,7 +135,6 @@ const PurePreviewMessage = ({
                   group={part}
                   isLastAssistantMessage={isLastAssistantMessage}
                   isMessageLoading={isLoading}
-                  isReadonly={isReadonly}
                   key={part.key}
                 />
               );
