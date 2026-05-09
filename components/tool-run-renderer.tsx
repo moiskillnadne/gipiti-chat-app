@@ -7,8 +7,6 @@ import { useTranslations } from "@/lib/i18n/translate";
 import type { RunGroupPart } from "@/lib/messages/group-tool-runs";
 import type { ChatMessage } from "@/lib/types";
 import { extractDomain, faviconUrl } from "@/lib/url";
-import { DocumentToolResult } from "./document";
-import { DocumentPreview } from "./document-preview";
 import { Response } from "./elements/response";
 import {
   EarlierStepsToggle,
@@ -33,7 +31,6 @@ type ToolRunRendererProps = {
   group: RunGroupPart;
   isMessageLoading: boolean;
   isLastAssistantMessage: boolean;
-  isReadonly: boolean;
 };
 
 type StepDescriptor = {
@@ -220,7 +217,6 @@ type BuildStepArgs = {
   index: number;
   isLastInGroup: boolean;
   isMessageStreaming: boolean;
-  isReadonly: boolean;
 };
 
 const buildStep = ({
@@ -228,7 +224,6 @@ const buildStep = ({
   index,
   isLastInGroup,
   isMessageStreaming,
-  isReadonly,
 }: BuildStepArgs): StepDescriptor | null => {
   const key = `${part.type}-${index}`;
 
@@ -369,19 +364,13 @@ const buildStep = ({
         verbKey: "createdDocument",
         body: (
           <>
-            {title && <span className="text-ink">{`"${title}"`}</span>}
+            {title && (
+              <span className="text-muted-foreground">{`"${title}"`}</span>
+            )}
             {hasError && (
               <span className="text-destructive">
                 {String(toolPart.output.error)}
               </span>
-            )}
-            {state === "output-available" && !hasError && (
-              <StepBody>
-                <DocumentPreview
-                  isReadonly={isReadonly}
-                  result={toolPart.output}
-                />
-              </StepBody>
             )}
           </>
         ),
@@ -398,24 +387,13 @@ const buildStep = ({
         verbKey: "updatedDocument",
         body: (
           <>
-            {title && <span className="text-ink">{`"${title}"`}</span>}
+            {title && (
+              <span className="text-muted-foreground">{`"${title}"`}</span>
+            )}
             {hasError && (
               <span className="text-destructive">
                 {String(toolPart.output.error)}
               </span>
-            )}
-            {state === "output-available" && !hasError && toolPart.output && (
-              <StepBody>
-                <DocumentToolResult
-                  isReadonly={isReadonly}
-                  result={{
-                    id: toolPart.output.id,
-                    title: toolPart.output.title,
-                    kind: toolPart.output.kind,
-                  }}
-                  type="update"
-                />
-              </StepBody>
             )}
           </>
         ),
@@ -432,20 +410,13 @@ const buildStep = ({
         verbKey: "requestedSuggestions",
         body: (
           <>
-            {docTitle && <span className="text-ink">{`"${docTitle}"`}</span>}
+            {docTitle && (
+              <span className="text-muted-foreground">{`"${docTitle}"`}</span>
+            )}
             {hasError && (
               <span className="text-destructive">
                 {String(toolPart.output.error)}
               </span>
-            )}
-            {state === "output-available" && !hasError && toolPart.output && (
-              <StepBody>
-                <DocumentToolResult
-                  isReadonly={isReadonly}
-                  result={toolPart.output}
-                  type="request-suggestions"
-                />
-              </StepBody>
             )}
           </>
         ),
@@ -488,7 +459,6 @@ export const ToolRunRenderer = ({
   group,
   isMessageLoading,
   isLastAssistantMessage,
-  isReadonly,
 }: ToolRunRendererProps) => {
   const tVerb = useTranslations("chat.tools.run.verb");
   const tRun = useTranslations("chat.tools.run");
@@ -541,14 +511,13 @@ export const ToolRunRenderer = ({
         index: i,
         isLastInGroup: i === group.parts.length - 1,
         isMessageStreaming,
-        isReadonly,
       });
       if (step) {
         result.push(step);
       }
     }
     return result;
-  }, [group.parts, isMessageStreaming, isReadonly]);
+  }, [group.parts, isMessageStreaming]);
 
   const totalSources = useMemo(() => {
     const seen = new Set<string>();

@@ -61,11 +61,8 @@ import { generateRecraftImage, isRecraftModel } from "@/lib/ai/recraft-client";
 import { calculateOptimalStepLimit } from "@/lib/ai/step-calculator";
 import { checkTokenQuota, recordTokenUsage } from "@/lib/ai/token-quota";
 import { calculator } from "@/lib/ai/tools/calculator";
-import { createDocument } from "@/lib/ai/tools/create-document";
 import { extractUrl } from "@/lib/ai/tools/extract-url";
 import { getWeather } from "@/lib/ai/tools/get-weather";
-import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
-import { updateDocument } from "@/lib/ai/tools/update-document";
 import { webSearch } from "@/lib/ai/tools/web-search";
 import { checkVideoGenerationQuota } from "@/lib/ai/video-generation-quota";
 import { isProductionEnvironment } from "@/lib/constants";
@@ -478,14 +475,6 @@ export async function POST(request: Request) {
 
     let finalMergedUsage: AppUsage | undefined;
     const imageUsageAccumulator = createImageUsageAccumulator();
-    const artifactTokens = { inputTokens: 0, outputTokens: 0 };
-    const addArtifactUsage = (usage: {
-      inputTokens: number;
-      outputTokens: number;
-    }) => {
-      artifactTokens.inputTokens += usage.inputTokens;
-      artifactTokens.outputTokens += usage.outputTokens;
-    };
 
     const providerOptions = getProviderOptions(
       selectedChatModel,
@@ -1217,14 +1206,10 @@ export async function POST(request: Request) {
               : [
                   "calculator",
                   "getWeather",
-                  "createDocument",
-                  "updateDocument",
-                  "requestSuggestions",
                   "webSearch",
                   "extractUrl",
                   "generateImage",
                 ],
-          experimental_transform: smoothStream({ chunking: "word" }),
           prepareStep: ({ steps, stepNumber, messages }) => {
             // On second-to-last step, disable tools and add completion reminder
             if (stepNumber >= optimalStepLimit - 1) {
@@ -1252,24 +1237,6 @@ export async function POST(request: Request) {
           tools: {
             calculator,
             getWeather,
-            createDocument: createDocument({
-              session,
-              dataStream,
-              modelId: selectedChatModel,
-              onUsage: addArtifactUsage,
-            }),
-            updateDocument: updateDocument({
-              session,
-              dataStream,
-              modelId: selectedChatModel,
-              onUsage: addArtifactUsage,
-            }),
-            requestSuggestions: requestSuggestions({
-              session,
-              dataStream,
-              modelId: selectedChatModel,
-              onUsage: addArtifactUsage,
-            }),
             webSearch: webSearch({ session, chatId: id }),
             extractUrl: extractUrl({ session, chatId: id }),
             generateImage: generateImage({
@@ -1293,12 +1260,10 @@ export async function POST(request: Request) {
                   ...usage,
                   inputTokens:
                     (usage.inputTokens ?? 0) +
-                    imageUsageAccumulator.totalInputTokens +
-                    artifactTokens.inputTokens,
+                    imageUsageAccumulator.totalInputTokens,
                   outputTokens:
                     (usage.outputTokens ?? 0) +
-                    imageUsageAccumulator.totalOutputTokens +
-                    artifactTokens.outputTokens,
+                    imageUsageAccumulator.totalOutputTokens,
                 };
                 dataStream.write({
                   type: "data-usage",
@@ -1312,12 +1277,10 @@ export async function POST(request: Request) {
                   ...usage,
                   inputTokens:
                     (usage.inputTokens ?? 0) +
-                    imageUsageAccumulator.totalInputTokens +
-                    artifactTokens.inputTokens,
+                    imageUsageAccumulator.totalInputTokens,
                   outputTokens:
                     (usage.outputTokens ?? 0) +
-                    imageUsageAccumulator.totalOutputTokens +
-                    artifactTokens.outputTokens,
+                    imageUsageAccumulator.totalOutputTokens,
                 };
                 dataStream.write({
                   type: "data-usage",
@@ -1336,12 +1299,10 @@ export async function POST(request: Request) {
                 modelId,
                 inputTokens:
                   (usage.inputTokens ?? 0) +
-                  imageUsageAccumulator.totalInputTokens +
-                  artifactTokens.inputTokens,
+                  imageUsageAccumulator.totalInputTokens,
                 outputTokens:
                   (usage.outputTokens ?? 0) +
-                  imageUsageAccumulator.totalOutputTokens +
-                  artifactTokens.outputTokens,
+                  imageUsageAccumulator.totalOutputTokens,
                 inputCost: baseCost + imageUsageAccumulator.totalCost,
               } as AppUsage;
               dataStream.write({
@@ -1366,12 +1327,10 @@ export async function POST(request: Request) {
                 ...usage,
                 inputTokens:
                   (usage.inputTokens ?? 0) +
-                  imageUsageAccumulator.totalInputTokens +
-                  artifactTokens.inputTokens,
+                  imageUsageAccumulator.totalInputTokens,
                 outputTokens:
                   (usage.outputTokens ?? 0) +
-                  imageUsageAccumulator.totalOutputTokens +
-                  artifactTokens.outputTokens,
+                  imageUsageAccumulator.totalOutputTokens,
               };
               dataStream.write({
                 type: "data-usage",
