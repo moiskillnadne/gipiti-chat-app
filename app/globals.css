@@ -254,6 +254,38 @@
   .prose a:hover {
     text-decoration-color: var(--citrus);
   }
+
+  /* Chat message link styling (Streamdown-rendered <a> inside MessageContent) */
+  [data-testid="message-content"] a {
+    color: var(--citrus);
+    text-decoration: underline;
+    text-decoration-color: color-mix(in oklab, var(--citrus) 40%, transparent);
+    text-underline-offset: 2px;
+    transition:
+      color var(--d-fast) var(--ease-canon),
+      text-decoration-color var(--d-fast) var(--ease-canon);
+  }
+  [data-testid="message-content"] a:hover {
+    color: var(--citrus-strong, var(--citrus));
+    text-decoration-color: currentcolor;
+  }
+}
+
+/* User bubble sits on dark bg-ink; tint Streamdown-rendered links so
+   they don't blend into the bubble. Scoped via the `data-role="user"`
+   attribute on the outer message wrapper (`components/message.tsx:78`).
+   Unlayered so it beats Tailwind v4's `text-primary` utility (in
+   @layer utilities) that Streamdown applies to every anchor. */
+[data-role="user"] [data-streamdown="link"] {
+  color: var(--citrus-soft);
+  text-decoration-color: var(--citrus-soft);
+  transition:
+    color var(--d-fast) var(--ease-canon),
+    text-decoration-color var(--d-fast) var(--ease-canon);
+}
+[data-role="user"] [data-streamdown="link"]:hover {
+  color: var(--paper);
+  text-decoration-color: var(--paper);
 }
 
 /* ============================================================
