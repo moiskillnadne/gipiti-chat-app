@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { useModel } from "@/contexts/model-context";
 import { useTranslations } from "@/lib/i18n/translate";
@@ -59,6 +60,10 @@ export function ModelSelector() {
     if (!open) {
       return;
     }
+    const isDesktop = window.matchMedia("(min-width: 768px)").matches;
+    if (!isDesktop) {
+      return;
+    }
     const focusTimer = window.setTimeout(() => {
       searchRef.current?.focus();
     }, 16);
@@ -89,10 +94,28 @@ export function ModelSelector() {
           onClick={() => setOpen((prev) => !prev)}
         />
       </PopoverTrigger>
+      {open && typeof document !== "undefined"
+        ? createPortal(
+            <div
+              aria-hidden="true"
+              className="fade-in fixed inset-0 z-40 animate-in bg-ink/35 backdrop-blur-[2px] duration-base ease-canon md:hidden"
+            />,
+            document.body
+          )
+        : null}
       <PopoverContent
         align="start"
         className="w-[min(420px,calc(100vw-1rem))] overflow-hidden rounded-lg border-rule bg-card p-0 shadow-pop"
         collisionPadding={8}
+        onOpenAutoFocus={(event) => {
+          if (typeof window === "undefined") {
+            return;
+          }
+          const isDesktop = window.matchMedia("(min-width: 768px)").matches;
+          if (!isDesktop) {
+            event.preventDefault();
+          }
+        }}
         sideOffset={8}
       >
         <SearchInput onChange={setQuery} ref={searchRef} value={query} />
