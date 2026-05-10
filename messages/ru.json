@@ -68,6 +68,12 @@
       "enterUrl": "Введите URL..."
     }
   },
+  "accountNav": {
+    "back": "Назад",
+    "account": "Аккаунт",
+    "projects": "Проекты",
+    "styles": "Стили"
+  },
   "auth": {
     "login": {
       "title": "Вход",

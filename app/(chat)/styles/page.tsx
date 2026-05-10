@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { AccountPageTopNav } from "@/components/account-page-top-nav";
 import { StyleManager } from "@/components/style-manager";
 import { auth } from "../../(auth)/auth";
 
@@ -9,5 +10,10 @@ export default async function StylesPage() {
     redirect("/login");
   }
 
-  return <StyleManager />;
+  return (
+    <>
+      <AccountPageTopNav currentLabelKey="styles" />
+      <StyleManager />
+    </>
+  );
 }
