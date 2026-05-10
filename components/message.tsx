@@ -246,7 +246,7 @@ const PurePreviewMessage = ({
                       className={cn({
                         "w-fit break-words rounded-lg rounded-br-xs bg-ink px-4 py-2.5 text-left text-paper shadow-sm":
                           message.role === "user",
-                        "bg-transparent px-0 py-0 text-left":
+                        "overflow-visible bg-transparent px-0 py-0 text-left":
                           message.role === "assistant",
                       })}
                       data-testid="message-content"
