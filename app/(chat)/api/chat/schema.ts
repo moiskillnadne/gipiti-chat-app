@@ -51,6 +51,7 @@ export const postRequestBodySchema = z.object({
   previousGenerationId: z.string().optional(),
   selectedTextStyleId: z.string().uuid().optional(),
   selectedProjectId: z.string().uuid().optional(),
+  webSearchEnabled: z.boolean().optional(),
 });
 
 export type PostRequestBody = z.infer<typeof postRequestBodySchema>;

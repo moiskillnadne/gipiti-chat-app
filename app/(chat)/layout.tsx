@@ -6,6 +6,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { ModelProvider } from "@/contexts/model-context";
 import { ProjectProvider } from "@/contexts/project-context";
 import { StyleProvider } from "@/contexts/style-context";
+import { WebSearchProvider } from "@/contexts/web-search-context";
 import {
   chatModelIds,
   DEFAULT_CHAT_MODEL,
@@ -65,6 +66,9 @@ export default async function Layout({
   const userType = session?.user?.type ?? "regular";
   const textStyleId = cookieStore.get("chat-text-style")?.value ?? null;
   const projectId = cookieStore.get("chat-project")?.value ?? null;
+  const webSearchCookie = cookieStore.get("web-search-enabled")?.value;
+  const initialWebSearchEnabled =
+    webSearchCookie === undefined ? true : webSearchCookie === "1";
 
   return (
     <>
@@ -81,10 +85,12 @@ export default async function Layout({
         >
           <StyleProvider initialStyleId={textStyleId}>
             <ProjectProvider initialProjectId={projectId}>
-              <SidebarProvider defaultOpen={!isCollapsed}>
-                <AppSidebar user={session?.user} />
-                <SidebarInset>{children}</SidebarInset>
-              </SidebarProvider>
+              <WebSearchProvider initialEnabled={initialWebSearchEnabled}>
+                <SidebarProvider defaultOpen={!isCollapsed}>
+                  <AppSidebar user={session?.user} />
+                  <SidebarInset>{children}</SidebarInset>
+                </SidebarProvider>
+              </WebSearchProvider>
             </ProjectProvider>
           </StyleProvider>
         </ModelProvider>

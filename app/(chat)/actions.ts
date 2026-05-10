@@ -43,6 +43,11 @@ export async function saveImageStyleAsCookie(modelId: string, value: string) {
   cookieStore.set(`${IMAGE_STYLE_COOKIE_PREFIX}-${modelId}`, value);
 }
 
+export async function saveWebSearchEnabledAsCookie(enabled: boolean) {
+  const cookieStore = await cookies();
+  cookieStore.set("web-search-enabled", enabled ? "1" : "0");
+}
+
 export async function generateTitleFromUserMessage({
   message,
 }: {
