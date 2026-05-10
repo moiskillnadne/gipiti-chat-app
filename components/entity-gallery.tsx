@@ -357,23 +357,25 @@ export function EntityGallery<T extends GalleryEntity>({
             />
             <Kbd>⌘K</Kbd>
           </div>
-          <FilterChip
-            active={filter === "all"}
-            label={labels.filterAll}
-            onClick={() => setFilter("all")}
-          />
-          <FilterChip
-            active={filter === "pinned"}
-            label={labels.filterPinned}
-            onClick={() => setFilter("pinned")}
-          />
-          <FilterChip
-            active={filter === "recent"}
-            label={labels.filterRecent}
-            onClick={() => setFilter("recent")}
-          />
+          <div className="hidden md:contents">
+            <FilterChip
+              active={filter === "all"}
+              label={labels.filterAll}
+              onClick={() => setFilter("all")}
+            />
+            <FilterChip
+              active={filter === "pinned"}
+              label={labels.filterPinned}
+              onClick={() => setFilter("pinned")}
+            />
+            <FilterChip
+              active={filter === "recent"}
+              label={labels.filterRecent}
+              onClick={() => setFilter("recent")}
+            />
+          </div>
         </div>
-        <div className="ml-auto flex flex-shrink-0 items-center gap-2">
+        <div className="ml-auto hidden flex-shrink-0 items-center gap-2 md:flex">
           <span className="font-mono text-[11px] text-ink-3 uppercase tracking-[0.06em]">
             {labels.sortBy}
           </span>

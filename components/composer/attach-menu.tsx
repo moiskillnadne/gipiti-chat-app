@@ -7,6 +7,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useTranslations } from "@/lib/i18n/translate";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +19,12 @@ const ACCEPT_BY_KIND: Record<AttachAccept, string> = {
   code: "text/plain,.md,.ts,.tsx,.js,.jsx,.json,.css,.html",
 };
 
+const MOBILE_COMBINED_ACCEPT = [
+  ACCEPT_BY_KIND.image,
+  ACCEPT_BY_KIND.document,
+  ACCEPT_BY_KIND.code,
+].join(",");
+
 type AttachMenuProps = {
   disabled?: boolean;
   onPick: (accept: string) => void;
@@ -25,6 +32,7 @@ type AttachMenuProps = {
 
 export function AttachMenu({ disabled, onPick }: AttachMenuProps) {
   const tInput = useTranslations("chat.input");
+  const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
 
   const items: {
@@ -53,6 +61,25 @@ export function AttachMenu({ disabled, onPick }: AttachMenuProps) {
       desc: tInput("attachCodeDesc"),
     },
   ];
+
+  if (isMobile) {
+    return (
+      <button
+        aria-label={tInput("attachFile")}
+        className={cn(
+          "inline-flex size-8 items-center justify-center rounded-pill border border-transparent text-ink-2 transition-colors duration-fast ease-canon",
+          "hover:bg-paper-2 hover:text-ink",
+          "disabled:cursor-not-allowed disabled:opacity-50"
+        )}
+        data-testid="attachments-button"
+        disabled={disabled}
+        onClick={() => onPick(MOBILE_COMBINED_ACCEPT)}
+        type="button"
+      >
+        <Paperclip className="size-3.5" strokeWidth={1.6} />
+      </button>
+    );
+  }
 
   return (
     <Popover onOpenChange={setOpen} open={open}>

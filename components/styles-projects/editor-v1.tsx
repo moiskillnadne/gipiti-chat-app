@@ -93,7 +93,7 @@ export function EditorV1(props: EditorV1Props) {
   );
   const [items, setItems] = useState<string[]>(initialItems);
   const [pinned, setPinned] = useState(props.initialEntity.pinned);
-  const [isDefault, setIsDefault] = useState(props.initialEntity.isDefault);
+  const isDefault = props.initialEntity.isDefault;
   const [usageCount] = useState(props.initialEntity.usageCount);
   const [createdAt] = useState(new Date(props.initialEntity.createdAt));
 
@@ -669,25 +669,6 @@ export function EditorV1(props: EditorV1Props) {
                 type="button"
               />
             </div>
-            {!isProject && (
-              <div className="editor-v1-toggle-row">
-                <div className="editor-v1-toggle-lhs">
-                  <b>{tShared("settings.defaultTitle")}</b>
-                  <span>{tShared("settings.defaultHelp")}</span>
-                </div>
-                <button
-                  aria-label={tStyles("setAsDefault")}
-                  aria-pressed={isDefault}
-                  className={`editor-v1-switch ${isDefault ? "on" : ""}`}
-                  onClick={() => {
-                    const next = !isDefault;
-                    setIsDefault(next);
-                    persistField("isDefault", next);
-                  }}
-                  type="button"
-                />
-              </div>
-            )}
           </section>
         </div>
       </div>

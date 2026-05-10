@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { AccountPageTopNav } from "@/components/account-page-top-nav";
 import { ProjectManager } from "@/components/project-manager";
 import { auth } from "../../(auth)/auth";
 
@@ -9,5 +10,10 @@ export default async function ProjectsPage() {
     redirect("/login");
   }
 
-  return <ProjectManager />;
+  return (
+    <>
+      <AccountPageTopNav currentLabelKey="projects" />
+      <ProjectManager />
+    </>
+  );
 }
