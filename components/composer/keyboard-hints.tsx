@@ -17,14 +17,14 @@ export function KeyboardHints({ className }: KeyboardHintsProps) {
       )}
     >
       <kbd className="rounded-xs border border-rule bg-paper-2 px-1.5 py-px text-ink-2">
-        ⇧
-      </kbd>
-      <span className="px-0.5">+</span>
-      <kbd className="rounded-xs border border-rule bg-paper-2 px-1.5 py-px text-ink-2">
         ↵
       </kbd>
       <span>{tInput("kbdHintSend")}</span>
       <span className="px-1 text-ink-4">·</span>
+      <kbd className="rounded-xs border border-rule bg-paper-2 px-1.5 py-px text-ink-2">
+        ⇧
+      </kbd>
+      <span className="px-0.5">+</span>
       <kbd className="rounded-xs border border-rule bg-paper-2 px-1.5 py-px text-ink-2">
         ↵
       </kbd>
