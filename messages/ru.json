@@ -615,6 +615,7 @@
       "attachCodeDesc": "TXT · MD · TS · JS · JSON",
       "kbdHintSend": "отправить",
       "kbdHintNewLine": "новая строка",
+      "kbdHintModelSelector": "выбор модели",
       "searchStyles": "Поиск стилей...",
       "searchProjects": "Поиск проектов...",
       "newStyle": "Новый стиль",
@@ -1137,6 +1138,47 @@
       "xai": "X.AI",
       "bfl": "Black Forest Labs",
       "recraft": "Recraft"
+    },
+    "search": {
+      "placeholder": "Поиск моделей…",
+      "esc": "esc"
+    },
+    "group": {
+      "label": "Группировать",
+      "provider": "Провайдер",
+      "capability": "Возможность"
+    },
+    "capability": {
+      "all": "Все",
+      "text": "Текст",
+      "code": "Код",
+      "image": "Изображение",
+      "video": "Видео"
+    },
+    "speed": {
+      "slow": "Медленная",
+      "reasoning": "Рассуждение",
+      "fast": "Быстрая",
+      "instant": "Мгновенная"
+    },
+    "footer": {
+      "navigate": "Навигация",
+      "select": "Выбрать",
+      "close": "Закрыть",
+      "count": "{count, plural, one {# модель} few {# модели} many {# моделей} other {# моделей}}"
+    },
+    "empty": {
+      "title": "Нет подходящих моделей",
+      "hint": "сбросьте фильтры"
+    },
+    "groupBucket": {
+      "video": "Видео",
+      "image": "Изображение",
+      "code": "Код",
+      "text": "Текст"
+    },
+    "trigger": {
+      "open": "Выбрать модель"
     },
     "grokVision": {
       "name": "Grok Vision",

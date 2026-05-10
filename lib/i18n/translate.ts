@@ -2,7 +2,7 @@ import { messages } from "./dictionary";
 
 type TranslationParams = Record<string, string | number>;
 
-type TranslateFn = (key: string, params?: TranslationParams) => string;
+export type TranslateFn = (key: string, params?: TranslationParams) => string;
 
 const pluralRules = new Intl.PluralRules("ru");
 

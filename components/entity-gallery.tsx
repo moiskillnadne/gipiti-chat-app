@@ -290,9 +290,6 @@ export function EntityGallery<T extends GalleryEntity>({
           </div>
           <h1 className="font-light text-[26px] text-ink leading-[1.1] tracking-[-0.02em]">
             {labels.title}{" "}
-            <em className="font-extralight text-ink-2 italic">
-              {labels.headlineEm}
-            </em>
           </h1>
           <p className="mt-1 max-w-[520px] text-[13px] text-ink-3">
             {labels.description}

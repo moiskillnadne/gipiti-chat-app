@@ -8,7 +8,6 @@ import {
   experimental_generateVideo as generateVideo,
   JsonToSseTransformStream,
   generateImage as sdkGenerateImage,
-  smoothStream,
   stepCountIs,
   streamText,
 } from "ai";
