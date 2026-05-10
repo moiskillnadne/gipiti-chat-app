@@ -201,6 +201,7 @@ export async function POST(request: Request) {
       imageGenSetting: rawImageGenSetting,
       selectedTextStyleId,
       selectedProjectId,
+      webSearchEnabled = true,
     } = requestBody;
 
     // Transform hidden models to default visible model
@@ -490,10 +491,11 @@ export async function POST(request: Request) {
       !(thinkingSetting.type === "budget" && thinkingSetting.value === 0);
 
     const hasWebSearchTool =
+      webSearchEnabled &&
       !(
         isReasoningModelId(selectedChatModel) &&
         !supportsAttachments(selectedChatModel)
-      ) && ["webSearch"].length > 0;
+      );
     const hasImageGenerationTool =
       !(
         isReasoningModelId(selectedChatModel) &&
@@ -1206,8 +1208,9 @@ export async function POST(request: Request) {
               : [
                   "calculator",
                   "getWeather",
-                  "webSearch",
-                  "extractUrl",
+                  ...(webSearchEnabled
+                    ? (["webSearch", "extractUrl"] as const)
+                    : []),
                   "generateImage",
                 ],
           prepareStep: ({ steps, stepNumber, messages }) => {

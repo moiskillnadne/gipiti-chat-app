@@ -22,6 +22,7 @@ import { Progress } from "@/components/ui/progress";
 import { useModel, useModelRefs } from "@/contexts/model-context";
 import { useProjectRef } from "@/contexts/project-context";
 import { useStyleRef } from "@/contexts/style-context";
+import { useWebSearchRef } from "@/contexts/web-search-context";
 import { useAutoResume } from "@/hooks/use-auto-resume";
 import type { Vote } from "@/lib/db/schema";
 import { ChatSDKError } from "@/lib/errors";
@@ -64,6 +65,7 @@ export function Chat({
   const { setIsEmptyChat, persistPendingModelChange } = useModel();
   const { styleIdRef } = useStyleRef();
   const { projectIdRef } = useProjectRef();
+  const { webSearchEnabledRef } = useWebSearchRef();
 
   const [input, setInput] = useState<string>("");
   const [usage, setUsage] = useState<AppUsage | undefined>(initialLastContext);
@@ -113,6 +115,7 @@ export function Chat({
           ...(projectIdRef.current && {
             selectedProjectId: projectIdRef.current,
           }),
+          webSearchEnabled: webSearchEnabledRef.current,
           ...request.body,
         };
         console.log("Request body:", body);

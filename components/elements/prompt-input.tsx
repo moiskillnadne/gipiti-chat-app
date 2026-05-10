@@ -95,12 +95,12 @@ export const PromptInputTextarea = forwardRef<
           return;
         }
 
-        if (!e.shiftKey) {
-          // Allow newline on plain Enter
+        if (e.shiftKey) {
+          // Allow newline on Shift+Enter
           return;
         }
 
-        // Submit on Shift+Enter
+        // Submit on plain Enter
         e.preventDefault();
         const form = e.currentTarget.form;
         if (form) {
