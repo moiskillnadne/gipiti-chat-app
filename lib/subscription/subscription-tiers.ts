@@ -65,53 +65,6 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
     isFreePlan: true,
   },
 
-  // TESTER PLAN - Daily reset for easy testing (not for production use)
-  tester: {
-    name: "tester",
-    displayName: "Тестовый план [Ежедневный, Бесплатный]",
-    billingPeriod: "daily",
-    billingPeriodCount: 1,
-    tokenQuota: 200_000, // 200K tokens per day
-    features: {
-      maxMessagesPerPeriod: 100, // 100 messages per day
-      allowedModels: [
-        "gpt-5.1-instant",
-        "gpt-5.1-thinking",
-        "gpt-5.2",
-        "gpt-5.4",
-        "gpt-5.4-mini",
-        "gpt-5.4-nano",
-        "gpt-5.2-pro",
-        "gpt-codex-5.2",
-        "grok-code-fast-1",
-        "gemini-3.1-pro",
-        "grok-imagine-image-pro",
-        "opus-4.6",
-        "sonnet-4.6",
-        "veo-3.1",
-        "veo-3.1-fast",
-        "grok-imagine-video",
-        "flux-2-max",
-        "flux-kontext-pro",
-        "recraft-v4-pro",
-      ],
-      hasReasoningModels: true,
-      hasPrioritySupport: false,
-      maxFileSize: 5 * 1024 * 1024, // 5MB
-      maxConcurrentChats: 3,
-      hasAPIAccess: false,
-      searchQuota: 40, // 40 searches per day
-      searchDepthAllowed: "advanced",
-      maxImageGenerationsPerPeriod: 10, // 10 images per day
-      maxVideoGenerationsPerPeriod: 5, // 5 videos per day
-    },
-    price: {
-      USD: 0,
-      RUB: 0,
-    }, // Free for internal testing
-    isTesterPlan: true,
-  },
-
   // PAID TESTER PLAN - Daily recurring subscription for testers
   tester_paid: {
     name: "tester_paid",

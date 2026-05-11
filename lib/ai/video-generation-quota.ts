@@ -33,7 +33,7 @@ export async function checkVideoGenerationQuota(
     };
   }
 
-  const planName = userRecord.currentPlan || "tester";
+  const planName = userRecord.currentPlan || "free";
   const tierConfig = SUBSCRIPTION_TIERS[planName];
 
   if (!tierConfig) {
