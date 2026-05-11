@@ -26,45 +26,14 @@ export type SubscriptionTierConfig = {
     RUB: number;
   };
   isTesterPlan?: boolean;
-  isFreePlan?: boolean;
 };
 
+// NOTE: The "free" tier is intentionally NOT a member of SUBSCRIPTION_TIERS.
+// Free users are on a progressive-unlock model (Tier 1/2/3) defined in
+// lib/ai/entitlements.ts. The seed for the DB-level `SubscriptionPlan` row
+// used to anchor a free user's `userSubscription` is `getDefaultFreePlanSeed()`
+// from that same module.
 export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
-  // FREE PLAN - Auto-assigned to every new user on registration
-  free: {
-    name: "free",
-    displayName: "Бесплатный план",
-    billingPeriod: "daily",
-    billingPeriodCount: 1,
-    tokenQuota: 35_000, // 35K tokens per day
-    features: {
-      maxMessagesPerPeriod: 10, // 10 messages per day
-      maxImageGenerationsPerPeriod: 1, // 1 image per day
-      maxVideoGenerationsPerPeriod: 0, // No video for free tier
-      allowedModels: [
-        "gpt-5.4-mini",
-        "gpt-5.4-nano",
-        "grok-code-fast-1",
-        "gemini-3-pro-image",
-        "gemini-3.1-flash-image",
-        "grok-imagine-image-pro",
-        "flux-kontext-pro",
-      ],
-      hasReasoningModels: false,
-      hasPrioritySupport: false,
-      maxFileSize: 2 * 1024 * 1024, // 2MB
-      maxConcurrentChats: 1,
-      hasAPIAccess: false,
-      searchQuota: 2, // 2 searches per day
-      searchDepthAllowed: "basic",
-    },
-    price: {
-      USD: 0,
-      RUB: 0,
-    },
-    isFreePlan: true,
-  },
-
   // PAID TESTER PLAN - Daily recurring subscription for testers
   tester_paid: {
     name: "tester_paid",
@@ -157,7 +126,6 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
       USD: 0,
       RUB: 0,
     },
-    isFreePlan: true,
   },
 
   // BASIC PLAN - Entry-level subscription for paywall
@@ -309,17 +277,9 @@ export function getTiersByBillingPeriod(period: BillingPeriod) {
 }
 
 /**
- * Helper to get all production tiers (excluding tester and free)
+ * Helper to get all production tiers (paid plans, excluding tester).
+ * The free plan is handled separately and is not part of SUBSCRIPTION_TIERS.
  */
 export function getProductionTiers() {
-  return Object.values(SUBSCRIPTION_TIERS).filter(
-    (tier) => !tier.isTesterPlan && !tier.isFreePlan
-  );
-}
-
-/**
- * Helper to get the free tier config
- */
-export function getFreeTier(): SubscriptionTierConfig {
-  return SUBSCRIPTION_TIERS.free;
+  return Object.values(SUBSCRIPTION_TIERS).filter((tier) => !tier.isTesterPlan);
 }

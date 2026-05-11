@@ -2,22 +2,16 @@ import { config } from "dotenv";
 import { and, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
+import { FREE_TIER_ENTITLEMENTS } from "@/lib/ai/entitlements";
 import {
-  subscriptionPlan,
   tokenBalanceTransaction,
   user,
   userSubscription,
 } from "@/lib/db/schema";
-import {
-  calculateNextBillingDate,
-  calculatePeriodEnd,
-} from "@/lib/subscription/billing-periods";
-import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 
 config({ path: ".env.local" });
 
 const FREE_PLAN_NAME = "free";
-const FREE_TOKEN_BALANCE = 30_000;
 
 async function main() {
   const userId = process.argv.at(2);
@@ -30,14 +24,7 @@ async function main() {
     process.exit(1);
   }
 
-  const freeTier = SUBSCRIPTION_TIERS[FREE_PLAN_NAME];
-
-  if (!freeTier) {
-    console.error(
-      `❌ Tier config "${FREE_PLAN_NAME}" missing from SUBSCRIPTION_TIERS`
-    );
-    process.exit(1);
-  }
+  const freeBalance = FREE_TIER_ENTITLEMENTS.tier_1.tokenBonus;
 
   console.log(`🔧 Assigning free plan to user: ${userId}\n`);
 
@@ -70,52 +57,16 @@ async function main() {
     `Current balance: ${(existingUser.tokenBalance ?? 0).toLocaleString()} tokens\n`
   );
 
-  // Get or create free plan in DB
-  const existingPlans = await db
-    .select()
-    .from(subscriptionPlan)
-    .where(eq(subscriptionPlan.name, FREE_PLAN_NAME))
-    .limit(1);
-
-  let plan = existingPlans.at(0);
-
-  if (plan) {
-    console.log(`✅ Found existing "${FREE_PLAN_NAME}" plan: ${plan.id}`);
-  } else {
-    const [newPlan] = await db
-      .insert(subscriptionPlan)
-      .values({
-        name: freeTier.name,
-        displayName: freeTier.displayName,
-        billingPeriod: freeTier.billingPeriod,
-        billingPeriodCount: freeTier.billingPeriodCount,
-        tokenQuota: freeTier.tokenQuota,
-        features: freeTier.features,
-        price: freeTier.price.USD.toString(),
-        isTesterPlan: false,
-      })
-      .returning();
-    plan = newPlan;
-    console.log(`✅ Created "${FREE_PLAN_NAME}" plan: ${plan.id}`);
-  }
-
-  // Surface existing active subscriptions BEFORE cancellation so the user
-  // can see what's about to be cancelled and which CloudPayments subscription
-  // they need to cancel manually.
+  // Free is not a subscription. Cancel any existing active subscriptions
+  // (e.g. tester_paid, basic_*) so the user is clearly on the free track.
   const activeSubs = await db
     .select({
       id: userSubscription.id,
-      planId: userSubscription.planId,
-      planName: subscriptionPlan.name,
       externalSubscriptionId: userSubscription.externalSubscriptionId,
       status: userSubscription.status,
       currentPeriodEnd: userSubscription.currentPeriodEnd,
     })
     .from(userSubscription)
-    .innerJoin(
-      subscriptionPlan,
-      eq(userSubscription.planId, subscriptionPlan.id)
-    )
     .where(
       and(
         eq(userSubscription.userId, userId),
@@ -126,7 +77,7 @@ async function main() {
   if (activeSubs.length > 0) {
     console.log(`\n📋 Existing active subscriptions (${activeSubs.length}):`);
     for (const sub of activeSubs) {
-      console.log(`   - ${sub.planName} (sub ${sub.id})`);
+      console.log(`   - sub ${sub.id}`);
       console.log(
         `     externalSubscriptionId: ${sub.externalSubscriptionId ?? "(none)"}`
       );
@@ -142,22 +93,10 @@ async function main() {
     .map((s) => s.externalSubscriptionId)
     .filter((id): id is string => Boolean(id));
 
-  // Cancel old subs + create new free sub atomically
   const now = new Date();
-  const periodEnd = calculatePeriodEnd(
-    now,
-    freeTier.billingPeriod,
-    freeTier.billingPeriodCount
-  );
-  const nextBilling = calculateNextBillingDate(
-    now,
-    freeTier.billingPeriod,
-    freeTier.billingPeriodCount
-  );
-
   const previousBalance = existingUser.tokenBalance ?? 0;
 
-  const newSubscriptionId = await db.transaction(async (tx) => {
+  await db.transaction(async (tx) => {
     if (activeSubs.length > 0) {
       await tx
         .update(userSubscription)
@@ -170,27 +109,11 @@ async function main() {
         );
     }
 
-    const [newSub] = await tx
-      .insert(userSubscription)
-      .values({
-        userId,
-        planId: plan.id,
-        billingPeriod: freeTier.billingPeriod,
-        billingPeriodCount: freeTier.billingPeriodCount,
-        currentPeriodStart: now,
-        currentPeriodEnd: periodEnd,
-        nextBillingDate: nextBilling,
-        status: "active",
-        cancelAtPeriodEnd: false,
-        isTrial: false,
-      })
-      .returning({ id: userSubscription.id });
-
     await tx
       .update(user)
       .set({
         currentPlan: FREE_PLAN_NAME,
-        tokenBalance: FREE_TOKEN_BALANCE,
+        tokenBalance: freeBalance,
         lastBalanceResetAt: now,
         updatedAt: now,
       })
@@ -199,27 +122,19 @@ async function main() {
     await tx.insert(tokenBalanceTransaction).values({
       userId,
       type: "reset",
-      amount: FREE_TOKEN_BALANCE,
-      balanceAfter: FREE_TOKEN_BALANCE,
+      amount: freeBalance,
+      balanceAfter: freeBalance,
       referenceType: "admin",
-      referenceId: newSub.id,
-      description: `Balance reset from ${previousBalance} to ${FREE_TOKEN_BALANCE} (free plan assignment)`,
+      description: `Balance reset from ${previousBalance} to ${freeBalance} (free plan assignment)`,
       metadata: {
         previousBalance,
         planName: FREE_PLAN_NAME,
-        subscriptionId: newSub.id,
       },
     });
-
-    return newSub.id;
   });
 
   console.log("\n✅ Free plan assigned");
-  console.log(`   New subscription ID: ${newSubscriptionId}`);
-  console.log(`   currentPeriodEnd:    ${periodEnd.toISOString()}`);
-  console.log(
-    `   New balance:         ${FREE_TOKEN_BALANCE.toLocaleString()} tokens`
-  );
+  console.log(`   New balance: ${freeBalance.toLocaleString()} tokens`);
 
   if (cloudPaymentsIdsToCancel.length > 0) {
     console.log(

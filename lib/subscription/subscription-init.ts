@@ -1,4 +1,5 @@
 import { and, eq, ne } from "drizzle-orm";
+import { FREE_TIER_ENTITLEMENTS } from "@/lib/ai/entitlements";
 import { resetBalance } from "@/lib/ai/token-balance";
 import { db } from "@/lib/db/queries";
 import { subscriptionPlan, user, userSubscription } from "@/lib/db/schema";
@@ -9,10 +10,16 @@ import {
 import { SUBSCRIPTION_TIERS } from "./subscription-tiers";
 
 /**
- * Assign free plan to a new user
+ * Assign the free plan to a user.
+ *
+ * Free is NOT a subscription — no `subscriptionPlan` or `userSubscription` row
+ * is created. We only set `User.currentPlan = "free"` and seed the balance
+ * with the Tier 1 one-time bonus. Tier 2 / Tier 3 unlocks credit additional
+ * tokens via `creditBalance` from the email-verification and survey flows
+ * (handled in separate tickets).
  */
 export async function assignFreePlan(userId: string) {
-  // Safety guard: do not downgrade a user who has an active paid subscription
+  // Safety guard: do not downgrade a user who has an active paid subscription.
   const activePaidSubs = await db
     .select({ id: userSubscription.id })
     .from(userSubscription)
@@ -37,65 +44,11 @@ export async function assignFreePlan(userId: string) {
     return;
   }
 
-  const freeTier = SUBSCRIPTION_TIERS.free;
-
-  // Get or create free plan
-  const plans = await db
-    .select()
-    .from(subscriptionPlan)
-    .where(eq(subscriptionPlan.name, "free"))
-    .limit(1);
-
-  let plan = plans[0];
-
-  if (!plan) {
-    const [newPlan] = await db
-      .insert(subscriptionPlan)
-      .values({
-        name: freeTier.name,
-        displayName: freeTier.displayName,
-        billingPeriod: freeTier.billingPeriod,
-        billingPeriodCount: freeTier.billingPeriodCount,
-        tokenQuota: freeTier.tokenQuota,
-        features: freeTier.features,
-        price: freeTier.price.toString(),
-        isTesterPlan: false,
-      })
-      .returning();
-    plan = newPlan;
-  }
-
-  // Create subscription
-  const now = new Date();
-  const periodEnd = calculatePeriodEnd(
-    now,
-    freeTier.billingPeriod,
-    freeTier.billingPeriodCount
-  );
-  const nextBilling = calculateNextBillingDate(
-    now,
-    freeTier.billingPeriod,
-    freeTier.billingPeriodCount
-  );
-
-  await db.insert(userSubscription).values({
-    userId,
-    planId: plan.id,
-    billingPeriod: freeTier.billingPeriod,
-    billingPeriodCount: freeTier.billingPeriodCount,
-    currentPeriodStart: now,
-    currentPeriodEnd: periodEnd,
-    nextBillingDate: nextBilling,
-    status: "active",
-  });
-
-  // Update user's current plan
   await db.update(user).set({ currentPlan: "free" }).where(eq(user.id, userId));
 
-  // Set initial token balance
   await resetBalance({
     userId,
-    newBalance: freeTier.tokenQuota,
+    newBalance: FREE_TIER_ENTITLEMENTS.tier_1.tokenBonus,
     reason: "subscription_reset",
     planName: "free",
   });
@@ -113,10 +66,6 @@ export async function upgradeToPlan(userId: string, planName: string) {
 
   if (tier.isTesterPlan) {
     throw new Error("Cannot upgrade to tester plan");
-  }
-
-  if (tier.isFreePlan) {
-    throw new Error("Cannot upgrade to free plan");
   }
 
   // Get or create plan

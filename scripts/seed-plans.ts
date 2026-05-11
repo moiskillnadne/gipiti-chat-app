@@ -19,6 +19,9 @@ async function main() {
   let created = 0;
   let updated = 0;
 
+  // NOTE: The "free" plan is not a subscription and is intentionally excluded
+  // from seeding. Free users have no `userSubscription` row — they're identified
+  // solely by `User.currentPlan = "free"` and live off `User.tokenBalance`.
   for (const [_key, tier] of Object.entries(SUBSCRIPTION_TIERS)) {
     try {
       // Check if plan exists
@@ -67,7 +70,8 @@ async function main() {
     }
   }
 
-  // Deactivate plans not in SUBSCRIPTION_TIERS
+  // Deactivate plans not in SUBSCRIPTION_TIERS (free is excluded — it's not a
+  // subscription, so its row should not exist in this table going forward).
   const tierNames = Object.values(SUBSCRIPTION_TIERS).map((t) => t.name);
   const allPlans = await db.select().from(subscriptionPlan);
   let deactivated = 0;

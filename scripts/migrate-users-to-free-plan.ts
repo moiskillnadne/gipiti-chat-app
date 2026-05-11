@@ -2,17 +2,12 @@ import { config } from "dotenv";
 import { and, eq, isNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
+import { FREE_TIER_ENTITLEMENTS } from "@/lib/ai/entitlements";
 import {
-  subscriptionPlan,
   tokenBalanceTransaction,
   user,
   userSubscription,
 } from "@/lib/db/schema";
-import {
-  calculateNextBillingDate,
-  calculatePeriodEnd,
-} from "@/lib/subscription/billing-periods";
-import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 
 config({
   path: ".env.local",
@@ -20,43 +15,14 @@ config({
 
 async function main() {
   console.log(
-    "Starting migration: assign free plan to users without active subscriptions"
+    "Starting migration: ensure users without active subscriptions are on free plan"
   );
 
   // biome-ignore lint: Forbidden non-null assertion.
   const client = postgres(process.env.POSTGRES_URL!);
   const db = drizzle(client);
 
-  const freeTier = SUBSCRIPTION_TIERS.free;
-
-  // Get or create free plan in DB
-  const plans = await db
-    .select()
-    .from(subscriptionPlan)
-    .where(eq(subscriptionPlan.name, "free"))
-    .limit(1);
-
-  let plan = plans.at(0);
-
-  if (plan) {
-    console.log("Free plan already exists in database");
-  } else {
-    const [newPlan] = await db
-      .insert(subscriptionPlan)
-      .values({
-        name: freeTier.name,
-        displayName: freeTier.displayName,
-        billingPeriod: freeTier.billingPeriod,
-        billingPeriodCount: freeTier.billingPeriodCount,
-        tokenQuota: freeTier.tokenQuota,
-        features: freeTier.features,
-        price: freeTier.price.toString(),
-        isTesterPlan: false,
-      })
-      .returning();
-    plan = newPlan;
-    console.log("Created free plan in database");
-  }
+  const freeBalance = FREE_TIER_ENTITLEMENTS.tier_1.tokenBonus;
 
   // Find users without an active subscription who are not testers
   const usersWithoutSubscription = await db
@@ -64,6 +30,7 @@ async function main() {
       id: user.id,
       email: user.email,
       currentPlan: user.currentPlan,
+      tokenBalance: user.tokenBalance,
     })
     .from(user)
     .leftJoin(
@@ -91,49 +58,13 @@ async function main() {
   for (const targetUser of usersWithoutSubscription) {
     try {
       const now = new Date();
-      const periodEnd = calculatePeriodEnd(
-        now,
-        freeTier.billingPeriod,
-        freeTier.billingPeriodCount
-      );
-      const nextBilling = calculateNextBillingDate(
-        now,
-        freeTier.billingPeriod,
-        freeTier.billingPeriodCount
-      );
-
-      // Create subscription
-      await db.insert(userSubscription).values({
-        userId: targetUser.id,
-        planId: plan.id,
-        billingPeriod: freeTier.billingPeriod,
-        billingPeriodCount: freeTier.billingPeriodCount,
-        currentPeriodStart: now,
-        currentPeriodEnd: periodEnd,
-        nextBillingDate: nextBilling,
-        status: "active",
-      });
-
-      // Update user's current plan
-      await db
-        .update(user)
-        .set({ currentPlan: "free" })
-        .where(eq(user.id, targetUser.id));
-
-      // Reset token balance
-      const newBalance = freeTier.tokenQuota;
-      const currentUser = await db
-        .select({ balance: user.tokenBalance })
-        .from(user)
-        .where(eq(user.id, targetUser.id))
-        .limit(1);
-
-      const previousBalance = currentUser[0]?.balance ?? 0;
+      const previousBalance = Number(targetUser.tokenBalance ?? 0);
 
       await db
         .update(user)
         .set({
-          tokenBalance: newBalance,
+          currentPlan: "free",
+          tokenBalance: freeBalance,
           lastBalanceResetAt: now,
           updatedAt: now,
         })
@@ -142,14 +73,14 @@ async function main() {
       await db.insert(tokenBalanceTransaction).values({
         userId: targetUser.id,
         type: "reset",
-        amount: newBalance - Number(previousBalance),
-        balanceAfter: newBalance,
+        amount: freeBalance - previousBalance,
+        balanceAfter: freeBalance,
         referenceType: "migration",
         description:
           "Migrated to free plan via migrate-users-to-free-plan script",
         metadata: {
           planName: "free",
-          previousBalance: Number(previousBalance),
+          previousBalance,
         },
       });
 
