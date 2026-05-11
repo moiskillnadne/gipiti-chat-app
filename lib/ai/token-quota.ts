@@ -1,5 +1,6 @@
 import { and, desc, eq, gt } from "drizzle-orm";
 import { db } from "@/lib/db/queries";
+import { getUserById } from "@/lib/db/query/user/get-by-id";
 import {
   subscriptionPlan,
   tokenUsageLog,
@@ -155,8 +156,15 @@ export async function recordTokenUsage({
 }> {
   const quotaInfo = await getUserQuotaInfo(userId);
 
+  // Free users have no `userSubscription` row. They still need balance
+  // deduction and a `tokenUsageLog` row for analytics, but we skip the
+  // `userTokenUsage` aggregate (its `subscriptionId` column is NOT NULL).
   if (!quotaInfo) {
-    throw new Error("No active subscription found");
+    const [userRecord] = await getUserById(userId);
+    if (userRecord?.currentPlan !== "free") {
+      throw new Error("No active subscription found");
+    }
+    return await recordFreeTierUsage({ userId, chatId, messageId, usage });
   }
 
   const { subscription } = quotaInfo;
@@ -221,6 +229,79 @@ export async function recordTokenUsage({
     periodEnd: subscription.currentPeriodEnd,
     billingPeriodType: subscription.billingPeriod,
     usage,
+  });
+
+  return {
+    newBalance: deductResult?.newBalance ?? 0,
+    transactionId: deductResult?.transactionId,
+  };
+}
+
+async function recordFreeTierUsage({
+  userId,
+  chatId,
+  messageId,
+  usage,
+}: {
+  userId: string;
+  chatId?: string;
+  messageId?: string;
+  usage: AppUsage;
+}): Promise<{ newBalance: number; transactionId?: string }> {
+  const totalTokens = (usage.inputTokens || 0) + (usage.outputTokens || 0);
+  const totalCost = ((usage.inputCost || 0) + (usage.outputCost || 0)).toFixed(
+    8
+  );
+
+  let deductResult: { newBalance: number; transactionId: string } | undefined;
+  try {
+    deductResult = await deductBalance({
+      userId,
+      amount: totalTokens,
+      referenceType: "usage",
+      referenceId: messageId,
+      metadata: {
+        modelId: usage.modelId,
+        chatId,
+        planName: "free",
+      },
+    });
+  } catch (error) {
+    if (error instanceof InsufficientBalanceError) {
+      console.warn(
+        `[recordTokenUsage] Insufficient balance for free user ${userId}: ${error.message}`
+      );
+      deductResult = { newBalance: 0, transactionId: "" };
+    } else {
+      throw error;
+    }
+  }
+
+  // Log row uses today's daily window purely as a partition tag — free users
+  // don't have billing periods, but the column is NOT NULL.
+  const now = new Date();
+  const startOfDay = new Date(now);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(now);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  await db.insert(tokenUsageLog).values({
+    userId,
+    subscriptionId: null,
+    chatId,
+    messageId,
+    modelId: usage.modelId || "unknown",
+    inputTokens: usage.inputTokens || 0,
+    outputTokens: usage.outputTokens || 0,
+    totalTokens,
+    cacheWriteTokens: usage.cacheWriteTokens || 0,
+    cacheReadTokens: usage.cacheReadTokens || 0,
+    inputCost: usage.inputCost?.toString(),
+    outputCost: usage.outputCost?.toString(),
+    totalCost,
+    billingPeriodType: "daily",
+    billingPeriodStart: startOfDay,
+    billingPeriodEnd: endOfDay,
   });
 
   return {

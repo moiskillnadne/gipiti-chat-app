@@ -1,11 +1,16 @@
 import { auth } from "@/app/(auth)/auth";
+import { getDefaultFreePlanSeed } from "@/lib/ai/entitlements";
 import {
   getImageGenerationCountByBillingPeriod,
+  getImageGenerationCountByDateRange,
   getMessageCountByBillingPeriod,
   getSearchUsageCountByBillingPeriod,
+  getSearchUsageCountByDateRange,
   getUserSubscriptionWithPlan,
   getVideoGenerationCountByBillingPeriod,
+  getVideoGenerationCountByDateRange,
 } from "@/lib/db/queries";
+import { getUserById } from "@/lib/db/query/user/get-by-id";
 import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 
 type UsageLimitItem = {
@@ -31,8 +36,59 @@ export async function GET() {
     userId: session.user.id,
   });
 
+  // Free users have no `userSubscription` row. Synthesize the response from
+  // the free-plan seed + lifetime usage counts (counted since user creation).
   if (!subscriptionData) {
-    return Response.json({ error: "No active subscription" }, { status: 404 });
+    const [userRecord] = await getUserById(session.user.id);
+    if (!userRecord || userRecord.currentPlan !== "free") {
+      return Response.json(
+        { error: "No active subscription" },
+        { status: 404 }
+      );
+    }
+
+    const seed = getDefaultFreePlanSeed();
+    const start = userRecord.createdAt;
+    const end = new Date();
+    const [freeSearchUsed, freeImageGenUsed, freeVideoGenUsed] =
+      await Promise.all([
+        getSearchUsageCountByDateRange({
+          userId: session.user.id,
+          startDate: start,
+          endDate: end,
+        }),
+        getImageGenerationCountByDateRange({
+          userId: session.user.id,
+          startDate: start,
+          endDate: end,
+        }),
+        getVideoGenerationCountByDateRange({
+          userId: session.user.id,
+          startDate: start,
+          endDate: end,
+        }),
+      ]);
+
+    const freeResponse: UsageLimitsResponse = {
+      messages: {
+        used: 0,
+        limit: seed.features.maxMessagesPerPeriod ?? null,
+      },
+      webSearch: {
+        used: freeSearchUsed,
+        limit: seed.features.searchQuota,
+      },
+      imageGeneration: {
+        used: freeImageGenUsed,
+        limit: seed.features.maxImageGenerationsPerPeriod,
+      },
+      videoGeneration: {
+        used: freeVideoGenUsed,
+        limit: seed.features.maxVideoGenerationsPerPeriod,
+      },
+    };
+
+    return Response.json(freeResponse);
   }
 
   const { subscription, plan } = subscriptionData;

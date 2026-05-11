@@ -1,3 +1,4 @@
+import { getDefaultFreePlanSeed } from "@/lib/ai/entitlements";
 import {
   getActiveUserSubscription,
   getVideoGenerationCountByBillingPeriod,
@@ -11,7 +12,7 @@ type VideoGenerationQuotaInfo = {
   used: number;
   remaining: number;
   resetAt: Date;
-  periodType: "daily" | "weekly" | "monthly" | "annual";
+  periodType: "daily" | "weekly" | "monthly" | "annual" | "lifetime";
 };
 
 type VideoGenerationQuotaCheckResult = {
@@ -34,7 +35,10 @@ export async function checkVideoGenerationQuota(
   }
 
   const planName = userRecord.currentPlan || "free";
-  const tierConfig = SUBSCRIPTION_TIERS[planName];
+  const tierConfig =
+    planName === "free"
+      ? getDefaultFreePlanSeed()
+      : SUBSCRIPTION_TIERS[planName];
 
   if (!tierConfig) {
     return {
@@ -57,32 +61,27 @@ export async function checkVideoGenerationQuota(
   const subscription = await getActiveUserSubscription({ userId });
 
   if (!subscription) {
-    // For users without subscription, use daily period
-    const now = new Date();
-    const startOfDay = new Date(now);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(now);
-    endOfDay.setHours(23, 59, 59, 999);
-
+    // Free users have one-time cumulative caps — count lifetime, no reset.
     const used = await getVideoGenerationCountByDateRange({
       userId,
-      startDate: startOfDay,
-      endDate: endOfDay,
+      startDate: userRecord.createdAt,
+      endDate: new Date(),
     });
     const remaining = Math.max(0, limit - used);
+    const noResetSentinel = new Date(8.64e15);
 
     if (used >= limit) {
       return {
         allowed: false,
         reason:
           "Video generation quota exceeded. " +
-          `You've used ${used}/${limit} generations today.`,
+          `You've used ${used}/${limit} generations.`,
         quotaInfo: {
           limit,
           used,
           remaining,
-          resetAt: endOfDay,
-          periodType: "daily",
+          resetAt: noResetSentinel,
+          periodType: "lifetime",
         },
       };
     }
@@ -93,8 +92,8 @@ export async function checkVideoGenerationQuota(
         limit,
         used,
         remaining,
-        resetAt: endOfDay,
-        periodType: "daily",
+        resetAt: noResetSentinel,
+        periodType: "lifetime",
       },
     };
   }

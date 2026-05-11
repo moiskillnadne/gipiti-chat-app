@@ -1,5 +1,4 @@
 import type { SubscriptionPlan, UserSubscription } from "@/lib/db/schema";
-import { SUBSCRIPTION_TIERS } from "./subscription-tiers";
 
 export type SubscriptionUiState =
   | "active"
@@ -18,11 +17,7 @@ export type SubscriptionStateInput = {
 };
 
 function isFreeTierName(name: string | null | undefined): boolean {
-  if (!name) {
-    return false;
-  }
-  const tier = SUBSCRIPTION_TIERS[name];
-  return Boolean(tier?.isFreePlan);
+  return name === "free";
 }
 
 export function deriveSubscriptionUiState({

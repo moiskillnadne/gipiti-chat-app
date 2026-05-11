@@ -1,3 +1,4 @@
+import { getDefaultFreePlanSeed } from "@/lib/ai/entitlements";
 import {
   getActiveUserSubscription,
   getSearchUsageCountByBillingPeriod,
@@ -36,7 +37,10 @@ export async function checkSearchQuota(
   }
 
   const planName = userRecord.currentPlan || "free";
-  const tierConfig = SUBSCRIPTION_TIERS[planName];
+  const tierConfig =
+    planName === "free"
+      ? getDefaultFreePlanSeed()
+      : SUBSCRIPTION_TIERS[planName];
 
   if (!tierConfig) {
     return {
@@ -50,31 +54,28 @@ export async function checkSearchQuota(
   const subscription = await getActiveUserSubscription({ userId });
 
   if (!subscription) {
-    // For tester plan users without subscription, use daily period
-    const now = new Date();
-    const startOfDay = new Date(now);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(now);
-    endOfDay.setHours(23, 59, 59, 999);
-
-    const testerUsed = await getSearchUsageCountByDateRange({
+    // Free users have one-time cumulative quotas — counted lifetime, no reset.
+    const lifetimeUsed = await getSearchUsageCountByDateRange({
       userId,
-      startDate: startOfDay,
-      endDate: endOfDay,
+      startDate: userRecord.createdAt,
+      endDate: new Date(),
     });
-    const testerLimit = tierConfig.features.searchQuota;
-    const testerRemaining = Math.max(0, testerLimit - testerUsed);
+    const lifetimeLimit = tierConfig.features.searchQuota;
+    const lifetimeRemaining = Math.max(0, lifetimeLimit - lifetimeUsed);
+    // Free quotas are one-time; surface `resetAt` as far in the future so any
+    // consumer reading it doesn't promise an imminent refresh.
+    const noResetSentinel = new Date(8.64e15);
 
-    if (testerUsed >= testerLimit) {
+    if (lifetimeUsed >= lifetimeLimit) {
       return {
         allowed: false,
-        reason: `Search quota exceeded. You've used ${testerUsed}/${testerLimit} searches today.`,
+        reason: `Search quota exceeded. You've used ${lifetimeUsed}/${lifetimeLimit} searches.`,
         quotaInfo: {
-          limit: testerLimit,
-          used: testerUsed,
-          remaining: testerRemaining,
-          resetAt: endOfDay,
-          periodType: "daily",
+          limit: lifetimeLimit,
+          used: lifetimeUsed,
+          remaining: lifetimeRemaining,
+          resetAt: noResetSentinel,
+          periodType: "lifetime",
         },
         allowedDepth: tierConfig.features.searchDepthAllowed,
       };
@@ -83,11 +84,11 @@ export async function checkSearchQuota(
     return {
       allowed: true,
       quotaInfo: {
-        limit: testerLimit,
-        used: testerUsed,
-        remaining: testerRemaining,
-        resetAt: endOfDay,
-        periodType: "daily",
+        limit: lifetimeLimit,
+        used: lifetimeUsed,
+        remaining: lifetimeRemaining,
+        resetAt: noResetSentinel,
+        periodType: "lifetime",
       },
       allowedDepth: tierConfig.features.searchDepthAllowed,
     };

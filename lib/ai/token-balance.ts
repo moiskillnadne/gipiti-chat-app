@@ -50,6 +50,7 @@ type TransactionMetadata = {
 export async function getUserBalance(userId: string): Promise<{
   balance: number;
   lastResetAt: Date | null;
+  currentPlan: string | null;
   subscription: {
     id: string;
     planId: string;
@@ -65,6 +66,7 @@ export async function getUserBalance(userId: string): Promise<{
     .select({
       tokenBalance: user.tokenBalance,
       lastBalanceResetAt: user.lastBalanceResetAt,
+      currentPlan: user.currentPlan,
     })
     .from(user)
     .where(eq(user.id, userId))
@@ -74,7 +76,7 @@ export async function getUserBalance(userId: string): Promise<{
     return null;
   }
 
-  const { tokenBalance, lastBalanceResetAt } = users[0];
+  const { tokenBalance, lastBalanceResetAt, currentPlan } = users[0];
 
   // Get active subscription for additional context
   const now = new Date();
@@ -114,6 +116,7 @@ export async function getUserBalance(userId: string): Promise<{
   return {
     balance: tokenBalance,
     lastResetAt: lastBalanceResetAt,
+    currentPlan,
     subscription: subscriptionInfo,
   };
 }
@@ -138,6 +141,25 @@ export async function checkBalance(
 
   // Check for active subscription
   if (!balanceInfo.subscription) {
+    // Free users have no subscription by design (free is not a tier).
+    if (balanceInfo.currentPlan === "free") {
+      if (balanceInfo.balance <= 0) {
+        // TODO: need to dynamically set an error message depending on user tier
+        // (tier_1 → "verify email for +10k", tier_2 → "complete survey for +20k",
+        // tier_3 → paywall to subscription). Requires the OnboardingSurvey table
+        // and deriveFreeTier() consumer to be wired in.
+        return {
+          allowed: false,
+          balance: 0,
+          reason: "Your free plan tokens are exhausted.",
+        };
+      }
+      return {
+        allowed: true,
+        balance: balanceInfo.balance,
+      };
+    }
+
     // Check if there's a cancelled subscription with expired period
     const expiredSubs = await db
       .select()

@@ -1,5 +1,6 @@
 import { and, desc, eq, gte, lte } from "drizzle-orm";
 import { auth } from "@/app/(auth)/auth";
+import { getDefaultFreePlanSeed } from "@/lib/ai/entitlements";
 import { formatTokenBalance, getUserBalance } from "@/lib/ai/token-balance";
 import { getUserQuotaInfo } from "@/lib/ai/token-quota";
 import { db } from "@/lib/db/queries";
@@ -20,13 +21,43 @@ export async function GET(request: Request) {
   // Get quota info (for backward compatibility and additional details)
   const quotaInfo = await getUserQuotaInfo(session.user.id);
 
+  // Free users have no `userSubscription` row. Synthesize a free-plan response.
   if (!quotaInfo) {
-    return Response.json(
-      {
-        error: "No active subscription",
+    if (balanceInfo?.currentPlan !== "free") {
+      return Response.json(
+        {
+          error: "No active subscription",
+        },
+        { status: 404 }
+      );
+    }
+
+    const seed = getDefaultFreePlanSeed();
+    const lifetimeLogs = await db
+      .select()
+      .from(tokenUsageLog)
+      .where(eq(tokenUsageLog.userId, session.user.id))
+      .orderBy(desc(tokenUsageLog.createdAt))
+      .limit(100);
+
+    return Response.json({
+      balance: {
+        current: balanceInfo.balance,
+        formatted: formatTokenBalance(balanceInfo.balance),
+        lastResetAt: balanceInfo.lastResetAt,
       },
-      { status: 404 }
-    );
+      subscription: {
+        plan: "free",
+        displayName: seed.displayName,
+        periodStart: null,
+        periodEnd: null,
+        billingPeriod: null,
+        tokenQuota: seed.tokenQuota,
+      },
+      quota: null,
+      usage: null,
+      recentActivity: lifetimeLogs,
+    });
   }
 
   // Get detailed usage logs
