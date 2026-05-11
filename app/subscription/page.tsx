@@ -138,7 +138,7 @@ export default async function SubscriptionPage() {
 
         {state === "none" && <FreeQuotaStrip />}
 
-        {showFullSubUI ? (
+        {showFullSubUI && (
           <div className={styles.grid}>
             <UsageGaugeCard dimmed={dimmedCards} state={state} />
 
@@ -158,8 +158,6 @@ export default async function SubscriptionPage() {
               />
             )}
           </div>
-        ) : (
-          <PlansGridCard />
         )}
       </main>
     </>
