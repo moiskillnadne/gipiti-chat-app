@@ -15,12 +15,17 @@ export async function GET(request: Request) {
   }
 
   const now = new Date();
+  // Renew slightly before expiry so users don't see a gap between the period
+  // ending and the next cron tick. Cron must run at least hourly for this to
+  // cover every sub.
+  const renewalLookahead = new Date(now.getTime() + 30 * 60 * 1000);
 
   console.log("[Cron:ResetQuotas] Starting quota reset for unlim plan");
 
-  // Find unlim plan subscriptions with expired periods.
-  // Paid plans (including tester_paid) use CloudPayments webhooks for resets.
-  // Free and legacy tester plans no longer receive cron refreshes.
+  // Find unlim plan subscriptions whose period has ended or is ending within
+  // the next hour. Paid plans (including tester_paid) use CloudPayments
+  // webhooks for resets. Free and legacy tester plans no longer receive
+  // cron refreshes.
   const expiredSubscriptions = await db
     .select({
       subscription: userSubscription,
@@ -34,13 +39,13 @@ export async function GET(request: Request) {
     .where(
       and(
         eq(userSubscription.status, "active"),
-        lte(userSubscription.currentPeriodEnd, now),
+        lte(userSubscription.currentPeriodEnd, renewalLookahead),
         eq(subscriptionPlan.name, "unlim")
       )
     );
 
   console.log(
-    `[Cron:ResetQuotas] Found ${expiredSubscriptions.length} expired unlim subscriptions`
+    `[Cron:ResetQuotas] Found ${expiredSubscriptions.length} unlim subscriptions due for renewal`
   );
 
   let renewed = 0;
