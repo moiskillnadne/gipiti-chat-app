@@ -33,7 +33,7 @@ export async function checkMessageQuota(
     };
   }
 
-  const planName = userRecord.currentPlan || "tester";
+  const planName = userRecord.currentPlan || "free";
   const tierConfig = SUBSCRIPTION_TIERS[planName];
 
   if (!tierConfig) {
@@ -54,7 +54,7 @@ export async function checkMessageQuota(
   const subscription = await getActiveUserSubscription({ userId });
 
   if (!subscription) {
-    // For users without subscription (free/tester), use daily period
+    // For users without subscription (free), use daily period
     const now = new Date();
     const startOfDay = new Date(now);
     startOfDay.setHours(0, 0, 0, 0);
