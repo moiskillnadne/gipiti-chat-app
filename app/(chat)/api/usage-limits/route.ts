@@ -92,6 +92,58 @@ export async function GET() {
   }
 
   const { subscription, plan } = subscriptionData;
+
+  // Free users have a "free" subscription row but no entry in SUBSCRIPTION_TIERS
+  // (which only enumerates paid plans). Fall through to the synthesized free
+  // response so limits come from the free seed and counts are lifetime-based,
+  // matching the dashboard's "lifetime" period for free users.
+  if (plan.name === "free") {
+    const seed = getDefaultFreePlanSeed();
+    const [userRecord] = await getUserById(session.user.id);
+    const start = userRecord?.createdAt ?? subscription.currentPeriodStart;
+    const end = new Date();
+
+    const [freeSearchUsed, freeImageGenUsed, freeVideoGenUsed] =
+      await Promise.all([
+        getSearchUsageCountByDateRange({
+          userId: session.user.id,
+          startDate: start,
+          endDate: end,
+        }),
+        getImageGenerationCountByDateRange({
+          userId: session.user.id,
+          startDate: start,
+          endDate: end,
+        }),
+        getVideoGenerationCountByDateRange({
+          userId: session.user.id,
+          startDate: start,
+          endDate: end,
+        }),
+      ]);
+
+    const freeResponse: UsageLimitsResponse = {
+      messages: {
+        used: 0,
+        limit: seed.features.maxMessagesPerPeriod ?? null,
+      },
+      webSearch: {
+        used: freeSearchUsed,
+        limit: seed.features.searchQuota,
+      },
+      imageGeneration: {
+        used: freeImageGenUsed,
+        limit: seed.features.maxImageGenerationsPerPeriod,
+      },
+      videoGeneration: {
+        used: freeVideoGenUsed,
+        limit: seed.features.maxVideoGenerationsPerPeriod,
+      },
+    };
+
+    return Response.json(freeResponse);
+  }
+
   const tierConfig = SUBSCRIPTION_TIERS[plan.name];
 
   const periodStart = subscription.currentPeriodStart;

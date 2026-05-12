@@ -1,5 +1,6 @@
 import "server-only";
 import { count, desc, eq, sql } from "drizzle-orm";
+import { getDefaultFreePlanSeed } from "@/lib/ai/entitlements";
 import { getUserBalance } from "@/lib/ai/token-balance";
 import { db } from "@/lib/db/queries";
 import { chat, tokenBalanceTransaction, user } from "@/lib/db/schema";
@@ -103,12 +104,13 @@ export async function getUsageSummary(
   // Get quota from active subscription using existing function
   const balanceInfo = await getUserBalance(userId);
 
-  if (!balanceInfo?.subscription) {
-    return null;
-  }
-
-  const quota = balanceInfo.subscription.tokenQuota;
   const balance = Number(userData.tokenBalance) || 0;
+
+  // Free users have no subscription row — synthesize a summary from the free
+  // plan seed so the gauge can render for them too.
+  const quota = balanceInfo?.subscription
+    ? balanceInfo.subscription.tokenQuota
+    : getDefaultFreePlanSeed().tokenQuota;
   const spent = Math.max(0, quota - balance);
 
   return {

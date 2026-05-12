@@ -474,7 +474,8 @@
         "topnav": {
           "back": "Назад",
           "crumbAccount": "Аккаунт",
-          "crumbSubscription": "Подписка"
+          "crumbSubscription": "Подписка",
+          "pillUnverified": "Email не подтверждён"
         },
         "pill": {
           "active": "Активна",
@@ -496,7 +497,8 @@
           "label": "Период",
           "trialLabel": "До конца пробы",
           "cancelledLabel": "Доступ до",
-          "trialDaysValue": "{days} {dayWord}"
+          "trialDaysValue": "{days} {dayWord}",
+          "lifetimeValue": "lifetime"
         },
         "history": "История",
         "gauge": {
@@ -510,7 +512,8 @@
             "default": "до завтра",
             "trial": "до конца пробы",
             "cancelled": "до окончания"
-          }
+          },
+          "emailBonus": "+{amount}K за подтверждение"
         },
         "plan": {
           "title": "Тариф",
@@ -549,7 +552,23 @@
           "badge": {
             "trial": "Пробный",
             "cancelled": "Заканчивается",
-            "pastDue": "Просрочено"
+            "pastDue": "Просрочено",
+            "unverified": "Email не подтверждён"
+          },
+          "free": {
+            "name": "Free",
+            "nameEm": "бесплатный режим",
+            "resetLabel": "Сброс лимитов",
+            "resetValueNone": "Нет",
+            "emailLabel": "Email",
+            "emailUnverified": "не подтверждён",
+            "emailVerified": "подтверждён",
+            "addressLabel": "Адрес",
+            "confirmEmailCta": "Подтвердить email",
+            "viewPlansCta": "Посмотреть тарифы",
+            "rewardNoteTitle": "Подтвердите email и получите",
+            "rewardNoteAmount": "+{amount}K токенов",
+            "rewardNoteBody": "Бонус начисляется один раз, сразу после подтверждения. Действует до конца текущего периода."
           }
         },
         "limits": {
@@ -558,7 +577,8 @@
           "webSearch": "Поиск в интернете",
           "imageGeneration": "Генерация изображений",
           "videoGeneration": "Генерация видео",
-          "unlimited": "без огр."
+          "unlimited": "без огр.",
+          "bonusSuffix": "+{amount} после подтверждения"
         },
         "danger": {
           "title": "Опасная зона",

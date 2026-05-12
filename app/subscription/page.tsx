@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/app/(auth)/auth";
+import { FREE_TIER_ENTITLEMENTS } from "@/lib/ai/entitlements";
 import { getLatestUserSubscriptionWithPlan } from "@/lib/db/queries";
 import { getTranslations } from "@/lib/i18n/translate";
 import {
@@ -10,10 +11,9 @@ import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 import { daysUntil, formatRuDate } from "@/lib/utils/format-billing";
 import { DangerZoneStrip } from "./_components/danger-zone-strip";
 import styles from "./_components/dashboard.module.css";
-import { FreeQuotaStrip } from "./_components/free-quota-strip";
+import { FreePlanCard } from "./_components/free-plan-card";
 import { PeriodLimitsCard } from "./_components/period-limits-card";
 import { PlanCard, type PlanCardData } from "./_components/plan-card";
-import { PlansGridCard } from "./_components/plans-grid-card";
 import { StatusBanner } from "./_components/status-banner";
 import { SubscriptionHeader } from "./_components/subscription-header";
 import { SubscriptionTopNav } from "./_components/subscription-top-nav";
@@ -111,11 +111,65 @@ export default async function SubscriptionPage() {
         };
 
   const dimmedCards = state === "cancelled" || state === "past_due";
-  const showFullSubUI = state !== "none";
+  const isFreeState = state === "none";
+  const isEmailVerified = session.user.emailVerified === true;
+  const userEmail = session.user.email ?? "";
+
+  const tier1 = FREE_TIER_ENTITLEMENTS.tier_1;
+  const tier2 = FREE_TIER_ENTITLEMENTS.tier_2;
+  const freeTokenBonus = tier2.tokenBonus;
+  const freeImageBonus = Math.max(0, tier2.imageBonus - tier1.imageBonus);
+  const freeSearchBonus = Math.max(0, tier2.searchQuota - tier1.searchQuota);
+  const freeVideoBonus = Math.max(0, tier2.videoBonus - tier1.videoBonus);
+
+  const tFreeGauge = await getTranslations("auth.subscription.dashboard.gauge");
+  const tFreeLimits = await getTranslations(
+    "auth.subscription.dashboard.limits"
+  );
+
+  const showFreeBonusAnnotations = isFreeState && !isEmailVerified;
+  const gaugeBonusAnnotation = showFreeBonusAnnotations
+    ? tFreeGauge("emailBonus", { amount: Math.round(freeTokenBonus / 1000) })
+    : undefined;
+
+  const limitsBonusByKey: Record<string, string> | undefined =
+    showFreeBonusAnnotations
+      ? {
+          ...(freeImageBonus > 0
+            ? {
+                imageGeneration: tFreeLimits("bonusSuffix", {
+                  amount: freeImageBonus,
+                }),
+              }
+            : {}),
+          ...(freeSearchBonus > 0
+            ? {
+                webSearch: tFreeLimits("bonusSuffix", {
+                  amount: freeSearchBonus,
+                }),
+              }
+            : {}),
+          ...(freeVideoBonus > 0
+            ? {
+                videoGeneration: tFreeLimits("bonusSuffix", {
+                  amount: freeVideoBonus,
+                }),
+              }
+            : {}),
+        }
+      : undefined;
+
+  const limitsBonusIsEmpty =
+    limitsBonusByKey && Object.keys(limitsBonusByKey).length === 0;
 
   return (
     <>
-      <SubscriptionTopNav state={state} />
+      <SubscriptionTopNav
+        pillOverride={
+          isFreeState && !isEmailVerified ? "unverified" : undefined
+        }
+        state={state}
+      />
       <main className={styles.body}>
         <SubscriptionHeader
           periodEnd={subscription?.currentPeriodEnd ?? null}
@@ -124,41 +178,52 @@ export default async function SubscriptionPage() {
           trialDaysLeft={trialDaysLeft}
         />
 
-        <StatusBanner
-          cancelCurrentPeriodEnd={subscription?.currentPeriodEnd ?? null}
-          cancelEndDate={subscription?.currentPeriodEnd ?? null}
-          pastDueCardMask={subscription?.cardMask ?? null}
-          pastDuePriceLabel={formattedPrice}
-          state={state}
-          trialChargingStartDate={subscription?.trialEndsAt ?? null}
-          trialDaysLeft={trialDaysLeft}
-          trialPlanName={plan?.displayName ?? plan?.name ?? ""}
-          trialPriceLabel={formattedPrice}
-        />
+        {isFreeState ? null : (
+          <StatusBanner
+            cancelCurrentPeriodEnd={subscription?.currentPeriodEnd ?? null}
+            cancelEndDate={subscription?.currentPeriodEnd ?? null}
+            pastDueCardMask={subscription?.cardMask ?? null}
+            pastDuePriceLabel={formattedPrice}
+            state={state}
+            trialChargingStartDate={subscription?.trialEndsAt ?? null}
+            trialDaysLeft={trialDaysLeft}
+            trialPlanName={plan?.displayName ?? plan?.name ?? ""}
+            trialPriceLabel={formattedPrice}
+          />
+        )}
 
-        {state === "none" && <FreeQuotaStrip />}
+        <div className={styles.grid}>
+          <UsageGaugeCard
+            bonusAnnotation={gaugeBonusAnnotation}
+            dimmed={dimmedCards}
+            state={state}
+          />
 
-        {showFullSubUI && (
-          <div className={styles.grid}>
-            <UsageGaugeCard dimmed={dimmedCards} state={state} />
-
-            {planCardData && (
+          {isFreeState ? (
+            <FreePlanCard
+              email={userEmail}
+              emailVerified={isEmailVerified}
+              tokenBonus={freeTokenBonus}
+            />
+          ) : (
+            planCardData && (
               <PlanCard
                 data={planCardData}
                 dimmed={dimmedCards}
                 state={state}
               />
-            )}
+            )
+          )}
 
-            <PeriodLimitsCard dimmed={dimmedCards} />
+          <PeriodLimitsCard
+            bonusByKey={limitsBonusIsEmpty ? undefined : limitsBonusByKey}
+            dimmed={dimmedCards}
+          />
 
-            {state === "active" && subscription?.currentPeriodEnd && (
-              <DangerZoneStrip
-                currentPeriodEnd={subscription.currentPeriodEnd}
-              />
-            )}
-          </div>
-        )}
+          {state === "active" && subscription?.currentPeriodEnd && (
+            <DangerZoneStrip currentPeriodEnd={subscription.currentPeriodEnd} />
+          )}
+        </div>
       </main>
     </>
   );

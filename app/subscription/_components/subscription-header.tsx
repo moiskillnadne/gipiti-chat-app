@@ -23,10 +23,8 @@ export async function SubscriptionHeader({
   trialDaysLeft,
 }: SubscriptionHeaderProps) {
   const t = await getTranslations("auth.subscription.dashboard");
-  const showCycle = state !== "none";
-  const titleSuffix =
-    state === "none" ? t("titleSuffix.plans") : t("titleSuffix.overview");
-  const lede = state === "none" ? t("lede.plans") : t("lede.overview");
+  const titleSuffix = t("titleSuffix.overview");
+  const lede = t("lede.overview");
 
   let cycleLabel: string | null = null;
   let cycleValue: string | null = null;
@@ -40,6 +38,9 @@ export async function SubscriptionHeader({
   } else if (state === "cancelled" && periodEnd) {
     cycleLabel = t("cycle.cancelledLabel");
     cycleValue = formatRuDate(periodEnd);
+  } else if (state === "none") {
+    cycleLabel = t("cycle.label");
+    cycleValue = t("cycle.lifetimeValue");
   } else if (periodStart && periodEnd) {
     cycleLabel = t("cycle.label");
     cycleValue = formatBillingCycle(periodStart, periodEnd);
@@ -54,7 +55,7 @@ export async function SubscriptionHeader({
         </h1>
         <p className={styles.headLede}>{lede}</p>
       </div>
-      {showCycle && cycleLabel && cycleValue && (
+      {cycleLabel && cycleValue && (
         <div className={styles.cycle}>
           {cycleLabel}
           <b>{cycleValue}</b>

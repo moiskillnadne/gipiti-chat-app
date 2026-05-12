@@ -21,9 +21,13 @@ type UsageLimitsResponse = {
 
 type PeriodLimitsCardProps = {
   dimmed?: boolean;
+  bonusByKey?: Record<string, string>;
 };
 
-export function PeriodLimitsCard({ dimmed = false }: PeriodLimitsCardProps) {
+export function PeriodLimitsCard({
+  dimmed = false,
+  bonusByKey,
+}: PeriodLimitsCardProps) {
   const t = useTranslations("auth.subscription.dashboard.limits");
   const { data } = useSWR<UsageLimitsResponse>("/api/usage-limits", fetcher, {
     revalidateOnFocus: false,
@@ -73,11 +77,11 @@ export function PeriodLimitsCard({ dimmed = false }: PeriodLimitsCardProps) {
       <div className={styles.limits}>
         {rows.map((row) => (
           <LimitRow
+            bonus={bonusByKey?.[row.key]}
             icon={row.icon}
             item={row.item}
             key={row.key}
             label={row.label}
-            unlimitedLabel={t("unlimited")}
           />
         ))}
       </div>
@@ -89,10 +93,10 @@ type LimitRowProps = {
   icon: ReactNode;
   label: string;
   item: UsageLimitItem | undefined;
-  unlimitedLabel: string;
+  bonus?: string;
 };
 
-function LimitRow({ icon, label, item, unlimitedLabel }: LimitRowProps) {
+function LimitRow({ icon, label, item, bonus }: LimitRowProps) {
   const used = item?.used ?? 0;
   const limit = item?.limit ?? null;
   const isUnlimited = limit === null;
@@ -107,9 +111,20 @@ function LimitRow({ icon, label, item, unlimitedLabel }: LimitRowProps) {
       <span className={styles.limitIcon}>{icon}</span>
       <div className={styles.limitMid}>
         <div className={styles.limitName}>
-          <span className={styles.limitNameLabel}>{label}</span>
+          <span className={styles.limitNameLabel}>
+            {label}
+            {bonus ? (
+              <span className={styles.limitNameBonus}>{bonus}</span>
+            ) : null}
+          </span>
           <span className={styles.limitNameRight}>
-            <b>{used}</b> / {isUnlimited ? unlimitedLabel : limit}
+            {isUnlimited ? (
+              <b>{used}</b>
+            ) : (
+              <>
+                <b>{used}</b> / {limit}
+              </>
+            )}
           </span>
         </div>
         <div className={meterClass}>

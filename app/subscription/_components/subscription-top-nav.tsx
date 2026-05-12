@@ -8,11 +8,13 @@ import { StatusPill } from "./status-pill";
 type SubscriptionTopNavProps = {
   state: SubscriptionUiState;
   subCrumb?: string;
+  pillOverride?: "unverified";
 };
 
 export async function SubscriptionTopNav({
   state,
   subCrumb,
+  pillOverride,
 }: SubscriptionTopNavProps) {
   const t = await getTranslations("auth.subscription.dashboard.topnav");
 
@@ -38,7 +40,13 @@ export async function SubscriptionTopNav({
         )}
       </span>
       <div className={styles.navSpacer} />
-      <StatusPill state={state} />
+      {pillOverride === "unverified" ? (
+        <span className={`${styles.pill} ${styles.pillWarn}`}>
+          {t("pillUnverified")}
+        </span>
+      ) : (
+        <StatusPill state={state} />
+      )}
     </nav>
   );
 }

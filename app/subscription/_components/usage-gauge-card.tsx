@@ -70,7 +70,10 @@ function pickVariant(state: SubscriptionUiState, pct: number): GaugeVariant {
 
 function pickRemainingHintKey(
   state: SubscriptionUiState
-): "default" | "trial" | "cancelled" {
+): "default" | "trial" | "cancelled" | null {
+  if (state === "none") {
+    return null;
+  }
   if (state === "trial") {
     return "trial";
   }
@@ -83,9 +86,14 @@ function pickRemainingHintKey(
 type UsageGaugeCardProps = {
   state: SubscriptionUiState;
   dimmed?: boolean;
+  bonusAnnotation?: string;
 };
 
-export function UsageGaugeCard({ state, dimmed = false }: UsageGaugeCardProps) {
+export function UsageGaugeCard({
+  state,
+  dimmed = false,
+  bonusAnnotation,
+}: UsageGaugeCardProps) {
   const t = useTranslations("auth.subscription.dashboard.gauge");
   const tHistory = useTranslations("auth.subscription.dashboard");
   const { data } = useSWR<TransactionsApiResponse>(
@@ -157,6 +165,11 @@ export function UsageGaugeCard({ state, dimmed = false }: UsageGaugeCardProps) {
                     <span className={styles.gaugeStatSub}>
                       {quotaParts.unit} {t("tokensWord")}
                     </span>
+                    {bonusAnnotation ? (
+                      <span className={styles.gaugeStatBonus}>
+                        {bonusAnnotation}
+                      </span>
+                    ) : null}
                   </span>
                 </div>
                 <div className={styles.gaugeStat}>
@@ -173,8 +186,13 @@ export function UsageGaugeCard({ state, dimmed = false }: UsageGaugeCardProps) {
                   <span className={styles.gaugeStatVal}>
                     {remainingParts.num}
                     <span className={styles.gaugeStatSub}>
-                      {remainingParts.unit} ·{" "}
-                      {t(`remainingHint.${pickRemainingHintKey(state)}`)}
+                      {remainingParts.unit}
+                      {(() => {
+                        const hintKey = pickRemainingHintKey(state);
+                        return hintKey
+                          ? ` · ${t(`remainingHint.${hintKey}`)}`
+                          : "";
+                      })()}
                     </span>
                   </span>
                 </div>
