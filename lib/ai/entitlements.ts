@@ -157,6 +157,23 @@ export function deriveFreeTier({
   return "tier_2";
 }
 
+export type GetUserTierInput = {
+  emailVerified: boolean;
+};
+
+// Pure helper — derives a user's free tier from their state. No DB access.
+// Accepts a minimal user shape so it can be called with the session user,
+// the DB user, or any partial object that exposes `emailVerified`.
+export function getUserTier(
+  user: GetUserTierInput,
+  hasSurvey: boolean
+): FreeTier {
+  return deriveFreeTier({
+    emailVerified: user.emailVerified,
+    hasCompletedOnboardingSurvey: hasSurvey,
+  });
+}
+
 // Seed used by `assignFreePlan` and migration scripts when they need to
 // create or update the `SubscriptionPlan` DB row for free users. The free
 // plan is not part of `SUBSCRIPTION_TIERS`, so this is the single source of
