@@ -1,0 +1,486 @@
+/* ============================================================
+   GIPITI · Confirm Email · Page-specific styles
+   Ported from design handoff: gipiti/project/email-confirmation.html
+   ============================================================ */
+
+.page {
+  padding-top: 40px;
+}
+
+.grid {
+  align-items: start;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1.05fr 1fr;
+}
+
+.confirmCard {
+  background: var(--card-bg);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+}
+
+.eyebrow {
+  align-items: center;
+  color: var(--ink-3);
+  display: inline-flex;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  gap: 8px;
+  letter-spacing: 0.08em;
+  margin-bottom: 14px;
+  text-transform: uppercase;
+}
+
+.eyebrowDot {
+  animation: confirmEmailPulse 1.8s var(--ease-canon) infinite;
+  background: var(--warn);
+  border-radius: 50%;
+  height: 6px;
+  width: 6px;
+}
+
+.eyebrowDotExpired {
+  animation: none;
+  background: var(--danger);
+}
+
+@keyframes confirmEmailPulse {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+.cardTitle {
+  font-size: 28px;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  margin-bottom: 8px;
+}
+
+.cardTitle em {
+  font-style: italic;
+  font-weight: 300;
+}
+
+.cardLede {
+  color: var(--ink-2);
+  font-size: 14px;
+  line-height: 1.55;
+  margin-bottom: 4px;
+}
+
+.cardLede em {
+  color: var(--ink);
+  font-style: italic;
+}
+
+.sentTo {
+  align-items: center;
+  color: var(--ink-3);
+  display: inline-flex;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  gap: 6px;
+  margin-bottom: 22px;
+}
+
+.sentTo b {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.sentTo svg {
+  height: 14px;
+  width: 14px;
+}
+
+/* --- OTP --- */
+.otpRow {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.otpHidden {
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  width: 0;
+}
+
+.otpCell {
+  align-items: center;
+  aspect-ratio: 1;
+  background: var(--paper);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-md);
+  color: var(--ink);
+  display: flex;
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 24px;
+  font-weight: 500;
+  justify-content: center;
+  max-width: 56px;
+  transition: all var(--d-fast) var(--ease-canon);
+}
+
+.otpCellFilled {
+  background: var(--card-bg);
+  border-color: var(--ink);
+}
+
+.otpCellActive {
+  background: var(--card-bg);
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px var(--citrus-soft);
+}
+
+.otpCaret {
+  animation: confirmEmailBlink 1s steps(1) infinite;
+  background: var(--ink);
+  height: 24px;
+  width: 2px;
+}
+
+@keyframes confirmEmailBlink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.otpMeta {
+  align-items: baseline;
+  color: var(--ink-3);
+  display: flex;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.resend {
+  background: none;
+  border: none;
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-decoration: underline;
+  text-decoration-color: var(--rule-strong);
+  text-underline-offset: 3px;
+}
+
+.resend:hover {
+  text-decoration-color: var(--ink);
+}
+
+.resendDisabled {
+  color: var(--ink-3);
+  cursor: default;
+  text-decoration: none;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.actionsFlex {
+  flex: 1;
+}
+
+.btnGhost {
+  align-items: center;
+  border-radius: var(--radius-md);
+  color: var(--ink-2);
+  display: inline-flex;
+  font-size: 14px;
+  font-weight: 500;
+  gap: 8px;
+  justify-content: center;
+  padding: 11px 14px;
+  transition: all var(--d-fast) var(--ease-canon);
+  white-space: nowrap;
+}
+
+.btnGhost:hover:not(:disabled) {
+  background: var(--paper-2);
+  color: var(--ink);
+}
+
+.btnGhost svg {
+  height: 14px;
+  width: 14px;
+}
+
+/* --- Reward card --- */
+.rewardCard {
+  background: var(--card-bg);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 28px;
+}
+
+.rewardHead {
+  align-items: center;
+  border-bottom: 1px dashed var(--rule);
+  display: flex;
+  gap: 12px;
+  padding-bottom: 18px;
+}
+
+.giftBig {
+  align-items: center;
+  background: var(--citrus);
+  border-radius: 12px;
+  color: var(--ink);
+  display: inline-flex;
+  height: 44px;
+  justify-content: center;
+  width: 44px;
+}
+
+.giftBigSuccess {
+  background: var(--success);
+  color: white;
+}
+
+.giftBig svg {
+  height: 22px;
+  width: 22px;
+}
+
+.rewardTitleBlock h4 {
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.rewardTitleBlock p {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+  text-transform: uppercase;
+}
+
+.rewardHeadline {
+  font-size: 32px;
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.rewardHeadlineUnit {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  margin-left: 6px;
+  text-transform: uppercase;
+}
+
+.rewardStats {
+  display: grid;
+  gap: 18px 14px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.rewardStatKey {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rewardStatVal {
+  align-items: baseline;
+  display: flex;
+  font-feature-settings: "tnum";
+  font-size: 18px;
+  font-weight: 400;
+  gap: 6px;
+  letter-spacing: -0.01em;
+  margin-top: 4px;
+}
+
+.rewardStatArrow {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.rewardStatNew {
+  color: var(--success);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.rewardStatValBold {
+  font-weight: 500;
+}
+
+.rewardFoot {
+  border-top: 1px dashed var(--rule);
+  color: var(--ink-3);
+  font-size: 12px;
+  line-height: 1.5;
+  padding-top: 16px;
+}
+
+.rewardFoot em {
+  color: var(--ink-2);
+  font-style: italic;
+}
+
+/* --- Success view --- */
+.confirmCheck {
+  align-items: center;
+  background: var(--success-soft);
+  border: 1px solid var(--success);
+  border-radius: 50%;
+  color: var(--success);
+  display: inline-flex;
+  height: 52px;
+  justify-content: center;
+  margin-bottom: 18px;
+  width: 52px;
+}
+
+.confirmCheck svg {
+  height: 26px;
+  width: 26px;
+}
+
+.creditBurst {
+  align-items: baseline;
+  border-bottom: 1px dashed var(--rule);
+  border-top: 1px dashed var(--rule);
+  display: flex;
+  gap: 8px;
+  margin: 20px 0 22px;
+  padding: 18px 0;
+}
+
+.creditBurstLabel {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.creditBurstAmount {
+  color: var(--ink);
+  font-feature-settings: "tnum";
+  font-size: 28px;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  margin-left: auto;
+}
+
+.creditBurstPlus {
+  color: var(--success);
+}
+
+.creditBurstUnit {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  margin-left: 4px;
+}
+
+.successPlansAvailable {
+  color: var(--success);
+  font-size: 14px;
+}
+
+/* --- Mobile --- */
+@media (max-width: 768px) {
+  .grid {
+    gap: 12px;
+    grid-template-columns: 1fr;
+  }
+  .confirmCard {
+    padding: 22px 20px;
+  }
+  .cardTitle {
+    font-size: 22px;
+  }
+  .cardLede {
+    font-size: 13px;
+  }
+  .otpRow {
+    gap: 6px;
+  }
+  .otpCell {
+    font-size: 20px;
+    max-width: 48px;
+  }
+  .otpMeta {
+    align-items: flex-start;
+    flex-direction: column;
+    font-size: 10px;
+    gap: 6px;
+  }
+  .actions {
+    flex-direction: column;
+  }
+  .actions > * {
+    width: 100%;
+  }
+  .rewardCard {
+    gap: 14px;
+    padding: 20px;
+  }
+  .rewardHeadline {
+    font-size: 26px;
+  }
+  .giftBig {
+    height: 36px;
+    width: 36px;
+  }
+  .rewardStats {
+    gap: 12px;
+  }
+  .rewardStatVal {
+    font-size: 15px;
+  }
+  .creditBurst {
+    margin: 16px 0 18px;
+    padding: 14px 0;
+  }
+  .creditBurstAmount {
+    font-size: 22px;
+  }
+  .confirmCheck {
+    height: 44px;
+    margin-bottom: 14px;
+    width: 44px;
+  }
+  .confirmCheck svg {
+    height: 22px;
+    width: 22px;
+  }
+}

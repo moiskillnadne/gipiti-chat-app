@@ -54,6 +54,16 @@
   font-weight: 500;
 }
 
+.crumbLink {
+  color: var(--ink-2);
+  text-decoration: none;
+  transition: color var(--d-fast) var(--ease-canon);
+}
+
+.crumbLink:hover {
+  color: var(--ink);
+}
+
 .navSpacer {
   flex: 1;
 }

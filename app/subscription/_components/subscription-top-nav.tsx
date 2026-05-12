@@ -7,9 +7,13 @@ import { StatusPill } from "./status-pill";
 
 type SubscriptionTopNavProps = {
   state: SubscriptionUiState;
+  subCrumb?: string;
 };
 
-export async function SubscriptionTopNav({ state }: SubscriptionTopNavProps) {
+export async function SubscriptionTopNav({
+  state,
+  subCrumb,
+}: SubscriptionTopNavProps) {
   const t = await getTranslations("auth.subscription.dashboard.topnav");
 
   return (
@@ -21,7 +25,17 @@ export async function SubscriptionTopNav({ state }: SubscriptionTopNavProps) {
       <span className={styles.crumb}>
         {t("crumbAccount")}
         <span className={styles.crumbSep}>/</span>
-        <span className={styles.crumbActive}>{t("crumbSubscription")}</span>
+        {subCrumb ? (
+          <>
+            <Link className={styles.crumbLink} href="/subscription">
+              {t("crumbSubscription")}
+            </Link>
+            <span className={styles.crumbSep}>/</span>
+            <span className={styles.crumbActive}>{subCrumb}</span>
+          </>
+        ) : (
+          <span className={styles.crumbActive}>{t("crumbSubscription")}</span>
+        )}
       </span>
       <div className={styles.navSpacer} />
       <StatusPill state={state} />
