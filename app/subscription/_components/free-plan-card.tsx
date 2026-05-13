@@ -1,5 +1,15 @@
-import Link from "next/link";
-import { getTranslations } from "@/lib/i18n/translate";
+"use client";
+
+import { useRouter } from "next/navigation";
+import { startTransition, useActionState, useEffect } from "react";
+import {
+  type ResendVerificationActionState,
+  resendVerificationCode,
+} from "@/app/(auth)/actions";
+import { Loader } from "@/components/elements/loader";
+import { toast } from "@/components/toast";
+import { Button } from "@/components/ui/button";
+import { useTranslations } from "@/lib/i18n/translate";
 import styles from "./dashboard.module.css";
 import { GiftIcon, MailIcon } from "./icons";
 
@@ -9,16 +19,57 @@ type FreePlanCardProps = {
   tokenBonus: number;
 };
 
-export async function FreePlanCard({
+export function FreePlanCard({
   email,
   emailVerified,
   tokenBonus,
 }: FreePlanCardProps) {
-  const t = await getTranslations("auth.subscription.dashboard.plan");
-  const tCycle = await getTranslations("auth.subscription.dashboard.cycle");
-  const tFree = await getTranslations("auth.subscription.dashboard.plan.free");
+  const router = useRouter();
+  const t = useTranslations("auth.subscription.dashboard.plan");
+  const tCycle = useTranslations("auth.subscription.dashboard.cycle");
+  const tFree = useTranslations("auth.subscription.dashboard.plan.free");
+  const tNotifications = useTranslations("common.notifications");
+  const tVerification = useTranslations("auth.verification");
+
+  const [resendState, resendAction] = useActionState<
+    ResendVerificationActionState,
+    FormData
+  >(resendVerificationCode, { status: "idle" });
+
+  const isSending = resendState.status === "in_progress";
+
+  useEffect(() => {
+    if (resendState.status === "success") {
+      toast({ type: "success", description: tVerification("codeSent") });
+      router.push("/subscription/confirm-email");
+      return;
+    }
+    if (resendState.status === "rate_limited") {
+      toast({ type: "error", description: tVerification("rateLimited") });
+      return;
+    }
+    if (
+      resendState.status === "failed" ||
+      resendState.status === "invalid_data"
+    ) {
+      toast({ type: "error", description: tNotifications("genericError") });
+    }
+  }, [resendState.status, router, tNotifications, tVerification]);
 
   const bonusAmount = Math.round(tokenBonus / 1000);
+
+  const handleClick = () => {
+    if (emailVerified) {
+      router.push("/manage-subscription");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.set("email", email);
+    startTransition(() => {
+      resendAction(formData);
+    });
+  };
 
   return (
     <section aria-label={t("title")} className={styles.card}>
@@ -90,15 +141,14 @@ export async function FreePlanCard({
         </div>
       )}
 
-      <Link
+      <Button
         className={`${styles.btn} ${styles.btnPrimary} ${styles.btnFull} ${styles.planCta}`}
-        href={
-          emailVerified ? "/manage-subscription" : "/subscription/confirm-email"
-        }
+        disabled={isSending}
+        onClick={handleClick}
       >
-        {emailVerified ? null : <MailIcon />}
+        {emailVerified ? null : isSending ? <Loader size={16} /> : <MailIcon />}
         {emailVerified ? tFree("viewPlansCta") : tFree("confirmEmailCta")}
-      </Link>
+      </Button>
     </section>
   );
 }

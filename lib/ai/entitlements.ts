@@ -75,6 +75,9 @@ export type FreeTierEntitlements = {
   videoBonus: number;
   searchQuota: number;
   searchDepthAllowed: SearchDepth;
+  // Absolute lifetime cap on user-messages for a free user at this tier.
+  // Not a delta — represents the total allowance once the tier is reached.
+  maxMessages: number;
 };
 
 const TIER_1_MODELS: ChatModel["id"][] = ["gpt-5.4-mini", "gpt-5.4-nano"];
@@ -112,6 +115,7 @@ export const FREE_TIER_ENTITLEMENTS: Record<FreeTier, FreeTierEntitlements> = {
     videoBonus: 0,
     searchQuota: 2,
     searchDepthAllowed: "basic",
+    maxMessages: 20,
   },
   tier_2: {
     tier: "tier_2",
@@ -119,8 +123,9 @@ export const FREE_TIER_ENTITLEMENTS: Record<FreeTier, FreeTierEntitlements> = {
     tokenBonus: 10_000,
     imageBonus: 1,
     videoBonus: 0,
-    searchQuota: 2,
+    searchQuota: 5,
     searchDepthAllowed: "basic",
+    maxMessages: 40,
   },
   tier_3: {
     tier: "tier_3",
@@ -128,8 +133,9 @@ export const FREE_TIER_ENTITLEMENTS: Record<FreeTier, FreeTierEntitlements> = {
     tokenBonus: 20_000,
     imageBonus: 2,
     videoBonus: 1,
-    searchQuota: 2,
+    searchQuota: 5,
     searchDepthAllowed: "basic",
+    maxMessages: 40,
   },
 };
 
@@ -226,6 +232,7 @@ export function getDefaultFreePlanSeed(): FreePlanSeed {
       searchDepthAllowed: tier1.searchDepthAllowed,
       maxImageGenerationsPerPeriod: tier1.imageBonus,
       maxVideoGenerationsPerPeriod: tier1.videoBonus,
+      maxMessagesPerPeriod: tier1.maxMessages,
     },
     price: {
       USD: 0,

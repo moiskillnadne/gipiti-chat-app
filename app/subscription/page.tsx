@@ -118,6 +118,7 @@ export default async function SubscriptionPage() {
   const tier1 = FREE_TIER_ENTITLEMENTS.tier_1;
   const tier2 = FREE_TIER_ENTITLEMENTS.tier_2;
   const freeTokenBonus = tier2.tokenBonus;
+  const freeMessagesBonus = Math.max(0, tier2.maxMessages - tier1.maxMessages);
   const freeImageBonus = Math.max(0, tier2.imageBonus - tier1.imageBonus);
   const freeSearchBonus = Math.max(0, tier2.searchQuota - tier1.searchQuota);
   const freeVideoBonus = Math.max(0, tier2.videoBonus - tier1.videoBonus);
@@ -135,6 +136,13 @@ export default async function SubscriptionPage() {
   const limitsBonusByKey: Record<string, string> | undefined =
     showFreeBonusAnnotations
       ? {
+          ...(freeMessagesBonus > 0
+            ? {
+                messages: tFreeLimits("bonusSuffix", {
+                  amount: freeMessagesBonus,
+                }),
+              }
+            : {}),
           ...(freeImageBonus > 0
             ? {
                 imageGeneration: tFreeLimits("bonusSuffix", {

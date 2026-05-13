@@ -1,4 +1,8 @@
-import { getDefaultFreePlanSeed } from "@/lib/ai/entitlements";
+import {
+  getDefaultFreePlanSeed,
+  getEntitlements,
+  getUserTier,
+} from "@/lib/ai/entitlements";
 import {
   getActiveUserSubscription,
   getMessageCountByBillingPeriod,
@@ -47,7 +51,14 @@ export async function checkMessageQuota(
     };
   }
 
-  const limit = tierConfig.features.maxMessagesPerPeriod;
+  // Free users have a tier-aware lifetime cap (tier_1: 20, tier_2/3: 40).
+  // hasSurvey isn't tracked in the DB yet (GIPITI-55 follow-up); default false.
+  const limit =
+    planName === "free"
+      ? getEntitlements(
+          getUserTier({ emailVerified: userRecord.emailVerified }, false)
+        ).maxMessages
+      : tierConfig.features.maxMessagesPerPeriod;
 
   // If no limit is configured, allow unlimited
   if (limit === undefined) {

@@ -1,5 +1,9 @@
 import { auth } from "@/app/(auth)/auth";
-import { getDefaultFreePlanSeed } from "@/lib/ai/entitlements";
+import {
+  getDefaultFreePlanSeed,
+  getEntitlements,
+  getUserTier,
+} from "@/lib/ai/entitlements";
 import {
   getImageGenerationCountByBillingPeriod,
   getImageGenerationCountByDateRange,
@@ -48,31 +52,43 @@ export async function GET() {
     }
 
     const seed = getDefaultFreePlanSeed();
+    const messagesLimit = getEntitlements(
+      getUserTier({ emailVerified: userRecord.emailVerified }, false)
+    ).maxMessages;
     const start = userRecord.createdAt;
     const end = new Date();
-    const [freeSearchUsed, freeImageGenUsed, freeVideoGenUsed] =
-      await Promise.all([
-        getSearchUsageCountByDateRange({
-          userId: session.user.id,
-          startDate: start,
-          endDate: end,
-        }),
-        getImageGenerationCountByDateRange({
-          userId: session.user.id,
-          startDate: start,
-          endDate: end,
-        }),
-        getVideoGenerationCountByDateRange({
-          userId: session.user.id,
-          startDate: start,
-          endDate: end,
-        }),
-      ]);
+    const [
+      freeMessagesUsed,
+      freeSearchUsed,
+      freeImageGenUsed,
+      freeVideoGenUsed,
+    ] = await Promise.all([
+      getMessageCountByBillingPeriod({
+        userId: session.user.id,
+        periodStart: start,
+        periodEnd: end,
+      }),
+      getSearchUsageCountByDateRange({
+        userId: session.user.id,
+        startDate: start,
+        endDate: end,
+      }),
+      getImageGenerationCountByDateRange({
+        userId: session.user.id,
+        startDate: start,
+        endDate: end,
+      }),
+      getVideoGenerationCountByDateRange({
+        userId: session.user.id,
+        startDate: start,
+        endDate: end,
+      }),
+    ]);
 
     const freeResponse: UsageLimitsResponse = {
       messages: {
-        used: 0,
-        limit: seed.features.maxMessagesPerPeriod ?? null,
+        used: freeMessagesUsed,
+        limit: messagesLimit,
       },
       webSearch: {
         used: freeSearchUsed,
@@ -100,32 +116,44 @@ export async function GET() {
   if (plan.name === "free") {
     const seed = getDefaultFreePlanSeed();
     const [userRecord] = await getUserById(session.user.id);
+    const messagesLimit = getEntitlements(
+      getUserTier({ emailVerified: userRecord?.emailVerified ?? false }, false)
+    ).maxMessages;
     const start = userRecord?.createdAt ?? subscription.currentPeriodStart;
     const end = new Date();
 
-    const [freeSearchUsed, freeImageGenUsed, freeVideoGenUsed] =
-      await Promise.all([
-        getSearchUsageCountByDateRange({
-          userId: session.user.id,
-          startDate: start,
-          endDate: end,
-        }),
-        getImageGenerationCountByDateRange({
-          userId: session.user.id,
-          startDate: start,
-          endDate: end,
-        }),
-        getVideoGenerationCountByDateRange({
-          userId: session.user.id,
-          startDate: start,
-          endDate: end,
-        }),
-      ]);
+    const [
+      freeMessagesUsed,
+      freeSearchUsed,
+      freeImageGenUsed,
+      freeVideoGenUsed,
+    ] = await Promise.all([
+      getMessageCountByBillingPeriod({
+        userId: session.user.id,
+        periodStart: start,
+        periodEnd: end,
+      }),
+      getSearchUsageCountByDateRange({
+        userId: session.user.id,
+        startDate: start,
+        endDate: end,
+      }),
+      getImageGenerationCountByDateRange({
+        userId: session.user.id,
+        startDate: start,
+        endDate: end,
+      }),
+      getVideoGenerationCountByDateRange({
+        userId: session.user.id,
+        startDate: start,
+        endDate: end,
+      }),
+    ]);
 
     const freeResponse: UsageLimitsResponse = {
       messages: {
-        used: 0,
-        limit: seed.features.maxMessagesPerPeriod ?? null,
+        used: freeMessagesUsed,
+        limit: messagesLimit,
       },
       webSearch: {
         used: freeSearchUsed,
