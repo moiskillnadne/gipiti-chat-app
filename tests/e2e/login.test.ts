@@ -15,7 +15,7 @@ import {
 import { LoginPage } from "../pages/auth";
 
 const CHAT_OR_LOGIN_URL_REGEX = /\/(chat|login)/;
-const SUCCESS_REDIRECT_URL_REGEX = /\/(chat|verify-email)/;
+const SUCCESS_REDIRECT_URL_REGEX = /\/chat/;
 const CHAT_URL_REGEX = /\/chat/;
 
 test.describe("Login Page", () => {
@@ -197,7 +197,7 @@ test.describe("Login Page", () => {
       await loginPage.login(TEST_USER.email, TEST_USER.password);
       await loginPage.waitForLoginSuccess();
 
-      // Should redirect to chat or verify-email page
+      // Should redirect to chat
       expect(page.url()).toMatch(SUCCESS_REDIRECT_URL_REGEX);
     });
 

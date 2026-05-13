@@ -76,12 +76,10 @@ function RegisterPage() {
       return;
     }
 
-    toast({ type: "success", description: tNotifications("verificationSent") });
-
     setIsSuccessful(true);
 
     updateSession().finally(() => {
-      router.replace("/verify-email");
+      router.replace("/chat");
     });
   }, [
     router,

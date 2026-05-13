@@ -140,17 +140,8 @@ export const register = async (
       console.error("[Register] Failed to add contact to segment:", error);
     });
 
-    // Send verification email
-    const emailResult = await sendVerificationEmail({
-      email: validatedData.email,
-    });
-
-    if (!emailResult.success) {
-      console.error("Failed to send verification email:", emailResult.error);
-      return { status: "failed" };
-    }
-
-    // Auto sign-in the user (middleware will redirect to verify-email)
+    // Auto sign-in the user — the register page then redirects to /chat.
+    // Email verification is optional and claimed later from /subscription.
     await signIn("credentials", {
       email: validatedData.email,
       password: validatedData.password,
