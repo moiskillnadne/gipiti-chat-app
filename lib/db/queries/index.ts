@@ -24,7 +24,7 @@ export {
   updateChatTitle,
   voteMessage,
 } from "./chat-queries";
-export { db } from "./connection";
+export { db, dbTx } from "./connection";
 export {
   deleteDocumentsByIdAfterTimestamp,
   getDocumentById,

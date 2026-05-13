@@ -1,5 +1,5 @@
 import { and, desc, eq, gt, gte, sql } from "drizzle-orm";
-import { db } from "@/lib/db/queries";
+import { db, dbTx } from "@/lib/db/queries";
 import {
   subscriptionPlan,
   tokenBalanceTransaction,
@@ -248,7 +248,7 @@ export async function deductBalance({
   }
 
   // Use a transaction to ensure atomicity
-  return await db.transaction(async (tx) => {
+  return await dbTx.transaction(async (tx) => {
     // Atomically update balance if sufficient funds
     // GREATEST(0, ...) ensures we never go below 0
     const updateResult = await tx
@@ -373,7 +373,7 @@ export async function resetBalance({
     throw new Error("Balance cannot be negative");
   }
 
-  return await db.transaction(async (tx) => {
+  return await dbTx.transaction(async (tx) => {
     // Get current balance
     const currentUser = await tx
       .select({ balance: user.tokenBalance })
@@ -445,7 +445,7 @@ export async function creditBalance({
     throw new Error("Credit amount must be positive");
   }
 
-  return await db.transaction(async (tx) => {
+  return await dbTx.transaction(async (tx) => {
     // Get current balance
     const currentUser = await tx
       .select({ balance: user.tokenBalance })
