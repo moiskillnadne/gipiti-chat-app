@@ -47,6 +47,15 @@ export const user = pgTable(
       .default(0),
     lastBalanceResetAt: timestamp("last_balance_reset_at"),
 
+    // Bonus generation credits (independent of subscription tier per-period quotas)
+    imageGenerationsLeft: integer("image_generations_left")
+      .notNull()
+      .default(0),
+    videoGenerationsLeft: integer("video_generations_left")
+      .notNull()
+      .default(0),
+    webSearchesUsed: integer("web_searches_used").notNull().default(0),
+
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
@@ -766,6 +775,8 @@ export const tokenBalanceTransaction = pgTable(
       planName?: string;
       subscriptionId?: string;
       previousBalance?: number;
+      imageGens?: number;
+      videoGens?: number;
     }>(),
 
     // Meta

@@ -2,6 +2,8 @@
 
 import { cookies } from "next/headers";
 import { z } from "zod";
+import { creditBonus } from "@/lib/ai/bonus-credit";
+import { FREE_TIER_ENTITLEMENTS } from "@/lib/ai/entitlements";
 import { createPasswordResetToken, hashToken } from "@/lib/auth/reset-token";
 import {
   createUser,
@@ -210,6 +212,21 @@ export const verifyEmail = async (
 
     // Mark email as verified
     await markEmailAsVerified({ email: validatedData.email });
+
+    // Credit the tier_2 bonus (idempotent — safe to retry).
+    // A failure here must not block verification — log only.
+    try {
+      const tier2 = FREE_TIER_ENTITLEMENTS.tier_2;
+      await creditBonus({
+        userId: foundUser.id,
+        reason: "email_verified_bonus",
+        tokens: tier2.tokenBonus,
+        imageGens: tier2.imageBonus,
+        videoGens: tier2.videoBonus,
+      });
+    } catch (error) {
+      console.error("[VerifyEmail] creditBonus failed:", error);
+    }
 
     return { status: "success" };
   } catch (error) {
