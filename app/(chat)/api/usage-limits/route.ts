@@ -4,13 +4,13 @@ import { getBalanceRecord } from "@/lib/ai/token-balance";
 import {
   getImageGenerationCountByBillingPeriod,
   getImageGenerationCountByDateRange,
-  getMessageCountByBillingPeriod,
   getSearchUsageCountByBillingPeriod,
   getSearchUsageCountByDateRange,
   getUserSubscriptionWithPlan,
   getVideoGenerationCountByBillingPeriod,
   getVideoGenerationCountByDateRange,
 } from "@/lib/db/queries";
+import { getMessageCountByBillingPeriod } from "@/lib/db/query/chat/get-message-count-by-billing-period";
 import { getUserById } from "@/lib/db/query/user/get-by-id";
 import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 
@@ -40,7 +40,7 @@ export async function GET() {
   // Free users have no `userSubscription` row. Synthesize the response from
   // the free-plan seed + lifetime usage counts (counted since user creation).
   if (!subscriptionData) {
-    const [userRecord] = await getUserById(session.user.id);
+    const userRecord = await getUserById(session.user.id);
     const balanceRow = await getBalanceRecord(session.user.id);
     if (!userRecord || balanceRow?.plan !== "free") {
       return Response.json(

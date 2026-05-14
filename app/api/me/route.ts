@@ -15,7 +15,7 @@ export async function GET() {
 
   const userId = session.user.id;
 
-  const [userRecords, subscription, balanceInfo, image, video, search] =
+  const [userRecord, subscription, balanceInfo, image, video, search] =
     await Promise.all([
       getUserById(userId),
       getActiveUserSubscription({ userId }),
@@ -25,22 +25,24 @@ export async function GET() {
       checkSearchQuota(userId),
     ]);
 
-  const user = userRecords[0];
-  if (!user) {
+  if (!userRecord) {
     return new Response("User not found", { status: 404 });
   }
 
   // hasSurvey is not yet tracked in the DB (see GIPITI-55 follow-up).
   const hasSurvey = false;
-  const tier = getUserTier({ emailVerified: user.emailVerified }, hasSurvey);
+  const tier = getUserTier(
+    { emailVerified: userRecord.emailVerified },
+    hasSurvey
+  );
 
   return Response.json({
-    id: user.id,
-    email: user.email,
-    emailVerified: user.emailVerified,
+    id: userRecord.id,
+    email: userRecord.email,
+    emailVerified: userRecord.emailVerified,
     currentPlan: balanceInfo?.currentPlan ?? "free",
     tier,
-    isTester: user.isTester,
+    isTester: userRecord.isTester,
     hasActiveSubscription: subscription !== null,
     tokenBalance: balanceInfo?.balance ?? 0,
     imageGenerationsLeft: image.quotaInfo?.remaining ?? 0,

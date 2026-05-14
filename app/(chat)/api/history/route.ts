@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { auth } from "@/app/(auth)/auth";
-import { deleteAllChatsByUserId, getChatsByUserId } from "@/lib/db/queries";
+import { deleteAllChatsByUserId } from "@/lib/db/query/chat/delete-all-chats-by-user-id";
+import { getChatsByUserId } from "@/lib/db/query/chat/get-chats-by-user-id";
 import { ChatSDKError } from "@/lib/errors";
 
 export async function GET(request: NextRequest) {

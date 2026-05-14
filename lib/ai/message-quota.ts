@@ -1,9 +1,7 @@
 import { getDefaultFreePlanSeed } from "@/lib/ai/entitlements";
 import { getBalanceRecord } from "@/lib/ai/token-balance";
-import {
-  getActiveUserSubscription,
-  getMessageCountByBillingPeriod,
-} from "@/lib/db/queries";
+import { getActiveUserSubscription } from "@/lib/db/queries";
+import { getMessageCountByBillingPeriod } from "@/lib/db/query/chat/get-message-count-by-billing-period";
 import { getUserById } from "@/lib/db/query/user/get-by-id";
 import type { BillingPeriod } from "@/lib/subscription/subscription-tiers";
 import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
@@ -25,8 +23,7 @@ type MessageQuotaCheckResult = {
 export async function checkMessageQuota(
   userId: string
 ): Promise<MessageQuotaCheckResult> {
-  const userRecords = await getUserById(userId);
-  const userRecord = userRecords[0];
+  const userRecord = await getUserById(userId);
 
   if (!userRecord) {
     return {

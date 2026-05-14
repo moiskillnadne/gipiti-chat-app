@@ -3,15 +3,11 @@
 import { cookies } from "next/headers";
 import { z } from "zod";
 import { createPasswordResetToken, hashToken } from "@/lib/auth/reset-token";
-import {
-  createUser,
-  getUserByResetToken,
-  getUserByVerificationCode,
-  markEmailAsVerified,
-  setPasswordResetToken,
-  updateUserPassword,
-} from "@/lib/db/queries";
 import { getUserByEmail } from "@/lib/db/query/user/get-by-email";
+import { getUserByResetToken } from "@/lib/db/query/user/get-user-by-reset-token";
+import { getUserByVerificationCode } from "@/lib/db/query/user/get-user-by-verification-code";
+import { markEmailAsVerified } from "@/lib/db/query/user/mark-email-as-verified";
+import { updateUserPassword } from "@/lib/db/query/user/update-user-password";
 import { generateHashedPassword } from "@/lib/db/utils";
 import { sendPasswordChangedEmail } from "@/lib/email/send-password-changed";
 import { sendPasswordResetEmail } from "@/lib/email/send-password-reset";
@@ -24,7 +20,8 @@ import {
 } from "@/lib/rate-limit";
 import { UTM_COOKIE_NAME } from "@/lib/utm/constants";
 import { parseUtmCookie } from "@/lib/utm/parse-utm-cookie";
-
+import { createUser } from "../../lib/db/query/user/create-user";
+import { setPasswordResetToken } from "../../lib/db/query/user/set-password-reset-token";
 import { signIn } from "./auth";
 
 // Login schema - less strict to allow existing users with older passwords
@@ -103,9 +100,9 @@ export const register = async (
       password: formData.get("password"),
     });
 
-    const [existingUser] = await getUserByEmail(validatedData.email);
+    const userRecord = await getUserByEmail(validatedData.email);
 
-    if (existingUser) {
+    if (userRecord) {
       return { status: "user_exists" } as RegisterActionState;
     }
 
@@ -190,8 +187,8 @@ export const verifyEmail = async (
 
     if (!foundUser) {
       // Check if email is already verified (code was already used successfully)
-      const [existingUser] = await getUserByEmail(validatedData.email);
-      if (existingUser?.emailVerified) {
+      const userRecord = await getUserByEmail(validatedData.email);
+      if (userRecord?.emailVerified) {
         return { status: "already_verified" };
       }
       console.error("[VerifyEmail] User not found");
@@ -255,10 +252,10 @@ export const resendVerificationCode = async (
     }
 
     // Check if user exists and is not already verified
-    const [foundUser] = await getUserByEmail(validatedData.email);
+    const userRecord = await getUserByEmail(validatedData.email);
 
     // Always return success to prevent email enumeration
-    if (!foundUser || foundUser.emailVerified) {
+    if (!userRecord || userRecord.emailVerified) {
       return { status: "success" };
     }
 
@@ -320,11 +317,11 @@ export const requestPasswordReset = async (
     }
 
     // Find user by email
-    const [foundUser] = await getUserByEmail(validatedData.email);
+    const userRecord = await getUserByEmail(validatedData.email);
 
     // Always return success to prevent email enumeration
     // Even if user doesn't exist, we pretend we sent the email
-    if (!foundUser) {
+    if (!userRecord) {
       return { status: "success" };
     }
 
@@ -333,7 +330,7 @@ export const requestPasswordReset = async (
 
     // Store hashed token in database
     await setPasswordResetToken({
-      userId: foundUser.id,
+      userId: userRecord.id,
       hashedToken,
       expiresAt,
     });

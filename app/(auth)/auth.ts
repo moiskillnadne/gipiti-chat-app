@@ -42,21 +42,19 @@ export const {
       },
       async authorize(credentials) {
         const { email, password } = credentials as CredentialsType;
-        const users = await getUserByEmail(email);
+        const userRecord = await getUserByEmail(email);
 
-        if (users.length === 0) {
+        if (!userRecord) {
           await compare(password, DUMMY_PASSWORD);
           return null;
         }
 
-        const [user] = users;
-
-        if (!user.password) {
+        if (!userRecord.password) {
           await compare(password, DUMMY_PASSWORD);
           return null;
         }
 
-        const passwordsMatch = await compare(password, user.password);
+        const passwordsMatch = await compare(password, userRecord.password);
 
         if (!passwordsMatch) {
           return null;
@@ -64,17 +62,17 @@ export const {
 
         // Check if user has active subscription
         const subscription = await getActiveUserSubscription({
-          userId: user.id,
+          userId: userRecord.id,
         });
 
         return {
-          id: user.id,
-          email: user.email,
+          id: userRecord.id,
+          email: userRecord.email,
           type: "regular",
-          emailVerified: user.emailVerified,
+          emailVerified: userRecord.emailVerified,
           hasActiveSubscription: subscription !== null,
-          isTester: user.isTester,
-          hasUsedTrial: user.trialUsedAt !== null,
+          isTester: userRecord.isTester,
+          hasUsedTrial: userRecord.trialUsedAt !== null,
         };
       },
     }),
@@ -107,12 +105,13 @@ export const {
         }
 
         if (token.email) {
-          const [dbUser] = await getUserByEmail(token.email);
-          if (dbUser) {
-            console.log("DB user emailVerified:", dbUser.emailVerified);
-            token.emailVerified = dbUser.emailVerified as boolean;
-            token.isTester = dbUser.isTester as boolean;
-            token.hasUsedTrial = dbUser.trialUsedAt !== null;
+          const userRecord = await getUserByEmail(token.email);
+
+          if (userRecord) {
+            console.log("DB user emailVerified:", userRecord.emailVerified);
+            token.emailVerified = userRecord.emailVerified as boolean;
+            token.isTester = userRecord.isTester as boolean;
+            token.hasUsedTrial = userRecord.trialUsedAt !== null;
           }
         }
 

@@ -10,10 +10,8 @@ import {
   THINKING_COOKIE_PREFIX,
 } from "@/lib/ai/models";
 import { myProvider } from "@/lib/ai/providers";
-import {
-  deleteMessagesByChatIdAfterTimestamp,
-  getMessageById,
-} from "@/lib/db/queries";
+import { deleteMessagesByChatIdAfterTimestamp } from "@/lib/db/query/chat/delete-messages-by-chat-id-after-timestamp";
+import { getMessageById } from "@/lib/db/query/chat/get-message-by-id";
 
 export async function saveChatModelAsCookie(model: string) {
   const cookieStore = await cookies();

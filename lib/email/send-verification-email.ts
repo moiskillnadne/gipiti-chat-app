@@ -1,6 +1,6 @@
 import { randomInt } from "node:crypto";
 import { hashToken } from "../auth/reset-token";
-import { setEmailVerificationCode } from "../db/queries";
+import { setEmailVerificationCode } from "../db/query/user/set-email-verification-code";
 import { emailConfig, resend } from "./client";
 import {
   getEmailVerificationHtml,
