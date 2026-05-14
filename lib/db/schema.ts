@@ -25,7 +25,6 @@ export const user = pgTable(
     id: uuid("id").primaryKey().notNull().defaultRandom(),
     email: varchar("email", { length: 64 }).notNull(),
     password: varchar("password", { length: 64 }),
-    currentPlan: varchar("current_plan", { length: 32 }), // No default - new users must subscribe
     emailVerified: boolean("email_verified").default(false).notNull(),
     isTester: boolean("is_tester").default(false).notNull(),
     emailVerificationCode: varchar("email_verification_code", { length: 255 }),
@@ -41,21 +40,6 @@ export const user = pgTable(
     utmContent: varchar("utm_content", { length: 255 }),
     utmTerm: varchar("utm_term", { length: 255 }),
 
-    // Token balance system
-    tokenBalance: bigint("token_balance", { mode: "number" })
-      .notNull()
-      .default(0),
-    lastBalanceResetAt: timestamp("last_balance_reset_at"),
-
-    // Bonus generation credits (independent of subscription tier per-period quotas)
-    imageGenerationsLeft: integer("image_generations_left")
-      .notNull()
-      .default(0),
-    videoGenerationsLeft: integer("video_generations_left")
-      .notNull()
-      .default(0),
-    webSearchesUsed: integer("web_searches_used").notNull().default(0),
-
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
@@ -70,6 +54,32 @@ export const user = pgTable(
 );
 
 export type User = InferSelectModel<typeof user>;
+
+// Balance: per-user billing/usage state. 1:1 with User.
+// Holds plan, token balance, generation credits, and search depth cache.
+export const balance = pgTable(
+  "Balance",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    plan: varchar("plan", { length: 32 }),
+    tokens: bigint("tokens", { mode: "number" }).notNull().default(0),
+    lastBalanceResetAt: timestamp("last_balance_reset_at"),
+    imageGenerations: integer("image_generations").notNull().default(0),
+    videoGenerations: integer("video_generations").notNull().default(0),
+    webSearches: integer("web_searches").notNull().default(0),
+    searchDepth: varchar("search_depth", { length: 20 }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdUnique: uniqueIndex("balance_user_id_unique").on(table.userId),
+  })
+);
+
+export type Balance = InferSelectModel<typeof balance>;
 
 export const chat = pgTable("Chat", {
   id: uuid("id").primaryKey().notNull().defaultRandom(),

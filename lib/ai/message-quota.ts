@@ -5,6 +5,7 @@ import {
 } from "@/lib/ai/entitlements";
 import {
   getActiveUserSubscription,
+  getCurrentPlan,
   getMessageCountByBillingPeriod,
 } from "@/lib/db/queries";
 import { getUserById } from "@/lib/db/query/user/get-by-id";
@@ -38,7 +39,7 @@ export async function checkMessageQuota(
     };
   }
 
-  const planName = userRecord.currentPlan || "free";
+  const planName = (await getCurrentPlan(userId)) || "free";
   const tierConfig =
     planName === "free"
       ? getDefaultFreePlanSeed()

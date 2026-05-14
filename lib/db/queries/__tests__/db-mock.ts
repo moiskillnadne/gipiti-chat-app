@@ -71,6 +71,14 @@ const proxyHandler: ProxyHandler<Record<string, unknown>> = {
     if (typeof prop === "symbol") {
       return;
     }
+    if (prop === "transaction") {
+      return async (cb: (tx: unknown) => unknown) => {
+        if (state.error) {
+          throw state.error;
+        }
+        return await cb(mockDb);
+      };
+    }
     return (..._args: unknown[]) => new Proxy({}, proxyHandler);
   },
 };

@@ -80,7 +80,7 @@ export async function deleteAllChatsByUserId({ userId }: { userId: string }) {
       return { deletedCount: 0 };
     }
 
-    const chatIds = userChats.map((c) => c.id);
+    const chatIds = userChats.map((c: { id: string }) => c.id);
 
     await db.delete(vote).where(inArray(vote.chatId, chatIds));
     await db.delete(message).where(inArray(message.chatId, chatIds));
@@ -281,7 +281,7 @@ export async function deleteMessagesByChatIdAfterTimestamp({
       );
 
     const messageIds = messagesToDelete.map(
-      (currentMessage) => currentMessage.id
+      (currentMessage: { id: string }) => currentMessage.id
     );
 
     if (messageIds.length > 0) {
@@ -433,7 +433,7 @@ export async function getStreamIdsByChatId({ chatId }: { chatId: string }) {
       .orderBy(asc(stream.createdAt))
       .execute();
 
-    return streamIds.map(({ id }) => id);
+    return streamIds.map(({ id }: { id: string }) => id);
   } catch (_error) {
     throw new ChatSDKError(
       "bad_request:database",

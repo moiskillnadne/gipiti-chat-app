@@ -1,6 +1,7 @@
+// biome-ignore-all lint/suspicious/noExplicitAny: dbTx is typed as any; transaction callback inherits
 import { and, eq, sql } from "drizzle-orm";
 import { dbTx } from "@/lib/db/queries";
-import { tokenBalanceTransaction, user } from "@/lib/db/schema";
+import { balance, tokenBalanceTransaction } from "@/lib/db/schema";
 
 export type BonusReason = "email_verified_bonus" | "survey_completed_bonus";
 
@@ -33,7 +34,7 @@ export async function creditBonus({
     throw new Error("creditBonus: bonus amounts must be non-negative");
   }
 
-  return await dbTx.transaction(async (tx) => {
+  return await dbTx.transaction(async (tx: any) => {
     const existing = await tx
       .select({ id: tokenBalanceTransaction.id })
       .from(tokenBalanceTransaction)
@@ -51,27 +52,27 @@ export async function creditBonus({
     }
 
     const [currentRow] = await tx
-      .select({ balance: user.tokenBalance })
-      .from(user)
-      .where(eq(user.id, userId))
+      .select({ tokens: balance.tokens })
+      .from(balance)
+      .where(eq(balance.userId, userId))
       .limit(1);
 
     if (!currentRow) {
-      throw new Error(`creditBonus: user ${userId} not found`);
+      throw new Error(`creditBonus: balance for user ${userId} not found`);
     }
 
-    const previousBalance = currentRow.balance;
+    const previousBalance = currentRow.tokens;
     const newBalance = previousBalance + tokens;
 
     await tx
-      .update(user)
+      .update(balance)
       .set({
-        tokenBalance: newBalance,
-        imageGenerationsLeft: sql`${user.imageGenerationsLeft} + ${imageGens}`,
-        videoGenerationsLeft: sql`${user.videoGenerationsLeft} + ${videoGens}`,
+        tokens: newBalance,
+        imageGenerations: sql`${balance.imageGenerations} + ${imageGens}`,
+        videoGenerations: sql`${balance.videoGenerations} + ${videoGens}`,
         updatedAt: new Date(),
       })
-      .where(eq(user.id, userId));
+      .where(eq(balance.userId, userId));
 
     const [txnRow] = await tx
       .insert(tokenBalanceTransaction)

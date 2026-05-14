@@ -3,6 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import {
+  balance,
   subscriptionPlan,
   tokenBalanceTransaction,
   user,
@@ -48,10 +49,11 @@ async function main() {
     .select({
       id: user.id,
       email: user.email,
-      currentPlan: user.currentPlan,
-      tokenBalance: user.tokenBalance,
+      plan: balance.plan,
+      tokens: balance.tokens,
     })
     .from(user)
+    .leftJoin(balance, eq(balance.userId, user.id))
     .where(eq(user.id, userId))
     .limit(1);
 
@@ -64,9 +66,9 @@ async function main() {
   }
 
   console.log(`User:           ${existingUser.email} (${existingUser.id})`);
-  console.log(`Current plan:   ${existingUser.currentPlan ?? "(none)"}`);
+  console.log(`Current plan:   ${existingUser.plan ?? "(none)"}`);
   console.log(
-    `Current balance: ${(existingUser.tokenBalance ?? 0).toLocaleString()} tokens\n`
+    `Current balance: ${(existingUser.tokens ?? 0).toLocaleString()} tokens\n`
   );
 
   // Get or create unlim plan in DB
@@ -154,7 +156,7 @@ async function main() {
     unlimTier.billingPeriodCount
   );
 
-  const previousBalance = existingUser.tokenBalance ?? 0;
+  const previousBalance = existingUser.tokens ?? 0;
 
   const newSubscriptionId = await db.transaction(async (tx) => {
     if (activeSubs.length > 0) {
@@ -186,14 +188,14 @@ async function main() {
       .returning({ id: userSubscription.id });
 
     await tx
-      .update(user)
+      .update(balance)
       .set({
-        currentPlan: UNLIM_PLAN_NAME,
-        tokenBalance: unlimTier.tokenQuota,
+        plan: UNLIM_PLAN_NAME,
+        tokens: unlimTier.tokenQuota,
         lastBalanceResetAt: now,
         updatedAt: now,
       })
-      .where(eq(user.id, userId));
+      .where(eq(balance.userId, userId));
 
     await tx.insert(tokenBalanceTransaction).values({
       userId,

@@ -1,9 +1,9 @@
 import { and, desc, eq, gt, gte, sql } from "drizzle-orm";
 import { db, dbTx } from "@/lib/db/queries";
 import {
+  balance,
   subscriptionPlan,
   tokenBalanceTransaction,
-  user,
   userSubscription,
 } from "@/lib/db/schema";
 import { isPeriodExpired } from "../subscription/billing-periods";
@@ -61,22 +61,22 @@ export async function getUserBalance(userId: string): Promise<{
     billingPeriod: string;
   } | null;
 } | null> {
-  // Get user with balance
-  const users = await db
+  // Get user's balance row
+  const balances = await db
     .select({
-      tokenBalance: user.tokenBalance,
-      lastBalanceResetAt: user.lastBalanceResetAt,
-      currentPlan: user.currentPlan,
+      tokens: balance.tokens,
+      lastBalanceResetAt: balance.lastBalanceResetAt,
+      plan: balance.plan,
     })
-    .from(user)
-    .where(eq(user.id, userId))
+    .from(balance)
+    .where(eq(balance.userId, userId))
     .limit(1);
 
-  if (users.length === 0) {
+  if (balances.length === 0) {
     return null;
   }
 
-  const { tokenBalance, lastBalanceResetAt, currentPlan } = users[0];
+  const { tokens, lastBalanceResetAt, plan: currentPlan } = balances[0];
 
   // Get active subscription for additional context
   const now = new Date();
@@ -114,7 +114,7 @@ export async function getUserBalance(userId: string): Promise<{
       : null;
 
   return {
-    balance: tokenBalance,
+    balance: tokens,
     lastResetAt: lastBalanceResetAt,
     currentPlan,
     subscription: subscriptionInfo,
@@ -248,34 +248,35 @@ export async function deductBalance({
   }
 
   // Use a transaction to ensure atomicity
-  return await dbTx.transaction(async (tx) => {
+  // biome-ignore lint/suspicious/noExplicitAny: dbTx is typed as any
+  return await dbTx.transaction(async (tx: any) => {
     // Atomically update balance if sufficient funds
     // GREATEST(0, ...) ensures we never go below 0
     const updateResult = await tx
-      .update(user)
+      .update(balance)
       .set({
-        tokenBalance: sql`GREATEST(0, ${user.tokenBalance} - ${amount})`,
+        tokens: sql`GREATEST(0, ${balance.tokens} - ${amount})`,
         updatedAt: new Date(),
       })
       .where(
         and(
-          eq(user.id, userId),
-          gte(user.tokenBalance, amount) // Only deduct if sufficient balance
+          eq(balance.userId, userId),
+          gte(balance.tokens, amount) // Only deduct if sufficient balance
         )
       )
       .returning({
-        newBalance: user.tokenBalance,
+        newBalance: balance.tokens,
       });
 
     if (updateResult.length === 0) {
       // Insufficient balance - get current balance for error context
-      const currentUser = await tx
-        .select({ balance: user.tokenBalance })
-        .from(user)
-        .where(eq(user.id, userId))
+      const currentRow = await tx
+        .select({ balance: balance.tokens })
+        .from(balance)
+        .where(eq(balance.userId, userId))
         .limit(1);
 
-      const currentBalance = currentUser[0]?.balance ?? 0;
+      const currentBalance = currentRow[0]?.balance ?? 0;
 
       // Still record the deduction attempt with actual deducted amount
       // This creates a transaction showing we hit the floor
@@ -284,12 +285,12 @@ export async function deductBalance({
       if (actualDeduction > 0) {
         // Deduct whatever is available
         await tx
-          .update(user)
+          .update(balance)
           .set({
-            tokenBalance: 0,
+            tokens: 0,
             updatedAt: new Date(),
           })
-          .where(eq(user.id, userId));
+          .where(eq(balance.userId, userId));
 
         // Record partial deduction transaction
         const [partialTransaction] = await tx
@@ -373,29 +374,30 @@ export async function resetBalance({
     throw new Error("Balance cannot be negative");
   }
 
-  return await dbTx.transaction(async (tx) => {
+  // biome-ignore lint/suspicious/noExplicitAny: dbTx is typed as any
+  return await dbTx.transaction(async (tx: any) => {
     // Get current balance
-    const currentUser = await tx
-      .select({ balance: user.tokenBalance })
-      .from(user)
-      .where(eq(user.id, userId))
+    const currentRow = await tx
+      .select({ balance: balance.tokens })
+      .from(balance)
+      .where(eq(balance.userId, userId))
       .limit(1);
 
-    if (currentUser.length === 0) {
-      throw new Error("User not found");
+    if (currentRow.length === 0) {
+      throw new Error("User balance not found");
     }
 
-    const previousBalance = currentUser[0].balance;
+    const previousBalance = currentRow[0].balance;
 
     // Update balance
     await tx
-      .update(user)
+      .update(balance)
       .set({
-        tokenBalance: newBalance,
+        tokens: newBalance,
         lastBalanceResetAt: new Date(),
         updatedAt: new Date(),
       })
-      .where(eq(user.id, userId));
+      .where(eq(balance.userId, userId));
 
     // Record transaction
     const [transaction] = await tx
@@ -445,29 +447,30 @@ export async function creditBalance({
     throw new Error("Credit amount must be positive");
   }
 
-  return await dbTx.transaction(async (tx) => {
+  // biome-ignore lint/suspicious/noExplicitAny: dbTx is typed as any
+  return await dbTx.transaction(async (tx: any) => {
     // Get current balance
-    const currentUser = await tx
-      .select({ balance: user.tokenBalance })
-      .from(user)
-      .where(eq(user.id, userId))
+    const currentRow = await tx
+      .select({ balance: balance.tokens })
+      .from(balance)
+      .where(eq(balance.userId, userId))
       .limit(1);
 
-    if (currentUser.length === 0) {
-      throw new Error("User not found");
+    if (currentRow.length === 0) {
+      throw new Error("User balance not found");
     }
 
-    const previousBalance = currentUser[0].balance;
+    const previousBalance = currentRow[0].balance;
     const newBalance = previousBalance + amount;
 
     // Update balance
     await tx
-      .update(user)
+      .update(balance)
       .set({
-        tokenBalance: newBalance,
+        tokens: newBalance,
         updatedAt: new Date(),
       })
-      .where(eq(user.id, userId));
+      .where(eq(balance.userId, userId));
 
     // Record transaction
     const [transaction] = await tx

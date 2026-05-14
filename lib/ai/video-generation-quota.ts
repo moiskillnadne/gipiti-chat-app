@@ -1,6 +1,7 @@
 import { getDefaultFreePlanSeed } from "@/lib/ai/entitlements";
 import {
   getActiveUserSubscription,
+  getCurrentPlan,
   getVideoGenerationCountByBillingPeriod,
   getVideoGenerationCountByDateRange,
 } from "@/lib/db/queries";
@@ -34,7 +35,7 @@ export async function checkVideoGenerationQuota(
     };
   }
 
-  const planName = userRecord.currentPlan || "free";
+  const planName = (await getCurrentPlan(userId)) || "free";
   const tierConfig =
     planName === "free"
       ? getDefaultFreePlanSeed()

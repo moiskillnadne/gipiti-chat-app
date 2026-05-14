@@ -4,6 +4,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { FREE_TIER_ENTITLEMENTS } from "@/lib/ai/entitlements";
 import {
+  balance,
   tokenBalanceTransaction,
   user,
   userSubscription,
@@ -36,10 +37,11 @@ async function main() {
     .select({
       id: user.id,
       email: user.email,
-      currentPlan: user.currentPlan,
-      tokenBalance: user.tokenBalance,
+      plan: balance.plan,
+      tokens: balance.tokens,
     })
     .from(user)
+    .leftJoin(balance, eq(balance.userId, user.id))
     .where(eq(user.id, userId))
     .limit(1);
 
@@ -52,9 +54,9 @@ async function main() {
   }
 
   console.log(`User:           ${existingUser.email} (${existingUser.id})`);
-  console.log(`Current plan:   ${existingUser.currentPlan ?? "(none)"}`);
+  console.log(`Current plan:   ${existingUser.plan ?? "(none)"}`);
   console.log(
-    `Current balance: ${(existingUser.tokenBalance ?? 0).toLocaleString()} tokens\n`
+    `Current balance: ${(existingUser.tokens ?? 0).toLocaleString()} tokens\n`
   );
 
   // Free is not a subscription. Cancel any existing active subscriptions
@@ -94,7 +96,7 @@ async function main() {
     .filter((id): id is string => Boolean(id));
 
   const now = new Date();
-  const previousBalance = existingUser.tokenBalance ?? 0;
+  const previousBalance = existingUser.tokens ?? 0;
 
   await db.transaction(async (tx) => {
     if (activeSubs.length > 0) {
@@ -110,14 +112,14 @@ async function main() {
     }
 
     await tx
-      .update(user)
+      .update(balance)
       .set({
-        currentPlan: FREE_PLAN_NAME,
-        tokenBalance: freeBalance,
+        plan: FREE_PLAN_NAME,
+        tokens: freeBalance,
         lastBalanceResetAt: now,
         updatedAt: now,
       })
-      .where(eq(user.id, userId));
+      .where(eq(balance.userId, userId));
 
     await tx.insert(tokenBalanceTransaction).values({
       userId,

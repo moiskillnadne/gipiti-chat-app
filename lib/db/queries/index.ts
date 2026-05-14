@@ -6,6 +6,12 @@
 
 // biome-ignore-all lint/performance/noBarrelFile: intentional barrel for backwards-compatible re-exports
 export {
+  createInitialBalance,
+  getBalanceByUserId,
+  getCurrentPlan,
+  setBalancePlan,
+} from "./balance-queries";
+export {
   createStreamId,
   deleteAllChatsByUserId,
   deleteChatById,

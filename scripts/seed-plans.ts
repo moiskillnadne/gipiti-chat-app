@@ -21,7 +21,7 @@ async function main() {
 
   // NOTE: The "free" plan is not a subscription and is intentionally excluded
   // from seeding. Free users have no `userSubscription` row — they're identified
-  // solely by `User.currentPlan = "free"` and live off `User.tokenBalance`.
+  // solely by `Balance.plan = "free"` and live off `Balance.tokens`.
   for (const [_key, tier] of Object.entries(SUBSCRIPTION_TIERS)) {
     try {
       // Check if plan exists

@@ -38,13 +38,13 @@ export async function GET() {
     id: user.id,
     email: user.email,
     emailVerified: user.emailVerified,
-    currentPlan: user.currentPlan ?? "free",
+    currentPlan: balanceInfo?.currentPlan ?? "free",
     tier,
     isTester: user.isTester,
     hasActiveSubscription: subscription !== null,
     tokenBalance: balanceInfo?.balance ?? 0,
-    imageGenerationsLeft: image.quotaInfo?.remaining ?? 0,
-    videoGenerationsLeft: video.quotaInfo?.remaining ?? 0,
-    webSearchesUsed: search.quotaInfo?.used ?? 0,
+    imageGenerations: image.quotaInfo?.remaining ?? 0,
+    videoGenerations: video.quotaInfo?.remaining ?? 0,
+    webSearches: search.quotaInfo?.remaining ?? 0,
   });
 }

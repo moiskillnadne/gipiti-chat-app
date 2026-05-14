@@ -2,7 +2,7 @@ import { and, eq, ne } from "drizzle-orm";
 import { FREE_TIER_ENTITLEMENTS } from "@/lib/ai/entitlements";
 import { resetBalance } from "@/lib/ai/token-balance";
 import { db } from "@/lib/db/queries";
-import { subscriptionPlan, user, userSubscription } from "@/lib/db/schema";
+import { balance, subscriptionPlan, userSubscription } from "@/lib/db/schema";
 import {
   calculateNextBillingDate,
   calculatePeriodEnd,
@@ -44,7 +44,10 @@ export async function assignFreePlan(userId: string) {
     return;
   }
 
-  await db.update(user).set({ currentPlan: "free" }).where(eq(user.id, userId));
+  await db
+    .update(balance)
+    .set({ plan: "free", updatedAt: new Date() })
+    .where(eq(balance.userId, userId));
 
   await resetBalance({
     userId,
@@ -134,7 +137,7 @@ export async function upgradeToPlan(userId: string, planName: string) {
 
   // Update user's current plan
   await db
-    .update(user)
-    .set({ currentPlan: planName })
-    .where(eq(user.id, userId));
+    .update(balance)
+    .set({ plan: planName, updatedAt: new Date() })
+    .where(eq(balance.userId, userId));
 }

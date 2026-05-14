@@ -78,7 +78,7 @@ async function deleteUserByEmail(
     // 7. Delete documents (FK on userId)
     await tx.delete(document).where(eq(document.userId, targetUser.id));
 
-    // 8. Delete user row (cascades: userSubscription, userTokenUsage,
+    // 8. Delete user row (cascades: balance, userSubscription, userTokenUsage,
     //    paymentIntent, tokenUsageLog, searchUsageLog, imageGenerationUsageLog,
     //    textStyle, project, cancellationFeedback, tokenBalanceTransaction)
     await tx.delete(user).where(eq(user.id, targetUser.id));

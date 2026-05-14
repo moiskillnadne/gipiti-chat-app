@@ -2,6 +2,7 @@ import { and, eq, ne } from "drizzle-orm";
 import { resetBalance } from "@/lib/ai/token-balance";
 import { db } from "@/lib/db/queries";
 import {
+  balance,
   paymentIntent,
   subscriptionPlan,
   user,
@@ -345,9 +346,9 @@ export async function handlePayWebhook(
     }
 
     await db
-      .update(user)
-      .set({ currentPlan: planName })
-      .where(eq(user.id, AccountId));
+      .update(balance)
+      .set({ plan: planName, updatedAt: new Date() })
+      .where(eq(balance.userId, AccountId));
 
     // Reset token balance to plan quota on successful payment
     try {
@@ -584,8 +585,13 @@ async function handleTrialPayment({
 
     await db
       .update(user)
-      .set({ currentPlan: planName, trialUsedAt: now })
+      .set({ trialUsedAt: now })
       .where(eq(user.id, accountId));
+
+    await db
+      .update(balance)
+      .set({ plan: planName, updatedAt: now })
+      .where(eq(balance.userId, accountId));
 
     // Reset token balance to plan quota for trial users
     try {

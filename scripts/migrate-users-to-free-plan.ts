@@ -4,6 +4,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { FREE_TIER_ENTITLEMENTS } from "@/lib/ai/entitlements";
 import {
+  balance,
   tokenBalanceTransaction,
   user,
   userSubscription,
@@ -29,10 +30,11 @@ async function main() {
     .select({
       id: user.id,
       email: user.email,
-      currentPlan: user.currentPlan,
-      tokenBalance: user.tokenBalance,
+      plan: balance.plan,
+      tokens: balance.tokens,
     })
     .from(user)
+    .leftJoin(balance, eq(balance.userId, user.id))
     .leftJoin(
       userSubscription,
       and(
@@ -58,17 +60,17 @@ async function main() {
   for (const targetUser of usersWithoutSubscription) {
     try {
       const now = new Date();
-      const previousBalance = Number(targetUser.tokenBalance ?? 0);
+      const previousBalance = Number(targetUser.tokens ?? 0);
 
       await db
-        .update(user)
+        .update(balance)
         .set({
-          currentPlan: "free",
-          tokenBalance: freeBalance,
+          plan: "free",
+          tokens: freeBalance,
           lastBalanceResetAt: now,
           updatedAt: now,
         })
-        .where(eq(user.id, targetUser.id));
+        .where(eq(balance.userId, targetUser.id));
 
       await db.insert(tokenBalanceTransaction).values({
         userId: targetUser.id,

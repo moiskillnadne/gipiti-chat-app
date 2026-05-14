@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
-import { tokenBalanceTransaction, user } from "@/lib/db/schema";
+import { balance, tokenBalanceTransaction, user } from "@/lib/db/schema";
 
 config({ path: ".env.local" });
 
@@ -38,9 +38,10 @@ async function main() {
     .select({
       id: user.id,
       email: user.email,
-      tokenBalance: user.tokenBalance,
+      tokens: balance.tokens,
     })
     .from(user)
+    .leftJoin(balance, eq(balance.userId, user.id))
     .where(eq(user.id, userId))
     .limit(1);
 
@@ -52,7 +53,7 @@ async function main() {
     process.exit(1);
   }
 
-  const currentBalance = existingUser.tokenBalance ?? 0;
+  const currentBalance = existingUser.tokens ?? 0;
   const newBalance = currentBalance + amount;
 
   console.log(`\nUser: ${existingUser.email} (${existingUser.id})`);
@@ -63,12 +64,12 @@ async function main() {
 
   await db.transaction(async (tx) => {
     await tx
-      .update(user)
+      .update(balance)
       .set({
-        tokenBalance: newBalance,
+        tokens: newBalance,
         updatedAt: new Date(),
       })
-      .where(eq(user.id, userId));
+      .where(eq(balance.userId, userId));
 
     const [transaction] = await tx
       .insert(tokenBalanceTransaction)

@@ -15,7 +15,6 @@ import {
 } from "@/lib/db/queries";
 import { getUserByEmail } from "@/lib/db/query/user/get-by-email";
 import { generateHashedPassword } from "@/lib/db/utils";
-import { addContactToSegment } from "@/lib/email/add-contact-to-segment";
 import { sendPasswordChangedEmail } from "@/lib/email/send-password-changed";
 import { sendPasswordResetEmail } from "@/lib/email/send-password-reset";
 import { sendVerificationEmail } from "@/lib/email/send-verification-email";
@@ -25,7 +24,6 @@ import {
   getRateLimitResetMinutes,
   getRateLimitResetSeconds,
 } from "@/lib/rate-limit";
-import { assignFreePlan } from "@/lib/subscription/subscription-init";
 import { UTM_COOKIE_NAME } from "@/lib/utm/constants";
 import { parseUtmCookie } from "@/lib/utm/parse-utm-cookie";
 
@@ -120,7 +118,7 @@ export const register = async (
       utmCookie ? decodeURIComponent(utmCookie) : undefined
     );
 
-    const newUser = await createUser(
+    await createUser(
       validatedData.email,
       validatedData.password,
       utmData ?? undefined
@@ -130,17 +128,6 @@ export const register = async (
     if (utmCookie) {
       cookieStore.delete(UTM_COOKIE_NAME);
     }
-
-    // Assign free plan so user gets immediate access after email verification
-    await assignFreePlan(newUser.id);
-
-    // Add user to marketing segment (non-blocking, fire-and-forget)
-    // Registration should succeed even if this fails
-    addContactToSegment({
-      email: validatedData.email,
-    }).catch((error) => {
-      console.error("[Register] Failed to add contact to segment:", error);
-    });
 
     // Auto sign-in the user — the register page then redirects to /chat.
     // Email verification is optional and claimed later from /subscription.
@@ -152,6 +139,7 @@ export const register = async (
 
     return { status: "success" };
   } catch (error) {
+    console.error("Error in register:", error);
     if (error instanceof z.ZodError) {
       return { status: "invalid_data" };
     }

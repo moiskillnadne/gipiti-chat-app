@@ -48,7 +48,7 @@ export async function handleCancelWebhook(
     `[CloudPayments:Cancel] Subscription ${subscription.id} marked for cancellation`
   );
 
-  // Note: currentPlan will be set to null by cron job when period ends
+  // Note: balance.plan will be cleared by cron job when period ends
   // User retains access until currentPeriodEnd
 
   return Response.json({ code: 0 });

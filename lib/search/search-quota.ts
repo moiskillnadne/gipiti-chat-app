@@ -1,6 +1,7 @@
 import { getDefaultFreePlanSeed } from "@/lib/ai/entitlements";
 import {
   getActiveUserSubscription,
+  getCurrentPlan,
   getSearchUsageCountByBillingPeriod,
   getSearchUsageCountByDateRange,
   insertSearchUsageLog,
@@ -36,7 +37,7 @@ export async function checkSearchQuota(
     };
   }
 
-  const planName = userRecord.currentPlan || "free";
+  const planName = (await getCurrentPlan(userId)) || "free";
   const tierConfig =
     planName === "free"
       ? getDefaultFreePlanSeed()

@@ -4,9 +4,9 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
 import {
+  balance,
   subscriptionPlan,
   tokenBalanceTransaction,
-  user,
   userSubscription,
 } from "@/lib/db/schema";
 
@@ -38,14 +38,14 @@ async function main() {
       userId: userSubscription.userId,
       planName: subscriptionPlan.name,
       planDisplayName: subscriptionPlan.displayName,
-      currentBalance: user.tokenBalance,
+      currentBalance: balance.tokens,
     })
     .from(userSubscription)
     .innerJoin(
       subscriptionPlan,
       eq(userSubscription.planId, subscriptionPlan.id)
     )
-    .innerJoin(user, eq(userSubscription.userId, user.id))
+    .innerJoin(balance, eq(userSubscription.userId, balance.userId))
     .where(eq(userSubscription.status, "active"));
 
   console.log(`Found ${activeSubscriptions.length} active subscriptions\n`);
@@ -69,12 +69,12 @@ async function main() {
 
       // Update user's token balance
       await db
-        .update(user)
+        .update(balance)
         .set({
-          tokenBalance: newBalance,
+          tokens: newBalance,
           updatedAt: new Date(),
         })
-        .where(eq(user.id, sub.userId));
+        .where(eq(balance.userId, sub.userId));
 
       // Record the credit transaction for audit trail
       await db.insert(tokenBalanceTransaction).values({

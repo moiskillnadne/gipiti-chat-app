@@ -1,6 +1,5 @@
 import { and, desc, eq, gt } from "drizzle-orm";
-import { db } from "@/lib/db/queries";
-import { getUserById } from "@/lib/db/query/user/get-by-id";
+import { db, getCurrentPlan } from "@/lib/db/queries";
 import {
   subscriptionPlan,
   tokenUsageLog,
@@ -160,8 +159,8 @@ export async function recordTokenUsage({
   // deduction and a `tokenUsageLog` row for analytics, but we skip the
   // `userTokenUsage` aggregate (its `subscriptionId` column is NOT NULL).
   if (!quotaInfo) {
-    const [userRecord] = await getUserById(userId);
-    if (userRecord?.currentPlan !== "free") {
+    const plan = await getCurrentPlan(userId);
+    if (plan !== "free") {
       throw new Error("No active subscription found");
     }
     return await recordFreeTierUsage({ userId, chatId, messageId, usage });

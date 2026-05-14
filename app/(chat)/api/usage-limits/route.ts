@@ -5,6 +5,7 @@ import {
   getUserTier,
 } from "@/lib/ai/entitlements";
 import {
+  getCurrentPlan,
   getImageGenerationCountByBillingPeriod,
   getImageGenerationCountByDateRange,
   getMessageCountByBillingPeriod,
@@ -44,7 +45,8 @@ export async function GET() {
   // the free-plan seed + lifetime usage counts (counted since user creation).
   if (!subscriptionData) {
     const [userRecord] = await getUserById(session.user.id);
-    if (!userRecord || userRecord.currentPlan !== "free") {
+    const currentPlan = await getCurrentPlan(session.user.id);
+    if (!userRecord || currentPlan !== "free") {
       return Response.json(
         { error: "No active subscription" },
         { status: 404 }
