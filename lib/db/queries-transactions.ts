@@ -2,7 +2,7 @@ import "server-only";
 import { count, desc, eq, sql } from "drizzle-orm";
 import { getUserBalance } from "@/lib/ai/token-balance";
 import { db } from "@/lib/db/queries";
-import { chat, tokenBalanceTransaction, user } from "@/lib/db/schema";
+import { balance, chat, tokenBalanceTransaction } from "@/lib/db/schema";
 
 type TransactionWithChat = {
   id: string;
@@ -88,15 +88,13 @@ export async function getUsageSummary(
   userId: string
 ): Promise<UsageSummary | null> {
   // Get user's token balance
-  const [userData] = await db
-    .select({
-      tokenBalance: user.tokenBalance,
-    })
-    .from(user)
-    .where(eq(user.id, userId))
+  const [balanceRow] = await db
+    .select({ tokens: balance.tokens })
+    .from(balance)
+    .where(eq(balance.userId, userId))
     .limit(1);
 
-  if (!userData) {
+  if (!balanceRow) {
     return null;
   }
 
@@ -108,13 +106,13 @@ export async function getUsageSummary(
   }
 
   const quota = balanceInfo.subscription.tokenQuota;
-  const balance = Number(userData.tokenBalance) || 0;
-  const spent = Math.max(0, quota - balance);
+  const tokens = Number(balanceRow.tokens) || 0;
+  const spent = Math.max(0, quota - tokens);
 
   return {
     quota,
-    balance,
+    balance: tokens,
     spent,
-    remaining: Math.max(0, balance),
+    remaining: Math.max(0, tokens),
   };
 }

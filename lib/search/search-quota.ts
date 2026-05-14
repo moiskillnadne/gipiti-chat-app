@@ -1,11 +1,13 @@
 import { getDefaultFreePlanSeed } from "@/lib/ai/entitlements";
 import {
+  decrementBalanceCounter,
+  ensureBalance,
+  getBalanceRecord,
+} from "@/lib/ai/token-balance";
+import {
   getActiveUserSubscription,
-  getSearchUsageCountByBillingPeriod,
-  getSearchUsageCountByDateRange,
   insertSearchUsageLog,
 } from "@/lib/db/queries";
-import { getUserById } from "@/lib/db/query/user/get-by-id";
 import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 import type {
   SearchDepth,
@@ -23,12 +25,9 @@ type SearchQuotaCheckResult = {
 export async function checkSearchQuota(
   userId: string
 ): Promise<SearchQuotaCheckResult> {
-  // Get user's current plan
-  const userRecords = await getUserById(userId);
+  const balanceRow = await getBalanceRecord(userId);
 
-  const userRecord = userRecords[0];
-
-  if (!userRecord) {
+  if (!balanceRow) {
     return {
       allowed: false,
       reason: "User not found",
@@ -36,7 +35,7 @@ export async function checkSearchQuota(
     };
   }
 
-  const planName = userRecord.currentPlan || "free";
+  const planName = balanceRow.plan || "free";
   const tierConfig =
     planName === "free"
       ? getDefaultFreePlanSeed()
@@ -50,69 +49,27 @@ export async function checkSearchQuota(
     };
   }
 
-  // Get user's subscription to determine billing period
   const subscription = await getActiveUserSubscription({ userId });
-
-  if (!subscription) {
-    // Free users have one-time cumulative quotas — counted lifetime, no reset.
-    const lifetimeUsed = await getSearchUsageCountByDateRange({
-      userId,
-      startDate: userRecord.createdAt,
-      endDate: new Date(),
-    });
-    const lifetimeLimit = tierConfig.features.searchQuota;
-    const lifetimeRemaining = Math.max(0, lifetimeLimit - lifetimeUsed);
-    // Free quotas are one-time; surface `resetAt` as far in the future so any
-    // consumer reading it doesn't promise an imminent refresh.
-    const noResetSentinel = new Date(8.64e15);
-
-    if (lifetimeUsed >= lifetimeLimit) {
-      return {
-        allowed: false,
-        reason: `Search quota exceeded. You've used ${lifetimeUsed}/${lifetimeLimit} searches.`,
-        quotaInfo: {
-          limit: lifetimeLimit,
-          used: lifetimeUsed,
-          remaining: lifetimeRemaining,
-          resetAt: noResetSentinel,
-          periodType: "lifetime",
-        },
-        allowedDepth: tierConfig.features.searchDepthAllowed,
-      };
-    }
-
-    return {
-      allowed: true,
-      quotaInfo: {
-        limit: lifetimeLimit,
-        used: lifetimeUsed,
-        remaining: lifetimeRemaining,
-        resetAt: noResetSentinel,
-        periodType: "lifetime",
-      },
-      allowedDepth: tierConfig.features.searchDepthAllowed,
-    };
-  }
-
-  // Count searches in current billing period
-  const used = await getSearchUsageCountByBillingPeriod({
-    userId,
-    periodStart: subscription.currentPeriodStart,
-    periodEnd: subscription.currentPeriodEnd,
-  });
   const limit = tierConfig.features.searchQuota;
-  const remaining = Math.max(0, limit - used);
+  const remaining = balanceRow.webSearches;
+  const used = Math.max(0, limit - remaining);
+  const periodType = subscription ? tierConfig.billingPeriod : "lifetime";
+  const resetAt = subscription
+    ? subscription.currentPeriodEnd
+    : new Date(8.64e15);
 
-  if (used >= limit) {
+  if (remaining <= 0) {
     return {
       allowed: false,
-      reason: `Search quota exceeded. You've used ${used}/${limit} searches this ${tierConfig.billingPeriod}.`,
+      reason: subscription
+        ? `Search quota exceeded. You've used ${used}/${limit} searches this ${tierConfig.billingPeriod}.`
+        : `Search quota exceeded. You've used ${used}/${limit} searches.`,
       quotaInfo: {
         limit,
         used,
         remaining,
-        resetAt: subscription.currentPeriodEnd,
-        periodType: tierConfig.billingPeriod,
+        resetAt,
+        periodType,
       },
       allowedDepth: tierConfig.features.searchDepthAllowed,
     };
@@ -124,8 +81,8 @@ export async function checkSearchQuota(
       limit,
       used,
       remaining,
-      resetAt: subscription.currentPeriodEnd,
-      periodType: tierConfig.billingPeriod,
+      resetAt,
+      periodType,
     },
     allowedDepth: tierConfig.features.searchDepthAllowed,
   };
@@ -134,7 +91,6 @@ export async function checkSearchQuota(
 export async function recordSearchUsage(
   record: SearchUsageRecord
 ): Promise<void> {
-  // Get user's subscription to determine billing period
   const subscription = await getActiveUserSubscription({
     userId: record.userId,
   });
@@ -148,7 +104,6 @@ export async function recordSearchUsage(
     billingPeriodEnd = subscription.currentPeriodEnd;
     billingPeriodType = subscription.billingPeriod;
   } else {
-    // Default to daily for tester plan
     const now = new Date();
     billingPeriodStart = new Date(now);
     billingPeriodStart.setHours(0, 0, 0, 0);
@@ -168,5 +123,12 @@ export async function recordSearchUsage(
     billingPeriodType,
     billingPeriodStart,
     billingPeriodEnd,
+  });
+
+  await ensureBalance(record.userId);
+  await decrementBalanceCounter({
+    userId: record.userId,
+    field: "webSearches",
+    amount: 1,
   });
 }

@@ -68,7 +68,8 @@ export const {
         });
 
         return {
-          ...user,
+          id: user.id,
+          email: user.email,
           type: "regular",
           emailVerified: user.emailVerified,
           hasActiveSubscription: subscription !== null,

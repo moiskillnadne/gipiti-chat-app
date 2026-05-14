@@ -1,5 +1,6 @@
 import { auth } from "@/app/(auth)/auth";
 import { getDefaultFreePlanSeed } from "@/lib/ai/entitlements";
+import { getBalanceRecord } from "@/lib/ai/token-balance";
 import {
   getImageGenerationCountByBillingPeriod,
   getImageGenerationCountByDateRange,
@@ -40,7 +41,8 @@ export async function GET() {
   // the free-plan seed + lifetime usage counts (counted since user creation).
   if (!subscriptionData) {
     const [userRecord] = await getUserById(session.user.id);
-    if (!userRecord || userRecord.currentPlan !== "free") {
+    const balanceRow = await getBalanceRecord(session.user.id);
+    if (!userRecord || balanceRow?.plan !== "free") {
       return Response.json(
         { error: "No active subscription" },
         { status: 404 }

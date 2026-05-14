@@ -13,6 +13,7 @@ import {
   calculateNextBillingDate,
   calculatePeriodEnd,
 } from "@/lib/subscription/billing-periods";
+import { buildRefillFromTier } from "@/lib/subscription/refill";
 import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 import { parseWebhookData, toNumber } from "./utils";
 
@@ -344,16 +345,13 @@ export async function handlePayWebhook(
       });
     }
 
-    await db
-      .update(user)
-      .set({ currentPlan: planName })
-      .where(eq(user.id, AccountId));
-
-    // Reset token balance to plan quota on successful payment
+    // Reset token balance + quota counters to plan quota on successful payment
     try {
+      const refill = buildRefillFromTier(tier);
       await resetBalance({
         userId: AccountId,
-        newBalance: tier.tokenQuota,
+        ...refill,
+        plan: planName,
         reason: "payment",
         referenceId: transactionId ?? undefined,
         planName,
@@ -584,14 +582,16 @@ async function handleTrialPayment({
 
     await db
       .update(user)
-      .set({ currentPlan: planName, trialUsedAt: now })
+      .set({ trialUsedAt: now })
       .where(eq(user.id, accountId));
 
-    // Reset token balance to plan quota for trial users
+    // Reset token balance + quota counters to plan quota for trial users
     try {
+      const refill = buildRefillFromTier(tier);
       await resetBalance({
         userId: accountId,
-        newBalance: tier.tokenQuota,
+        ...refill,
+        plan: planName,
         reason: "payment",
         referenceId: `trial_${externalSubscriptionId}`,
         planName,

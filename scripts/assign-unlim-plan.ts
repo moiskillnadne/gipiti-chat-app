@@ -3,6 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import {
+  balance,
   subscriptionPlan,
   tokenBalanceTransaction,
   user,
@@ -45,12 +46,7 @@ async function main() {
   const db = drizzle(client);
 
   const existingUsers = await db
-    .select({
-      id: user.id,
-      email: user.email,
-      currentPlan: user.currentPlan,
-      tokenBalance: user.tokenBalance,
-    })
+    .select({ id: user.id, email: user.email })
     .from(user)
     .where(eq(user.id, userId))
     .limit(1);
@@ -63,10 +59,18 @@ async function main() {
     process.exit(1);
   }
 
+  const existingBalances = await db
+    .select({ plan: balance.plan, tokens: balance.tokens })
+    .from(balance)
+    .where(eq(balance.userId, userId))
+    .limit(1);
+
+  const existingBalance = existingBalances.at(0);
+
   console.log(`User:           ${existingUser.email} (${existingUser.id})`);
-  console.log(`Current plan:   ${existingUser.currentPlan ?? "(none)"}`);
+  console.log(`Current plan:   ${existingBalance?.plan ?? "(none)"}`);
   console.log(
-    `Current balance: ${(existingUser.tokenBalance ?? 0).toLocaleString()} tokens\n`
+    `Current balance: ${(existingBalance?.tokens ?? 0).toLocaleString()} tokens\n`
   );
 
   // Get or create unlim plan in DB
@@ -154,7 +158,10 @@ async function main() {
     unlimTier.billingPeriodCount
   );
 
-  const previousBalance = existingUser.tokenBalance ?? 0;
+  const previousBalance = existingBalance?.tokens ?? 0;
+  const refillImage = unlimTier.features.maxImageGenerationsPerPeriod ?? 0;
+  const refillVideo = unlimTier.features.maxVideoGenerationsPerPeriod ?? 0;
+  const refillSearch = unlimTier.features.searchQuota;
 
   const newSubscriptionId = await db.transaction(async (tx) => {
     if (activeSubs.length > 0) {
@@ -186,14 +193,27 @@ async function main() {
       .returning({ id: userSubscription.id });
 
     await tx
-      .update(user)
-      .set({
-        currentPlan: UNLIM_PLAN_NAME,
-        tokenBalance: unlimTier.tokenQuota,
-        lastBalanceResetAt: now,
+      .insert(balance)
+      .values({
+        userId,
+        plan: UNLIM_PLAN_NAME,
+        tokens: unlimTier.tokenQuota,
+        imageGeneration: refillImage,
+        videoGeneration: refillVideo,
+        webSearches: refillSearch,
         updatedAt: now,
       })
-      .where(eq(user.id, userId));
+      .onConflictDoUpdate({
+        target: balance.userId,
+        set: {
+          plan: UNLIM_PLAN_NAME,
+          tokens: unlimTier.tokenQuota,
+          imageGeneration: refillImage,
+          videoGeneration: refillVideo,
+          webSearches: refillSearch,
+          updatedAt: now,
+        },
+      });
 
     await tx.insert(tokenBalanceTransaction).values({
       userId,

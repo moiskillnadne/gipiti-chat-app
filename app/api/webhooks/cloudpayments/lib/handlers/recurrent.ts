@@ -7,6 +7,8 @@ import {
   calculateNextBillingDate,
   calculatePeriodEnd,
 } from "@/lib/subscription/billing-periods";
+import { buildRefillFromTier } from "@/lib/subscription/refill";
+import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 import { toNumber } from "./utils";
 
 const findSubscription = async (accountId: string, externalId: string) => {
@@ -96,9 +98,14 @@ export async function handleRecurrentWebhook(
 
       const plan = plans[0];
       if (plan) {
+        const tier = SUBSCRIPTION_TIERS[plan.name];
+        const refill = tier
+          ? buildRefillFromTier(tier)
+          : { newBalance: plan.tokenQuota };
         await resetBalance({
           userId: AccountId,
-          newBalance: plan.tokenQuota,
+          ...refill,
+          plan: plan.name,
           reason: "subscription_reset",
           referenceId: Id,
           planName: plan.name,

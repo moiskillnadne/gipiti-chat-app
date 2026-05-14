@@ -25,7 +25,6 @@ export const user = pgTable(
     id: uuid("id").primaryKey().notNull().defaultRandom(),
     email: varchar("email", { length: 64 }).notNull(),
     password: varchar("password", { length: 64 }),
-    currentPlan: varchar("current_plan", { length: 32 }), // No default - new users must subscribe
     emailVerified: boolean("email_verified").default(false).notNull(),
     isTester: boolean("is_tester").default(false).notNull(),
     emailVerificationCode: varchar("email_verification_code", { length: 255 }),
@@ -41,12 +40,6 @@ export const user = pgTable(
     utmContent: varchar("utm_content", { length: 255 }),
     utmTerm: varchar("utm_term", { length: 255 }),
 
-    // Token balance system
-    tokenBalance: bigint("token_balance", { mode: "number" })
-      .notNull()
-      .default(0),
-    lastBalanceResetAt: timestamp("last_balance_reset_at"),
-
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
@@ -61,6 +54,24 @@ export const user = pgTable(
 );
 
 export type User = InferSelectModel<typeof user>;
+
+// Balance: one row per user. Holds all decrementing consumable resources.
+// Refilled on subscription renewal / payment events.
+export const balance = pgTable("Balance", {
+  userId: uuid("user_id")
+    .primaryKey()
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  plan: varchar("plan", { length: 32 }),
+  tokens: bigint("tokens", { mode: "number" }).notNull().default(0),
+  imageGeneration: integer("image_generation").notNull().default(0),
+  videoGeneration: integer("video_generation").notNull().default(0),
+  webSearches: integer("web_searches").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export type Balance = InferSelectModel<typeof balance>;
 
 export const chat = pgTable("Chat", {
   id: uuid("id").primaryKey().notNull().defaultRandom(),

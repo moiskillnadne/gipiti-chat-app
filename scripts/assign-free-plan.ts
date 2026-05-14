@@ -4,6 +4,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { FREE_TIER_ENTITLEMENTS } from "@/lib/ai/entitlements";
 import {
+  balance,
   tokenBalanceTransaction,
   user,
   userSubscription,
@@ -33,12 +34,7 @@ async function main() {
   const db = drizzle(client);
 
   const existingUsers = await db
-    .select({
-      id: user.id,
-      email: user.email,
-      currentPlan: user.currentPlan,
-      tokenBalance: user.tokenBalance,
-    })
+    .select({ id: user.id, email: user.email })
     .from(user)
     .where(eq(user.id, userId))
     .limit(1);
@@ -51,10 +47,18 @@ async function main() {
     process.exit(1);
   }
 
+  const existingBalances = await db
+    .select({ plan: balance.plan, tokens: balance.tokens })
+    .from(balance)
+    .where(eq(balance.userId, userId))
+    .limit(1);
+
+  const existingBalance = existingBalances.at(0);
+
   console.log(`User:           ${existingUser.email} (${existingUser.id})`);
-  console.log(`Current plan:   ${existingUser.currentPlan ?? "(none)"}`);
+  console.log(`Current plan:   ${existingBalance?.plan ?? "(none)"}`);
   console.log(
-    `Current balance: ${(existingUser.tokenBalance ?? 0).toLocaleString()} tokens\n`
+    `Current balance: ${(existingBalance?.tokens ?? 0).toLocaleString()} tokens\n`
   );
 
   // Free is not a subscription. Cancel any existing active subscriptions
@@ -94,7 +98,8 @@ async function main() {
     .filter((id): id is string => Boolean(id));
 
   const now = new Date();
-  const previousBalance = existingUser.tokenBalance ?? 0;
+  const previousBalance = existingBalance?.tokens ?? 0;
+  const tier1 = FREE_TIER_ENTITLEMENTS.tier_1;
 
   await db.transaction(async (tx) => {
     if (activeSubs.length > 0) {
@@ -110,14 +115,27 @@ async function main() {
     }
 
     await tx
-      .update(user)
-      .set({
-        currentPlan: FREE_PLAN_NAME,
-        tokenBalance: freeBalance,
-        lastBalanceResetAt: now,
+      .insert(balance)
+      .values({
+        userId,
+        plan: FREE_PLAN_NAME,
+        tokens: freeBalance,
+        imageGeneration: tier1.imageBonus,
+        videoGeneration: tier1.videoBonus,
+        webSearches: tier1.searchQuota,
         updatedAt: now,
       })
-      .where(eq(user.id, userId));
+      .onConflictDoUpdate({
+        target: balance.userId,
+        set: {
+          plan: FREE_PLAN_NAME,
+          tokens: freeBalance,
+          imageGeneration: tier1.imageBonus,
+          videoGeneration: tier1.videoBonus,
+          webSearches: tier1.searchQuota,
+          updatedAt: now,
+        },
+      });
 
     await tx.insert(tokenBalanceTransaction).values({
       userId,

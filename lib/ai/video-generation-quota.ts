@@ -1,10 +1,6 @@
 import { getDefaultFreePlanSeed } from "@/lib/ai/entitlements";
-import {
-  getActiveUserSubscription,
-  getVideoGenerationCountByBillingPeriod,
-  getVideoGenerationCountByDateRange,
-} from "@/lib/db/queries";
-import { getUserById } from "@/lib/db/query/user/get-by-id";
+import { getBalanceRecord } from "@/lib/ai/token-balance";
+import { getActiveUserSubscription } from "@/lib/db/queries";
 import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 
 type VideoGenerationQuotaInfo = {
@@ -24,17 +20,16 @@ type VideoGenerationQuotaCheckResult = {
 export async function checkVideoGenerationQuota(
   userId: string
 ): Promise<VideoGenerationQuotaCheckResult> {
-  const userRecords = await getUserById(userId);
-  const userRecord = userRecords[0];
+  const balanceRow = await getBalanceRecord(userId);
 
-  if (!userRecord) {
+  if (!balanceRow) {
     return {
       allowed: false,
       reason: "User not found",
     };
   }
 
-  const planName = userRecord.currentPlan || "free";
+  const planName = balanceRow.plan || "free";
   const tierConfig =
     planName === "free"
       ? getDefaultFreePlanSeed()
@@ -49,7 +44,6 @@ export async function checkVideoGenerationQuota(
 
   const limit = tierConfig.features.maxVideoGenerationsPerPeriod;
 
-  // If no limit is configured, disallow by default
   if (limit === undefined || limit === 0) {
     return {
       allowed: false,
@@ -57,80 +51,26 @@ export async function checkVideoGenerationQuota(
     };
   }
 
-  // Get user's subscription to determine billing period
   const subscription = await getActiveUserSubscription({ userId });
+  const remaining = balanceRow.videoGeneration;
+  const used = Math.max(0, limit - remaining);
+  const periodType = subscription ? tierConfig.billingPeriod : "lifetime";
+  const resetAt = subscription
+    ? subscription.currentPeriodEnd
+    : new Date(8.64e15);
 
-  if (!subscription) {
-    // Free users have one-time cumulative caps — count lifetime, no reset.
-    const used = await getVideoGenerationCountByDateRange({
-      userId,
-      startDate: userRecord.createdAt,
-      endDate: new Date(),
-    });
-    const remaining = Math.max(0, limit - used);
-    const noResetSentinel = new Date(8.64e15);
-
-    if (used >= limit) {
-      return {
-        allowed: false,
-        reason:
-          "Video generation quota exceeded. " +
-          `You've used ${used}/${limit} generations.`,
-        quotaInfo: {
-          limit,
-          used,
-          remaining,
-          resetAt: noResetSentinel,
-          periodType: "lifetime",
-        },
-      };
-    }
-
-    return {
-      allowed: true,
-      quotaInfo: {
-        limit,
-        used,
-        remaining,
-        resetAt: noResetSentinel,
-        periodType: "lifetime",
-      },
-    };
-  }
-
-  // Count generations in current billing period
-  const used = await getVideoGenerationCountByBillingPeriod({
-    userId,
-    periodStart: subscription.currentPeriodStart,
-    periodEnd: subscription.currentPeriodEnd,
-  });
-  const remaining = Math.max(0, limit - used);
-
-  if (used >= limit) {
+  if (remaining <= 0) {
     return {
       allowed: false,
-      reason:
-        "Video generation quota exceeded. " +
-        `You've used ${used}/${limit} generations this ` +
-        `${tierConfig.billingPeriod}.`,
-      quotaInfo: {
-        limit,
-        used,
-        remaining,
-        resetAt: subscription.currentPeriodEnd,
-        periodType: tierConfig.billingPeriod,
-      },
+      reason: subscription
+        ? `Video generation quota exceeded. You've used ${used}/${limit} generations this ${tierConfig.billingPeriod}.`
+        : `Video generation quota exceeded. You've used ${used}/${limit} generations.`,
+      quotaInfo: { limit, used, remaining, resetAt, periodType },
     };
   }
 
   return {
     allowed: true,
-    quotaInfo: {
-      limit,
-      used,
-      remaining,
-      resetAt: subscription.currentPeriodEnd,
-      periodType: tierConfig.billingPeriod,
-    },
+    quotaInfo: { limit, used, remaining, resetAt, periodType },
   };
 }

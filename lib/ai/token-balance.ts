@@ -1,16 +1,13 @@
 import { and, desc, eq, gt, gte, sql } from "drizzle-orm";
 import { db } from "@/lib/db/queries";
 import {
+  balance,
   subscriptionPlan,
   tokenBalanceTransaction,
-  user,
   userSubscription,
 } from "@/lib/db/schema";
 import { isPeriodExpired } from "../subscription/billing-periods";
 
-/**
- * Result of a balance check operation
- */
 type BalanceCheckResult = {
   allowed: boolean;
   balance: number;
@@ -23,9 +20,6 @@ type BalanceCheckResult = {
   };
 };
 
-/**
- * Result of a balance modification operation
- */
 type BalanceModificationResult = {
   success: boolean;
   newBalance: number;
@@ -33,9 +27,6 @@ type BalanceModificationResult = {
   previousBalance?: number;
 };
 
-/**
- * Metadata for balance transactions
- */
 type TransactionMetadata = {
   modelId?: string;
   chatId?: string;
@@ -43,6 +34,107 @@ type TransactionMetadata = {
   subscriptionId?: string;
   previousBalance?: number;
 };
+
+type CountableField = "imageGeneration" | "videoGeneration" | "webSearches";
+
+const COUNTABLE_FIELDS = {
+  imageGeneration: balance.imageGeneration,
+  videoGeneration: balance.videoGeneration,
+  webSearches: balance.webSearches,
+} as const;
+
+/**
+ * Fetch the Balance row for a user, if it exists.
+ */
+export async function getBalanceRecord(userId: string) {
+  const [row] = await db
+    .select()
+    .from(balance)
+    .where(eq(balance.userId, userId))
+    .limit(1);
+
+  return row ?? null;
+}
+
+/**
+ * Ensure a Balance row exists for the user. Returns the existing row when
+ * present, otherwise inserts a zeroed row with the given plan.
+ */
+export async function ensureBalance(
+  userId: string,
+  plan: string | null = null
+) {
+  const existing = await getBalanceRecord(userId);
+  if (existing) {
+    return existing;
+  }
+
+  const [created] = await db
+    .insert(balance)
+    .values({ userId, plan })
+    .onConflictDoNothing({ target: balance.userId })
+    .returning();
+
+  if (created) {
+    return created;
+  }
+
+  // Another writer beat us to it — re-select.
+  const row = await getBalanceRecord(userId);
+  if (!row) {
+    throw new Error(`Failed to ensure balance row for user ${userId}`);
+  }
+  return row;
+}
+
+/**
+ * Update the plan name on a user's balance row.
+ */
+export async function setBalancePlan({
+  userId,
+  plan,
+}: {
+  userId: string;
+  plan: string | null;
+}) {
+  await ensureBalance(userId, plan);
+  await db
+    .update(balance)
+    .set({ plan, updatedAt: new Date() })
+    .where(eq(balance.userId, userId));
+}
+
+/**
+ * Atomically decrement a quota counter (imageGeneration / videoGeneration /
+ * webSearches). Floors at 0. Returns the new value, or null when the row was
+ * missing.
+ */
+export async function decrementBalanceCounter({
+  userId,
+  field,
+  amount = 1,
+}: {
+  userId: string;
+  field: CountableField;
+  amount?: number;
+}): Promise<number | null> {
+  if (amount <= 0) {
+    throw new Error("Decrement amount must be positive");
+  }
+
+  const column = COUNTABLE_FIELDS[field];
+
+  const [updated] = await db
+    .update(balance)
+    .set({
+      [field]: sql`GREATEST(0, ${column} - ${amount})`,
+      updatedAt: new Date(),
+    })
+    .where(eq(balance.userId, userId))
+    .returning({ value: column });
+
+  return updated?.value ?? null;
+}
 
 /**
  * Get user's current token balance and subscription info
@@ -61,24 +153,12 @@ export async function getUserBalance(userId: string): Promise<{
     billingPeriod: string;
   } | null;
 } | null> {
-  // Get user with balance
-  const users = await db
-    .select({
-      tokenBalance: user.tokenBalance,
-      lastBalanceResetAt: user.lastBalanceResetAt,
-      currentPlan: user.currentPlan,
-    })
-    .from(user)
-    .where(eq(user.id, userId))
-    .limit(1);
+  const balanceRow = await getBalanceRecord(userId);
 
-  if (users.length === 0) {
+  if (!balanceRow) {
     return null;
   }
 
-  const { tokenBalance, lastBalanceResetAt, currentPlan } = users[0];
-
-  // Get active subscription for additional context
   const now = new Date();
   const subscriptions = await db
     .select({
@@ -114,21 +194,20 @@ export async function getUserBalance(userId: string): Promise<{
       : null;
 
   return {
-    balance: tokenBalance,
-    lastResetAt: lastBalanceResetAt,
-    currentPlan,
+    balance: balanceRow.tokens,
+    lastResetAt: balanceRow.updatedAt,
+    currentPlan: balanceRow.plan,
     subscription: subscriptionInfo,
   };
 }
 
 /**
- * Check if user has sufficient token balance
- * This is the pre-flight check before making an API call
+ * Check if user has sufficient token balance.
+ * This is the pre-flight check before making an API call.
  */
 export async function checkBalance(
   userId: string
 ): Promise<BalanceCheckResult> {
-  // Get user balance and subscription info
   const balanceInfo = await getUserBalance(userId);
 
   if (!balanceInfo) {
@@ -139,15 +218,9 @@ export async function checkBalance(
     };
   }
 
-  // Check for active subscription
   if (!balanceInfo.subscription) {
-    // Free users have no subscription by design (free is not a tier).
     if (balanceInfo.currentPlan === "free") {
       if (balanceInfo.balance <= 0) {
-        // TODO: need to dynamically set an error message depending on user tier
-        // (tier_1 → "verify email for +10k", tier_2 → "complete survey for +20k",
-        // tier_3 → paywall to subscription). Requires the OnboardingSurvey table
-        // and deriveFreeTier() consumer to be wired in.
         return {
           allowed: false,
           balance: 0,
@@ -160,7 +233,6 @@ export async function checkBalance(
       };
     }
 
-    // Check if there's a cancelled subscription with expired period
     const expiredSubs = await db
       .select()
       .from(userSubscription)
@@ -192,7 +264,6 @@ export async function checkBalance(
     };
   }
 
-  // Check if balance is depleted
   if (balanceInfo.balance <= 0) {
     const periodLabel = balanceInfo.subscription.billingPeriod;
     const resetDate = balanceInfo.subscription.currentPeriodEnd;
@@ -227,8 +298,8 @@ export async function checkBalance(
 }
 
 /**
- * Atomically deduct tokens from user's balance
- * Uses PostgreSQL's atomic UPDATE with conditional WHERE clause to prevent race conditions
+ * Atomically deduct tokens from user's balance.
+ * Uses PostgreSQL's atomic UPDATE to prevent race conditions.
  */
 export async function deductBalance({
   userId,
@@ -247,51 +318,37 @@ export async function deductBalance({
     throw new Error("Deduction amount must be positive");
   }
 
-  // Use a transaction to ensure atomicity
   return await db.transaction(async (tx) => {
-    // Atomically update balance if sufficient funds
-    // GREATEST(0, ...) ensures we never go below 0
     const updateResult = await tx
-      .update(user)
+      .update(balance)
       .set({
-        tokenBalance: sql`GREATEST(0, ${user.tokenBalance} - ${amount})`,
+        tokens: sql`GREATEST(0, ${balance.tokens} - ${amount})`,
         updatedAt: new Date(),
       })
-      .where(
-        and(
-          eq(user.id, userId),
-          gte(user.tokenBalance, amount) // Only deduct if sufficient balance
-        )
-      )
+      .where(and(eq(balance.userId, userId), gte(balance.tokens, amount)))
       .returning({
-        newBalance: user.tokenBalance,
+        newBalance: balance.tokens,
       });
 
     if (updateResult.length === 0) {
-      // Insufficient balance - get current balance for error context
-      const currentUser = await tx
-        .select({ balance: user.tokenBalance })
-        .from(user)
-        .where(eq(user.id, userId))
+      const currentRow = await tx
+        .select({ balance: balance.tokens })
+        .from(balance)
+        .where(eq(balance.userId, userId))
         .limit(1);
 
-      const currentBalance = currentUser[0]?.balance ?? 0;
-
-      // Still record the deduction attempt with actual deducted amount
-      // This creates a transaction showing we hit the floor
+      const currentBalance = currentRow[0]?.balance ?? 0;
       const actualDeduction = Math.min(amount, currentBalance);
 
       if (actualDeduction > 0) {
-        // Deduct whatever is available
         await tx
-          .update(user)
+          .update(balance)
           .set({
-            tokenBalance: 0,
+            tokens: 0,
             updatedAt: new Date(),
           })
-          .where(eq(user.id, userId));
+          .where(eq(balance.userId, userId));
 
-        // Record partial deduction transaction
         const [partialTransaction] = await tx
           .insert(tokenBalanceTransaction)
           .values({
@@ -317,14 +374,12 @@ export async function deductBalance({
         };
       }
 
-      // No balance to deduct
       throw new InsufficientBalanceError(currentBalance, amount);
     }
 
     const newBalance = updateResult[0].newBalance;
     const previousBalance = newBalance + amount;
 
-    // Record the transaction
     const [transaction] = await tx
       .insert(tokenBalanceTransaction)
       .values({
@@ -351,12 +406,17 @@ export async function deductBalance({
 }
 
 /**
- * Reset user's balance to a new value (called by payment webhooks)
- * This replaces the current balance with the new value
+ * Reset user's balance — replaces token balance and optionally refills the
+ * quota counters (image / video / search). Used on payments, subscription
+ * renewals, and admin resets.
  */
 export async function resetBalance({
   userId,
   newBalance,
+  imageGeneration,
+  videoGeneration,
+  webSearches,
+  plan,
   reason,
   referenceId,
   planName,
@@ -364,6 +424,10 @@ export async function resetBalance({
 }: {
   userId: string;
   newBalance: number;
+  imageGeneration?: number;
+  videoGeneration?: number;
+  webSearches?: number;
+  plan?: string | null;
   reason: "payment" | "subscription_reset" | "admin" | "migration";
   referenceId?: string;
   planName?: string;
@@ -373,37 +437,49 @@ export async function resetBalance({
     throw new Error("Balance cannot be negative");
   }
 
+  // Ensure row exists before the transaction so the UPDATE always hits.
+  await ensureBalance(userId, plan ?? planName ?? null);
+
   return await db.transaction(async (tx) => {
-    // Get current balance
-    const currentUser = await tx
-      .select({ balance: user.tokenBalance })
-      .from(user)
-      .where(eq(user.id, userId))
+    const currentRow = await tx
+      .select({ balance: balance.tokens })
+      .from(balance)
+      .where(eq(balance.userId, userId))
       .limit(1);
 
-    if (currentUser.length === 0) {
+    if (currentRow.length === 0) {
       throw new Error("User not found");
     }
 
-    const previousBalance = currentUser[0].balance;
+    const previousBalance = currentRow[0].balance;
 
-    // Update balance
-    await tx
-      .update(user)
-      .set({
-        tokenBalance: newBalance,
-        lastBalanceResetAt: new Date(),
-        updatedAt: new Date(),
-      })
-      .where(eq(user.id, userId));
+    const updates: Record<string, unknown> = {
+      tokens: newBalance,
+      updatedAt: new Date(),
+    };
+    if (imageGeneration !== undefined) {
+      updates.imageGeneration = imageGeneration;
+    }
+    if (videoGeneration !== undefined) {
+      updates.videoGeneration = videoGeneration;
+    }
+    if (webSearches !== undefined) {
+      updates.webSearches = webSearches;
+    }
+    if (plan !== undefined) {
+      updates.plan = plan;
+    } else if (planName !== undefined) {
+      updates.plan = planName;
+    }
 
-    // Record transaction
+    await tx.update(balance).set(updates).where(eq(balance.userId, userId));
+
     const [transaction] = await tx
       .insert(tokenBalanceTransaction)
       .values({
         userId,
         type: "reset",
-        amount: newBalance, // For reset, amount is the new balance
+        amount: newBalance,
         balanceAfter: newBalance,
         referenceType: reason,
         referenceId,
@@ -426,7 +502,7 @@ export async function resetBalance({
 }
 
 /**
- * Add tokens to user's existing balance (for top-ups, promos, adjustments)
+ * Add tokens to user's existing balance (for top-ups, promos, adjustments).
  */
 export async function creditBalance({
   userId,
@@ -445,31 +521,30 @@ export async function creditBalance({
     throw new Error("Credit amount must be positive");
   }
 
+  await ensureBalance(userId);
+
   return await db.transaction(async (tx) => {
-    // Get current balance
-    const currentUser = await tx
-      .select({ balance: user.tokenBalance })
-      .from(user)
-      .where(eq(user.id, userId))
+    const currentRow = await tx
+      .select({ balance: balance.tokens })
+      .from(balance)
+      .where(eq(balance.userId, userId))
       .limit(1);
 
-    if (currentUser.length === 0) {
+    if (currentRow.length === 0) {
       throw new Error("User not found");
     }
 
-    const previousBalance = currentUser[0].balance;
+    const previousBalance = currentRow[0].balance;
     const newBalance = previousBalance + amount;
 
-    // Update balance
     await tx
-      .update(user)
+      .update(balance)
       .set({
-        tokenBalance: newBalance,
+        tokens: newBalance,
         updatedAt: new Date(),
       })
-      .where(eq(user.id, userId));
+      .where(eq(balance.userId, userId));
 
-    // Record transaction
     const [transaction] = await tx
       .insert(tokenBalanceTransaction)
       .values({
@@ -496,7 +571,7 @@ export async function creditBalance({
 }
 
 /**
- * Get balance transaction history for a user
+ * Get balance transaction history for a user.
  */
 export async function getBalanceTransactions({
   userId,
@@ -518,9 +593,6 @@ export async function getBalanceTransactions({
   return transactions;
 }
 
-/**
- * Custom error class for insufficient balance scenarios
- */
 export class InsufficientBalanceError extends Error {
   readonly currentBalance: number;
   readonly requestedAmount: number;
@@ -535,9 +607,6 @@ export class InsufficientBalanceError extends Error {
   }
 }
 
-/**
- * Format token balance for display
- */
 export function formatTokenBalance(tokens: number): string {
   if (tokens >= 1_000_000) {
     return `${(tokens / 1_000_000).toFixed(1)}M`;

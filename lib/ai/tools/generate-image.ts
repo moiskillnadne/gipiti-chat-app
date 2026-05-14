@@ -9,6 +9,7 @@ import {
 import type { ChatMessage } from "../../types";
 import { generateUUID } from "../../utils";
 import { checkImageGenerationQuota } from "../image-generation-quota";
+import { decrementBalanceCounter, ensureBalance } from "../token-balance";
 
 async function uploadGeneratedImage(
   base64Data: string,
@@ -235,6 +236,15 @@ export const generateImageTool = ({
           billingPeriodStart,
           billingPeriodEnd,
         });
+
+        if (imageUrl) {
+          await ensureBalance(userId);
+          await decrementBalanceCounter({
+            userId,
+            field: "imageGeneration",
+            amount: 1,
+          });
+        }
       } catch (err) {
         console.warn("Failed to record image generation usage", err);
       }
