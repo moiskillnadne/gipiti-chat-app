@@ -71,6 +71,14 @@ const proxyHandler: ProxyHandler<Record<string, unknown>> = {
     if (typeof prop === "symbol") {
       return;
     }
+    if (prop === "transaction") {
+      return (callback: (tx: unknown) => unknown) => {
+        if (state.error) {
+          return Promise.reject(state.error);
+        }
+        return Promise.resolve(callback(new Proxy({}, proxyHandler)));
+      };
+    }
     return (..._args: unknown[]) => new Proxy({}, proxyHandler);
   },
 };

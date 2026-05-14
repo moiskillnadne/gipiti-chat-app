@@ -15,9 +15,9 @@ import { and, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import {
+  balance,
   subscriptionPlan,
   tokenBalanceTransaction,
-  user,
   userSubscription,
   userTokenUsage,
 } from "@/lib/db/schema";
@@ -105,15 +105,15 @@ async function main() {
         const remainingBalance = Math.max(0, plan.tokenQuota - usedTokens);
 
         // Check if user already has a non-zero balance (already migrated)
-        const currentUser = await db
-          .select({ tokenBalance: user.tokenBalance })
-          .from(user)
-          .where(eq(user.id, sub.userId))
+        const currentBalance = await db
+          .select({ tokens: balance.tokens })
+          .from(balance)
+          .where(eq(balance.userId, sub.userId))
           .limit(1);
 
-        if (currentUser[0]?.tokenBalance > 0) {
+        if ((currentBalance[0]?.tokens ?? 0) > 0) {
           console.log(
-            `⏭️ Skipping user ${sub.userId}: Already has balance (${currentUser[0].tokenBalance})`
+            `⏭️ Skipping user ${sub.userId}: Already has balance (${currentBalance[0]?.tokens})`
           );
           stats.skipped++;
           continue;
@@ -121,13 +121,19 @@ async function main() {
 
         // Update user's token balance
         await db
-          .update(user)
-          .set({
-            tokenBalance: remainingBalance,
-            lastBalanceResetAt: sub.periodStart,
-            updatedAt: new Date(),
+          .insert(balance)
+          .values({
+            userId: sub.userId,
+            tokens: remainingBalance,
+            updatedAt: sub.periodStart,
           })
-          .where(eq(user.id, sub.userId));
+          .onConflictDoUpdate({
+            target: balance.userId,
+            set: {
+              tokens: remainingBalance,
+              updatedAt: sub.periodStart,
+            },
+          });
 
         // Record the migration transaction for audit
         await db.insert(tokenBalanceTransaction).values({

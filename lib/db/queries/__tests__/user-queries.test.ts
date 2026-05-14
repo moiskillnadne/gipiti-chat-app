@@ -29,10 +29,8 @@ const mockUser = {
   id: "u1",
   email: "test@example.com",
   password: "hashed_password_123",
-  currentPlan: null,
   emailVerified: false,
   isTester: false,
-  tokenBalance: 0,
   createdAt: new Date("2024-01-01"),
   updatedAt: new Date("2024-01-01"),
 };

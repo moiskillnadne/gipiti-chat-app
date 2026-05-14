@@ -38,7 +38,7 @@ export async function GET() {
     id: user.id,
     email: user.email,
     emailVerified: user.emailVerified,
-    currentPlan: user.currentPlan ?? "free",
+    currentPlan: balanceInfo?.currentPlan ?? "free",
     tier,
     isTester: user.isTester,
     hasActiveSubscription: subscription !== null,

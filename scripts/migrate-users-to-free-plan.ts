@@ -4,6 +4,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { FREE_TIER_ENTITLEMENTS } from "@/lib/ai/entitlements";
 import {
+  balance,
   tokenBalanceTransaction,
   user,
   userSubscription,
@@ -22,15 +23,15 @@ async function main() {
   const client = postgres(process.env.POSTGRES_URL!);
   const db = drizzle(client);
 
-  const freeBalance = FREE_TIER_ENTITLEMENTS.tier_1.tokenBonus;
+  const tier1 = FREE_TIER_ENTITLEMENTS.tier_1;
+  const freeBalance = tier1.tokenBonus;
 
   // Find users without an active subscription who are not testers
   const usersWithoutSubscription = await db
     .select({
       id: user.id,
       email: user.email,
-      currentPlan: user.currentPlan,
-      tokenBalance: user.tokenBalance,
+      currentTokens: balance.tokens,
     })
     .from(user)
     .leftJoin(
@@ -40,6 +41,7 @@ async function main() {
         eq(userSubscription.status, "active")
       )
     )
+    .leftJoin(balance, eq(balance.userId, user.id))
     .where(and(isNull(userSubscription.id), eq(user.isTester, false)));
 
   console.log(
@@ -58,17 +60,30 @@ async function main() {
   for (const targetUser of usersWithoutSubscription) {
     try {
       const now = new Date();
-      const previousBalance = Number(targetUser.tokenBalance ?? 0);
+      const previousBalance = Number(targetUser.currentTokens ?? 0);
 
       await db
-        .update(user)
-        .set({
-          currentPlan: "free",
-          tokenBalance: freeBalance,
-          lastBalanceResetAt: now,
+        .insert(balance)
+        .values({
+          userId: targetUser.id,
+          plan: "free",
+          tokens: freeBalance,
+          imageGeneration: tier1.imageBonus,
+          videoGeneration: tier1.videoBonus,
+          webSearches: tier1.searchQuota,
           updatedAt: now,
         })
-        .where(eq(user.id, targetUser.id));
+        .onConflictDoUpdate({
+          target: balance.userId,
+          set: {
+            plan: "free",
+            tokens: freeBalance,
+            imageGeneration: tier1.imageBonus,
+            videoGeneration: tier1.videoBonus,
+            webSearches: tier1.searchQuota,
+            updatedAt: now,
+          },
+        });
 
       await db.insert(tokenBalanceTransaction).values({
         userId: targetUser.id,

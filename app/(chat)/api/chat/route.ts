@@ -58,6 +58,7 @@ import {
 import { myProvider } from "@/lib/ai/providers";
 import { generateRecraftImage, isRecraftModel } from "@/lib/ai/recraft-client";
 import { calculateOptimalStepLimit } from "@/lib/ai/step-calculator";
+import { decrementBalanceCounter, ensureBalance } from "@/lib/ai/token-balance";
 import { checkTokenQuota, recordTokenUsage } from "@/lib/ai/token-quota";
 import { calculator } from "@/lib/ai/tools/calculator";
 import { extractUrl } from "@/lib/ai/tools/extract-url";
@@ -957,6 +958,15 @@ export async function POST(request: Request) {
               billingPeriodStart,
               billingPeriodEnd,
             });
+
+            if (imageUrl) {
+              await ensureBalance(session.user.id);
+              await decrementBalanceCounter({
+                userId: session.user.id,
+                field: "imageGeneration",
+                amount: 1,
+              });
+            }
           } catch (err) {
             console.warn("Failed to record image generation usage", err);
           }
@@ -1148,6 +1158,15 @@ export async function POST(request: Request) {
                 billingPeriodStart,
                 billingPeriodEnd,
               });
+
+              if (videoUrl) {
+                await ensureBalance(session.user.id);
+                await decrementBalanceCounter({
+                  userId: session.user.id,
+                  field: "videoGeneration",
+                  amount: 1,
+                });
+              }
             } catch (err) {
               console.warn("Failed to record video generation usage", err);
             }

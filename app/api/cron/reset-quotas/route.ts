@@ -6,6 +6,8 @@ import {
   calculateNextBillingDate,
   calculatePeriodEnd,
 } from "@/lib/subscription/billing-periods";
+import { buildRefillFromTier } from "@/lib/subscription/refill";
+import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 
 export async function GET(request: Request) {
   // Verify cron secret
@@ -109,11 +111,16 @@ export async function GET(request: Request) {
       continue;
     }
 
-    // Reset token balance to plan quota
+    // Reset token balance + quota counters to plan quota
     try {
+      const tier = SUBSCRIPTION_TIERS[plan.name];
+      const refill = tier
+        ? buildRefillFromTier(tier)
+        : { newBalance: plan.tokenQuota };
       await resetBalance({
         userId: sub.userId,
-        newBalance: plan.tokenQuota,
+        ...refill,
+        plan: plan.name,
         reason: "subscription_reset",
         referenceId: sub.id,
         planName: plan.name,

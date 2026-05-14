@@ -1,8 +1,8 @@
 import { and, eq, ne } from "drizzle-orm";
 import { FREE_TIER_ENTITLEMENTS } from "@/lib/ai/entitlements";
-import { resetBalance } from "@/lib/ai/token-balance";
+import { resetBalance, setBalancePlan } from "@/lib/ai/token-balance";
 import { db } from "@/lib/db/queries";
-import { subscriptionPlan, user, userSubscription } from "@/lib/db/schema";
+import { subscriptionPlan, userSubscription } from "@/lib/db/schema";
 import {
   calculateNextBillingDate,
   calculatePeriodEnd,
@@ -44,11 +44,15 @@ export async function assignFreePlan(userId: string) {
     return;
   }
 
-  await db.update(user).set({ currentPlan: "free" }).where(eq(user.id, userId));
+  const tier1 = FREE_TIER_ENTITLEMENTS.tier_1;
 
   await resetBalance({
     userId,
-    newBalance: FREE_TIER_ENTITLEMENTS.tier_1.tokenBonus,
+    newBalance: tier1.tokenBonus,
+    imageGeneration: tier1.imageBonus,
+    videoGeneration: tier1.videoBonus,
+    webSearches: tier1.searchQuota,
+    plan: "free",
     reason: "subscription_reset",
     planName: "free",
   });
@@ -133,8 +137,5 @@ export async function upgradeToPlan(userId: string, planName: string) {
   });
 
   // Update user's current plan
-  await db
-    .update(user)
-    .set({ currentPlan: planName })
-    .where(eq(user.id, userId));
+  await setBalancePlan({ userId, plan: planName });
 }

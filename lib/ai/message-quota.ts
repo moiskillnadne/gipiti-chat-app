@@ -1,4 +1,5 @@
 import { getDefaultFreePlanSeed } from "@/lib/ai/entitlements";
+import { getBalanceRecord } from "@/lib/ai/token-balance";
 import {
   getActiveUserSubscription,
   getMessageCountByBillingPeriod,
@@ -34,7 +35,8 @@ export async function checkMessageQuota(
     };
   }
 
-  const planName = userRecord.currentPlan || "free";
+  const balanceRow = await getBalanceRecord(userId);
+  const planName = balanceRow?.plan || "free";
   const tierConfig =
     planName === "free"
       ? getDefaultFreePlanSeed()
