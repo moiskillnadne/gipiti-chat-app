@@ -5,25 +5,6 @@
  */
 
 // biome-ignore-all lint/performance/noBarrelFile: intentional barrel for backwards-compatible re-exports
-export {
-  createStreamId,
-  deleteAllChatsByUserId,
-  deleteChatById,
-  deleteMessagesByChatIdAfterTimestamp,
-  getChatById,
-  getChatsByUserId,
-  getMessageById,
-  getMessageCountByBillingPeriod,
-  getMessageCountByUserId,
-  getMessagesByChatId,
-  getStreamIdsByChatId,
-  getVotesByChatId,
-  saveChat,
-  saveMessages,
-  updateChatLastContextById,
-  updateChatTitle,
-  voteMessage,
-} from "./chat-queries";
 export { db } from "./connection";
 export {
   deleteDocumentsByIdAfterTimestamp,

@@ -4,13 +4,13 @@ import { getBalanceRecord } from "@/lib/ai/token-balance";
 import {
   getImageGenerationCountByBillingPeriod,
   getImageGenerationCountByDateRange,
-  getMessageCountByBillingPeriod,
   getSearchUsageCountByBillingPeriod,
   getSearchUsageCountByDateRange,
   getUserSubscriptionWithPlan,
   getVideoGenerationCountByBillingPeriod,
   getVideoGenerationCountByDateRange,
 } from "@/lib/db/queries";
+import { getMessageCountByBillingPeriod } from "@/lib/db/query/chat/get-message-count-by-billing-period";
 import { getUserById } from "@/lib/db/query/user/get-by-id";
 import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 
