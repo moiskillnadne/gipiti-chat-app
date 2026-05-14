@@ -79,7 +79,6 @@ export {
 export {
   clearEmailVerificationCode,
   clearPasswordResetToken,
-  createUser,
   getUserByResetToken,
   getUserByVerificationCode,
   isEmailVerified,

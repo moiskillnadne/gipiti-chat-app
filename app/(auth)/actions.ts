@@ -4,7 +4,6 @@ import { cookies } from "next/headers";
 import { z } from "zod";
 import { createPasswordResetToken, hashToken } from "@/lib/auth/reset-token";
 import {
-  createUser,
   getUserByResetToken,
   getUserByVerificationCode,
   markEmailAsVerified,
@@ -24,7 +23,7 @@ import {
 } from "@/lib/rate-limit";
 import { UTM_COOKIE_NAME } from "@/lib/utm/constants";
 import { parseUtmCookie } from "@/lib/utm/parse-utm-cookie";
-
+import { createUser } from "../../lib/db/query/user/create-user";
 import { signIn } from "./auth";
 
 // Login schema - less strict to allow existing users with older passwords

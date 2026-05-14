@@ -13,7 +13,6 @@ vi.mock("../utils", () => ({
 import {
   clearEmailVerificationCode,
   clearPasswordResetToken,
-  createUser,
   getUserByResetToken,
   getUserByVerificationCode,
   isEmailVerified,
@@ -38,23 +37,6 @@ const mockUser = {
 describe("user-queries", () => {
   beforeEach(() => {
     resetMock();
-  });
-
-  // ── createUser ────────────────────────────────────────────────────
-
-  describe("createUser", () => {
-    it("creates user with hashed password", async () => {
-      setResult([mockUser]);
-      const result = await createUser("test@example.com", "password123");
-      expect(result).toEqual(mockUser);
-    });
-
-    it("throws ChatSDKError on database error", async () => {
-      setError(DB_ERROR);
-      await expect(
-        createUser("test@example.com", "password123")
-      ).rejects.toMatchObject({ type: "bad_request", surface: "database" });
-    });
   });
 
   // ── setPasswordResetToken ─────────────────────────────────────────
