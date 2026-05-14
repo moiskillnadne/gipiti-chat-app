@@ -76,14 +76,3 @@ export {
   insertSearchUsageLog,
   insertVideoGenerationUsageLog,
 } from "./usage-queries";
-export {
-  clearEmailVerificationCode,
-  clearPasswordResetToken,
-  getUserByResetToken,
-  getUserByVerificationCode,
-  isEmailVerified,
-  markEmailAsVerified,
-  setEmailVerificationCode,
-  setPasswordResetToken,
-  updateUserPassword,
-} from "./user-queries";

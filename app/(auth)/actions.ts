@@ -3,14 +3,11 @@
 import { cookies } from "next/headers";
 import { z } from "zod";
 import { createPasswordResetToken, hashToken } from "@/lib/auth/reset-token";
-import {
-  getUserByResetToken,
-  getUserByVerificationCode,
-  markEmailAsVerified,
-  setPasswordResetToken,
-  updateUserPassword,
-} from "@/lib/db/queries";
 import { getUserByEmail } from "@/lib/db/query/user/get-by-email";
+import { getUserByResetToken } from "@/lib/db/query/user/get-user-by-reset-token";
+import { getUserByVerificationCode } from "@/lib/db/query/user/get-user-by-verification-code";
+import { markEmailAsVerified } from "@/lib/db/query/user/mark-email-as-verified";
+import { updateUserPassword } from "@/lib/db/query/user/update-user-password";
 import { generateHashedPassword } from "@/lib/db/utils";
 import { sendPasswordChangedEmail } from "@/lib/email/send-password-changed";
 import { sendPasswordResetEmail } from "@/lib/email/send-password-reset";
@@ -24,6 +21,7 @@ import {
 import { UTM_COOKIE_NAME } from "@/lib/utm/constants";
 import { parseUtmCookie } from "@/lib/utm/parse-utm-cookie";
 import { createUser } from "../../lib/db/query/user/create-user";
+import { setPasswordResetToken } from "../../lib/db/query/user/set-password-reset-token";
 import { signIn } from "./auth";
 
 // Login schema - less strict to allow existing users with older passwords
