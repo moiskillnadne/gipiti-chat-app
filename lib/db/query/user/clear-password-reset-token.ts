@@ -3,7 +3,7 @@ import { ChatSDKError } from "../../../errors";
 import { db } from "../../queries";
 import { user } from "../../schema";
 
-export async function clearPasswordResetToken({ userId }: { userId: string }) {
+export async function clearPasswordResetToken(userId: string) {
   try {
     return await db
       .update(user)

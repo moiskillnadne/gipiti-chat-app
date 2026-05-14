@@ -3,7 +3,7 @@ import { ChatSDKError } from "../../../errors";
 import { db } from "../../queries";
 import { user } from "../../schema";
 
-export async function clearEmailVerificationCode({ email }: { email: string }) {
+export async function clearEmailVerificationCode(email: string) {
   try {
     return await db
       .update(user)
