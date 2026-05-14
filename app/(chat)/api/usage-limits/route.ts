@@ -40,7 +40,7 @@ export async function GET() {
   // Free users have no `userSubscription` row. Synthesize the response from
   // the free-plan seed + lifetime usage counts (counted since user creation).
   if (!subscriptionData) {
-    const [userRecord] = await getUserById(session.user.id);
+    const userRecord = await getUserById(session.user.id);
     const balanceRow = await getBalanceRecord(session.user.id);
     if (!userRecord || balanceRow?.plan !== "free") {
       return Response.json(

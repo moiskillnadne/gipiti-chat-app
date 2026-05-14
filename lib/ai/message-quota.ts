@@ -25,8 +25,7 @@ type MessageQuotaCheckResult = {
 export async function checkMessageQuota(
   userId: string
 ): Promise<MessageQuotaCheckResult> {
-  const userRecords = await getUserById(userId);
-  const userRecord = userRecords[0];
+  const userRecord = await getUserById(userId);
 
   if (!userRecord) {
     return {
