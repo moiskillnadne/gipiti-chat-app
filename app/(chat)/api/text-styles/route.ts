@@ -1,11 +1,9 @@
 import { z } from "zod";
 import { auth } from "@/app/(auth)/auth";
-import {
-  createTextStyle,
-  deleteTextStyle,
-  getTextStylesByUserId,
-  updateTextStyle,
-} from "@/lib/db/queries";
+import { createTextStyle } from "@/lib/db/query/text-style/create-text-style";
+import { deleteTextStyle } from "@/lib/db/query/text-style/delete-text-style";
+import { getTextStylesByUserId } from "@/lib/db/query/text-style/get-text-styles-by-user-id";
+import { updateTextStyle } from "@/lib/db/query/text-style/update-text-style";
 import { ChatSDKError } from "@/lib/errors";
 
 const SWATCH_VALUES = ["sw1", "sw2", "sw3", "sw4", "sw5", "sw6"] as const;

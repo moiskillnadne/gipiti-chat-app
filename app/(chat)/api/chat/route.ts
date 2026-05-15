@@ -68,9 +68,7 @@ import { checkVideoGenerationQuota } from "@/lib/ai/video-generation-quota";
 import { isProductionEnvironment } from "@/lib/constants";
 import {
   getProjectById,
-  getTextStyleById,
   incrementProjectUsage,
-  incrementTextStyleUsage,
   insertImageGenerationUsageLog,
   insertVideoGenerationUsageLog,
 } from "@/lib/db/queries";
@@ -85,6 +83,8 @@ import { updateChatTitle } from "@/lib/db/query/chat/update-chat-title";
 import { getDocumentById } from "@/lib/db/query/document/get-document-by-id";
 import { saveDocument } from "@/lib/db/query/document/save-document";
 import { getActiveUserSubscription } from "@/lib/db/query/subscription/get-active-user-subscription";
+import { getTextStyleById } from "@/lib/db/query/text-style/get-text-style-by-id";
+import { incrementTextStyleUsage } from "@/lib/db/query/text-style/increment-text-style-usage";
 import { ChatSDKError } from "@/lib/errors";
 import { getTranslations } from "@/lib/i18n/translate";
 import type { ChatMessage } from "@/lib/types";
