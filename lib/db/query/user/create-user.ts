@@ -1,7 +1,7 @@
 import { FREE_TIER_ENTITLEMENTS } from "../../../ai/entitlements";
 import { ChatSDKError } from "../../../errors";
 import type { UtmData } from "../../../utm/constants";
-import { db } from "../../queries";
+import { db } from "../../connection";
 import { balance, user } from "../../schema";
 import { generateHashedPassword } from "../../utils";
 

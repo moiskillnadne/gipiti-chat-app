@@ -1,5 +1,5 @@
 import { ChatSDKError } from "../../../errors";
-import { db } from "../../queries";
+import { db } from "../../connection";
 import { chat } from "../../schema";
 
 export async function saveChat({

@@ -1,6 +1,6 @@
 import type { ArtifactKind } from "@/components/artifact";
 import { ChatSDKError } from "../../../errors";
-import { db } from "../../queries";
+import { db } from "../../connection";
 import { document } from "../../schema";
 
 export async function saveDocument({

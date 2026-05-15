@@ -1,5 +1,5 @@
 import { ChatSDKError } from "../../../errors";
-import { db } from "../../queries";
+import { db } from "../../connection";
 import { searchUsageLog } from "../../schema";
 
 export async function insertSearchUsageLog({

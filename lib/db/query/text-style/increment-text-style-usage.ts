@@ -1,6 +1,6 @@
 import { and, eq, sql } from "drizzle-orm";
 import { ChatSDKError } from "../../../errors";
-import { db } from "../../queries";
+import { db } from "../../connection";
 import { textStyle } from "../../schema";
 
 export async function incrementTextStyleUsage({

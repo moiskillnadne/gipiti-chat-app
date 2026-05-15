@@ -1,6 +1,6 @@
 import { and, desc, eq, gt, lt, type SQL } from "drizzle-orm";
 import { ChatSDKError } from "../../../errors";
-import { db } from "../../queries";
+import { db } from "../../connection";
 import { type Chat, chat } from "../../schema";
 
 export async function getChatsByUserId({

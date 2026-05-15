@@ -1,6 +1,6 @@
 import { ChatSDKError } from "../../../errors";
 import { calculatePeriodEnd } from "../../../subscription/billing-periods";
-import { db } from "../../queries";
+import { db } from "../../connection";
 import { type UserSubscription, userSubscription } from "../../schema";
 
 export async function createUserSubscription({

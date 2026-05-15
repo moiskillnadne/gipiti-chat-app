@@ -1,7 +1,7 @@
 import { and, desc, eq, gt } from "drizzle-orm";
 
 import { ChatSDKError } from "../../../errors";
-import { db } from "../../queries";
+import { db } from "../../connection";
 import {
   type SubscriptionPlan,
   subscriptionPlan,
