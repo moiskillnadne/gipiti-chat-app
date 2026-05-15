@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/app/(auth)/auth";
 import { ProjectDetail } from "@/components/project-detail";
-import { getProjectById, getProjectFiles } from "@/lib/db/queries";
+import { getProjectById } from "@/lib/db/query/project/get-project-by-id";
+import { getProjectFiles } from "@/lib/db/query/project/get-project-files";
 
 export default async function ProjectDetailPage({
   params,

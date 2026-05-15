@@ -16,19 +16,6 @@ export {
   saveSuggestions,
 } from "./document-queries";
 export {
-  createProject,
-  createProjectFile,
-  deleteProject,
-  deleteProjectFileRecord,
-  getDefaultProject,
-  getProjectById,
-  getProjectFileById,
-  getProjectFiles,
-  getProjectsByUserId,
-  incrementProjectUsage,
-  updateProject,
-} from "./project-queries";
-export {
   createUserSubscription,
   getActiveUserSubscription,
   getLatestUserSubscriptionWithPlan,

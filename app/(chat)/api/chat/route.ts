@@ -69,9 +69,7 @@ import { isProductionEnvironment } from "@/lib/constants";
 import {
   getActiveUserSubscription,
   getDocumentById,
-  getProjectById,
   getTextStyleById,
-  incrementProjectUsage,
   incrementTextStyleUsage,
   insertImageGenerationUsageLog,
   insertVideoGenerationUsageLog,
@@ -85,6 +83,8 @@ import { saveChat } from "@/lib/db/query/chat/save-chat";
 import { saveMessages } from "@/lib/db/query/chat/save-messages";
 import { updateChatLastContextById } from "@/lib/db/query/chat/update-chat-last-context-by-id";
 import { updateChatTitle } from "@/lib/db/query/chat/update-chat-title";
+import { getProjectById } from "@/lib/db/query/project/get-project-by-id";
+import { incrementProjectUsage } from "@/lib/db/query/project/increment-project-usage";
 import { ChatSDKError } from "@/lib/errors";
 import { getTranslations } from "@/lib/i18n/translate";
 import type { ChatMessage } from "@/lib/types";

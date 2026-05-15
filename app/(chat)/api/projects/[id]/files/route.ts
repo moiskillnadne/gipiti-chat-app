@@ -3,11 +3,9 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { auth } from "@/app/(auth)/auth";
-import {
-  createProjectFile,
-  getProjectById,
-  getProjectFiles,
-} from "@/lib/db/queries";
+import { createProjectFile } from "@/lib/db/query/project/create-project-file";
+import { getProjectById } from "@/lib/db/query/project/get-project-by-id";
+import { getProjectFiles } from "@/lib/db/query/project/get-project-files";
 import { ChatSDKError } from "@/lib/errors";
 
 const MAX_FILE_BYTES = 25 * 1024 * 1024;
