@@ -66,12 +66,7 @@ import { getWeather } from "@/lib/ai/tools/get-weather";
 import { webSearch } from "@/lib/ai/tools/web-search";
 import { checkVideoGenerationQuota } from "@/lib/ai/video-generation-quota";
 import { isProductionEnvironment } from "@/lib/constants";
-import {
-  getProjectById,
-  incrementProjectUsage,
-  insertImageGenerationUsageLog,
-  insertVideoGenerationUsageLog,
-} from "@/lib/db/queries";
+import { getProjectById, incrementProjectUsage } from "@/lib/db/queries";
 import { createStreamId } from "@/lib/db/query/chat/create-stream-id";
 import { deleteChatById } from "@/lib/db/query/chat/delete-chat-by-id";
 import { getChatById } from "@/lib/db/query/chat/get-chat-by-id";
@@ -85,6 +80,8 @@ import { saveDocument } from "@/lib/db/query/document/save-document";
 import { getActiveUserSubscription } from "@/lib/db/query/subscription/get-active-user-subscription";
 import { getTextStyleById } from "@/lib/db/query/text-style/get-text-style-by-id";
 import { incrementTextStyleUsage } from "@/lib/db/query/text-style/increment-text-style-usage";
+import { insertImageGenerationUsageLog } from "@/lib/db/query/usage/insert-image-generation-usage-log";
+import { insertVideoGenerationUsageLog } from "@/lib/db/query/usage/insert-video-generation-usage-log";
 import { ChatSDKError } from "@/lib/errors";
 import { getTranslations } from "@/lib/i18n/translate";
 import type { ChatMessage } from "@/lib/types";
