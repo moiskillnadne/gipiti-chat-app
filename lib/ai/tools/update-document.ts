@@ -5,7 +5,7 @@ import {
   type ArtifactUsage,
   documentHandlersByArtifactKind,
 } from "@/lib/artifacts/server";
-import { getDocumentById } from "@/lib/db/queries";
+import { getDocumentById } from "@/lib/db/query/document/get-document-by-id";
 import type { ChatMessage } from "@/lib/types";
 
 type UpdateDocumentProps = {

@@ -4,8 +4,8 @@ import z from "zod/v4";
 import {
   getActiveUserSubscription,
   insertImageGenerationUsageLog,
-  saveDocument,
 } from "../../db/queries";
+import { saveDocument } from "../../db/query/document/save-document";
 import type { ChatMessage } from "../../types";
 import { generateUUID } from "../../utils";
 import { checkImageGenerationQuota } from "../image-generation-quota";

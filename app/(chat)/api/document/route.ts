@@ -1,10 +1,8 @@
 import { auth } from "@/app/(auth)/auth";
 import type { ArtifactKind } from "@/components/artifact";
-import {
-  deleteDocumentsByIdAfterTimestamp,
-  getDocumentsById,
-  saveDocument,
-} from "@/lib/db/queries";
+import { deleteDocumentsByIdAfterTimestamp } from "@/lib/db/query/document/delete-documents-by-id-after-timestamp";
+import { getDocumentsById } from "@/lib/db/query/document/get-documents-by-id";
+import { saveDocument } from "@/lib/db/query/document/save-document";
 import { ChatSDKError } from "@/lib/errors";
 
 export async function GET(request: Request) {

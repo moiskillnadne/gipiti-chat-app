@@ -7,15 +7,6 @@
 // biome-ignore-all lint/performance/noBarrelFile: intentional barrel for backwards-compatible re-exports
 export { db } from "./connection";
 export {
-  deleteDocumentsByIdAfterTimestamp,
-  getDocumentById,
-  getDocumentsById,
-  getGenerationIdByDocumentId,
-  getSuggestionsByDocumentId,
-  saveDocument,
-  saveSuggestions,
-} from "./document-queries";
-export {
   createProject,
   createProjectFile,
   deleteProject,

@@ -1,0 +1,37 @@
+import type { ArtifactKind } from "@/components/artifact";
+import { ChatSDKError } from "../../../errors";
+import { db } from "../../queries";
+import { document } from "../../schema";
+
+export async function saveDocument({
+  id,
+  title,
+  kind,
+  content,
+  userId,
+  generationId,
+}: {
+  id: string;
+  title: string;
+  kind: ArtifactKind;
+  content: string;
+  userId: string;
+  generationId?: string | null;
+}) {
+  try {
+    return await db
+      .insert(document)
+      .values({
+        id,
+        title,
+        kind,
+        content,
+        userId,
+        generationId: generationId ?? null,
+        createdAt: new Date(),
+      })
+      .returning();
+  } catch (_error) {
+    throw new ChatSDKError("bad_request:database", "Failed to save document");
+  }
+}
