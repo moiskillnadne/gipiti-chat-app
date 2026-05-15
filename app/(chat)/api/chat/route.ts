@@ -70,9 +70,7 @@ import {
   getActiveUserSubscription,
   getDocumentById,
   getProjectById,
-  getTextStyleById,
   incrementProjectUsage,
-  incrementTextStyleUsage,
   insertImageGenerationUsageLog,
   insertVideoGenerationUsageLog,
   saveDocument,
@@ -85,6 +83,8 @@ import { saveChat } from "@/lib/db/query/chat/save-chat";
 import { saveMessages } from "@/lib/db/query/chat/save-messages";
 import { updateChatLastContextById } from "@/lib/db/query/chat/update-chat-last-context-by-id";
 import { updateChatTitle } from "@/lib/db/query/chat/update-chat-title";
+import { getTextStyleById } from "@/lib/db/query/text-style/get-text-style-by-id";
+import { incrementTextStyleUsage } from "@/lib/db/query/text-style/increment-text-style-usage";
 import { ChatSDKError } from "@/lib/errors";
 import { getTranslations } from "@/lib/i18n/translate";
 import type { ChatMessage } from "@/lib/types";

@@ -38,15 +38,6 @@ export {
   saveCancellationFeedback,
 } from "./subscription-queries";
 export {
-  createTextStyle,
-  deleteTextStyle,
-  getDefaultTextStyle,
-  getTextStyleById,
-  getTextStylesByUserId,
-  incrementTextStyleUsage,
-  updateTextStyle,
-} from "./text-style-queries";
-export {
   getImageGenerationCountByBillingPeriod,
   getImageGenerationCountByDateRange,
   getSearchUsageCountByBillingPeriod,
