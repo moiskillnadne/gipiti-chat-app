@@ -1,15 +1,10 @@
 import type { InferUITool, UIMessage } from "ai";
 import { z } from "zod";
-import type { ArtifactKind } from "@/components/artifact";
 import type { calculator } from "./ai/tools/calculator";
-import type { createDocument } from "./ai/tools/create-document";
 import type { extractUrl } from "./ai/tools/extract-url";
 import type { generateImageTool } from "./ai/tools/generate-image";
 import type { getWeather } from "./ai/tools/get-weather";
-import type { requestSuggestions } from "./ai/tools/request-suggestions";
-import type { updateDocument } from "./ai/tools/update-document";
 import type { webSearch } from "./ai/tools/web-search";
-import type { Suggestion } from "./db/schema";
 import type { AppUsage } from "./usage";
 
 export type DataPart = { type: "append-message"; message: string };
@@ -23,11 +18,6 @@ export type MessageMetadata = z.infer<typeof messageMetadataSchema>;
 
 type calculatorTool = InferUITool<typeof calculator>;
 type weatherTool = InferUITool<typeof getWeather>;
-type createDocumentTool = InferUITool<ReturnType<typeof createDocument>>;
-type updateDocumentTool = InferUITool<ReturnType<typeof updateDocument>>;
-type requestSuggestionsTool = InferUITool<
-  ReturnType<typeof requestSuggestions>
->;
 type webSearchTool = InferUITool<ReturnType<typeof webSearch>>;
 type extractUrlTool = InferUITool<ReturnType<typeof extractUrl>>;
 type generateImageToolType = InferUITool<ReturnType<typeof generateImageTool>>;
@@ -35,27 +25,13 @@ type generateImageToolType = InferUITool<ReturnType<typeof generateImageTool>>;
 export type ChatTools = {
   calculator: calculatorTool;
   getWeather: weatherTool;
-  createDocument: createDocumentTool;
-  updateDocument: updateDocumentTool;
-  requestSuggestions: requestSuggestionsTool;
   webSearch: webSearchTool;
   extractUrl: extractUrlTool;
   generateImage: generateImageToolType;
 };
 
 export type CustomUIDataTypes = {
-  textDelta: string;
-  imageDelta: string;
-  sheetDelta: string;
-  codeDelta: string;
-  codeLanguage: string;
-  suggestion: Suggestion;
   appendMessage: string;
-  id: string;
-  title: string;
-  kind: ArtifactKind;
-  clear: null;
-  finish: null;
   usage: AppUsage;
   modelId: string;
   imageGenerationFinish: {
@@ -69,7 +45,6 @@ export type CustomUIDataTypes = {
       totalTokenCount?: number;
     };
   };
-  videoDelta: string;
   videoGenerationFinish: {
     responseId: string;
     videoUrl: string;

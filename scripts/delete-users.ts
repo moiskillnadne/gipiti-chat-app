@@ -3,15 +3,7 @@ import { config } from "dotenv";
 import { eq, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import {
-  chat,
-  document,
-  message,
-  stream,
-  suggestion,
-  user,
-  vote,
-} from "@/lib/db/schema";
+import { chat, document, message, stream, user, vote } from "@/lib/db/schema";
 
 config({
   path: ".env.local",
@@ -73,12 +65,10 @@ async function deleteUserByEmail(
       await tx.delete(chat).where(eq(chat.userId, targetUser.id));
     }
 
-    // 6. Delete suggestions (FK on userId + document composite FK)
-    await tx.delete(suggestion).where(eq(suggestion.userId, targetUser.id));
-    // 7. Delete documents (FK on userId)
+    // 6. Delete documents (FK on userId)
     await tx.delete(document).where(eq(document.userId, targetUser.id));
 
-    // 8. Delete user row (cascades: userSubscription, userTokenUsage,
+    // 7. Delete user row (cascades: userSubscription, userTokenUsage,
     //    paymentIntent, tokenUsageLog, searchUsageLog, imageGenerationUsageLog,
     //    textStyle, project, cancellationFeedback, tokenBalanceTransaction)
     await tx.delete(user).where(eq(user.id, targetUser.id));

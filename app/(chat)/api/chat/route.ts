@@ -1259,7 +1259,6 @@ export async function POST(request: Request) {
             webSearch: webSearch({ session, chatId: id }),
             extractUrl: extractUrl({ session, chatId: id }),
             generateImage: generateImage({
-              dataStream,
               userId: session.user.id,
               chatId: id,
               usageAccumulator: imageUsageAccumulator,

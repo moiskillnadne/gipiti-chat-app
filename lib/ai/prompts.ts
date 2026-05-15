@@ -1,5 +1,4 @@
 import type { Geo } from "@vercel/functions";
-import type { ArtifactKind } from "@/components/artifact";
 
 import { isReasoningModelId, supportsAttachments } from "./models";
 
@@ -114,7 +113,7 @@ ${numberedExamples}
 
 Instructions for applying this style:
 - Match the tone, vocabulary, sentence structure, formality level, and punctuation patterns shown in the examples
-- Apply this style consistently to ALL your responses, including artifacts and documents
+- Apply this style consistently to ALL your responses
 - Do NOT mention, reference, or quote the style examples in your responses
 - Adapt the style naturally to the content while preserving its distinctive characteristics`;
 };
@@ -184,87 +183,4 @@ export const systemPrompt = ({
   }
 
   return `${regularPrompt}${styleBlock}${projectBlock}\n\n${webSearchPrompt}\n\n${imageGenerationPrompt}\n\n${requestPrompt}`;
-};
-
-/**
- * Returns a code generation prompt tailored to the specified programming language.
- * Python has special guidelines for executable code, while other languages
- * focus on idiomatic, well-structured code.
- */
-export const getCodePrompt = (language: string): string => {
-  const normalizedLanguage = language.toLowerCase();
-
-  if (normalizedLanguage === "python") {
-    return `
-You are a Python code generator that creates self-contained, executable code snippets.
-
-IMPORTANT: Output ONLY the raw code. Do NOT wrap it in markdown code fences (\`\`\`). Do NOT include any markdown formatting.
-
-When writing code:
-
-1. Each snippet should be complete and runnable on its own
-2. Prefer using print() statements to display outputs
-3. Include helpful comments explaining the code
-4. Keep snippets concise (generally under 15 lines)
-5. Avoid external dependencies - use Python standard library
-6. Handle potential errors gracefully
-7. Return meaningful output that demonstrates the code's functionality
-8. Don't use input() or other interactive functions
-9. Don't access files or network resources
-10. Don't use infinite loops
-
-Examples of good snippets:
-
-# Calculate factorial iteratively
-def factorial(n):
-    result = 1
-    for i in range(1, n + 1):
-        result *= i
-    return result
-
-print(f"Factorial of 5 is: {factorial(5)}")
-`;
-  }
-
-  // Generic prompt for other programming languages
-  return `
-You are a ${language} code generator that creates clean, well-structured code snippets.
-
-IMPORTANT: Output ONLY the raw code. Do NOT wrap it in markdown code fences (\`\`\`). Do NOT include any markdown formatting.
-
-When writing code:
-
-1. Each snippet should be syntactically correct and idiomatic ${language}
-2. Include helpful comments explaining the code
-3. Follow ${language} best practices and conventions
-4. Keep snippets focused and readable
-5. Handle edge cases where appropriate
-6. Use meaningful variable and function names
-
-Note: This code will be displayed with syntax highlighting but cannot be executed in the browser.
-`;
-};
-
-/** @deprecated Use getCodePrompt(language) instead */
-export const codePrompt = getCodePrompt("python");
-
-export const sheetPrompt = `
-You are a spreadsheet creation assistant. Create a spreadsheet in csv format based on the given prompt. The spreadsheet should contain meaningful column headers and data.
-`;
-
-export const updateDocumentPrompt = (
-  currentContent: string | null,
-  type: ArtifactKind
-) => {
-  let mediaType = "document";
-
-  if (type === "code") {
-    mediaType = "code snippet";
-  } else if (type === "sheet") {
-    mediaType = "spreadsheet";
-  }
-
-  return `Improve the following contents of the ${mediaType} based on the given prompt.
-
-${currentContent}`;
 };

@@ -1,7 +1,8 @@
-import type { ArtifactKind } from "@/components/artifact";
 import { ChatSDKError } from "../../../errors";
 import { db } from "../../connection";
 import { document } from "../../schema";
+
+export type DocumentKind = "image" | "video";
 
 export async function saveDocument({
   id,
@@ -13,7 +14,7 @@ export async function saveDocument({
 }: {
   id: string;
   title: string;
-  kind: ArtifactKind;
+  kind: DocumentKind;
   content: string;
   userId: string;
   generationId?: string | null;

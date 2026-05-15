@@ -1,10 +1,9 @@
 import { put } from "@vercel/blob";
-import { streamText, tool, type UIMessageStreamWriter } from "ai";
+import { streamText, tool } from "ai";
 import z from "zod/v4";
 import { saveDocument } from "../../db/query/document/save-document";
 import { getActiveUserSubscription } from "../../db/query/subscription/get-active-user-subscription";
 import { insertImageGenerationUsageLog } from "../../db/query/usage/insert-image-generation-usage-log";
-import type { ChatMessage } from "../../types";
 import { generateUUID } from "../../utils";
 import { checkImageGenerationQuota } from "../image-generation-quota";
 import { decrementBalanceCounter, ensureBalance } from "../token-balance";
@@ -45,7 +44,6 @@ export function createImageUsageAccumulator(): ImageGenerationUsageAccumulator {
 }
 
 type GenerateImageProps = {
-  dataStream: UIMessageStreamWriter<ChatMessage>;
   userId: string;
   chatId: string;
   usageAccumulator?: ImageGenerationUsageAccumulator;
@@ -59,7 +57,6 @@ type GeneratedFileWithBase64 = {
 const IMAGE_MODEL_ID = "google/gemini-3-pro-image";
 
 export const generateImageTool = ({
-  dataStream,
   userId,
   chatId,
   usageAccumulator,
@@ -87,24 +84,6 @@ export const generateImageTool = ({
       let usageMetadata: ImageUsageMetadata | undefined;
       let totalCostUsd: string | undefined;
 
-      dataStream.write({
-        type: "data-kind",
-        data: "image",
-        transient: true,
-      });
-
-      dataStream.write({
-        type: "data-id",
-        data: id,
-        transient: true,
-      });
-
-      dataStream.write({
-        type: "data-title",
-        data: prompt,
-        transient: true,
-      });
-
       const result = streamText({
         model: IMAGE_MODEL_ID,
         prompt,
@@ -113,37 +92,7 @@ export const generateImageTool = ({
       for await (const delta of result.fullStream) {
         const { type } = delta;
 
-        if (type === "start") {
-          dataStream.write({
-            type: "data-textDelta",
-            data: "Start generating image...",
-          });
-        }
-
-        if (type === "text-delta") {
-          const { text } = delta;
-          dataStream.write({
-            type: "data-textDelta",
-            data: text,
-            transient: true,
-          });
-        }
-
-        if (type === "reasoning-delta") {
-          const { text } = delta;
-          dataStream.write({
-            type: "data-textDelta",
-            data: text,
-            transient: true,
-          });
-        }
-
         if (type === "file") {
-          dataStream.write({
-            type: "data-textDelta",
-            data: "Uploading image...",
-            transient: true,
-          });
           const file = delta.file as GeneratedFileWithBase64;
           if (file.base64Data) {
             imageUrl = await uploadGeneratedImage(
@@ -163,14 +112,6 @@ export const generateImageTool = ({
           }
         }
       }
-
-      dataStream.write({
-        type: "data-clear",
-        data: null,
-        transient: true,
-      });
-
-      dataStream.write({ type: "data-finish", data: null, transient: true });
 
       if (imageUrl) {
         await saveDocument({
