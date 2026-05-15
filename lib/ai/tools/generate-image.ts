@@ -1,7 +1,8 @@
 import { put } from "@vercel/blob";
 import { streamText, tool, type UIMessageStreamWriter } from "ai";
 import z from "zod/v4";
-import { insertImageGenerationUsageLog, saveDocument } from "../../db/queries";
+import { insertImageGenerationUsageLog } from "../../db/queries";
+import { saveDocument } from "../../db/query/document/save-document";
 import { getActiveUserSubscription } from "../../db/query/subscription/get-active-user-subscription";
 import type { ChatMessage } from "../../types";
 import { generateUUID } from "../../utils";
