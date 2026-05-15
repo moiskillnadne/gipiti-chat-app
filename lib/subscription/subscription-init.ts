@@ -1,8 +1,8 @@
 import { and, eq, ne } from "drizzle-orm";
 import { FREE_TIER_ENTITLEMENTS } from "@/lib/ai/entitlements";
 import { resetBalance, setBalancePlan } from "@/lib/ai/token-balance";
-import { db } from "@/lib/db/queries";
 import { subscriptionPlan, userSubscription } from "@/lib/db/schema";
+import { db } from "../db/connection";
 import {
   calculateNextBillingDate,
   calculatePeriodEnd,

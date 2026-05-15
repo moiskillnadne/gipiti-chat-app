@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { db } from "@/lib/db/queries";
+import { db } from "@/lib/db/connection";
 import { paymentIntent, userSubscription } from "@/lib/db/schema";
 import type { CloudPaymentsFailWebhook } from "@/lib/payments/cloudpayments-types";
 import { parseWebhookData } from "./utils";

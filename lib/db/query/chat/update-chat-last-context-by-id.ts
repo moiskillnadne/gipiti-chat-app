@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import type { AppUsage } from "../../../usage";
-import { db } from "../../queries";
+import { db } from "../../connection";
 import { chat } from "../../schema";
 
 export async function updateChatLastContextById({

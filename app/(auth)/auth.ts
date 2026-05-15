@@ -3,7 +3,7 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { getAuthSecret } from "@/lib/auth/secret";
 import { DUMMY_PASSWORD } from "@/lib/constants";
-import { getActiveUserSubscription } from "@/lib/db/queries";
+import { getActiveUserSubscription } from "@/lib/db/query/subscription/get-active-user-subscription";
 import { getUserByEmail } from "../../lib/db/query/user/get-by-email";
 import { authConfig } from "./auth.config";
 

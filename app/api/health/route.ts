@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { db } from "@/lib/db/queries";
+import { db } from "@/lib/db/connection";
 import { getUpstashClient, isUpstashConfigured } from "@/lib/redis";
 
 type CheckStatus = "up" | "down";

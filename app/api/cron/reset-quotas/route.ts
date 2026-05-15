@@ -1,6 +1,6 @@
 import { and, eq, lte, ne } from "drizzle-orm";
 import { resetBalance } from "@/lib/ai/token-balance";
-import { db } from "@/lib/db/queries";
+import { db } from "@/lib/db/connection";
 import { subscriptionPlan, userSubscription } from "@/lib/db/schema";
 import {
   calculateNextBillingDate,

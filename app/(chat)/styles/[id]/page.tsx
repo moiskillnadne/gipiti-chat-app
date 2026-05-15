@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/app/(auth)/auth";
 import { StyleDetail } from "@/components/style-detail";
-import { getTextStyleById } from "@/lib/db/queries";
+import { getTextStyleById } from "@/lib/db/query/text-style/get-text-style-by-id";
 
 export default async function StyleDetailPage({
   params,

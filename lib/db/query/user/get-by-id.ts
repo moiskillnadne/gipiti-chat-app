@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { ChatSDKError } from "../../../errors";
-import { db } from "../../queries";
+import { db } from "../../connection";
 import { type User, user } from "../../schema";
 
 export async function getUserById(id: string): Promise<User | null> {

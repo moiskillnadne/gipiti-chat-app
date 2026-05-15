@@ -1,5 +1,5 @@
 import { and, eq, inArray } from "drizzle-orm";
-import { db } from "@/lib/db/queries";
+import { db } from "@/lib/db/connection";
 import { subscriptionPlan, user, userSubscription } from "@/lib/db/schema";
 import type { CloudPaymentsCheckWebhook } from "@/lib/payments/cloudpayments-types";
 import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";

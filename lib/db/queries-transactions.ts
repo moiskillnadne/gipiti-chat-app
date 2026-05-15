@@ -1,8 +1,8 @@
 import "server-only";
 import { count, desc, eq, sql } from "drizzle-orm";
 import { getUserBalance } from "@/lib/ai/token-balance";
-import { db } from "@/lib/db/queries";
 import { balance, chat, tokenBalanceTransaction } from "@/lib/db/schema";
+import { db } from "../db/connection";
 
 type TransactionWithChat = {
   id: string;

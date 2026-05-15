@@ -1,5 +1,5 @@
 import { and, eq, lte } from "drizzle-orm";
-import { db } from "@/lib/db/queries";
+import { db } from "@/lib/db/connection";
 import { userSubscription } from "@/lib/db/schema";
 
 export async function GET(request: Request) {

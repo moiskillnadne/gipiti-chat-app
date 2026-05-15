@@ -1,6 +1,6 @@
 import { getDefaultFreePlanSeed } from "@/lib/ai/entitlements";
 import { getBalanceRecord } from "@/lib/ai/token-balance";
-import { getActiveUserSubscription } from "@/lib/db/queries";
+import { getActiveUserSubscription } from "@/lib/db/query/subscription/get-active-user-subscription";
 import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 
 type ImageGenerationQuotaInfo = {

@@ -1,7 +1,8 @@
 import { and, eq } from "drizzle-orm";
 import { auth } from "@/app/(auth)/auth";
 import { getUserQuotaInfo } from "@/lib/ai/token-quota";
-import { db, saveCancellationFeedback } from "@/lib/db/queries";
+import { db } from "@/lib/db/connection";
+import { saveCancellationFeedback } from "@/lib/db/query/subscription/save-cancellation-feedback";
 import { subscriptionPlan, userSubscription } from "@/lib/db/schema";
 import {
   cancelSubscription,

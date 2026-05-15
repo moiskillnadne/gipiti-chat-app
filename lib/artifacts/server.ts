@@ -4,7 +4,7 @@ import { codeDocumentHandler } from "@/artifacts/code/server";
 import { sheetDocumentHandler } from "@/artifacts/sheet/server";
 import { textDocumentHandler } from "@/artifacts/text/server";
 import type { ArtifactKind } from "@/components/artifact";
-import { saveDocument } from "../db/queries";
+import { saveDocument } from "../db/query/document/save-document";
 import type { Document } from "../db/schema";
 import type { ChatMessage } from "../types";
 

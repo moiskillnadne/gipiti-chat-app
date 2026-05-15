@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { auth } from "@/app/(auth)/auth";
-import { db } from "@/lib/db/queries";
+import { db } from "@/lib/db/connection";
 import { paymentIntent, userSubscription } from "@/lib/db/schema";
 import { checkPaymentStatusRateLimit } from "@/lib/rate-limit";
 import type { PaymentStatusResponse } from "@/lib/types";
