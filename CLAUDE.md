@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A Next.js 15 AI chatbot with multi-provider LLM support (OpenAI, Google, Anthropic, Xai), token balance/quota management, subscription tiers, artifact creation, web search, image generation, and project/style customization. Built with TypeScript, PostgreSQL (Drizzle ORM), NextAuth v5, and the Vercel AI SDK.
+A Next.js 15 AI chatbot with multi-provider LLM support (OpenAI, Google, Anthropic, Xai), token balance/quota management, subscription tiers, web search, image and video generation, and project/style customization. Built with TypeScript, PostgreSQL (Drizzle ORM), NextAuth v5, and the Vercel AI SDK.
 
 ## Development Commands
 
@@ -68,12 +68,10 @@ app/
     api/
       chat/                # Main chat streaming (POST) + delete (DELETE)
       chat/[id]/stream/    # Resumable stream recovery (GET)
-      document/            # Document CRUD
       files/upload/        # File upload to Vercel Blob
       history/             # Chat history with pagination
       usage/               # Token usage tracking
       subscription/        # Subscription management
-      suggestions/         # Document edit suggestions
       vote/                # Message voting
       text-styles/         # Text style CRUD
       projects/            # Project CRUD
@@ -97,7 +95,7 @@ lib/
   ai/
     models.ts              # Model registry (20 models, 4 providers)
     providers.ts           # AI SDK provider setup + reasoning middleware
-    prompts.ts             # System prompts (regular, reasoning, artifacts, search, image, style, project)
+    prompts.ts             # System prompts (regular, reasoning, search, image, style, project)
     token-quota.ts         # Quota checking & period-based enforcement
     token-balance.ts       # Balance-based token system with transaction audit
     entitlements.ts        # User type entitlements
@@ -132,20 +130,14 @@ lib/
     secret.ts              # AUTH_SECRET resolution
     reset-token.ts         # Password reset token utils
   validation/              # Zod schemas for API validation
-  editor/                  # ProseMirror editor utilities
-  artifacts/server.ts      # Artifact handler factory
   errors.ts                # ChatSDKError class with error codes
-  types.ts                 # Global types (ChatMessage, ArtifactKind, CustomUIDataTypes)
+  types.ts                 # Global types (ChatMessage, CustomUIDataTypes)
   utils.ts                 # cn(), generateUUID(), convertToUIMessages()
   constants.ts             # Environment checks, DUMMY_PASSWORD
   redis.ts                 # Redis client (Upstash REST or standard)
   format-tokens.ts         # Token number formatting
   client-logger.ts         # Client-side error logging
   usage.ts                 # AppUsage type definition
-artifacts/                 # Artifact handlers (4 types: text, code, sheet, image)
-  [type]/server.ts         # AI streaming handler per type
-  [type]/client.tsx        # Editor component per type
-  actions.ts               # getSuggestions server action
 components/                # 63+ React components
   ui/                      # shadcn/ui base components
   elements/                # Message rendering primitives (response, reasoning, tool, code-block, etc.)
@@ -154,7 +146,7 @@ contexts/                  # React context providers
   model-context.tsx        # Selected model + thinking settings
   project-context.tsx      # Active project selection
   style-context.tsx        # Active text style selection
-hooks/                     # Custom hooks (useArtifact, useMessages, useAutoResume, etc.)
+hooks/                     # Custom hooks (useMessages, useAutoResume, etc.)
 i18n/                      # next-intl configuration
 messages/                  # Translation files (en.json, ru.json)
 types/                     # Type augmentations (next-auth.d.ts, next-intl.d.ts)
@@ -173,9 +165,8 @@ scripts/                   # Utility scripts (seed-plans, add-tokens, etc.)
 - `Vote_v2`: chatId + messageId (composite PK), isUpvoted
 - `Stream`: id, chatId (for resumable stream recovery)
 
-**Documents & Suggestions:**
-- `Document`: id + createdAt (composite PK), title, content, kind, userId, generationId
-- `Suggestion`: id, documentId + documentCreatedAt FK, originalText, suggestedText, isResolved
+**Generated Media (image/video output storage):**
+- `Document`: id + createdAt (composite PK), title, content (image/video URL), kind ("image" | "video"), userId, generationId — used by image and video generation flows to persist results for later edit/replay
 
 **Subscription & Plans:**
 - `SubscriptionPlan`: name, displayName, billingPeriod, tokenQuota, modelLimits (JSONB), features (JSONB), price
@@ -210,7 +201,6 @@ scripts/                   # Utility scripts (seed-plans, add-tokens, etc.)
 
 **System Prompts** (`lib/ai/prompts.ts`):
 - `regularPrompt` / `reasoningPrompt`: Base behavior (reasoning adds `<think>` block instructions)
-- `artifactsPrompt`: Guides createDocument/updateDocument tool usage
 - `webSearchPrompt`: Web search best practices and citation format
 - `imageGenerationPrompt`: Image generation style guidance
 - `textStylePrompt(style)`: Custom writing style from user examples
@@ -218,15 +208,12 @@ scripts/                   # Utility scripts (seed-plans, add-tokens, etc.)
 - `getRequestPromptFromHints()`: Geolocation data from Vercel Edge
 - `systemPrompt()` factory: Dynamically combines prompts based on model capabilities, user's style, and project
 
-**AI Tools** (`lib/ai/tools/` — 8 tools):
+**AI Tools** (`lib/ai/tools/` — 5 tools):
 1. `calculator`: Math expressions via mathjs
 2. `getWeather`: Open-Meteo weather API
 3. `webSearch`: Tavily search with quota checking per billing period
 4. `extractUrl`: Tavily URL content extraction (max 3 URLs)
-5. `createDocument`: Creates artifacts (text/code/sheet/image) with streaming deltas
-6. `updateDocument`: Updates existing artifacts
-7. `requestSuggestions`: AI-generated edit suggestions for documents
-8. `generateImage`: DALL-E / Gemini image generation, uploads to Vercel Blob
+5. `generateImage`: DALL-E / Gemini image generation, uploads to Vercel Blob
 
 **Token System (Dual):**
 1. **Balance-based** (primary, `lib/ai/token-balance.ts`): User.tokenBalance field, deducts BEFORE inference, refunds on partial consumption, full audit trail via TokenBalanceTransaction
@@ -245,23 +232,13 @@ Flow: `checkTokenQuota()` → `checkBalance()` → inference → `recordTokenUsa
 
 Each tier defines: tokenQuota, modelLimits, features (maxFileSize, maxConcurrentChats, searchQuota, searchDepthAllowed, hasReasoningModels, hasPrioritySupport).
 
-### Artifact System
-
-**Types**: `text`, `code`, `sheet`, `image`
-
-**Handler Pattern** (`createDocumentHandler()` factory in `lib/artifacts/server.ts`):
-- Server handlers in `artifacts/[type]/server.ts` — use `streamText()`/`streamObject()` for AI output
-- Client components in `artifacts/[type]/client.tsx` — ProseMirror (text), CodeMirror (code), React Data Grid (sheet), Image editor (image)
-- Data stream events: `data-textDelta`, `data-codeDelta`, `data-sheetDelta`, `data-imageDelta`, `data-finish`, `data-usage`
-- Code handler auto-detects programming language from content
-
 ### Chat Streaming
 
 **Main Endpoint**: `POST /api/chat` (300s max timeout)
 1. Validates token quota/balance before inference
 2. Saves user message to Message_v2
 3. Builds system prompt with model capabilities + user style + project context
-4. Streams via `streamText()` with up to 8 tools, maxSteps calculated per subscription
+4. Streams via `streamText()` with up to 5 tools, maxSteps calculated per subscription
 5. Records usage + deducts balance on completion
 6. Redis-backed resumable streams for recovery
 
@@ -288,12 +265,11 @@ NextIntlClientProvider → ThemeProvider → SessionProvider →
 - `ModelContext`: currentModelId, thinkingSetting — persisted in cookies
 - `StyleContext`: currentStyleId, styles[] — SWR-fetched from /api/text-styles, persisted in cookie
 - `ProjectContext`: currentProjectId, projects[] — SWR-fetched from /api/projects, persisted in cookie
-- `DataStreamContext`: AI streaming data for artifact rendering
+- `DataStreamContext`: Pipes `useChat()` data through context so `useAutoResume()` can react to `data-appendMessage` events on page reload
 
 **Data Fetching**: SWR with key-based cache invalidation. `useChat()` from @ai-sdk/react manages message state.
 
 **Custom Hooks:**
-- `useArtifact()` / `useArtifactSelector()`: SWR-based artifact state with metadata
 - `useMessages()`: Scroll-to-bottom + message tracking
 - `useAutoResume()`: Resume interrupted streams on page reload
 - `useScrollToBottom()`: ResizeObserver + MutationObserver sticky scroll
@@ -306,7 +282,7 @@ NextIntlClientProvider → ThemeProvider → SessionProvider →
 ```
 ErrorCode = "{type}:{surface}" — e.g., "quota_exceeded:chat", "unauthorized:api"
 Types: bad_request | unauthorized | forbidden | not_found | rate_limit | quota_exceeded | offline
-Surfaces: chat | auth | api | stream | database | history | vote | document | suggestions
+Surfaces: chat | auth | api | stream | database | history | vote
 ```
 - `.toResponse()` converts to proper HTTP response with status code
 - Database errors logged only (not exposed to user)
@@ -335,13 +311,6 @@ All require `Authorization: Bearer ${CRON_SECRET}` header:
 - `GET /api/cron/cleanup-payment-intents` — Expire old payment intents
 
 ## Important Patterns
-
-### Adding a New Artifact Type
-1. Add type to `ArtifactKind` in `lib/types.ts`
-2. Create handler in `artifacts/[type]/server.ts` using `createDocumentHandler()` factory
-3. Create client component in `artifacts/[type]/client.tsx`
-4. Add delta type to `CustomUIDataTypes` in `lib/types.ts`
-5. Update `components/artifact.tsx` to render new type
 
 ### Modifying Database Schema
 1. Update schema in `lib/db/schema.ts`
@@ -416,10 +385,10 @@ PLAYWRIGHT                # Set to "True" for mock models in tests
 
 1. **Message Schema**: Always use `Message_v2`, not deprecated `Message` table
 2. **Composite Keys**: `Document` uses (id + createdAt) as PK, not just id. `Vote_v2` uses (chatId + messageId)
-3. **Token Systems**: Dual system — balance-based (primary, deducts before inference) + period-based (legacy aggregation). Both must be updated
-4. **Quota Checks**: Always check quota/balance BEFORE calling AI API to avoid wasted inference
-5. **Stream Recovery**: Requires Redis; gracefully degrades without it. 15-second recovery window
-6. **Artifact Deltas**: Each type has its own delta event (textDelta, codeDelta, sheetDelta, imageDelta)
+3. **Document table scope**: Only stores generated image/video output (kind="image"|"video"). Not a general-purpose document/artifact store
+4. **Token Systems**: Dual system — balance-based (primary, deducts before inference) + period-based (legacy aggregation). Both must be updated
+5. **Quota Checks**: Always check quota/balance BEFORE calling AI API to avoid wasted inference
+6. **Stream Recovery**: Requires Redis; gracefully degrades without it. 15-second recovery window
 7. **Billing Period Renewal**: Automatically handled in `recordTokenUsage()`, don't manually renew
 8. **Reasoning Models**: Require `extractReasoningMiddleware` to parse `<think>` blocks
 9. **Search Quota**: Checked separately from token quota via `checkSearchQuota()`
@@ -431,13 +400,13 @@ PLAYWRIGHT                # Set to "True" for mock models in tests
 ## Internationalization (i18n)
 
 - **Library**: next-intl v4 with cookie-based locale detection
-- **Locales**: English (`en`), Russian (`ru`). Default: `ru` (currently hardcoded)
-- **Translations**: `messages/en.json` and `messages/ru.json`
+- **Locales**: Currently only Russian (`ru`) — `messages/en.json` does not exist yet
+- **Translations**: `messages/ru.json`
 - **Namespaces**: common, auth, chat, metadata, settings, usage, errors, legal, thinkingSetting, modelList, textStyles, projects
 - **Client**: `useTranslations('namespace')` hook
 - **Server**: `await getTranslations('namespace')`
 - **Switching**: `setUserLocale()` server action updates cookie + user.preferredLanguage in DB
-- **Adding translations**: Add keys to both `en.json` and `ru.json`, use `t('key')` in components
+- **Adding translations**: Add keys to `ru.json`, use `t('key')` in components
 - Always use translation keys, never hardcode UI strings
 
 ## Refactoring Guidelines

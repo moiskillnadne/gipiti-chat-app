@@ -239,6 +239,13 @@
       "when": 1778779574410,
       "tag": "0033_green_marvel_zombies",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1778865611761,
+      "tag": "0034_glorious_master_mold",
+      "breakpoints": true
     }
   ]
 }

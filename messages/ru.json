@@ -50,9 +50,6 @@
       "noTextToCopy": "Нет текста для копирования!",
       "copiedToClipboard": "Скопировано в буфер обмена!",
       "actionFailed": "Не удалось выполнить действие",
-      "documentError": "Произошла ошибка с документом",
-      "documentCreateError": "Ошибка создания документа",
-      "documentUpdateError": "Ошибка обновления документа",
       "sharedChatNotSupported": "Просмотр файлов в общих чатах в настоящее время не поддерживается.",
       "quotaExceeded": "Квота токенов превышена для этого расчетного периода"
     },
@@ -654,9 +651,6 @@
       "regenerate": "Перегенерировать",
       "tryAgain": "Попробовать снова",
       "edit": "Редактировать",
-      "loadingDocument": "Создание документа...",
-      "errorCreatingDocument": "Ошибка создания документа",
-      "errorUpdatingDocument": "Ошибка обновления документа",
       "generatingImage": "Генерация изображения...",
       "generatingVideo": "Генерация видео...",
       "download": "Скачать",
@@ -756,9 +750,6 @@
           "calculated": "Вычислил",
           "calculating": "Вычисляю —",
           "weather": "Уточнил погоду в",
-          "createdDocument": "Создал документ",
-          "updatedDocument": "Обновил документ",
-          "requestedSuggestions": "Предложил правки к",
           "generatedImage": "Сгенерировал изображение —"
         }
       }
