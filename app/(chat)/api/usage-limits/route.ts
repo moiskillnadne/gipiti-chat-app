@@ -1,16 +1,14 @@
 import { auth } from "@/app/(auth)/auth";
 import { getDefaultFreePlanSeed } from "@/lib/ai/entitlements";
 import { getBalanceRecord } from "@/lib/ai/token-balance";
-import {
-  getImageGenerationCountByBillingPeriod,
-  getImageGenerationCountByDateRange,
-  getSearchUsageCountByBillingPeriod,
-  getSearchUsageCountByDateRange,
-  getUserSubscriptionWithPlan,
-  getVideoGenerationCountByBillingPeriod,
-  getVideoGenerationCountByDateRange,
-} from "@/lib/db/queries";
+import { getUserSubscriptionWithPlan } from "@/lib/db/queries";
 import { getMessageCountByBillingPeriod } from "@/lib/db/query/chat/get-message-count-by-billing-period";
+import { getImageGenerationCountByBillingPeriod } from "@/lib/db/query/usage/get-image-generation-count-by-billing-period";
+import { getImageGenerationCountByDateRange } from "@/lib/db/query/usage/get-image-generation-count-by-date-range";
+import { getSearchUsageCountByBillingPeriod } from "@/lib/db/query/usage/get-search-usage-count-by-billing-period";
+import { getSearchUsageCountByDateRange } from "@/lib/db/query/usage/get-search-usage-count-by-date-range";
+import { getVideoGenerationCountByBillingPeriod } from "@/lib/db/query/usage/get-video-generation-count-by-billing-period";
+import { getVideoGenerationCountByDateRange } from "@/lib/db/query/usage/get-video-generation-count-by-date-range";
 import { getUserById } from "@/lib/db/query/user/get-by-id";
 import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 

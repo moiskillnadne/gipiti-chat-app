@@ -4,10 +4,8 @@ import {
   ensureBalance,
   getBalanceRecord,
 } from "@/lib/ai/token-balance";
-import {
-  getActiveUserSubscription,
-  insertSearchUsageLog,
-} from "@/lib/db/queries";
+import { getActiveUserSubscription } from "@/lib/db/queries";
+import { insertSearchUsageLog } from "@/lib/db/query/usage/insert-search-usage-log";
 import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 import type {
   SearchDepth,

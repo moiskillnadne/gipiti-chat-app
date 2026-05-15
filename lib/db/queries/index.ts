@@ -46,14 +46,3 @@ export {
   incrementTextStyleUsage,
   updateTextStyle,
 } from "./text-style-queries";
-export {
-  getImageGenerationCountByBillingPeriod,
-  getImageGenerationCountByDateRange,
-  getSearchUsageCountByBillingPeriod,
-  getSearchUsageCountByDateRange,
-  getVideoGenerationCountByBillingPeriod,
-  getVideoGenerationCountByDateRange,
-  insertImageGenerationUsageLog,
-  insertSearchUsageLog,
-  insertVideoGenerationUsageLog,
-} from "./usage-queries";

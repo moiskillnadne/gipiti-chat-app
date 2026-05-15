@@ -6,13 +6,11 @@ vi.mock("../connection", async () => {
   return { db: mod.mockDb };
 });
 
-import {
-  getImageGenerationCountByBillingPeriod,
-  getSearchUsageCountByBillingPeriod,
-  getSearchUsageCountByDateRange,
-  insertImageGenerationUsageLog,
-  insertSearchUsageLog,
-} from "../usage-queries";
+import { getImageGenerationCountByBillingPeriod } from "../../query/usage/get-image-generation-count-by-billing-period";
+import { getSearchUsageCountByBillingPeriod } from "../../query/usage/get-search-usage-count-by-billing-period";
+import { getSearchUsageCountByDateRange } from "../../query/usage/get-search-usage-count-by-date-range";
+import { insertImageGenerationUsageLog } from "../../query/usage/insert-image-generation-usage-log";
+import { insertSearchUsageLog } from "../../query/usage/insert-search-usage-log";
 
 const DB_ERROR = new Error("connection lost");
 

@@ -73,8 +73,6 @@ import {
   getTextStyleById,
   incrementProjectUsage,
   incrementTextStyleUsage,
-  insertImageGenerationUsageLog,
-  insertVideoGenerationUsageLog,
   saveDocument,
 } from "@/lib/db/queries";
 import { createStreamId } from "@/lib/db/query/chat/create-stream-id";
@@ -85,6 +83,8 @@ import { saveChat } from "@/lib/db/query/chat/save-chat";
 import { saveMessages } from "@/lib/db/query/chat/save-messages";
 import { updateChatLastContextById } from "@/lib/db/query/chat/update-chat-last-context-by-id";
 import { updateChatTitle } from "@/lib/db/query/chat/update-chat-title";
+import { insertImageGenerationUsageLog } from "@/lib/db/query/usage/insert-image-generation-usage-log";
+import { insertVideoGenerationUsageLog } from "@/lib/db/query/usage/insert-video-generation-usage-log";
 import { ChatSDKError } from "@/lib/errors";
 import { getTranslations } from "@/lib/i18n/translate";
 import type { ChatMessage } from "@/lib/types";
