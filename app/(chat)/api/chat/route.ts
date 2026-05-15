@@ -67,7 +67,6 @@ import { webSearch } from "@/lib/ai/tools/web-search";
 import { checkVideoGenerationQuota } from "@/lib/ai/video-generation-quota";
 import { isProductionEnvironment } from "@/lib/constants";
 import {
-  getActiveUserSubscription,
   getDocumentById,
   getProjectById,
   getTextStyleById,
@@ -85,6 +84,7 @@ import { saveChat } from "@/lib/db/query/chat/save-chat";
 import { saveMessages } from "@/lib/db/query/chat/save-messages";
 import { updateChatLastContextById } from "@/lib/db/query/chat/update-chat-last-context-by-id";
 import { updateChatTitle } from "@/lib/db/query/chat/update-chat-title";
+import { getActiveUserSubscription } from "@/lib/db/query/subscription/get-active-user-subscription";
 import { ChatSDKError } from "@/lib/errors";
 import { getTranslations } from "@/lib/i18n/translate";
 import type { ChatMessage } from "@/lib/types";

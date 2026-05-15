@@ -1,5 +1,6 @@
 import { and, eq, lte } from "drizzle-orm";
-import { db, getActiveUserSubscription } from "@/lib/db/queries";
+import { db } from "@/lib/db/queries";
+import { getActiveUserSubscription } from "@/lib/db/query/subscription/get-active-user-subscription";
 import { userSubscription } from "@/lib/db/schema";
 import { assignFreePlan } from "@/lib/subscription/subscription-init";
 

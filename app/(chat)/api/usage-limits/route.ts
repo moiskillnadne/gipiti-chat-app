@@ -6,11 +6,11 @@ import {
   getImageGenerationCountByDateRange,
   getSearchUsageCountByBillingPeriod,
   getSearchUsageCountByDateRange,
-  getUserSubscriptionWithPlan,
   getVideoGenerationCountByBillingPeriod,
   getVideoGenerationCountByDateRange,
 } from "@/lib/db/queries";
 import { getMessageCountByBillingPeriod } from "@/lib/db/query/chat/get-message-count-by-billing-period";
+import { getUserSubscriptionWithPlan } from "@/lib/db/query/subscription/get-user-subscription-with-plan";
 import { getUserById } from "@/lib/db/query/user/get-by-id";
 import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 

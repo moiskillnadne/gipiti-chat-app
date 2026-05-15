@@ -29,15 +29,6 @@ export {
   updateProject,
 } from "./project-queries";
 export {
-  createUserSubscription,
-  getActiveUserSubscription,
-  getLatestUserSubscriptionWithPlan,
-  getSubscriptionPlanByName,
-  getSubscriptionPlans,
-  getUserSubscriptionWithPlan,
-  saveCancellationFeedback,
-} from "./subscription-queries";
-export {
   createTextStyle,
   deleteTextStyle,
   getDefaultTextStyle,

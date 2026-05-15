@@ -3,7 +3,7 @@ import { getUserTier } from "@/lib/ai/entitlements";
 import { checkImageGenerationQuota } from "@/lib/ai/image-generation-quota";
 import { getUserBalance } from "@/lib/ai/token-balance";
 import { checkVideoGenerationQuota } from "@/lib/ai/video-generation-quota";
-import { getActiveUserSubscription } from "@/lib/db/queries";
+import { getActiveUserSubscription } from "@/lib/db/query/subscription/get-active-user-subscription";
 import { getUserById } from "@/lib/db/query/user/get-by-id";
 import { checkSearchQuota } from "@/lib/search/search-quota";
 

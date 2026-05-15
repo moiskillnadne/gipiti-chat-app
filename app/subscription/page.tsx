@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/app/(auth)/auth";
-import { getLatestUserSubscriptionWithPlan } from "@/lib/db/queries";
+import { getLatestUserSubscriptionWithPlan } from "@/lib/db/query/subscription/get-latest-user-subscription-with-plan";
 import { getTranslations } from "@/lib/i18n/translate";
 import {
   deriveSubscriptionUiState,
@@ -13,7 +13,6 @@ import styles from "./_components/dashboard.module.css";
 import { FreeQuotaStrip } from "./_components/free-quota-strip";
 import { PeriodLimitsCard } from "./_components/period-limits-card";
 import { PlanCard, type PlanCardData } from "./_components/plan-card";
-import { PlansGridCard } from "./_components/plans-grid-card";
 import { StatusBanner } from "./_components/status-banner";
 import { SubscriptionHeader } from "./_components/subscription-header";
 import { SubscriptionTopNav } from "./_components/subscription-top-nav";
