@@ -66,7 +66,6 @@ import { getWeather } from "@/lib/ai/tools/get-weather";
 import { webSearch } from "@/lib/ai/tools/web-search";
 import { checkVideoGenerationQuota } from "@/lib/ai/video-generation-quota";
 import { isProductionEnvironment } from "@/lib/constants";
-import { getProjectById, incrementProjectUsage } from "@/lib/db/queries";
 import { createStreamId } from "@/lib/db/query/chat/create-stream-id";
 import { deleteChatById } from "@/lib/db/query/chat/delete-chat-by-id";
 import { getChatById } from "@/lib/db/query/chat/get-chat-by-id";
@@ -77,6 +76,8 @@ import { updateChatLastContextById } from "@/lib/db/query/chat/update-chat-last-
 import { updateChatTitle } from "@/lib/db/query/chat/update-chat-title";
 import { getDocumentById } from "@/lib/db/query/document/get-document-by-id";
 import { saveDocument } from "@/lib/db/query/document/save-document";
+import { getProjectById } from "@/lib/db/query/project/get-project-by-id";
+import { incrementProjectUsage } from "@/lib/db/query/project/increment-project-usage";
 import { getActiveUserSubscription } from "@/lib/db/query/subscription/get-active-user-subscription";
 import { getTextStyleById } from "@/lib/db/query/text-style/get-text-style-by-id";
 import { incrementTextStyleUsage } from "@/lib/db/query/text-style/increment-text-style-usage";
