@@ -1,5 +1,4 @@
 import { and, desc, eq, gt } from "drizzle-orm";
-import { db } from "@/lib/db/queries";
 import {
   subscriptionPlan,
   tokenUsageLog,
@@ -7,6 +6,7 @@ import {
   userTokenUsage,
 } from "@/lib/db/schema";
 import type { AppUsage } from "@/lib/usage";
+import { db } from "../db/connection";
 import { isPeriodExpired } from "../subscription/billing-periods";
 import type { BillingPeriod } from "../subscription/subscription-tiers";
 import {

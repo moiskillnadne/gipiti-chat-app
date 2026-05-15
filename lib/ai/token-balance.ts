@@ -1,11 +1,11 @@
 import { and, desc, eq, gt, gte, sql } from "drizzle-orm";
-import { db } from "@/lib/db/queries";
 import {
   balance,
   subscriptionPlan,
   tokenBalanceTransaction,
   userSubscription,
 } from "@/lib/db/schema";
+import { db } from "../db/connection";
 import { isPeriodExpired } from "../subscription/billing-periods";
 
 type BalanceCheckResult = {

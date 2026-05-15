@@ -3,7 +3,7 @@ import { auth } from "@/app/(auth)/auth";
 import { getDefaultFreePlanSeed } from "@/lib/ai/entitlements";
 import { formatTokenBalance, getUserBalance } from "@/lib/ai/token-balance";
 import { getUserQuotaInfo } from "@/lib/ai/token-quota";
-import { db } from "@/lib/db/queries";
+import { db } from "@/lib/db/connection";
 import { type TokenUsageLog, tokenUsageLog } from "@/lib/db/schema";
 
 export async function GET(request: Request) {

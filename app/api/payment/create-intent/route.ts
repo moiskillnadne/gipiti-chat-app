@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { auth } from "@/app/(auth)/auth";
-import { db } from "@/lib/db/queries";
+import { db } from "@/lib/db/connection";
 import { paymentIntent } from "@/lib/db/schema";
 import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 import type { PaymentIntentResponse } from "@/lib/types";
