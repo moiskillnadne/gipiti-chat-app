@@ -3,14 +3,14 @@ import { getToken } from "next-auth/jwt";
 import { getAuthSecret } from "./lib/auth/secret";
 import { isDevelopmentEnvironment } from "./lib/constants";
 
-const showSignup = false;
+const showSignup = process.env.SHOW_SIGNUP === "true";
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (pathname.startsWith("/register")) {
     if (showSignup) {
-      return NextResponse.redirect(new URL("/", request.url));
+      return NextResponse.next();
     }
     return NextResponse.redirect(new URL("/login", request.url));
   }
@@ -62,14 +62,8 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Authenticated but unverified users - email verification gate
   if (token && !token.emailVerified) {
-    // Allow access to verify-email page and public routes
-    if (pathname === "/verify-email" || isPublicRoute) {
-      return response;
-    }
-    // Redirect unverified users to verification page
-    return NextResponse.redirect(new URL("/verify-email", request.url));
+    return response;
   }
 
   // Authenticated, verified users cannot access auth routes

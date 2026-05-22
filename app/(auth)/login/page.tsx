@@ -123,7 +123,7 @@ function LoginPage() {
     tErrors,
   ]);
 
-  const showSignup = false;
+  const showSignup = process.env.SHOW_SIGNUP === "true";
 
   return (
     <AuthPageLayout>
