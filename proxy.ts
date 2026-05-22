@@ -3,8 +3,17 @@ import { getToken } from "next-auth/jwt";
 import { getAuthSecret } from "./lib/auth/secret";
 import { isDevelopmentEnvironment } from "./lib/constants";
 
+const showSignup = false;
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  if (pathname.startsWith("/register")) {
+    if (showSignup) {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
 
   /*
    * Playwright starts the dev server and requires a 200 status to

@@ -123,6 +123,8 @@ function LoginPage() {
     tErrors,
   ]);
 
+  const showSignup = false;
+
   return (
     <AuthPageLayout>
       <AuthPageHeader subtitle={t("subtitle")} title={t("title")} />
@@ -138,16 +140,19 @@ function LoginPage() {
         <SubmitButton isSuccessful={isSuccessful}>
           {t("signInButton")}
         </SubmitButton>
-        <p className="mt-4 text-center text-gray-600 text-sm">
-          {t("noAccount")}{" "}
-          <Link
-            className="font-semibold text-gray-800 hover:underline"
-            href="/register"
-          >
-            {t("signUpLink")}
-          </Link>{" "}
-          {t("signUpLinkSuffix")}
-        </p>
+
+        {showSignup && (
+          <p className="mt-4 text-center text-gray-600 text-sm">
+            {t("noAccount")}{" "}
+            <Link
+              className="font-semibold text-gray-800 hover:underline"
+              href="/register"
+            >
+              {t("signUpLink")}
+            </Link>{" "}
+            {t("signUpLinkSuffix")}
+          </p>
+        )}
       </AuthForm>
     </AuthPageLayout>
   );
