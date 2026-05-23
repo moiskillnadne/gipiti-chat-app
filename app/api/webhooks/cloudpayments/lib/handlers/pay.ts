@@ -225,12 +225,11 @@ export async function handlePayWebhook(
           billingPeriodCount: tier.billingPeriodCount,
           tokenQuota: tier.tokenQuota,
           features: {
-            allowedModels: tier.features.allowedModels,
-            hasReasoningModels: tier.features.hasReasoningModels,
-            hasPrioritySupport: tier.features.hasPrioritySupport,
-            maxFileSize: tier.features.maxFileSize,
-            maxConcurrentChats: tier.features.maxConcurrentChats,
-            hasAPIAccess: tier.features.hasAPIAccess,
+            searchQuota: tier.features.searchQuota,
+            maxImageGenerationsPerPeriod:
+              tier.features.maxImageGenerationsPerPeriod,
+            maxVideoGenerationsPerPeriod:
+              tier.features.maxVideoGenerationsPerPeriod,
           },
           price: tier.price.USD.toString(),
           isTesterPlan: tier.isTesterPlan ?? false,
@@ -536,12 +535,11 @@ async function handleTrialPayment({
           billingPeriodCount: tier.billingPeriodCount,
           tokenQuota: tier.tokenQuota,
           features: {
-            allowedModels: tier.features.allowedModels,
-            hasReasoningModels: tier.features.hasReasoningModels,
-            hasPrioritySupport: tier.features.hasPrioritySupport,
-            maxFileSize: tier.features.maxFileSize,
-            maxConcurrentChats: tier.features.maxConcurrentChats,
-            hasAPIAccess: tier.features.hasAPIAccess,
+            searchQuota: tier.features.searchQuota,
+            maxImageGenerationsPerPeriod:
+              tier.features.maxImageGenerationsPerPeriod,
+            maxVideoGenerationsPerPeriod:
+              tier.features.maxVideoGenerationsPerPeriod,
           },
           price: tier.price.USD.toString(),
           isTesterPlan: tier.isTesterPlan ?? false,

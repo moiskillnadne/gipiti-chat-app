@@ -1,5 +1,3 @@
-import type { SearchDepth } from "@/lib/search/search-types";
-
 export type BillingPeriod = "daily" | "weekly" | "monthly" | "annual";
 
 export type SubscriptionTierConfig = {
@@ -9,14 +7,7 @@ export type SubscriptionTierConfig = {
   billingPeriodCount: number;
   tokenQuota: number;
   features: {
-    allowedModels: string[];
-    hasReasoningModels: boolean;
-    hasPrioritySupport: boolean;
-    maxFileSize: number;
-    maxConcurrentChats?: number;
-    hasAPIAccess?: boolean;
     searchQuota: number;
-    searchDepthAllowed: SearchDepth;
     maxImageGenerationsPerPeriod?: number;
     maxVideoGenerationsPerPeriod?: number;
   };
@@ -41,33 +32,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
     billingPeriodCount: 1,
     tokenQuota: 200_000, // 200K tokens per day
     features: {
-      allowedModels: [
-        "gpt-5.1-instant",
-        "gpt-5.1-thinking",
-        "gpt-5.2",
-        "gpt-5.4",
-        "gpt-5.4-mini",
-        "gpt-5.4-nano",
-        "gpt-5.2-pro",
-        "gpt-codex-5.2",
-        "grok-code-fast-1",
-        "gemini-3.1-pro",
-        "grok-imagine-image-pro",
-        "opus-4.6",
-        "sonnet-4.6",
-        "veo-3.1",
-        "veo-3.1-fast",
-        "grok-imagine-video",
-        "flux-2-max",
-        "flux-kontext-pro",
-      ],
-      hasReasoningModels: true,
-      hasPrioritySupport: false,
-      maxFileSize: 5 * 1024 * 1024,
-      maxConcurrentChats: 3,
-      hasAPIAccess: false,
       searchQuota: 40, // 40 searches per day
-      searchDepthAllowed: "advanced",
       maxImageGenerationsPerPeriod: 10, // 10 images per day
       maxVideoGenerationsPerPeriod: 5, // 5 videos per day
     },
@@ -88,34 +53,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
     billingPeriodCount: 1,
     tokenQuota: 5_000_000, // 5M tokens per day
     features: {
-      allowedModels: [
-        "gpt-5.1-instant",
-        "gpt-5.1-thinking",
-        "gpt-5.2",
-        "gpt-5.4",
-        "gpt-5.4-mini",
-        "gpt-5.4-nano",
-        "gpt-5.2-pro",
-        "gpt-codex-5.2",
-        "grok-code-fast-1",
-        "gemini-3.1-pro",
-        "grok-imagine-image-pro",
-        "opus-4.6",
-        "sonnet-4.6",
-        "veo-3.1",
-        "veo-3.1-fast",
-        "grok-imagine-video",
-        "flux-2-max",
-        "flux-kontext-pro",
-        "recraft-v4-pro",
-      ],
-      hasReasoningModels: true,
-      hasPrioritySupport: true,
-      maxFileSize: 25 * 1024 * 1024, // 25MB
-      maxConcurrentChats: 10,
-      hasAPIAccess: false,
       searchQuota: 200,
-      searchDepthAllowed: "advanced",
       maxImageGenerationsPerPeriod: 100,
       maxVideoGenerationsPerPeriod: 100,
     },
@@ -133,34 +71,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
     billingPeriodCount: 1,
     tokenQuota: 3_000_000, // 3M tokens per month
     features: {
-      allowedModels: [
-        "gpt-5.1-instant",
-        "gpt-5.1-thinking",
-        "gpt-5.2",
-        "gpt-5.4",
-        "gpt-5.4-mini",
-        "gpt-5.4-nano",
-        "gpt-5.2-pro",
-        "gpt-codex-5.2",
-        "grok-code-fast-1",
-        "gemini-3.1-pro",
-        "grok-imagine-image-pro",
-        "opus-4.6",
-        "sonnet-4.6",
-        "veo-3.1",
-        "veo-3.1-fast",
-        "grok-imagine-video",
-        "flux-2-max",
-        "flux-kontext-pro",
-        "recraft-v4-pro",
-      ],
-      hasReasoningModels: true,
-      hasPrioritySupport: false,
-      maxFileSize: 10 * 1024 * 1024, // 10MB
-      maxConcurrentChats: 5,
-      hasAPIAccess: false,
       searchQuota: 250, // 250 searches per month
-      searchDepthAllowed: "advanced",
       maxImageGenerationsPerPeriod: 50, // 50 images per month
       maxVideoGenerationsPerPeriod: 5, // 5 videos per month
     },
