@@ -52,7 +52,6 @@ import {
   type ProjectContextInput,
   type RequestHints,
   systemPrompt,
-  type TextStyleInput,
 } from "@/lib/ai/prompts";
 import { myProvider } from "@/lib/ai/providers";
 import { generateRecraftImage, isRecraftModel } from "@/lib/ai/recraft-client";
@@ -78,8 +77,6 @@ import { saveDocument } from "@/lib/db/query/document/save-document";
 import { getProjectById } from "@/lib/db/query/project/get-project-by-id";
 import { incrementProjectUsage } from "@/lib/db/query/project/increment-project-usage";
 import { getActiveUserSubscription } from "@/lib/db/query/subscription/get-active-user-subscription";
-import { getTextStyleById } from "@/lib/db/query/text-style/get-text-style-by-id";
-import { incrementTextStyleUsage } from "@/lib/db/query/text-style/increment-text-style-usage";
 import { insertImageGenerationUsageLog } from "@/lib/db/query/usage/insert-image-generation-usage-log";
 import { insertVideoGenerationUsageLog } from "@/lib/db/query/usage/insert-video-generation-usage-log";
 import { ChatSDKError } from "@/lib/errors";
@@ -196,7 +193,6 @@ export async function POST(request: Request) {
       selectedChatModel: requestedChatModel,
       thinkingSetting: rawThinkingSetting,
       imageGenSetting: rawImageGenSetting,
-      selectedTextStyleId,
       selectedProjectId,
       webSearchEnabled = true,
     } = requestBody;
@@ -225,23 +221,13 @@ export async function POST(request: Request) {
     }
 
     // Run independent pre-stream checks in parallel
-    const [quotaCheck, existingChat, textStyleRow, projectRow] =
-      await Promise.all([
-        checkTokenQuota(session.user.id),
-        getChatById({ id }),
-        selectedTextStyleId
-          ? getTextStyleById({ id: selectedTextStyleId })
-          : Promise.resolve(undefined),
-        selectedProjectId
-          ? getProjectById({ id: selectedProjectId })
-          : Promise.resolve(undefined),
-      ]);
-
-    // Build text style / project context from pre-fetched rows
-    const textStyle: TextStyleInput | null =
-      textStyleRow && textStyleRow.userId === session.user.id
-        ? { name: textStyleRow.name, examples: textStyleRow.examples }
-        : null;
+    const [quotaCheck, existingChat, projectRow] = await Promise.all([
+      checkTokenQuota(session.user.id),
+      getChatById({ id }),
+      selectedProjectId
+        ? getProjectById({ id: selectedProjectId })
+        : Promise.resolve(undefined),
+    ]);
 
     const projectContext: ProjectContextInput | null =
       projectRow && projectRow.userId === session.user.id
@@ -417,21 +403,8 @@ export async function POST(request: Request) {
       }
     }
 
-    // Fire-and-forget usage increment for the active style / project.
+    // Fire-and-forget usage increment for the active project.
     // Runs once per chat message that reaches the inference path.
-    if (textStyleRow && textStyleRow.userId === session.user.id) {
-      const styleIdToIncrement = textStyleRow.id;
-      after(async () => {
-        try {
-          await incrementTextStyleUsage({
-            id: styleIdToIncrement,
-            userId: session.user.id,
-          });
-        } catch (error) {
-          console.error("Background style usage increment failed:", error);
-        }
-      });
-    }
     if (projectRow && projectRow.userId === session.user.id) {
       const projectIdToIncrement = projectRow.id;
       after(async () => {
@@ -1179,7 +1152,6 @@ export async function POST(request: Request) {
           system: systemPrompt({
             selectedChatModel,
             requestHints,
-            textStyle,
             projectContext,
           }),
           messages: await convertToModelMessages(uiMessages),

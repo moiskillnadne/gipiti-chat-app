@@ -5,7 +5,6 @@ import { DataStreamProvider } from "@/components/data-stream-provider";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { ModelProvider } from "@/contexts/model-context";
 import { ProjectProvider } from "@/contexts/project-context";
-import { StyleProvider } from "@/contexts/style-context";
 import { WebSearchProvider } from "@/contexts/web-search-context";
 import {
   chatModelIds,
@@ -64,7 +63,6 @@ export default async function Layout({
     ) ?? getDefaultImageGenSetting(validatedModelId);
 
   const userType = session?.user?.type ?? "regular";
-  const textStyleId = cookieStore.get("chat-text-style")?.value ?? null;
   const projectId = cookieStore.get("chat-project")?.value ?? null;
   const webSearchCookie = cookieStore.get("web-search-enabled")?.value;
   const initialWebSearchEnabled =
@@ -83,16 +81,14 @@ export default async function Layout({
           initialThinkingSetting={initialThinkingSetting}
           userType={userType}
         >
-          <StyleProvider initialStyleId={textStyleId}>
-            <ProjectProvider initialProjectId={projectId}>
-              <WebSearchProvider initialEnabled={initialWebSearchEnabled}>
-                <SidebarProvider defaultOpen={!isCollapsed}>
-                  <AppSidebar user={session?.user} />
-                  <SidebarInset>{children}</SidebarInset>
-                </SidebarProvider>
-              </WebSearchProvider>
-            </ProjectProvider>
-          </StyleProvider>
+          <ProjectProvider initialProjectId={projectId}>
+            <WebSearchProvider initialEnabled={initialWebSearchEnabled}>
+              <SidebarProvider defaultOpen={!isCollapsed}>
+                <AppSidebar user={session?.user} />
+                <SidebarInset>{children}</SidebarInset>
+              </SidebarProvider>
+            </WebSearchProvider>
+          </ProjectProvider>
         </ModelProvider>
       </DataStreamProvider>
     </>

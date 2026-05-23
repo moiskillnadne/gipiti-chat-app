@@ -49,7 +49,6 @@ export const postRequestBodySchema = z.object({
   thinkingSetting: thinkingSettingSchema.optional(),
   imageGenSetting: imageGenSettingSchema.optional(),
   previousGenerationId: z.string().optional(),
-  selectedTextStyleId: z.string().uuid().optional(),
   selectedProjectId: z.string().uuid().optional(),
   webSearchEnabled: z.boolean().optional(),
 });

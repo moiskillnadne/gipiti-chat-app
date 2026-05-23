@@ -70,7 +70,7 @@ async function deleteUserByEmail(
 
     // 7. Delete user row (cascades: userSubscription, userTokenUsage,
     //    paymentIntent, tokenUsageLog, searchUsageLog, imageGenerationUsageLog,
-    //    textStyle, project, cancellationFeedback, tokenBalanceTransaction)
+    //    project, cancellationFeedback, tokenBalanceTransaction)
     await tx.delete(user).where(eq(user.id, targetUser.id));
   });
 

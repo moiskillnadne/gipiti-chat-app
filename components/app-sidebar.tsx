@@ -7,7 +7,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useSWRConfig } from "swr";
 import { unstable_serialize } from "swr/infinite";
-import { FolderIcon, PenIcon, PlusIcon, TrashIcon } from "@/components/icons";
+import { FolderIcon, PlusIcon, TrashIcon } from "@/components/icons";
 import {
   getChatHistoryPaginationKey,
   SidebarHistory,
@@ -40,7 +40,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 export function AppSidebar({ user }: { user: User | undefined }) {
   const t = useTranslations("chat.sidebar");
   const tCommon = useTranslations("common.buttons");
-  const tTextStyles = useTranslations("textStyles");
   const tProjects = useTranslations("projects");
   const router = useRouter();
   const { setOpenMobile } = useSidebar();
@@ -117,18 +116,6 @@ export function AppSidebar({ user }: { user: User | undefined }) {
           </SidebarMenuButton>
 
           <SidebarMenu className="gap-px">
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                className="h-9 gap-2.5 rounded-sm px-3 text-[13px] text-ink-2 hover:bg-paper-3 hover:text-ink"
-                onClick={() => {
-                  setOpenMobile(false);
-                  router.push("/styles");
-                }}
-              >
-                <PenIcon size={14} />
-                <span>{tTextStyles("manageStyles")}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton
                 className="h-9 gap-2.5 rounded-sm px-3 text-[13px] text-ink-2 hover:bg-paper-3 hover:text-ink"

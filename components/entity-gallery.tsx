@@ -29,7 +29,7 @@ const RECENT_DAYS = 14;
 const RECENT_MS = RECENT_DAYS * 24 * 60 * 60 * 1000;
 const MAX_NAME_LENGTH = 128;
 
-export type EntityKind = "style" | "project";
+export type EntityKind = "project";
 
 export type GalleryEntity = {
   id: string;
@@ -96,7 +96,7 @@ export type EntityGalleryConfig<T extends GalleryEntity> = {
   getPreview: (item: T) => string | undefined;
   getItemCount: (item: T) => number;
   templates: readonly GalleryTemplate[];
-  templateNamespace: "textStyles" | "projects";
+  templateNamespace: "projects";
 };
 
 type FilterValue = "all" | "pinned" | "recent";
@@ -618,15 +618,7 @@ function EntityCard<T extends GalleryEntity>({
       </div>
 
       <div className="line-clamp-3 flex-1 text-[12.5px] text-ink-3 italic leading-[1.5]">
-        {preview ? (
-          <>
-            {kind === "style" ? <span className="text-ink-4">“</span> : null}
-            {preview}
-            {kind === "style" ? <span className="text-ink-4">”</span> : null}
-          </>
-        ) : (
-          <span className="text-ink-4 not-italic">—</span>
-        )}
+        {preview ? preview : <span className="text-ink-4 not-italic">—</span>}
       </div>
 
       <div className="flex items-center justify-between border-rule border-t border-dashed pt-2.5 font-mono text-[10px] text-ink-3 uppercase tracking-[0.06em]">

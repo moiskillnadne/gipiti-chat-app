@@ -68,8 +68,7 @@
   "accountNav": {
     "back": "Назад",
     "account": "Аккаунт",
-    "projects": "Проекты",
-    "styles": "Стили"
+    "projects": "Проекты"
   },
   "auth": {
     "login": {
@@ -1325,87 +1324,6 @@
     "recraftV4Pro": {
       "name": "Recraft v4 Pro",
       "description": "Генерация изображений с художественными стилями."
-    }
-  },
-  "textStyles": {
-    "noStyle": "Без стиля",
-    "noStyleDescription": "ИИ отвечает своим стандартным голосом",
-    "manageStyles": "Управление стилями",
-    "exampleCount": "{count, plural, one {# пример} few {# примера} other {# примеров}}",
-    "title": "Стили письма",
-    "pageDescription": "Создавайте стили письма, предоставляя примеры текста. ИИ адаптирует тон и голос под ваш стиль.",
-    "createStyle": "Создать",
-    "editStyle": "Редактировать стиль",
-    "deleteStyle": "Удалить стиль",
-    "noStylesYet": "Стилей пока нет",
-    "noStylesYetShort": "У вас ещё нет стилей",
-    "noStylesDescription": "Создайте стиль письма, предоставив примеры текста. ИИ будет отражать ваш тон и голос.",
-    "styleName": "Название стиля",
-    "styleNamePlaceholder": "напр. Разговорный, Технический, Формальный...",
-    "examples": "Примеры",
-    "examplePlaceholder": "Вставьте или напишите пример текста в этом стиле...",
-    "addExample": "Добавить пример",
-    "setAsDefault": "Установить как стиль по умолчанию",
-    "defaultBadge": "По умолчанию",
-    "saveSuccess": "Стиль успешно сохранён",
-    "deleteSuccess": "Стиль успешно удалён",
-    "saveError": "Не удалось сохранить стиль",
-    "deleteError": "Не удалось удалить стиль",
-    "deleteConfirmTitle": "Удалить стиль?",
-    "deleteConfirmDescription": "Вы уверены, что хотите удалить \"{name}\"? Это действие нельзя отменить.",
-    "styleTitle": "Стиль: {name}",
-    "editExample": "Редактировать пример",
-    "deleteExample": "Удалить пример",
-    "deleteExampleConfirm": "Удалить этот пример?",
-    "exampleSaved": "Пример сохранён",
-    "exampleDeleted": "Пример удалён",
-    "noExamplesYet": "Примеров пока нет",
-    "noExamplesDescription": "Добавьте примеры текста, чтобы научить ИИ вашему стилю письма.",
-    "renameSuccess": "Стиль успешно переименован",
-    "editName": "Переименовать стиль",
-    "headlineEm": "письма",
-    "eyebrow": "Стили · {count} ваших · {tplCount} шаблонов",
-    "yourStyles": "Ваши стили",
-    "newStyle": "Новый стиль",
-    "newStyleHint": "с нуля или из шаблона",
-    "searchPlaceholder": "Поиск стилей...",
-    "filterAll": "Все",
-    "filterPinned": "Закреплённые",
-    "filterRecent": "Недавние",
-    "sortBy": "Сорт. по",
-    "sortByUses": "Использованию",
-    "sortByName": "Имени",
-    "sortByDate": "Дате",
-    "usesLabel": "использований",
-    "templatesHeading": "Шаблоны",
-    "templatesHint": "начните с готового — отредактируйте под себя",
-    "emptyFilteredTitle": "Ничего не найдено",
-    "emptyFilteredDescription": "Попробуйте другой фильтр или создайте новый стиль.",
-    "pin": "Закрепить",
-    "unpin": "Открепить",
-    "templates": {
-      "brief": {
-        "name": "Краткий",
-        "preview": "Без воды. Один-два абзаца, без длинных вступлений. Списки только когда без них никак."
-      },
-      "technical": {
-        "name": "Технический",
-        "preview": "Точная терминология, версии, флаги, edge-кейсы. Как в хорошей документации."
-      },
-      "friendly": {
-        "name": "Дружелюбный",
-        "preview": "Тёплый разговорный тон. Объясняй так, будто рассказываешь другу за кофе."
-      },
-      "teacher": {
-        "name": "Преподаватель",
-        "preview": "С нуля и пошагово. Проверочные вопросы, наглядные аналогии."
-      }
-    },
-    "editor": {
-      "untitledStyle": "Новый стиль",
-      "descriptionPlaceholder": "Зачем этот стиль, в одном предложении",
-      "itemsHelpStyle": "Короткие примеры того, как должен звучать ответ. Чем больше — тем точнее модель попадёт в ваш голос.",
-      "emptyDescriptionStyle": "Добавьте 1–2 примера, и модель начнёт говорить вашим голосом уже в этом чате."
     }
   },
   "projects": {

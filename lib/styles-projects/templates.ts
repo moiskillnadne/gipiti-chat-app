@@ -1,54 +1,9 @@
-export type StyleTemplate = {
-  id: string;
-  nameKey: string;
-  previewKey: string;
-  examples: string[];
-};
-
 export type ProjectTemplate = {
   id: string;
   nameKey: string;
   previewKey: string;
   contextEntries: string[];
 };
-
-export const STYLE_TEMPLATES: readonly StyleTemplate[] = [
-  {
-    id: "brief",
-    nameKey: "templates.brief.name",
-    previewKey: "templates.brief.preview",
-    examples: [
-      "Будь кратко и отвечай только по делу, без филлеров и вступлений.",
-      "Не поясняй очевидное. Если просят список — давай список, без обрамляющих абзацев.",
-      "Используй короткие предложения. Один абзац — одна мысль.",
-    ],
-  },
-  {
-    id: "technical",
-    nameKey: "templates.technical.name",
-    previewKey: "templates.technical.preview",
-    examples: [
-      "Используй точную терминологию. Указывай версии библиотек и операционных систем.",
-      "Когда даёшь код — добавляй комментарии и обработку краёв.",
-    ],
-  },
-  {
-    id: "friendly",
-    nameKey: "templates.friendly.name",
-    previewKey: "templates.friendly.preview",
-    examples: [
-      "Пиши тепло, как будто объясняешь другу за чашкой кофе. Можно лёгкий юмор.",
-    ],
-  },
-  {
-    id: "teacher",
-    nameKey: "templates.teacher.name",
-    previewKey: "templates.teacher.preview",
-    examples: [
-      "Объясняй с нуля, шаг за шагом. После сложного места — задавай проверочный вопрос.",
-    ],
-  },
-];
 
 export const PROJECT_TEMPLATES: readonly ProjectTemplate[] = [
   {

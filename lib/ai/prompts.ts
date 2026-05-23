@@ -95,29 +95,6 @@ User: "Draw a cat"
 Better prompt: "A fluffy orange tabby cat sitting on a windowsill, warm afternoon sunlight streaming through, photorealistic style with soft bokeh background"
 `;
 
-export type TextStyleInput = {
-  name: string;
-  examples: string[];
-};
-
-export const textStylePrompt = (style: TextStyleInput): string => {
-  const numberedExamples = style.examples
-    .map((example, i) => `${i + 1}. "${example}"`)
-    .join("\n");
-
-  return `\
-You MUST write all your responses in the following personal writing style called "${style.name}".
-
-Here are examples of this writing style:
-${numberedExamples}
-
-Instructions for applying this style:
-- Match the tone, vocabulary, sentence structure, formality level, and punctuation patterns shown in the examples
-- Apply this style consistently to ALL your responses
-- Do NOT mention, reference, or quote the style examples in your responses
-- Adapt the style naturally to the content while preserving its distinctive characteristics`;
-};
-
 export type ProjectContextInput = {
   name: string;
   contextEntries: string[];
@@ -160,27 +137,24 @@ Respond in the same language as the user's message.`;
 export const systemPrompt = ({
   selectedChatModel,
   requestHints,
-  textStyle,
   projectContext,
 }: {
   selectedChatModel: string;
   requestHints: RequestHints;
-  textStyle?: TextStyleInput | null;
   projectContext?: ProjectContextInput | null;
 }) => {
   const requestPrompt = getRequestPromptFromHints(requestHints);
   const hasAttachments = supportsAttachments(selectedChatModel);
-  const styleBlock = textStyle ? `\n\n${textStylePrompt(textStyle)}` : "";
   const projectBlock = projectContext?.contextEntries.length
     ? `\n\n${projectContextPrompt(projectContext)}`
     : "";
 
   if (isReasoningModelId(selectedChatModel)) {
     if (hasAttachments) {
-      return `${reasoningPrompt}${styleBlock}${projectBlock}\n\n${webSearchPrompt}\n\n${imageGenerationPrompt}\n\n${requestPrompt}`;
+      return `${reasoningPrompt}${projectBlock}\n\n${webSearchPrompt}\n\n${imageGenerationPrompt}\n\n${requestPrompt}`;
     }
-    return `${reasoningPrompt}${styleBlock}${projectBlock}\n\n${webSearchPrompt}\n\n${requestPrompt}`;
+    return `${reasoningPrompt}${projectBlock}\n\n${webSearchPrompt}\n\n${requestPrompt}`;
   }
 
-  return `${regularPrompt}${styleBlock}${projectBlock}\n\n${webSearchPrompt}\n\n${imageGenerationPrompt}\n\n${requestPrompt}`;
+  return `${regularPrompt}${projectBlock}\n\n${webSearchPrompt}\n\n${imageGenerationPrompt}\n\n${requestPrompt}`;
 };
