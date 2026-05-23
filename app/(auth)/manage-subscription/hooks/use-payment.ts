@@ -273,7 +273,7 @@ export function usePayment(options: UsePaymentOptions): UsePaymentReturn {
       }
 
       // Resume polling with stored plan
-      const planToUse = plan ?? (isTester ? "tester_paid" : "basic_annual");
+      const planToUse = plan ?? (isTester ? "tester_paid" : "basic_monthly");
       dispatch({ type: "START_PAYMENT", plan: planToUse });
       dispatch({ type: "SET_STATUS", status: "verifying" });
       await pollPaymentStatusRef.current(sessionId, 60, abortController.signal);

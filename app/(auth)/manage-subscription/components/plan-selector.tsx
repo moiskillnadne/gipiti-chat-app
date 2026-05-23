@@ -1,6 +1,5 @@
 "use client";
 
-import { useTranslations } from "@/lib/i18n/translate";
 import type { PlanType } from "../hooks/payment-reducer";
 import { formatPrice } from "../utils/payment-utils";
 import { PlanCard } from "./plan-card";
@@ -18,10 +17,8 @@ export function PlanSelector({
   isLoading,
   loadingPlan,
 }: PlanSelectorProps) {
-  const t = useTranslations("auth.subscription");
-
   return (
-    <div className="grid gap-6 md:grid-cols-3">
+    <div className="mx-auto w-full max-w-sm">
       <PlanCard
         canStartTrial={canStartTrial}
         descriptionKey="monthly.description"
@@ -33,35 +30,6 @@ export function PlanSelector({
         periodKey="monthly.period"
         plan="basic_monthly"
         subscribeButtonKey="monthly.subscribeButton"
-      />
-
-      <PlanCard
-        badge={t("quarterly.badge")}
-        canStartTrial={canStartTrial}
-        descriptionKey="quarterly.description"
-        formattedPrice={formatPrice("basic_quarterly")}
-        isDisabled={isLoading && loadingPlan !== "basic_quarterly"}
-        isLoading={loadingPlan === "basic_quarterly"}
-        isRecommended
-        nameKey="quarterly.name"
-        onSubscribe={onSubscribe}
-        periodKey="quarterly.period"
-        plan="basic_quarterly"
-        subscribeButtonKey="quarterly.subscribeButton"
-      />
-
-      <PlanCard
-        badge={t("annual.badge")}
-        canStartTrial={canStartTrial}
-        descriptionKey="annual.description"
-        formattedPrice={formatPrice("basic_annual")}
-        isDisabled={isLoading && loadingPlan !== "basic_annual"}
-        isLoading={loadingPlan === "basic_annual"}
-        nameKey="annual.name"
-        onSubscribe={onSubscribe}
-        periodKey="annual.period"
-        plan="basic_annual"
-        subscribeButtonKey="annual.subscribeButton"
       />
     </div>
   );

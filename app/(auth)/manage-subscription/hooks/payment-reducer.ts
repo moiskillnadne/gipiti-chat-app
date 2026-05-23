@@ -1,10 +1,6 @@
 import type { PaymentStatus } from "@/lib/types";
 
-export type PlanType =
-  | "basic_monthly"
-  | "basic_quarterly"
-  | "basic_annual"
-  | "tester_paid";
+export type PlanType = "basic_monthly" | "tester_paid";
 
 export type PaymentState = {
   selectedPlan: PlanType;
@@ -25,7 +21,7 @@ export type PaymentAction =
 
 export function createInitialState(isTester: boolean): PaymentState {
   return {
-    selectedPlan: isTester ? "tester_paid" : "basic_annual",
+    selectedPlan: isTester ? "tester_paid" : "basic_monthly",
     loadingPlan: null,
     isLoading: false,
     status: null,

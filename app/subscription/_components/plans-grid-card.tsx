@@ -8,7 +8,7 @@ import { CheckIcon } from "./icons";
 
 const MANAGE_HREF = "/manage-subscription";
 
-type PlanItemKey = "tester" | "monthly" | "quarterly";
+type PlanItemKey = "tester" | "monthly";
 
 type PlanItem = {
   key: PlanItemKey;
@@ -36,15 +36,6 @@ const PLAN_ITEMS: readonly PlanItem[] = [
     priceSuffix: "₽ /мес",
     featureKeys: ["f1", "f2", "f3", "f4"],
     featured: true,
-  },
-  {
-    key: "quarterly",
-    tierName: "basic_quarterly",
-    priceNumber: formatRubles(
-      SUBSCRIPTION_TIERS.basic_quarterly?.price.RUB ?? 4999
-    ),
-    priceSuffix: "₽ /квартал",
-    featureKeys: ["f1", "f2", "f3", "f4"],
   },
 ];
 

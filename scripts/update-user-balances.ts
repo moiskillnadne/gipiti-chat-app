@@ -17,8 +17,6 @@ const BALANCE_INCREASES: Record<string, number> = {
   tester: 100_000, // 100K → 200K = +100K
   tester_paid: 100_000, // 100K → 200K = +100K
   basic_monthly: 1_000_000, // 2M → 3M = +1M
-  basic_quarterly: 3_000_000, // 6M → 9M = +3M
-  basic_annual: 12_000_000, // 24M → 36M = +12M
 };
 
 async function main() {
