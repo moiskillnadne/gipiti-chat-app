@@ -105,6 +105,5 @@ describe("getDefaultFreePlanSeed", () => {
     expect(seed.features.maxImageGenerationsPerPeriod).toBe(tier1.imageBonus);
     expect(seed.features.maxVideoGenerationsPerPeriod).toBe(tier1.videoBonus);
     expect(seed.features.searchQuota).toBe(tier1.searchQuota);
-    expect(seed.features.allowedModels).toEqual(tier1.allowedModels);
   });
 });

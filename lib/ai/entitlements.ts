@@ -187,14 +187,7 @@ export type FreePlanSeed = {
   billingPeriodCount: number;
   tokenQuota: number;
   features: {
-    allowedModels: ChatModel["id"][];
-    hasReasoningModels: boolean;
-    hasPrioritySupport: boolean;
-    maxFileSize: number;
-    maxConcurrentChats?: number;
-    hasAPIAccess?: boolean;
     searchQuota: number;
-    searchDepthAllowed: SearchDepth;
     maxImageGenerationsPerPeriod: number;
     maxVideoGenerationsPerPeriod: number;
   };
@@ -213,14 +206,7 @@ export function getDefaultFreePlanSeed(): FreePlanSeed {
     billingPeriodCount: 1,
     tokenQuota: tier1.tokenBonus,
     features: {
-      allowedModels: tier1.allowedModels,
-      hasReasoningModels: false,
-      hasPrioritySupport: false,
-      maxFileSize: 2 * 1024 * 1024,
-      maxConcurrentChats: 1,
-      hasAPIAccess: false,
       searchQuota: tier1.searchQuota,
-      searchDepthAllowed: tier1.searchDepthAllowed,
       maxImageGenerationsPerPeriod: tier1.imageBonus,
       maxVideoGenerationsPerPeriod: tier1.videoBonus,
     },

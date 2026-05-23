@@ -2,7 +2,6 @@ import { tool } from "ai";
 import type { Session } from "next-auth";
 import { z } from "zod";
 import { checkSearchQuota, recordSearchUsage } from "@/lib/search/search-quota";
-import type { SearchDepth } from "@/lib/search/search-types";
 import {
   formatSearchResultsForLLM,
   searchWithTavily,
@@ -37,13 +36,6 @@ Do NOT use this tool for:
         .min(3)
         .max(400)
         .describe("The search query to find relevant information on the web"),
-      searchDepth: z
-        .enum(["basic", "advanced"])
-        .optional()
-        .default("basic")
-        .describe(
-          "basic: faster, fewer results; advanced: slower, more comprehensive"
-        ),
       maxResults: z
         .number()
         .int()
@@ -53,7 +45,7 @@ Do NOT use this tool for:
         .default(5)
         .describe("Maximum number of results to return"),
     }),
-    execute: async ({ query, searchDepth = "basic", maxResults = 5 }) => {
+    execute: async ({ query, maxResults = 5 }) => {
       try {
         // Check quota before searching
         const quotaCheck = await checkSearchQuota(session.user.id);
@@ -65,16 +57,10 @@ Do NOT use this tool for:
           };
         }
 
-        // Enforce allowed search depth based on tier
-        const effectiveDepth: SearchDepth =
-          searchDepth === "advanced" && quotaCheck.allowedDepth === "basic"
-            ? "basic"
-            : searchDepth;
-
-        // Perform the search
+        // All searches run at basic depth
         const searchResult = await searchWithTavily({
           query,
-          searchDepth: effectiveDepth,
+          searchDepth: "basic",
           maxResults,
         });
 
@@ -83,7 +69,7 @@ Do NOT use this tool for:
           userId: session.user.id,
           chatId,
           query,
-          searchDepth: effectiveDepth,
+          searchDepth: "basic",
           resultsCount: searchResult.results.length,
           responseTimeMs: searchResult.responseTime,
           cached: false,

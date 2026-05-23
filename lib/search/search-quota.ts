@@ -7,17 +7,12 @@ import {
 import { getActiveUserSubscription } from "@/lib/db/query/subscription/get-active-user-subscription";
 import { insertSearchUsageLog } from "@/lib/db/query/usage/insert-search-usage-log";
 import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
-import type {
-  SearchDepth,
-  SearchQuotaInfo,
-  SearchUsageRecord,
-} from "./search-types";
+import type { SearchQuotaInfo, SearchUsageRecord } from "./search-types";
 
 type SearchQuotaCheckResult = {
   allowed: boolean;
   reason?: string;
   quotaInfo?: SearchQuotaInfo;
-  allowedDepth: SearchDepth;
 };
 
 export async function checkSearchQuota(
@@ -29,7 +24,6 @@ export async function checkSearchQuota(
     return {
       allowed: false,
       reason: "User not found",
-      allowedDepth: "basic",
     };
   }
 
@@ -43,7 +37,6 @@ export async function checkSearchQuota(
     return {
       allowed: false,
       reason: "Invalid subscription plan",
-      allowedDepth: "basic",
     };
   }
 
@@ -69,7 +62,6 @@ export async function checkSearchQuota(
         resetAt,
         periodType,
       },
-      allowedDepth: tierConfig.features.searchDepthAllowed,
     };
   }
 
@@ -82,7 +74,6 @@ export async function checkSearchQuota(
       resetAt,
       periodType,
     },
-    allowedDepth: tierConfig.features.searchDepthAllowed,
   };
 }
 

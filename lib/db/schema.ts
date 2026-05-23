@@ -206,14 +206,9 @@ export const subscriptionPlan = pgTable(
 
     // Feature flags
     features: jsonb("features").$type<{
-      allowedModels: string[];
-      hasReasoningModels: boolean;
-      hasPrioritySupport: boolean;
-      maxFileSize?: number;
-      maxConcurrentChats?: number;
-      hasAPIAccess?: boolean;
       searchQuota?: number;
-      searchDepthAllowed?: string;
+      maxImageGenerationsPerPeriod?: number;
+      maxVideoGenerationsPerPeriod?: number;
     }>(),
 
     // Pricing (for display/reference)
