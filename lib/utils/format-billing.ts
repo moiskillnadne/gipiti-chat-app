@@ -13,7 +13,17 @@ const RU_DATE_DAY_MONTH = new Intl.DateTimeFormat("ru-RU", {
   month: "long",
 });
 
-const MS_PER_DAY = 1000 * 60 * 60 * 24;
+const MS_PER_HOUR = 1000 * 60 * 60;
+const MS_PER_DAY = MS_PER_HOUR * 24;
+
+const RU_TIME_HM = new Intl.DateTimeFormat("ru-RU", {
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+});
+
+const HOUR_FORMS: RuPluralForms = ["час", "часа", "часов"];
+const DAY_FORMS: RuPluralForms = ["день", "дня", "дней"];
 
 export function formatBillingCycle(start: Date, end: Date): string {
   const sameYear = start.getFullYear() === end.getFullYear();
@@ -61,4 +71,44 @@ export function pluralRu(n: number, forms: RuPluralForms): string {
 export function daysUntil(target: Date, from: Date = new Date()): number {
   const diffMs = target.getTime() - from.getTime();
   return Math.max(0, Math.ceil(diffMs / MS_PER_DAY));
+}
+
+export function formatRelativeRu(
+  target: Date,
+  from: Date = new Date()
+): string {
+  const diffMs = target.getTime() - from.getTime();
+  if (!Number.isFinite(diffMs) || diffMs <= 0) {
+    return "скоро";
+  }
+  if (diffMs < MS_PER_HOUR) {
+    return "менее чем через час";
+  }
+  if (diffMs < MS_PER_DAY) {
+    const hours = Math.round(diffMs / MS_PER_HOUR);
+    return `через ${hours} ${pluralRu(hours, HOUR_FORMS)}`;
+  }
+  const days = Math.ceil(diffMs / MS_PER_DAY);
+  return `через ${days} ${pluralRu(days, DAY_FORMS)}`;
+}
+
+export function formatRuDayTime(date: Date, now: Date = new Date()): string {
+  const startOfToday = new Date(now);
+  startOfToday.setHours(0, 0, 0, 0);
+  const startOfTarget = new Date(date);
+  startOfTarget.setHours(0, 0, 0, 0);
+  const dayDiff = Math.round(
+    (startOfTarget.getTime() - startOfToday.getTime()) / MS_PER_DAY
+  );
+
+  if (dayDiff === 0) {
+    return `сегодня · ${RU_TIME_HM.format(date)}`;
+  }
+  if (dayDiff === 1) {
+    return `завтра · ${RU_TIME_HM.format(date)}`;
+  }
+  if (dayDiff > 1 && dayDiff <= 7) {
+    return `через ${dayDiff} ${pluralRu(dayDiff, DAY_FORMS)}`;
+  }
+  return formatRuDate(date);
 }

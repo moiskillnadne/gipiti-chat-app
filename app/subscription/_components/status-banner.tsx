@@ -36,6 +36,7 @@ type StatusBannerProps = {
   cancelEndDate: Date | null;
   pastDuePriceLabel: string;
   pastDueCardMask: string | null;
+  pastDueRetryIn: string | null;
   cancelCurrentPeriodEnd: Date | null;
 };
 
@@ -56,7 +57,7 @@ export function StatusBanner(props: StatusBannerProps) {
     return <PastDueBanner {...props} />;
   }
 
-  return <NoneBanner />;
+  return null;
 }
 
 function TrialBanner({
@@ -189,6 +190,7 @@ function CancelledBanner({ cancelEndDate }: StatusBannerProps) {
 function PastDueBanner({
   pastDuePriceLabel,
   pastDueCardMask,
+  pastDueRetryIn,
 }: StatusBannerProps) {
   const router = useRouter();
   const t = useTranslations("auth.subscription.dashboard.banner.pastDue");
@@ -202,6 +204,7 @@ function PastDueBanner({
           {t("body", {
             price: pastDuePriceLabel,
             cardMask: pastDueCardMask ?? "—",
+            retryIn: pastDueRetryIn ?? "скоро",
           })}
         </span>
       </div>
@@ -220,20 +223,6 @@ function PastDueBanner({
         >
           {t("updateCard")}
         </button>
-      </div>
-    </div>
-  );
-}
-
-function NoneBanner() {
-  const t = useTranslations("auth.subscription.dashboard.banner.none");
-
-  return (
-    <div className={`${styles.banner} ${styles.bannerNone}`}>
-      <SparkIcon className={styles.bannerIcon} />
-      <div className={styles.bannerBody}>
-        <b>{t("title")}</b>
-        <span>{t("body")}</span>
       </div>
     </div>
   );

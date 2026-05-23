@@ -80,25 +80,44 @@ function pickRemainingHintKey(
   return "default";
 }
 
+export type FreeUsageData = {
+  quota: number;
+  spent: number;
+  remaining: number;
+  quotaBonusK: number | null;
+};
+
 type UsageGaugeCardProps = {
   state: SubscriptionUiState;
   dimmed?: boolean;
+  freeUsage?: FreeUsageData | null;
 };
 
-export function UsageGaugeCard({ state, dimmed = false }: UsageGaugeCardProps) {
+export function UsageGaugeCard({
+  state,
+  dimmed = false,
+  freeUsage = null,
+}: UsageGaugeCardProps) {
   const t = useTranslations("auth.subscription.dashboard.gauge");
   const tHistory = useTranslations("auth.subscription.dashboard");
   const { data } = useSWR<TransactionsApiResponse>(
-    "/api/transactions?limit=0",
+    state === "none" ? null : "/api/transactions?limit=0",
     fetcher,
     { revalidateOnFocus: false }
   );
 
   const summary = data?.summary;
-  const quota = summary?.quota ?? 0;
-  const spent = summary?.spent ?? 0;
-  const remaining = summary?.remaining ?? Math.max(0, quota - spent);
+  const quota =
+    state === "none" ? (freeUsage?.quota ?? 0) : (summary?.quota ?? 0);
+  const spent =
+    state === "none" ? (freeUsage?.spent ?? 0) : (summary?.spent ?? 0);
+  const remaining =
+    state === "none"
+      ? (freeUsage?.remaining ?? 0)
+      : (summary?.remaining ?? Math.max(0, quota - spent));
   const pct = quota > 0 ? Math.min(100, Math.round((spent / quota) * 100)) : 0;
+  const quotaBonusK =
+    state === "none" ? (freeUsage?.quotaBonusK ?? null) : null;
   const variant = pickVariant(state, pct);
   const dash = (Math.min(pct, 100) / 100) * GAUGE_CIRCUMFERENCE;
   const cardClass = [
@@ -113,9 +132,11 @@ export function UsageGaugeCard({ state, dimmed = false }: UsageGaugeCardProps) {
     <section aria-label={t("title")} className={cardClass}>
       <div className={styles.cardHead}>
         <h3 className={styles.cardTitle}>{t("title")}</h3>
-        <Link className={styles.cardLink} href="/subscription/usage">
-          {tHistory("history")} →
-        </Link>
+        {state !== "none" && (
+          <Link className={styles.cardLink} href="/subscription/usage">
+            {tHistory("history")} →
+          </Link>
+        )}
       </div>
       <div className={styles.gaugeWrap}>
         <div className={styles.gauge}>
@@ -157,6 +178,11 @@ export function UsageGaugeCard({ state, dimmed = false }: UsageGaugeCardProps) {
                     <span className={styles.gaugeStatSub}>
                       {quotaParts.unit} {t("tokensWord")}
                     </span>
+                    {quotaBonusK !== null && quotaBonusK > 0 && (
+                      <span className={styles.gaugeStatBonus}>
+                        {t("quotaBonus", { amount: quotaBonusK })}
+                      </span>
+                    )}
                   </span>
                 </div>
                 <div className={styles.gaugeStat}>
@@ -173,8 +199,9 @@ export function UsageGaugeCard({ state, dimmed = false }: UsageGaugeCardProps) {
                   <span className={styles.gaugeStatVal}>
                     {remainingParts.num}
                     <span className={styles.gaugeStatSub}>
-                      {remainingParts.unit} ·{" "}
-                      {t(`remainingHint.${pickRemainingHintKey(state)}`)}
+                      {remainingParts.unit}
+                      {state !== "none" &&
+                        ` · ${t(`remainingHint.${pickRemainingHintKey(state)}`)}`}
                     </span>
                   </span>
                 </div>

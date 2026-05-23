@@ -385,6 +385,13 @@
   margin-left: 4px;
 }
 
+.gaugeStatBonus {
+  color: var(--success);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  margin-left: 6px;
+}
+
 .planRow {
   align-items: baseline;
   border-bottom: 1px dashed var(--rule);
@@ -592,6 +599,13 @@
   font-weight: 500;
 }
 
+.limitNameBonus {
+  color: var(--success);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  margin-left: 6px;
+}
+
 .meter {
   background: var(--paper-2);
   border-radius: 999px;
@@ -729,6 +743,94 @@
   width: 22px;
 }
 
+.rewardNote {
+  align-items: center;
+  background: linear-gradient(
+    135deg,
+    var(--citrus-soft) 0%,
+    color-mix(in oklch, var(--citrus-soft) 60%, var(--paper)) 100%
+  );
+  border: 1px solid color-mix(in oklch, var(--citrus-deep) 30%, transparent);
+  border-radius: var(--radius-md);
+  display: grid;
+  gap: 12px;
+  grid-template-columns: auto 1fr;
+  margin-top: 14px;
+  padding: 14px;
+}
+
+.rewardNoteGift {
+  align-items: center;
+  background: var(--ink);
+  border-radius: 50%;
+  color: var(--citrus);
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 32px;
+  justify-content: center;
+  width: 32px;
+}
+
+.rewardNoteGift svg {
+  height: 16px;
+  width: 16px;
+}
+
+.rewardNoteText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rewardNoteText b {
+  align-items: baseline;
+  color: var(--ink);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 14px;
+  font-weight: 500;
+  gap: 6px;
+}
+
+.rewardNoteAmount {
+  color: var(--citrus-deep);
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+.rewardNoteText span {
+  color: var(--ink-2);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.planMetaValueVerified {
+  color: var(--success);
+  font-size: 14px;
+  margin-top: 2px;
+}
+
+.planMetaValueUnverified {
+  color: var(--warn);
+  font-size: 14px;
+  margin-top: 2px;
+}
+
+.planMetaValueMono {
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.planCtaSpacer {
+  margin-top: 14px;
+}
+
 .planGrid {
   display: grid;
   gap: 14px;
@@ -858,6 +960,13 @@
   color: var(--ink-2);
   font-style: italic;
   font-weight: 300;
+}
+
+.freeQuotaResetHint {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
 }
 
 .freeQuotaMeter {
