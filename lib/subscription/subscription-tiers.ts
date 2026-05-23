@@ -9,7 +9,6 @@ export type SubscriptionTierConfig = {
   billingPeriodCount: number;
   tokenQuota: number;
   features: {
-    maxMessagesPerPeriod?: number;
     allowedModels: string[];
     hasReasoningModels: boolean;
     hasPrioritySupport: boolean;
@@ -42,7 +41,6 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
     billingPeriodCount: 1,
     tokenQuota: 200_000, // 200K tokens per day
     features: {
-      maxMessagesPerPeriod: 100, // 100 messages per day
       allowedModels: [
         "gpt-5.1-instant",
         "gpt-5.1-thinking",
@@ -90,7 +88,6 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
     billingPeriodCount: 1,
     tokenQuota: 5_000_000, // 5M tokens per day
     features: {
-      maxMessagesPerPeriod: 1000,
       allowedModels: [
         "gpt-5.1-instant",
         "gpt-5.1-thinking",
@@ -136,7 +133,6 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
     billingPeriodCount: 1,
     tokenQuota: 3_000_000, // 3M tokens per month
     features: {
-      maxMessagesPerPeriod: 1500,
       allowedModels: [
         "gpt-5.1-instant",
         "gpt-5.1-thinking",
@@ -182,7 +178,6 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
     billingPeriodCount: 3,
     tokenQuota: 9_000_000, // 9M tokens per quarter (3M/month equivalent)
     features: {
-      maxMessagesPerPeriod: 4500,
       allowedModels: [
         "gpt-5.1-instant",
         "gpt-5.1-thinking",
@@ -227,7 +222,6 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTierConfig> = {
     billingPeriodCount: 1,
     tokenQuota: 36_000_000, // 36M tokens per year (3M/month equivalent)
     features: {
-      maxMessagesPerPeriod: 18_000,
       allowedModels: [
         "gpt-5.1-instant",
         "gpt-5.1-thinking",

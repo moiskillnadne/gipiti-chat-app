@@ -50,8 +50,8 @@ export async function proxy(request: NextRequest) {
 
   const isPublicRoute = pathname.startsWith("/legal/") || pathname === "/";
 
-  // Redirect authenticated and verified users from landing page to chat
-  if (token && pathname === "/" && token.emailVerified) {
+  // Redirect authenticated from landing page to chat
+  if (token && pathname === "/") {
     return NextResponse.redirect(new URL("/chat", request.url));
   }
 
@@ -62,13 +62,9 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (token && !token.emailVerified) {
-    return response;
-  }
-
   // Authenticated, verified users cannot access auth routes
   if (token && isAuthRoute) {
-    return NextResponse.redirect(new URL("/", request.url));
+    return NextResponse.redirect(new URL("/chat", request.url));
   }
 
   return response;

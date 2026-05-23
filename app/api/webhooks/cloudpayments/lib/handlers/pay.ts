@@ -225,7 +225,6 @@ export async function handlePayWebhook(
           billingPeriodCount: tier.billingPeriodCount,
           tokenQuota: tier.tokenQuota,
           features: {
-            maxMessagesPerPeriod: tier.features.maxMessagesPerPeriod,
             allowedModels: tier.features.allowedModels,
             hasReasoningModels: tier.features.hasReasoningModels,
             hasPrioritySupport: tier.features.hasPrioritySupport,
@@ -537,7 +536,6 @@ async function handleTrialPayment({
           billingPeriodCount: tier.billingPeriodCount,
           tokenQuota: tier.tokenQuota,
           features: {
-            maxMessagesPerPeriod: tier.features.maxMessagesPerPeriod,
             allowedModels: tier.features.allowedModels,
             hasReasoningModels: tier.features.hasReasoningModels,
             hasPrioritySupport: tier.features.hasPrioritySupport,

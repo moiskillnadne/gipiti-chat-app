@@ -24,9 +24,8 @@ export async function SubscriptionHeader({
 }: SubscriptionHeaderProps) {
   const t = await getTranslations("auth.subscription.dashboard");
   const showCycle = state !== "none";
-  const titleSuffix =
-    state === "none" ? t("titleSuffix.plans") : t("titleSuffix.overview");
-  const lede = state === "none" ? t("lede.plans") : t("lede.overview");
+  const titleSuffix = t("titleSuffix.overview");
+  const lede = state === "none" ? t("lede.free") : t("lede.overview");
 
   let cycleLabel: string | null = null;
   let cycleValue: string | null = null;

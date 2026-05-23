@@ -170,24 +170,6 @@ export function Chat({
           return;
         }
 
-        // Handle rate limit
-        if (error.type === "rate_limit") {
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: generateUUID(),
-              role: "assistant",
-              parts: [{ type: "text", text: t("errors.rateLimitAssistant") }],
-              createdAt: new Date(),
-            } as ChatMessage,
-          ]);
-          toast({
-            type: "error",
-            description: error.message,
-          });
-          return;
-        }
-
         // Handle credit card errors
         if (
           error.message?.includes("AI Gateway requires a valid credit card")

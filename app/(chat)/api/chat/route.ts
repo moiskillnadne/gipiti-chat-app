@@ -24,7 +24,6 @@ import { getUsage } from "tokenlens/helpers";
 import { z } from "zod";
 import { auth } from "@/app/(auth)/auth";
 import { checkImageGenerationQuota } from "@/lib/ai/image-generation-quota";
-import { checkMessageQuota } from "@/lib/ai/message-quota";
 import { ensureMessageHasTextPart } from "@/lib/ai/message-validator";
 import {
   DEFAULT_CHAT_MODEL,
@@ -226,23 +225,17 @@ export async function POST(request: Request) {
     }
 
     // Run independent pre-stream checks in parallel
-    const [
-      quotaCheck,
-      messageQuotaCheck,
-      existingChat,
-      textStyleRow,
-      projectRow,
-    ] = await Promise.all([
-      checkTokenQuota(session.user.id),
-      checkMessageQuota(session.user.id),
-      getChatById({ id }),
-      selectedTextStyleId
-        ? getTextStyleById({ id: selectedTextStyleId })
-        : Promise.resolve(undefined),
-      selectedProjectId
-        ? getProjectById({ id: selectedProjectId })
-        : Promise.resolve(undefined),
-    ]);
+    const [quotaCheck, existingChat, textStyleRow, projectRow] =
+      await Promise.all([
+        checkTokenQuota(session.user.id),
+        getChatById({ id }),
+        selectedTextStyleId
+          ? getTextStyleById({ id: selectedTextStyleId })
+          : Promise.resolve(undefined),
+        selectedProjectId
+          ? getProjectById({ id: selectedProjectId })
+          : Promise.resolve(undefined),
+      ]);
 
     // Build text style / project context from pre-fetched rows
     const textStyle: TextStyleInput | null =
@@ -354,25 +347,6 @@ export async function POST(request: Request) {
         JSON.stringify(quotaCheck.quotaInfo),
         quotaCheck.reason
       ).toResponse();
-    }
-
-    // --- Message quota check (after chat/message save to prevent 404) ---
-    if (!messageQuotaCheck.allowed) {
-      const t = await getTranslations("chat");
-      await saveMessages({
-        messages: [
-          {
-            chatId: id,
-            id: generateUUID(),
-            role: "assistant",
-            parts: [{ type: "text", text: t("errors.rateLimitAssistant") }],
-            attachments: [],
-            createdAt: new Date(),
-            modelId: null,
-          },
-        ],
-      });
-      return new ChatSDKError("rate_limit:chat").toResponse();
     }
 
     // --- Image quota check (after chat/message save to prevent 404) ---
