@@ -6,7 +6,7 @@ import { useTranslations } from "@/lib/i18n/translate";
 import type { SubscriptionUiState } from "@/lib/subscription/subscription-state";
 import { fetcher } from "@/lib/utils";
 import styles from "./dashboard.module.css";
-import { ImageIcon, MessageIcon, SearchIcon, VideoIcon } from "./icons";
+import { ImageIcon, SearchIcon, VideoIcon } from "./icons";
 
 type UsageLimitItem = {
   used: number;
@@ -14,22 +14,16 @@ type UsageLimitItem = {
 };
 
 type UsageLimitsResponse = {
-  messages: UsageLimitItem;
   webSearch: UsageLimitItem;
   imageGeneration: UsageLimitItem;
   videoGeneration: UsageLimitItem;
 };
 
-const PAST_DUE_ZEROED_KEYS = new Set(["messages", "webSearch"]);
+const PAST_DUE_ZEROED_KEYS = new Set(["webSearch"]);
 
-type LimitKey =
-  | "messages"
-  | "webSearch"
-  | "imageGeneration"
-  | "videoGeneration";
+type LimitKey = "webSearch" | "imageGeneration" | "videoGeneration";
 
 export type FreeLimitBonus = {
-  messages: number | null;
   webSearch: number | null;
   imageGeneration: number | null;
   videoGeneration: "static" | null;
@@ -75,16 +69,6 @@ export function PeriodLimitsCard({
     item: UsageLimitItem | undefined;
     bonus: string | null;
   }> = [
-    {
-      key: "messages",
-      icon: <MessageIcon aria-label={t("messages")} />,
-      label: t("messages"),
-      item: applyPastDueClamp("messages", state, data?.messages),
-      bonus:
-        freeBonuses?.messages != null && freeBonuses.messages > 0
-          ? t("bonus.messages", { amount: freeBonuses.messages })
-          : null,
-    },
     {
       key: "webSearch",
       icon: <SearchIcon aria-label={t("webSearch")} />,

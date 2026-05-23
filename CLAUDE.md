@@ -222,13 +222,15 @@ scripts/                   # Utility scripts (seed-plans, add-tokens, etc.)
 Flow: `checkTokenQuota()` → `checkBalance()` → inference → `recordTokenUsage()` + `deductBalance()`
 
 **Subscription Tiers** (`lib/subscription/subscription-tiers.ts`):
-| Tier | Period | Quota | Messages | Price |
-|------|--------|-------|----------|-------|
-| tester | daily | 200K | 100/day | Free |
-| tester_paid | daily | 200K | 100/day | $0.05 / 5₽ |
-| basic_monthly | monthly | 3M | 1,500/mo | $19.99 / 1,999₽ |
-| basic_quarterly | 3 months | 9M | 4,500/qtr | $49.99 / 4,999₽ |
-| basic_annual | annual | 36M | 18K/yr | $149.99 / 14,999₽ |
+| Tier | Period | Quota | Price |
+|------|--------|-------|-------|
+| tester | daily | 200K | Free |
+| tester_paid | daily | 200K | $0.05 / 5₽ |
+| basic_monthly | monthly | 3M | $19.99 / 1,999₽ |
+| basic_quarterly | 3 months | 9M | $49.99 / 4,999₽ |
+| basic_annual | annual | 36M | $149.99 / 14,999₽ |
+
+Users are capped by token balance, web-search count, image-generation count, and video-generation count — there is no per-period message-count cap.
 
 Each tier defines: tokenQuota, modelLimits, features (maxFileSize, maxConcurrentChats, searchQuota, searchDepthAllowed, hasReasoningModels, hasPrioritySupport).
 

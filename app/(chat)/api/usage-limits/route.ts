@@ -1,7 +1,6 @@
 import { auth } from "@/app/(auth)/auth";
 import { getDefaultFreePlanSeed } from "@/lib/ai/entitlements";
 import { getBalanceRecord } from "@/lib/ai/token-balance";
-import { getMessageCountByBillingPeriod } from "@/lib/db/query/chat/get-message-count-by-billing-period";
 import { getUserSubscriptionWithPlan } from "@/lib/db/query/subscription/get-user-subscription-with-plan";
 import { getImageGenerationCountByBillingPeriod } from "@/lib/db/query/usage/get-image-generation-count-by-billing-period";
 import { getImageGenerationCountByDateRange } from "@/lib/db/query/usage/get-image-generation-count-by-date-range";
@@ -18,7 +17,6 @@ type UsageLimitItem = {
 };
 
 type UsageLimitsResponse = {
-  messages: UsageLimitItem;
   webSearch: UsageLimitItem;
   imageGeneration: UsageLimitItem;
   videoGeneration: UsageLimitItem;
@@ -70,10 +68,6 @@ export async function GET() {
       ]);
 
     const freeResponse: UsageLimitsResponse = {
-      messages: {
-        used: 0,
-        limit: seed.features.maxMessagesPerPeriod ?? null,
-      },
       webSearch: {
         used: freeSearchUsed,
         limit: seed.features.searchQuota,
@@ -97,35 +91,25 @@ export async function GET() {
   const periodStart = subscription.currentPeriodStart;
   const periodEnd = subscription.currentPeriodEnd;
 
-  const [messagesUsed, searchUsed, imageGenUsed, videoGenUsed] =
-    await Promise.all([
-      getMessageCountByBillingPeriod({
-        userId: session.user.id,
-        periodStart,
-        periodEnd,
-      }),
-      getSearchUsageCountByBillingPeriod({
-        userId: session.user.id,
-        periodStart,
-        periodEnd,
-      }),
-      getImageGenerationCountByBillingPeriod({
-        userId: session.user.id,
-        periodStart,
-        periodEnd,
-      }),
-      getVideoGenerationCountByBillingPeriod({
-        userId: session.user.id,
-        periodStart,
-        periodEnd,
-      }),
-    ]);
+  const [searchUsed, imageGenUsed, videoGenUsed] = await Promise.all([
+    getSearchUsageCountByBillingPeriod({
+      userId: session.user.id,
+      periodStart,
+      periodEnd,
+    }),
+    getImageGenerationCountByBillingPeriod({
+      userId: session.user.id,
+      periodStart,
+      periodEnd,
+    }),
+    getVideoGenerationCountByBillingPeriod({
+      userId: session.user.id,
+      periodStart,
+      periodEnd,
+    }),
+  ]);
 
   const response: UsageLimitsResponse = {
-    messages: {
-      used: messagesUsed,
-      limit: tierConfig?.features.maxMessagesPerPeriod ?? null,
-    },
     webSearch: {
       used: searchUsed,
       limit: tierConfig?.features.searchQuota ?? null,

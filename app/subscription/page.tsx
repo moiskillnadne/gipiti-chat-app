@@ -165,7 +165,6 @@ export default async function SubscriptionPage() {
       const videoDelta = Math.max(0, tier3.videoBonus - tier1.videoBonus);
       const searchDelta = Math.max(0, tier3.searchQuota - tier1.searchQuota);
       freeBonuses = {
-        messages: null,
         webSearch: searchDelta > 0 ? searchDelta : null,
         imageGeneration: imageDelta > 0 ? imageDelta : null,
         videoGeneration: videoDelta > 0 ? "static" : null,

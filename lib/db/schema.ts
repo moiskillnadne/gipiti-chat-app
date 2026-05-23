@@ -206,7 +206,6 @@ export const subscriptionPlan = pgTable(
 
     // Feature flags
     features: jsonb("features").$type<{
-      maxMessagesPerPeriod?: number;
       allowedModels: string[];
       hasReasoningModels: boolean;
       hasPrioritySupport: boolean;

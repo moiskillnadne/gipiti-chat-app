@@ -4,7 +4,6 @@ import type { ChatModel } from "./models";
 import { chatModels, isVisibleInUI } from "./models";
 
 type Entitlements = {
-  maxMessagesPerDay: number;
   availableChatModelIds: ChatModel["id"][];
 };
 
@@ -13,7 +12,6 @@ export const entitlementsByUserType: Record<UserType, Entitlements> = {
    * For users with an account
    */
   regular: {
-    maxMessagesPerDay: 100,
     availableChatModelIds: [
       "chat-model",
       "chat-model-reasoning",
@@ -189,7 +187,6 @@ export type FreePlanSeed = {
   billingPeriodCount: number;
   tokenQuota: number;
   features: {
-    maxMessagesPerPeriod?: number;
     allowedModels: ChatModel["id"][];
     hasReasoningModels: boolean;
     hasPrioritySupport: boolean;
