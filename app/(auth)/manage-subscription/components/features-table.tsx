@@ -3,9 +3,9 @@
 import { useTranslations } from "@/lib/i18n/translate";
 import { CheckIcon } from "./check-icon";
 
-type Period = "monthly" | "quarterly" | "annual";
+type Period = "monthly";
 
-const periods: Period[] = ["monthly", "quarterly", "annual"];
+const periods: Period[] = ["monthly"];
 
 export function FeaturesTable() {
   const t = useTranslations("auth.subscription.features");
@@ -89,7 +89,7 @@ export function FeaturesTable() {
               </td>
               <td
                 className="px-4 py-3 text-center text-gray-700 text-xs"
-                colSpan={3}
+                colSpan={1}
               >
                 {t("table.modelsList")}
               </td>
@@ -114,7 +114,7 @@ export function FeaturesTable() {
               </td>
               <td
                 className="px-4 py-3 text-center text-gray-700 text-xs"
-                colSpan={3}
+                colSpan={1}
               >
                 {t("table.imageModels")}
               </td>
@@ -140,7 +140,7 @@ export function FeaturesTable() {
               <td className="px-4 py-3 font-medium text-gray-900">
                 {t("table.fileAnalysis")}
               </td>
-              <td className="px-4 py-3 text-center text-gray-700" colSpan={3}>
+              <td className="px-4 py-3 text-center text-gray-700" colSpan={1}>
                 {t("table.fileTypes")}
               </td>
             </tr>

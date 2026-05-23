@@ -186,20 +186,6 @@
         "description": "Идеально для знакомства с сервисом",
         "subscribeButton": "Начать"
       },
-      "quarterly": {
-        "name": "Оптимальный",
-        "period": "/квартал",
-        "description": "3 месяца доступа к новейшим моделям",
-        "badge": "Экономия 17%",
-        "subscribeButton": "Начать с выгодой 17%"
-      },
-      "annual": {
-        "name": "Выгодный",
-        "period": "/год",
-        "description": "Лучшая цена — экономия 4.5 месяца!",
-        "badge": "Экономия 37%",
-        "subscribeButton": "Начать с лучшей ценой"
-      },
       "free": {
         "name": "Бесплатный план",
         "period": "/день",
@@ -240,25 +226,13 @@
           "modelsList": "ChatGPT 5.2, Gemini 3.1 Pro, Opus 4.6, Grok 4.1, GPT-Image-1.5, Gemini 3 Pro Image"
         },
         "periods": {
-          "monthly": "Месяц",
-          "quarterly": "Квартал",
-          "annual": "Год"
+          "monthly": "Месяц"
         },
         "values": {
           "monthly": {
             "tokens": "3М",
             "searches": "250",
             "videoGenerations": "5"
-          },
-          "quarterly": {
-            "tokens": "9М",
-            "searches": "750",
-            "videoGenerations": "15"
-          },
-          "annual": {
-            "tokens": "36М",
-            "searches": "3 000",
-            "videoGenerations": "60"
           }
         }
       },
@@ -591,13 +565,6 @@
               "f2": "250 поисков в интернете",
               "f3": "50 изображений · 5 видео",
               "f4": "Все модели · GPT-5, Opus, Gemini 3"
-            },
-            "quarterly": {
-              "name": "Квартальный",
-              "f1": "4 500 сообщений на 3 месяца",
-              "f2": "750 поисков в интернете",
-              "f3": "150 изображений · 15 видео",
-              "f4": "Все модели · экономия 17%"
             }
           }
         }
