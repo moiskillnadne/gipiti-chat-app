@@ -69,12 +69,8 @@
           "name": "Balance_user_id_User_id_fk",
           "tableFrom": "Balance",
           "tableTo": "User",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -188,12 +184,8 @@
           "name": "CancellationFeedback_user_id_User_id_fk",
           "tableFrom": "CancellationFeedback",
           "tableTo": "User",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -201,12 +193,8 @@
           "name": "CancellationFeedback_subscription_id_UserSubscription_id_fk",
           "tableFrom": "CancellationFeedback",
           "tableTo": "UserSubscription",
-          "columnsFrom": [
-            "subscription_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["subscription_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -256,12 +244,8 @@
           "name": "Chat_userId_User_id_fk",
           "tableFrom": "Chat",
           "tableTo": "User",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["userId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -324,12 +308,8 @@
           "name": "Document_userId_User_id_fk",
           "tableFrom": "Document",
           "tableTo": "User",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["userId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -337,10 +317,7 @@
       "compositePrimaryKeys": {
         "Document_id_createdAt_pk": {
           "name": "Document_id_createdAt_pk",
-          "columns": [
-            "id",
-            "createdAt"
-          ]
+          "columns": ["id", "createdAt"]
         }
       },
       "uniqueConstraints": {}
@@ -539,12 +516,8 @@
           "name": "ImageGenerationUsageLog_user_id_User_id_fk",
           "tableFrom": "ImageGenerationUsageLog",
           "tableTo": "User",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -552,12 +525,8 @@
           "name": "ImageGenerationUsageLog_chat_id_Chat_id_fk",
           "tableFrom": "ImageGenerationUsageLog",
           "tableTo": "Chat",
-          "columnsFrom": [
-            "chat_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["chat_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -619,12 +588,8 @@
           "name": "Message_v2_chatId_Chat_id_fk",
           "tableFrom": "Message_v2",
           "tableTo": "Chat",
-          "columnsFrom": [
-            "chatId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["chatId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -807,12 +772,8 @@
           "name": "PaymentIntent_user_id_User_id_fk",
           "tableFrom": "PaymentIntent",
           "tableTo": "User",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -919,12 +880,8 @@
           "name": "Project_user_id_User_id_fk",
           "tableFrom": "Project",
           "tableTo": "User",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1015,12 +972,8 @@
           "name": "ProjectFile_project_id_Project_id_fk",
           "tableFrom": "ProjectFile",
           "tableTo": "Project",
-          "columnsFrom": [
-            "project_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["project_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1028,12 +981,8 @@
           "name": "ProjectFile_user_id_User_id_fk",
           "tableFrom": "ProjectFile",
           "tableTo": "User",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1201,12 +1150,8 @@
           "name": "SearchUsageLog_user_id_User_id_fk",
           "tableFrom": "SearchUsageLog",
           "tableTo": "User",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1214,12 +1159,8 @@
           "name": "SearchUsageLog_chat_id_Chat_id_fk",
           "tableFrom": "SearchUsageLog",
           "tableTo": "Chat",
-          "columnsFrom": [
-            "chat_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["chat_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -1257,12 +1198,8 @@
           "name": "Stream_chatId_Chat_id_fk",
           "tableFrom": "Stream",
           "tableTo": "Chat",
-          "columnsFrom": [
-            "chatId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["chatId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1270,9 +1207,7 @@
       "compositePrimaryKeys": {
         "Stream_id_pk": {
           "name": "Stream_id_pk",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {}
@@ -1488,12 +1423,8 @@
           "name": "TextStyle_user_id_User_id_fk",
           "tableFrom": "TextStyle",
           "tableTo": "User",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1663,12 +1594,8 @@
           "name": "TokenBalanceTransaction_user_id_User_id_fk",
           "tableFrom": "TokenBalanceTransaction",
           "tableTo": "User",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1897,12 +1824,8 @@
           "name": "TokenUsageLog_user_id_User_id_fk",
           "tableFrom": "TokenUsageLog",
           "tableTo": "User",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1910,12 +1833,8 @@
           "name": "TokenUsageLog_subscription_id_UserSubscription_id_fk",
           "tableFrom": "TokenUsageLog",
           "tableTo": "UserSubscription",
-          "columnsFrom": [
-            "subscription_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["subscription_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -1923,12 +1842,8 @@
           "name": "TokenUsageLog_chat_id_Chat_id_fk",
           "tableFrom": "TokenUsageLog",
           "tableTo": "Chat",
-          "columnsFrom": [
-            "chat_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["chat_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -1936,12 +1851,8 @@
           "name": "TokenUsageLog_message_id_Message_v2_id_fk",
           "tableFrom": "TokenUsageLog",
           "tableTo": "Message_v2",
-          "columnsFrom": [
-            "message_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["message_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -2282,12 +2193,8 @@
           "name": "UserSubscription_user_id_User_id_fk",
           "tableFrom": "UserSubscription",
           "tableTo": "User",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2295,12 +2202,8 @@
           "name": "UserSubscription_plan_id_SubscriptionPlan_id_fk",
           "tableFrom": "UserSubscription",
           "tableTo": "SubscriptionPlan",
-          "columnsFrom": [
-            "plan_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["plan_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2447,12 +2350,8 @@
           "name": "UserTokenUsage_user_id_User_id_fk",
           "tableFrom": "UserTokenUsage",
           "tableTo": "User",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2460,12 +2359,8 @@
           "name": "UserTokenUsage_subscription_id_UserSubscription_id_fk",
           "tableFrom": "UserTokenUsage",
           "tableTo": "UserSubscription",
-          "columnsFrom": [
-            "subscription_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["subscription_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2646,12 +2541,8 @@
           "name": "VideoGenerationUsageLog_user_id_User_id_fk",
           "tableFrom": "VideoGenerationUsageLog",
           "tableTo": "User",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2659,12 +2550,8 @@
           "name": "VideoGenerationUsageLog_chat_id_Chat_id_fk",
           "tableFrom": "VideoGenerationUsageLog",
           "tableTo": "Chat",
-          "columnsFrom": [
-            "chat_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["chat_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -2701,12 +2588,8 @@
           "name": "Vote_v2_chatId_Chat_id_fk",
           "tableFrom": "Vote_v2",
           "tableTo": "Chat",
-          "columnsFrom": [
-            "chatId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["chatId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2714,12 +2597,8 @@
           "name": "Vote_v2_messageId_Message_v2_id_fk",
           "tableFrom": "Vote_v2",
           "tableTo": "Message_v2",
-          "columnsFrom": [
-            "messageId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["messageId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2727,10 +2606,7 @@
       "compositePrimaryKeys": {
         "Vote_v2_chatId_messageId_pk": {
           "name": "Vote_v2_chatId_messageId_pk",
-          "columns": [
-            "chatId",
-            "messageId"
-          ]
+          "columns": ["chatId", "messageId"]
         }
       },
       "uniqueConstraints": {}
@@ -2740,33 +2616,17 @@
     "public.billing_period": {
       "name": "billing_period",
       "schema": "public",
-      "values": [
-        "daily",
-        "weekly",
-        "monthly",
-        "annual"
-      ]
+      "values": ["daily", "weekly", "monthly", "annual"]
     },
     "public.payment_intent_status": {
       "name": "payment_intent_status",
       "schema": "public",
-      "values": [
-        "pending",
-        "processing",
-        "succeeded",
-        "failed",
-        "expired"
-      ]
+      "values": ["pending", "processing", "succeeded", "failed", "expired"]
     },
     "public.token_balance_transaction_type": {
       "name": "token_balance_transaction_type",
       "schema": "public",
-      "values": [
-        "credit",
-        "debit",
-        "reset",
-        "adjustment"
-      ]
+      "values": ["credit", "debit", "reset", "adjustment"]
     }
   },
   "schemas": {},
