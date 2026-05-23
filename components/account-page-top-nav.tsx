@@ -4,7 +4,7 @@ import { getTranslations } from "@/lib/i18n/translate";
 
 type AccountPageTopNavProps = {
   backHref?: string;
-  currentLabelKey: "projects" | "styles";
+  currentLabelKey: "projects";
 };
 
 export async function AccountPageTopNav({

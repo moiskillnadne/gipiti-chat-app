@@ -28,7 +28,6 @@ import { AttachmentItem, UploadingItem } from "./composer/attachment-item";
 import { DragOverlay } from "./composer/drag-overlay";
 import { KeyboardHints } from "./composer/keyboard-hints";
 import { ProjectPickerPopover } from "./composer/project-picker-popover";
-import { StylePickerPopover } from "./composer/style-picker-popover";
 import { ThinkPopover } from "./composer/think-popover";
 import { WebSearchToggle } from "./composer/web-search-toggle";
 import { PromptInputTextarea } from "./elements/prompt-input";
@@ -315,7 +314,6 @@ function PureMultimodalInput({
         ref={containerRef}
       >
         <div className="flex flex-wrap items-center gap-2 px-3 pt-2.5">
-          <StylePickerPopover />
           <ProjectPickerPopover />
         </div>
 

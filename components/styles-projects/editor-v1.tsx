@@ -4,8 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useProject } from "@/contexts/project-context";
-import { useStyle } from "@/contexts/style-context";
-import type { Project, ProjectFile, TextStyle } from "@/lib/db/schema";
+import type { Project, ProjectFile } from "@/lib/db/schema";
 import { useTranslations } from "@/lib/i18n/translate";
 import {
   resolveSwatchToken,
@@ -33,18 +32,11 @@ const MAX_DESCRIPTION_LENGTH = 280;
 const ALLOWED_FILE_TYPES =
   "application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword,text/plain,text/markdown";
 
-type StyleEditorProps = {
-  kind: "style";
-  initialEntity: TextStyle;
-};
-
-type ProjectEditorProps = {
+export type EditorV1Props = {
   kind: "project";
   initialEntity: Project;
   initialFiles: ProjectFile[];
 };
-
-export type EditorV1Props = StyleEditorProps | ProjectEditorProps;
 
 const formatBytes = (bytes: number): string => {
   if (bytes < 1024) {
@@ -60,29 +52,16 @@ const formatDate = (date: Date): string =>
   date.toLocaleDateString("ru-RU", { day: "numeric", month: "short" });
 
 export function EditorV1(props: EditorV1Props) {
-  const isProject = props.kind === "project";
   const router = useRouter();
   const tCommon = useTranslations("common");
-  const tStyles = useTranslations("textStyles");
   const tProjects = useTranslations("projects");
-  const tEditor = useTranslations(
-    isProject ? "projects.editor" : "textStyles.editor"
-  );
+  const tEditor = useTranslations("projects.editor");
   const tShared = useTranslations("editorShared");
 
-  const t = isProject ? tProjects : tStyles;
-
-  const { refreshStyles } = useStyle();
   const { refreshProjects } = useProject();
-  const refreshEntities = isProject ? refreshProjects : refreshStyles;
 
-  const apiEndpoint = isProject ? "/api/projects" : "/api/text-styles";
-  const listRoute = isProject ? "/projects" : "/styles";
-  const itemsKey = isProject ? "contextEntries" : "examples";
-
-  const initialItems = isProject
-    ? props.initialEntity.contextEntries
-    : props.initialEntity.examples;
+  const apiEndpoint = "/api/projects";
+  const listRoute = "/projects";
 
   const [name, setName] = useState(props.initialEntity.name);
   const [description, setDescription] = useState(
@@ -91,15 +70,14 @@ export function EditorV1(props: EditorV1Props) {
   const [swatch, setSwatch] = useState<SwatchToken>(
     resolveSwatchToken(props.initialEntity.swatch, props.initialEntity.id)
   );
-  const [items, setItems] = useState<string[]>(initialItems);
+  const [items, setItems] = useState<string[]>(
+    props.initialEntity.contextEntries
+  );
   const [pinned, setPinned] = useState(props.initialEntity.pinned);
-  const isDefault = props.initialEntity.isDefault;
   const [usageCount] = useState(props.initialEntity.usageCount);
   const [createdAt] = useState(new Date(props.initialEntity.createdAt));
 
-  const [files, setFiles] = useState<ProjectFile[]>(
-    isProject ? props.initialFiles : []
-  );
+  const [files, setFiles] = useState<ProjectFile[]>(props.initialFiles);
   const [isUploading, setIsUploading] = useState(false);
 
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
@@ -126,16 +104,16 @@ export function EditorV1(props: EditorV1Props) {
           throw new Error("Failed");
         }
 
-        refreshEntities();
+        refreshProjects();
         setSaveStatus("saved");
         return true;
       } catch {
         setSaveStatus("error");
-        toast({ type: "error", description: t("saveError") });
+        toast({ type: "error", description: tProjects("saveError") });
         return false;
       }
     },
-    [apiEndpoint, props.initialEntity.id, refreshEntities, t]
+    [props.initialEntity.id, refreshProjects, tProjects]
   );
 
   const persistField = useCallback(
@@ -148,9 +126,9 @@ export function EditorV1(props: EditorV1Props) {
   const persistItems = useCallback(
     async (next: string[]) => {
       setItems(next);
-      await patchEntity({ [itemsKey]: next });
+      await patchEntity({ contextEntries: next });
     },
-    [patchEntity, itemsKey]
+    [patchEntity]
   );
 
   // ─── Item handlers ───────────────────────────────────────────────
@@ -186,9 +164,7 @@ export function EditorV1(props: EditorV1Props) {
     await persistItems(next);
     toast({
       type: "success",
-      description: isProject
-        ? tProjects("contextEntrySaved")
-        : tStyles("exampleSaved"),
+      description: tProjects("contextEntrySaved"),
     });
   };
   const removeItem = async (i: number) => {
@@ -196,9 +172,7 @@ export function EditorV1(props: EditorV1Props) {
     await persistItems(next);
     toast({
       type: "success",
-      description: isProject
-        ? tProjects("contextEntryDeleted")
-        : tStyles("exampleDeleted"),
+      description: tProjects("contextEntryDeleted"),
     });
     setDeleteItemIdx(null);
   };
@@ -209,27 +183,17 @@ export function EditorV1(props: EditorV1Props) {
       await fetch(`${apiEndpoint}?id=${props.initialEntity.id}`, {
         method: "DELETE",
       });
-      toast({ type: "success", description: t("deleteSuccess") });
-      refreshEntities();
+      toast({ type: "success", description: tProjects("deleteSuccess") });
+      refreshProjects();
       router.push(listRoute);
     } catch {
-      toast({ type: "error", description: t("deleteError") });
+      toast({ type: "error", description: tProjects("deleteError") });
     }
-  }, [
-    apiEndpoint,
-    props.initialEntity.id,
-    refreshEntities,
-    router,
-    listRoute,
-    t,
-  ]);
+  }, [props.initialEntity.id, refreshProjects, router, tProjects]);
 
-  // ─── File handlers (project only) ────────────────────────────────
+  // ─── File handlers ───────────────────────────────────────────────
   const uploadFiles = useCallback(
     async (selected: FileList | File[]) => {
-      if (!isProject) {
-        return;
-      }
       setIsUploading(true);
       try {
         const newFiles: ProjectFile[] = [];
@@ -257,14 +221,11 @@ export function EditorV1(props: EditorV1Props) {
         setIsUploading(false);
       }
     },
-    [isProject, props.initialEntity.id, tShared]
+    [props.initialEntity.id, tShared]
   );
 
   const handleDeleteFile = useCallback(
     async (fileId: string) => {
-      if (!isProject) {
-        return;
-      }
       try {
         await fetch(`/api/projects/${props.initialEntity.id}/files/${fileId}`, {
           method: "DELETE",
@@ -277,7 +238,7 @@ export function EditorV1(props: EditorV1Props) {
         });
       }
     },
-    [isProject, props.initialEntity.id, tShared]
+    [props.initialEntity.id, tShared]
   );
 
   // ─── Drag and drop ───────────────────────────────────────────────
@@ -307,15 +268,9 @@ export function EditorV1(props: EditorV1Props) {
     }
   }, []);
 
-  const itemNoun = isProject
-    ? tShared("nouns.entry")
-    : tShared("nouns.example");
-  const itemNounPl = isProject
-    ? tShared("nouns.entriesPl")
-    : tShared("nouns.examplesPl");
-  const itemLabelPrefix = isProject
-    ? tShared("nouns.entryLabel")
-    : tShared("nouns.exampleLabel");
+  const itemNoun = tShared("nouns.entry");
+  const itemNounPl = tShared("nouns.entriesPl");
+  const itemLabelPrefix = tShared("nouns.entryLabel");
 
   return (
     <div className="editor-v1-stage">
@@ -328,23 +283,11 @@ export function EditorV1(props: EditorV1Props) {
           ← {tCommon("buttons.back")}
         </button>
         <span className="editor-v1-crumb">
-          <span className="editor-v1-crumb-link">
-            {isProject ? tProjects("title") : tStyles("title")}
-          </span>
+          <span className="editor-v1-crumb-link">{tProjects("title")}</span>
           <span className="editor-v1-crumb-sep">/</span>
-          <b>
-            {name ||
-              (isProject
-                ? tEditor("untitledProject")
-                : tEditor("untitledStyle"))}
-          </b>
+          <b>{name || tEditor("untitledProject")}</b>
         </span>
         <div className="editor-v1-topbar-right">
-          {isDefault && !isProject && (
-            <span className="editor-v1-chip editor-v1-chip-default">
-              {tStyles("defaultBadge")}
-            </span>
-          )}
           <span
             className={`editor-v1-save-status ${saveStatus === "saving" ? "editor-v1-save-status-saving" : ""} ${saveStatus === "error" ? "editor-v1-save-status-error" : ""}`}
           >
@@ -370,11 +313,7 @@ export function EditorV1(props: EditorV1Props) {
                   maxLength={128}
                   onBlur={(e) => persistField("name", e.target.value.trim())}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder={
-                    isProject
-                      ? tProjects("projectNamePlaceholder")
-                      : tStyles("styleNamePlaceholder")
-                  }
+                  placeholder={tProjects("projectNamePlaceholder")}
                   value={name}
                 />
               </h1>
@@ -420,27 +359,17 @@ export function EditorV1(props: EditorV1Props) {
           {/* Items */}
           <section className="editor-v1-section">
             <header className="editor-v1-section-h">
-              <h2>
-                {isProject ? tProjects("contextEntries") : tStyles("examples")}
-              </h2>
+              <h2>{tProjects("contextEntries")}</h2>
               <span className="editor-v1-ct">
                 {items.length} / {MAX_ITEMS}
               </span>
             </header>
-            <p className="editor-v1-help">
-              {isProject
-                ? tEditor("itemsHelpProject")
-                : tEditor("itemsHelpStyle")}
-            </p>
+            <p className="editor-v1-help">{tEditor("itemsHelpProject")}</p>
 
             {items.length === 0 && editingIdx === null ? (
               <div className="editor-v1-empty">
                 <h3>{tShared("empty.title", { itemPl: itemNounPl })}</h3>
-                <p>
-                  {isProject
-                    ? tEditor("emptyDescriptionProject")
-                    : tEditor("emptyDescriptionStyle")}
-                </p>
+                <p>{tEditor("emptyDescriptionProject")}</p>
                 <button
                   className="editor-v1-btn editor-v1-btn-primary"
                   onClick={startAdd}
@@ -533,11 +462,7 @@ export function EditorV1(props: EditorV1Props) {
                       autoFocus
                       maxLength={MAX_ITEM_LENGTH}
                       onChange={(e) => setDraftText(e.target.value)}
-                      placeholder={
-                        isProject
-                          ? tProjects("contextEntryPlaceholder")
-                          : tStyles("examplePlaceholder")
-                      }
+                      placeholder={tProjects("contextEntryPlaceholder")}
                       value={draftText}
                     />
                     <div className="editor-v1-ex-foot">
@@ -576,76 +501,74 @@ export function EditorV1(props: EditorV1Props) {
             )}
           </section>
 
-          {/* Files (project only) */}
-          {isProject && (
-            <section className="editor-v1-section">
-              <header className="editor-v1-section-h">
-                <h2>{tShared("files.heading")}</h2>
-                <span className="editor-v1-ct">
-                  {tShared("files.fileCount", { count: files.length })}
-                </span>
-              </header>
-              <p className="editor-v1-help">{tShared("files.help")}</p>
+          {/* Files */}
+          <section className="editor-v1-section">
+            <header className="editor-v1-section-h">
+              <h2>{tShared("files.heading")}</h2>
+              <span className="editor-v1-ct">
+                {tShared("files.fileCount", { count: files.length })}
+              </span>
+            </header>
+            <p className="editor-v1-help">{tShared("files.help")}</p>
 
-              {files.length > 0 && (
-                <div className="editor-v1-files">
-                  {files.map((f) => (
-                    <div className="editor-v1-file" key={f.id}>
-                      <span className="editor-v1-file-ico">
-                        <FileIcon size={14} />
-                      </span>
-                      <a
-                        className="editor-v1-file-nm"
-                        href={f.blobUrl}
-                        rel="noreferrer"
-                        target="_blank"
-                      >
-                        {f.name}
-                      </a>
-                      <span className="editor-v1-file-meta">
-                        {formatBytes(f.size)}
-                      </span>
-                      <button
-                        className="editor-v1-btn editor-v1-btn-ghost editor-v1-btn-sm editor-v1-btn-danger"
-                        onClick={() => handleDeleteFile(f.id)}
-                        type="button"
-                      >
-                        <TrashIcon size={13} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
+            {files.length > 0 && (
+              <div className="editor-v1-files">
+                {files.map((f) => (
+                  <div className="editor-v1-file" key={f.id}>
+                    <span className="editor-v1-file-ico">
+                      <FileIcon size={14} />
+                    </span>
+                    <a
+                      className="editor-v1-file-nm"
+                      href={f.blobUrl}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      {f.name}
+                    </a>
+                    <span className="editor-v1-file-meta">
+                      {formatBytes(f.size)}
+                    </span>
+                    <button
+                      className="editor-v1-btn editor-v1-btn-ghost editor-v1-btn-sm editor-v1-btn-danger"
+                      onClick={() => handleDeleteFile(f.id)}
+                      type="button"
+                    >
+                      <TrashIcon size={13} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
 
-              <button
-                className={`editor-v1-add-row ${isDragOver ? "drag-over" : ""}`}
-                disabled={isUploading}
-                onClick={() => fileInputRef.current?.click()}
-                onDragLeave={handleDragLeave}
-                onDragOver={handleDragOver}
-                onDrop={handleDrop}
-                type="button"
-              >
-                <PlusIcon size={14} />
-                {isUploading
-                  ? tShared("files.uploading")
-                  : tShared("files.dropzone")}
-              </button>
-              <input
-                accept={ALLOWED_FILE_TYPES}
-                hidden
-                multiple
-                onChange={(e) => {
-                  if (e.target.files) {
-                    uploadFiles(e.target.files);
-                    e.target.value = "";
-                  }
-                }}
-                ref={fileInputRef}
-                type="file"
-              />
-            </section>
-          )}
+            <button
+              className={`editor-v1-add-row ${isDragOver ? "drag-over" : ""}`}
+              disabled={isUploading}
+              onClick={() => fileInputRef.current?.click()}
+              onDragLeave={handleDragLeave}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              type="button"
+            >
+              <PlusIcon size={14} />
+              {isUploading
+                ? tShared("files.uploading")
+                : tShared("files.dropzone")}
+            </button>
+            <input
+              accept={ALLOWED_FILE_TYPES}
+              hidden
+              multiple
+              onChange={(e) => {
+                if (e.target.files) {
+                  uploadFiles(e.target.files);
+                  e.target.value = "";
+                }
+              }}
+              ref={fileInputRef}
+              type="file"
+            />
+          </section>
 
           {/* Settings */}
           <section className="editor-v1-section">
@@ -658,7 +581,7 @@ export function EditorV1(props: EditorV1Props) {
                 <span>{tShared("settings.pinHelp")}</span>
               </div>
               <button
-                aria-label={pinned ? tStyles("unpin") : tStyles("pin")}
+                aria-label={pinned ? tProjects("unpin") : tProjects("pin")}
                 aria-pressed={pinned}
                 className={`editor-v1-switch ${pinned ? "on" : ""}`}
                 onClick={() => {
@@ -705,9 +628,7 @@ export function EditorV1(props: EditorV1Props) {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {isProject
-                ? tProjects("deleteContextEntryConfirm")
-                : tStyles("deleteExampleConfirm")}
+              {tProjects("deleteContextEntryConfirm")}
             </AlertDialogTitle>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -730,9 +651,11 @@ export function EditorV1(props: EditorV1Props) {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("deleteConfirmTitle")}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {tProjects("deleteConfirmTitle")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              {t("deleteConfirmDescription", { name })}
+              {tProjects("deleteConfirmDescription", { name })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

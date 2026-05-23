@@ -70,15 +70,6 @@ export async function generateTitleFromUserMessage({
   return title;
 }
 
-export async function saveTextStyleAsCookie(styleId: string | null) {
-  const cookieStore = await cookies();
-  if (styleId) {
-    cookieStore.set("chat-text-style", styleId);
-  } else {
-    cookieStore.delete("chat-text-style");
-  }
-}
-
 export async function saveProjectAsCookie(projectId: string | null) {
   const cookieStore = await cookies();
   if (projectId) {

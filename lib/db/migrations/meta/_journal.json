@@ -253,6 +253,13 @@
       "when": 1778867025435,
       "tag": "0035_workable_bill_hollister",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1779537781010,
+      "tag": "0036_typical_slipstream",
+      "breakpoints": true
     }
   ]
 }
