@@ -11,21 +11,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatTokenBalance } from "@/lib/format-tokens";
+import { formatCurrency } from "@/lib/billing/money";
 import { useTranslations } from "@/lib/i18n/translate";
 import { fetcher } from "@/lib/utils";
 
-type UsageSummary = {
-  quota: number;
+type BalanceSummary = {
   balance: number;
-  spent: number;
-  remaining: number;
+  currencyCode: string;
 };
 
 type TransactionsApiResponse = {
-  summary: UsageSummary | null;
+  summary: BalanceSummary | null;
 };
 
 type TokenUsageSummaryProps = {
@@ -53,9 +50,6 @@ export function TokenUsageSummary({
     return null;
   }
 
-  const percentUsed =
-    summary.quota > 0 ? (summary.spent / summary.quota) * 100 : 0;
-
   return (
     <Card className="mt-6">
       <CardHeader>
@@ -63,33 +57,13 @@ export function TokenUsageSummary({
         <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <Progress className="h-3" value={percentUsed} />
-
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="space-y-1">
-            <p className="font-medium text-muted-foreground text-sm">
-              {t("quota")}
-            </p>
-            <p className="font-semibold text-lg">
-              {formatTokenBalance(summary.quota)}
-            </p>
-          </div>
-          <div className="space-y-1">
-            <p className="font-medium text-muted-foreground text-sm">
-              {t("spent")}
-            </p>
-            <p className="font-semibold text-lg">
-              {formatTokenBalance(summary.spent, { maxUnit: "K" })}
-            </p>
-          </div>
-          <div className="space-y-1">
-            <p className="font-medium text-muted-foreground text-sm">
-              {t("remaining")}
-            </p>
-            <p className="font-semibold text-lg">
-              {formatTokenBalance(summary.remaining, { maxUnit: "K" })}
-            </p>
-          </div>
+        <div className="space-y-1">
+          <p className="font-medium text-muted-foreground text-sm">
+            {t("balance")}
+          </p>
+          <p className="font-semibold text-3xl">
+            {formatCurrency(summary.balance, summary.currencyCode)}
+          </p>
         </div>
 
         {showHistoryButton && (
@@ -113,14 +87,9 @@ function TokenUsageSummarySkeleton() {
         <Skeleton className="mt-2 h-4 w-48" />
       </CardHeader>
       <CardContent className="space-y-6">
-        <Skeleton className="h-3 w-full" />
-        <div className="grid gap-4 md:grid-cols-3">
-          {[1, 2, 3].map((i) => (
-            <div className="space-y-1" key={i}>
-              <Skeleton className="h-4 w-16" />
-              <Skeleton className="h-6 w-20" />
-            </div>
-          ))}
+        <div className="space-y-1">
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-9 w-32" />
         </div>
         <Skeleton className="h-10 w-full" />
       </CardContent>

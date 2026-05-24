@@ -1,14 +1,13 @@
 import { eq } from "drizzle-orm";
-import { resetBalance } from "@/lib/ai/token-balance";
+import { resetSubscriptionPool } from "@/lib/billing/balance";
+import { priceForCurrency } from "@/lib/billing/subscriptions";
 import { db } from "@/lib/db/connection";
-import { subscriptionPlan, userSubscription } from "@/lib/db/schema";
+import { subscription, userSubscription } from "@/lib/db/schema";
 import type { CloudPaymentsRecurrentWebhook } from "@/lib/payments/cloudpayments-types";
 import {
   calculateNextBillingDate,
   calculatePeriodEnd,
 } from "@/lib/subscription/billing-periods";
-import { buildRefillFromTier } from "@/lib/subscription/refill";
-import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 import { toNumber } from "./utils";
 
 const findSubscription = async (accountId: string, externalId: string) => {
@@ -41,9 +40,9 @@ export async function handleRecurrentWebhook(
     return Response.json({ code: 13 });
   }
 
-  const subscription = await findSubscription(AccountId, Id);
+  const userSub = await findSubscription(AccountId, Id);
 
-  if (!subscription) {
+  if (!userSub) {
     console.error(
       `[CloudPayments:Recurrent] Subscription not found: ${Id}, AccountId: ${AccountId}`
     );
@@ -54,23 +53,41 @@ export async function handleRecurrentWebhook(
   const paymentAmount = toNumber(Amount);
 
   if (Status === "Active") {
+    // Pull the catalog subscription for period math + pricing.
+    const [catalog] = await db
+      .select()
+      .from(subscription)
+      .where(eq(subscription.id, userSub.subscriptionId))
+      .limit(1);
+
+    if (!catalog) {
+      console.error(
+        `[CloudPayments:Recurrent] Catalog subscription ${userSub.subscriptionId} not found`
+      );
+      return Response.json({ code: 0 });
+    }
+
     const periodEnd = calculatePeriodEnd(
       now,
-      subscription.billingPeriod,
-      subscription.billingPeriodCount
+      catalog.billingPeriod,
+      catalog.billingPeriodCount
     );
     const nextBilling = calculateNextBillingDate(
       now,
-      subscription.billingPeriod,
-      subscription.billingPeriodCount
+      catalog.billingPeriod,
+      catalog.billingPeriodCount
     );
 
-    const wasTrialConversion = subscription.isTrial;
+    const wasTrialConversion = userSub.isTrial;
     if (wasTrialConversion) {
       console.log(
-        `[CloudPayments:Recurrent] Trial conversion for subscription ${subscription.id}`
+        `[CloudPayments:Recurrent] Trial conversion for subscription ${userSub.id}`
       );
     }
+
+    // CloudPayments Amount is in MAJOR RUB units; store last payment in minor units.
+    const lastPaymentMinor =
+      paymentAmount !== null ? Math.round(paymentAmount * 100) : null;
 
     await db
       .update(userSubscription)
@@ -80,44 +97,43 @@ export async function handleRecurrentWebhook(
         currentPeriodEnd: periodEnd,
         nextBillingDate: nextBilling,
         lastPaymentDate: now,
-        lastPaymentAmount:
-          paymentAmount !== null ? paymentAmount.toString() : null,
+        lastPaymentAmount: lastPaymentMinor,
         isTrial: false,
         trialEndsAt: null,
         updatedAt: now,
       })
-      .where(eq(userSubscription.id, subscription.id));
+      .where(eq(userSubscription.id, userSub.id));
 
-    // Reset token balance to plan quota on successful recurring payment
+    // Reset the subscription balance pool to the plan price on successful renewal.
     try {
-      const plans = await db
-        .select()
-        .from(subscriptionPlan)
-        .where(eq(subscriptionPlan.id, subscription.planId))
-        .limit(1);
+      const price = await priceForCurrency(
+        userSub.subscriptionId,
+        userSub.currencyCode
+      );
 
-      const plan = plans[0];
-      if (plan) {
-        const tier = SUBSCRIPTION_TIERS[plan.name];
-        const refill = tier
-          ? buildRefillFromTier(tier)
-          : { newBalance: plan.tokenQuota };
-        await resetBalance({
+      if (price == null) {
+        console.error(
+          `[CloudPayments:Recurrent] No ${userSub.currencyCode} price for subscription ${userSub.subscriptionId}`
+        );
+      } else {
+        await resetSubscriptionPool({
           userId: AccountId,
-          ...refill,
-          plan: plan.name,
-          reason: "subscription_reset",
+          amount: price,
+          currencyCode: userSub.currencyCode,
+          type: "subscription_renewal",
           referenceId: Id,
-          planName: plan.name,
-          subscriptionId: subscription.id,
+          metadata: {
+            subscriptionCode: catalog.code,
+            subscriptionId: catalog.id,
+          },
         });
         console.log(
-          `[CloudPayments:Recurrent] Token balance reset to ${plan.tokenQuota} for user ${AccountId}`
+          `[CloudPayments:Recurrent] Subscription pool reset to ${price} for user ${AccountId}`
         );
       }
     } catch (balanceError) {
       console.error(
-        "[CloudPayments:Recurrent] Failed to reset token balance:",
+        "[CloudPayments:Recurrent] Failed to reset subscription pool:",
         balanceError
       );
       // Continue - balance reset failure shouldn't cause webhook to fail
@@ -133,7 +149,7 @@ export async function handleRecurrentWebhook(
         status: "past_due",
         updatedAt: now,
       })
-      .where(eq(userSubscription.id, subscription.id));
+      .where(eq(userSubscription.id, userSub.id));
 
     return Response.json({ code: 0 });
   }
@@ -145,17 +161,17 @@ export async function handleRecurrentWebhook(
         // Keep access for the already-paid period but prevent further renewals.
         status: "active",
         cancelAtPeriodEnd: true,
-        cancelledAt: subscription.cancelledAt ?? now,
+        cancelledAt: userSub.cancelledAt ?? now,
         updatedAt: now,
       })
-      .where(eq(userSubscription.id, subscription.id));
+      .where(eq(userSubscription.id, userSub.id));
 
     return Response.json({ code: 0 });
   }
 
   if (Status === "Rejected") {
     console.warn(
-      `[CloudPayments:Recurrent] Payment rejected for subscription ${subscription.id}, user ${AccountId}. Setting past_due to allow retry.`
+      `[CloudPayments:Recurrent] Payment rejected for subscription ${userSub.id}, user ${AccountId}. Setting past_due to allow retry.`
     );
 
     await db
@@ -166,14 +182,14 @@ export async function handleRecurrentWebhook(
         status: "past_due",
         updatedAt: now,
       })
-      .where(eq(userSubscription.id, subscription.id));
+      .where(eq(userSubscription.id, userSub.id));
 
     return Response.json({ code: 0 });
   }
 
   if (Status === "Expired") {
     console.warn(
-      `[CloudPayments:Recurrent] Subscription expired for ${subscription.id}, user ${AccountId}. Preserving access until period end.`
+      `[CloudPayments:Recurrent] Subscription expired for ${userSub.id}, user ${AccountId}. Preserving access until period end.`
     );
 
     await db
@@ -182,10 +198,10 @@ export async function handleRecurrentWebhook(
         // Expired means CloudPayments won't retry — schedule cancellation at period end.
         status: "active",
         cancelAtPeriodEnd: true,
-        cancelledAt: subscription.cancelledAt ?? now,
+        cancelledAt: userSub.cancelledAt ?? now,
         updatedAt: now,
       })
-      .where(eq(userSubscription.id, subscription.id));
+      .where(eq(userSubscription.id, userSub.id));
 
     return Response.json({ code: 0 });
   }

@@ -1,4 +1,4 @@
-import type { SubscriptionPlan, UserSubscription } from "@/lib/db/schema";
+import type { UserSubscription } from "@/lib/db/schema";
 
 export type SubscriptionUiState =
   | "active"
@@ -13,7 +13,8 @@ const CANCELLED_STATUSES = new Set(["cancelled", "canceled", "ended"]);
 
 export type SubscriptionStateInput = {
   subscription: UserSubscription | null;
-  plan: SubscriptionPlan | null;
+  // Catalog metadata is optional; only the display name is consulted.
+  plan?: { name?: string | null } | null;
 };
 
 function isFreeTierName(name: string | null | undefined): boolean {

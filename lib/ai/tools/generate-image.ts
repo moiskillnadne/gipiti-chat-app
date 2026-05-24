@@ -2,11 +2,7 @@ import { put } from "@vercel/blob";
 import { streamText, tool } from "ai";
 import z from "zod/v4";
 import { saveDocument } from "../../db/query/document/save-document";
-import { getActiveUserSubscription } from "../../db/query/subscription/get-active-user-subscription";
-import { insertImageGenerationUsageLog } from "../../db/query/usage/insert-image-generation-usage-log";
 import { generateUUID } from "../../utils";
-import { checkImageGenerationQuota } from "../image-generation-quota";
-import { decrementBalanceCounter, ensureBalance } from "../token-balance";
 
 async function uploadGeneratedImage(
   base64Data: string,
@@ -58,7 +54,6 @@ const IMAGE_MODEL_ID = "google/gemini-3-pro-image";
 
 export const generateImageTool = ({
   userId,
-  chatId,
   usageAccumulator,
 }: GenerateImageProps) =>
   tool({
@@ -69,16 +64,6 @@ export const generateImageTool = ({
       modelId: z.string(),
     }),
     execute: async ({ prompt }) => {
-      // Pre-flight quota check
-      const quotaCheck = await checkImageGenerationQuota(userId);
-      if (!quotaCheck.allowed) {
-        return {
-          id: generateUUID(),
-          imageUrl: undefined,
-          content: quotaCheck.reason ?? "Image generation quota exceeded.",
-        };
-      }
-
       const id = generateUUID();
       let imageUrl: string | undefined;
       let usageMetadata: ImageUsageMetadata | undefined;
@@ -137,56 +122,7 @@ export const generateImageTool = ({
         usageAccumulator.generationCount += 1;
       }
 
-      // Record usage to database
-      try {
-        const subscription = await getActiveUserSubscription({ userId });
-
-        let billingPeriodStart: Date;
-        let billingPeriodEnd: Date;
-        let billingPeriodType: "daily" | "weekly" | "monthly" | "annual";
-
-        if (subscription) {
-          billingPeriodStart = subscription.currentPeriodStart;
-          billingPeriodEnd = subscription.currentPeriodEnd;
-          billingPeriodType = subscription.billingPeriod;
-        } else {
-          const now = new Date();
-          billingPeriodStart = new Date(now);
-          billingPeriodStart.setHours(0, 0, 0, 0);
-          billingPeriodEnd = new Date(now);
-          billingPeriodEnd.setHours(23, 59, 59, 999);
-          billingPeriodType = "daily";
-        }
-
-        await insertImageGenerationUsageLog({
-          userId,
-          chatId,
-          modelId: IMAGE_MODEL_ID,
-          prompt,
-          imageUrl: imageUrl ?? null,
-          generationId: null,
-          success: Boolean(imageUrl),
-          promptTokens: usageMetadata?.promptTokenCount ?? 0,
-          candidatesTokens: usageMetadata?.candidatesTokenCount ?? 0,
-          thoughtsTokens: usageMetadata?.thoughtsTokenCount ?? 0,
-          totalTokens: usageMetadata?.totalTokenCount ?? 0,
-          totalCostUsd: totalCostUsd ?? null,
-          billingPeriodType,
-          billingPeriodStart,
-          billingPeriodEnd,
-        });
-
-        if (imageUrl) {
-          await ensureBalance(userId);
-          await decrementBalanceCounter({
-            userId,
-            field: "imageGeneration",
-            amount: 1,
-          });
-        }
-      } catch (err) {
-        console.warn("Failed to record image generation usage", err);
-      }
+      // Provider cost flows to the chat onFinish charge via usageAccumulator.
 
       return {
         id,

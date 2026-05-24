@@ -1,11 +1,9 @@
 import { auth } from "@/app/(auth)/auth";
-import { getUserTier } from "@/lib/ai/entitlements";
-import { checkImageGenerationQuota } from "@/lib/ai/image-generation-quota";
-import { getUserBalance } from "@/lib/ai/token-balance";
-import { checkVideoGenerationQuota } from "@/lib/ai/video-generation-quota";
-import { getActiveUserSubscription } from "@/lib/db/query/subscription/get-active-user-subscription";
+import { getBalance } from "@/lib/billing/balance";
+import { getMinorUnits } from "@/lib/billing/currencies";
+import { formatCurrency } from "@/lib/billing/money";
+import { getActiveUserSubscription } from "@/lib/billing/subscriptions";
 import { getUserById } from "@/lib/db/query/user/get-by-id";
-import { checkSearchQuota } from "@/lib/search/search-quota";
 
 export async function GET() {
   const session = await auth();
@@ -15,38 +13,36 @@ export async function GET() {
 
   const userId = session.user.id;
 
-  const [userRecord, subscription, balanceInfo, image, video, search] =
-    await Promise.all([
-      getUserById(userId),
-      getActiveUserSubscription({ userId }),
-      getUserBalance(userId),
-      checkImageGenerationQuota(userId),
-      checkVideoGenerationQuota(userId),
-      checkSearchQuota(userId),
-    ]);
+  const [userRecord, subscription, balanceSummary] = await Promise.all([
+    getUserById(userId),
+    getActiveUserSubscription(userId),
+    getBalance(userId),
+  ]);
 
   if (!userRecord) {
     return new Response("User not found", { status: 404 });
   }
 
-  // hasSurvey is not yet tracked in the DB (see GIPITI-55 follow-up).
-  const hasSurvey = false;
-  const tier = getUserTier(
-    { emailVerified: userRecord.emailVerified },
-    hasSurvey
-  );
+  const minorUnits = balanceSummary
+    ? await getMinorUnits(balanceSummary.currencyCode)
+    : 2;
 
   return Response.json({
     id: userRecord.id,
     email: userRecord.email,
     emailVerified: userRecord.emailVerified,
-    currentPlan: balanceInfo?.currentPlan ?? "free",
-    tier,
     isTester: userRecord.isTester,
     hasActiveSubscription: subscription !== null,
-    tokenBalance: balanceInfo?.balance ?? 0,
-    imageGenerationsLeft: image.quotaInfo?.remaining ?? 0,
-    videoGenerationsLeft: video.quotaInfo?.remaining ?? 0,
-    webSearchesUsed: search.quotaInfo?.used ?? 0,
+    balance: balanceSummary
+      ? {
+          currencyCode: balanceSummary.currencyCode,
+          total: balanceSummary.total,
+          formatted: formatCurrency(
+            balanceSummary.total,
+            balanceSummary.currencyCode,
+            minorUnits
+          ),
+        }
+      : null,
   });
 }

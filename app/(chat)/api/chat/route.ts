@@ -23,7 +23,6 @@ import { fetchModels } from "tokenlens/fetch";
 import { getUsage } from "tokenlens/helpers";
 import { z } from "zod";
 import { auth } from "@/app/(auth)/auth";
-import { checkImageGenerationQuota } from "@/lib/ai/image-generation-quota";
 import { ensureMessageHasTextPart } from "@/lib/ai/message-validator";
 import {
   DEFAULT_CHAT_MODEL,
@@ -56,13 +55,11 @@ import {
 import { myProvider } from "@/lib/ai/providers";
 import { generateRecraftImage, isRecraftModel } from "@/lib/ai/recraft-client";
 import { calculateOptimalStepLimit } from "@/lib/ai/step-calculator";
-import { decrementBalanceCounter, ensureBalance } from "@/lib/ai/token-balance";
-import { checkTokenQuota, recordTokenUsage } from "@/lib/ai/token-quota";
 import { calculator } from "@/lib/ai/tools/calculator";
 import { extractUrl } from "@/lib/ai/tools/extract-url";
 import { getWeather } from "@/lib/ai/tools/get-weather";
 import { webSearch } from "@/lib/ai/tools/web-search";
-import { checkVideoGenerationQuota } from "@/lib/ai/video-generation-quota";
+import { chargeUsage, hasPositiveBalance } from "@/lib/billing/balance";
 import { isProductionEnvironment } from "@/lib/constants";
 import { createStreamId } from "@/lib/db/query/chat/create-stream-id";
 import { deleteChatById } from "@/lib/db/query/chat/delete-chat-by-id";
@@ -76,9 +73,6 @@ import { getDocumentById } from "@/lib/db/query/document/get-document-by-id";
 import { saveDocument } from "@/lib/db/query/document/save-document";
 import { getProjectById } from "@/lib/db/query/project/get-project-by-id";
 import { incrementProjectUsage } from "@/lib/db/query/project/increment-project-usage";
-import { getActiveUserSubscription } from "@/lib/db/query/subscription/get-active-user-subscription";
-import { insertImageGenerationUsageLog } from "@/lib/db/query/usage/insert-image-generation-usage-log";
-import { insertVideoGenerationUsageLog } from "@/lib/db/query/usage/insert-video-generation-usage-log";
 import { ChatSDKError } from "@/lib/errors";
 import { getTranslations } from "@/lib/i18n/translate";
 import type { ChatMessage } from "@/lib/types";
@@ -221,8 +215,8 @@ export async function POST(request: Request) {
     }
 
     // Run independent pre-stream checks in parallel
-    const [quotaCheck, existingChat, projectRow] = await Promise.all([
-      checkTokenQuota(session.user.id),
+    const [hasBalance, existingChat, projectRow] = await Promise.all([
+      hasPositiveBalance(session.user.id),
       getChatById({ id }),
       selectedProjectId
         ? getProjectById({ id: selectedProjectId })
@@ -312,8 +306,8 @@ export async function POST(request: Request) {
         : { ...msg, parts: filteredParts };
     });
 
-    // --- Token quota check (after chat/message save to prevent 404) ---
-    if (!quotaCheck.allowed) {
+    // --- Balance check (after chat/message save to prevent 404) ---
+    if (!hasBalance) {
       const t = await getTranslations("chat");
       await saveMessages({
         messages: [
@@ -330,78 +324,14 @@ export async function POST(request: Request) {
       });
       return new ChatSDKError(
         "quota_exceeded:chat",
-        JSON.stringify(quotaCheck.quotaInfo),
-        quotaCheck.reason
+        undefined,
+        "Insufficient balance. Please top up to continue."
       ).toResponse();
     }
 
-    // --- Image quota check (after chat/message save to prevent 404) ---
+    // Direct image/video generation models are charged per-use (no quota gate).
     const isDirectImageGeneration = isImageGenerationModel(selectedChatModel);
-
-    if (isDirectImageGeneration) {
-      const imageQuotaCheck = await checkImageGenerationQuota(session.user.id);
-
-      if (!imageQuotaCheck.allowed) {
-        const t = await getTranslations("chat");
-        await saveMessages({
-          messages: [
-            {
-              chatId: id,
-              id: generateUUID(),
-              role: "assistant",
-              parts: [
-                {
-                  type: "text",
-                  text: t("errors.imageQuotaExceededAssistant"),
-                },
-              ],
-              attachments: [],
-              createdAt: new Date(),
-              modelId: null,
-            },
-          ],
-        });
-        return new ChatSDKError(
-          "quota_exceeded:chat",
-          undefined,
-          imageQuotaCheck.reason
-        ).toResponse();
-      }
-    }
-
-    // --- Video quota check (after chat/message save to prevent 404) ---
     const isDirectVideoGeneration = isVideoGenerationModel(selectedChatModel);
-
-    if (isDirectVideoGeneration) {
-      const videoQuotaCheck = await checkVideoGenerationQuota(session.user.id);
-
-      if (!videoQuotaCheck.allowed) {
-        const t = await getTranslations("chat");
-        await saveMessages({
-          messages: [
-            {
-              chatId: id,
-              id: generateUUID(),
-              role: "assistant",
-              parts: [
-                {
-                  type: "text",
-                  text: t("errors.videoQuotaExceededAssistant"),
-                },
-              ],
-              attachments: [],
-              createdAt: new Date(),
-              modelId: null,
-            },
-          ],
-        });
-        return new ChatSDKError(
-          "quota_exceeded:chat",
-          undefined,
-          videoQuotaCheck.reason
-        ).toResponse();
-      }
-    }
 
     // Fire-and-forget usage increment for the active project.
     // Runs once per chat message that reaches the inference path.
@@ -862,97 +792,17 @@ export async function POST(request: Request) {
             imageUsageAccumulator.generationCount += 1;
           }
 
-          // Record usage to ImageGenerationUsageLog
+          // Charge the image generation's provider cost to the balance.
           try {
-            const subscription = await getActiveUserSubscription({
+            await chargeUsage({
               userId: session.user.id,
-            });
-
-            let billingPeriodStart: Date;
-            let billingPeriodEnd: Date;
-            let billingPeriodType: "daily" | "weekly" | "monthly" | "annual";
-
-            if (subscription) {
-              billingPeriodStart = subscription.currentPeriodStart;
-              billingPeriodEnd = subscription.currentPeriodEnd;
-              billingPeriodType = subscription.billingPeriod;
-            } else {
-              // Tester plan: use daily period
-              const now = new Date();
-              billingPeriodStart = new Date(now);
-              billingPeriodStart.setHours(0, 0, 0, 0);
-              billingPeriodEnd = new Date(now);
-              billingPeriodEnd.setHours(23, 59, 59, 999);
-              billingPeriodType = "daily";
-            }
-
-            await insertImageGenerationUsageLog({
-              userId: session.user.id,
+              usdCost: totalCostUsd ? Number.parseFloat(totalCostUsd) : 0,
+              modelId: selectedChatModel,
               chatId: id,
-              modelId: selectedChatModel,
-              prompt: userPrompt,
-              imageUrl: imageUrl ?? null,
-              generationId: _responseId ?? null,
-              success: Boolean(imageUrl),
-              promptTokens: usageMetadata?.promptTokenCount ?? 0,
-              candidatesTokens: usageMetadata?.candidatesTokenCount ?? 0,
-              thoughtsTokens: usageMetadata?.thoughtsTokenCount ?? 0,
-              totalTokens: usageMetadata?.totalTokenCount ?? 0,
-              totalCostUsd: totalCostUsd ?? null,
-              billingPeriodType,
-              billingPeriodStart,
-              billingPeriodEnd,
+              description: "Image generation",
             });
-
-            if (imageUrl) {
-              await ensureBalance(session.user.id);
-              await decrementBalanceCounter({
-                userId: session.user.id,
-                field: "imageGeneration",
-                amount: 1,
-              });
-            }
           } catch (err) {
-            console.warn("Failed to record image generation usage", err);
-          }
-
-          // Record token usage for quota tracking
-          if (usageMetadata) {
-            const inputTokens = usageMetadata.promptTokenCount ?? 0;
-            const outputTokens =
-              (usageMetadata.candidatesTokenCount ?? 0) +
-              (usageMetadata.thoughtsTokenCount ?? 0);
-            const directImageUsage: AppUsage = {
-              modelId: selectedChatModel,
-              inputTokens,
-              outputTokens,
-              totalTokens: inputTokens + outputTokens,
-              inputCost: totalCostUsd ? Number.parseFloat(totalCostUsd) : 0,
-              outputCost: 0,
-              inputTokenDetails: {
-                noCacheTokens: undefined,
-                cacheReadTokens: undefined,
-                cacheWriteTokens: undefined,
-              },
-              outputTokenDetails: {
-                textTokens: undefined,
-                reasoningTokens: undefined,
-              },
-            };
-
-            try {
-              await recordTokenUsage({
-                userId: session.user.id,
-                chatId: id,
-                messageId: undefined,
-                usage: directImageUsage,
-              });
-            } catch (err) {
-              console.warn(
-                "Failed to record token usage for direct image generation",
-                err
-              );
-            }
+            console.warn("Failed to charge image generation usage", err);
           }
 
           return;
@@ -1066,55 +916,9 @@ export async function POST(request: Request) {
               generationId: responseId,
             });
 
-            // Record usage to VideoGenerationUsageLog
-            try {
-              const subscription = await getActiveUserSubscription({
-                userId: session.user.id,
-              });
-
-              let billingPeriodStart: Date;
-              let billingPeriodEnd: Date;
-              let billingPeriodType: "daily" | "weekly" | "monthly" | "annual";
-
-              if (subscription) {
-                billingPeriodStart = subscription.currentPeriodStart;
-                billingPeriodEnd = subscription.currentPeriodEnd;
-                billingPeriodType = subscription.billingPeriod;
-              } else {
-                const now = new Date();
-                billingPeriodStart = new Date(now);
-                billingPeriodStart.setHours(0, 0, 0, 0);
-                billingPeriodEnd = new Date(now);
-                billingPeriodEnd.setHours(23, 59, 59, 999);
-                billingPeriodType = "daily";
-              }
-
-              await insertVideoGenerationUsageLog({
-                userId: session.user.id,
-                chatId: id,
-                modelId: selectedChatModel,
-                prompt: userPrompt,
-                videoUrl: videoUrl ?? null,
-                generationId: responseId,
-                success: Boolean(videoUrl),
-                durationSeconds,
-                totalCostUsd: null,
-                billingPeriodType,
-                billingPeriodStart,
-                billingPeriodEnd,
-              });
-
-              if (videoUrl) {
-                await ensureBalance(session.user.id);
-                await decrementBalanceCounter({
-                  userId: session.user.id,
-                  field: "videoGeneration",
-                  amount: 1,
-                });
-              }
-            } catch (err) {
-              console.warn("Failed to record video generation usage", err);
-            }
+            // Video provider cost is not yet surfaced by the gateway response,
+            // so no charge is applied here. TODO(billing): call chargeUsage once
+            // the video provider USD cost is available at this point.
 
             // Write generation timing as usage info
             const directVideoUsage: AppUsage = {
@@ -1274,16 +1078,19 @@ export async function POST(request: Request) {
                 data: finalMergedUsage,
               });
 
-              // Record token usage for quota tracking
+              // Charge the request's provider cost to the user's balance.
               try {
-                await recordTokenUsage({
+                await chargeUsage({
                   userId: session.user.id,
+                  usdCost:
+                    ((finalMergedUsage as AppUsage).inputCost ?? 0) +
+                    ((finalMergedUsage as AppUsage).outputCost ?? 0),
+                  modelId,
                   chatId: id,
-                  messageId: undefined, // Will be set in outer onFinish
-                  usage: finalMergedUsage,
+                  description: "Chat completion",
                 });
               } catch (err) {
-                console.warn("Failed to record token usage", err);
+                console.warn("Failed to charge usage", err);
               }
             } catch (err) {
               console.warn("TokenLens enrichment failed", err);

@@ -1,4 +1,4 @@
-import type { InferSelectModel } from "drizzle-orm";
+import { type InferSelectModel, sql } from "drizzle-orm";
 import {
   bigint,
   boolean,
@@ -19,12 +19,16 @@ import {
 } from "drizzle-orm/pg-core";
 import type { AppUsage } from "../usage";
 
+// ============================================================================
+// USER & AUTH
+// ============================================================================
+
 export const user = pgTable(
   "User",
   {
     id: uuid("id").primaryKey().notNull().defaultRandom(),
-    email: varchar("email", { length: 64 }).notNull(),
-    password: varchar("password", { length: 64 }),
+    email: varchar("email", { length: 255 }).notNull(),
+    password: varchar("password", { length: 255 }),
     emailVerified: boolean("email_verified").default(false).notNull(),
     isTester: boolean("is_tester").default(false).notNull(),
     emailVerificationCode: varchar("email_verification_code", { length: 255 }),
@@ -55,23 +59,82 @@ export const user = pgTable(
 
 export type User = InferSelectModel<typeof user>;
 
-// Balance: one row per user. Holds all decrementing consumable resources.
-// Refilled on subscription renewal / payment events.
+// ============================================================================
+// CURRENCY & FX
+// ============================================================================
+
+// Supported balance/billing currencies. ISO 4217 codes.
+// `minorUnits` follows ISO 4217 (RUB=2, KZT=2, JPY=0). All monetary amounts in
+// other tables are stored as integers in the minor unit of their currency.
+export const currency = pgTable("Currency", {
+  code: varchar("code", { length: 3 }).primaryKey().notNull(),
+  name: varchar("name", { length: 64 }).notNull(),
+  symbol: varchar("symbol", { length: 8 }).notNull(),
+  minorUnits: integer("minor_units").notNull().default(2),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export type Currency = InferSelectModel<typeof currency>;
+
+// Live FX rates, periodically refreshed. Provider costs are quoted in USD, so
+// `baseCurrency` is always USD. Deduction uses the latest row for a quote
+// currency; on fetch failure the last cached row is reused.
+export const fxRate = pgTable(
+  "FxRate",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    baseCurrency: varchar("base_currency", { length: 3 })
+      .notNull()
+      .default("USD"),
+    quoteCurrency: varchar("quote_currency", { length: 3 })
+      .notNull()
+      .references(() => currency.code),
+    // Quote-currency units per 1 unit of base (USD).
+    rate: decimal("rate", { precision: 18, scale: 8 }).notNull(),
+    source: varchar("source", { length: 64 }).notNull(),
+    fetchedAt: timestamp("fetched_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    latestIdx: index("fx_rate_quote_fetched_idx").on(
+      table.quoteCurrency,
+      table.fetchedAt
+    ),
+  })
+);
+
+export type FxRate = InferSelectModel<typeof fxRate>;
+
+// ============================================================================
+// BALANCE — single source of truth for spendable funds (one row per user)
+// ============================================================================
+
+// Two pools share one currency:
+//   - subscriptionAmount: wiped to 0 and re-credited on each renewal.
+//   - topupAmount: persistent, accumulates across time (top-up purchase flow
+//     is out of scope for now; the welcome grant lands here so it never resets).
+// Deduction order: subscription pool first, then top-up.
 export const balance = pgTable("Balance", {
   userId: uuid("user_id")
     .primaryKey()
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
-  plan: varchar("plan", { length: 32 }),
-  tokens: bigint("tokens", { mode: "number" }).notNull().default(0),
-  imageGeneration: integer("image_generation").notNull().default(0),
-  videoGeneration: integer("video_generation").notNull().default(0),
-  webSearches: integer("web_searches").notNull().default(0),
+  currencyCode: varchar("currency_code", { length: 3 })
+    .notNull()
+    .references(() => currency.code),
+  subscriptionAmount: bigint("subscription_amount", { mode: "number" })
+    .notNull()
+    .default(0),
+  topupAmount: bigint("topup_amount", { mode: "number" }).notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 export type Balance = InferSelectModel<typeof balance>;
+
+// ============================================================================
+// CHAT (unchanged structurally; FK cascades tightened)
+// ============================================================================
 
 export const chat = pgTable("Chat", {
   id: uuid("id").primaryKey().notNull().defaultRandom(),
@@ -79,7 +142,7 @@ export const chat = pgTable("Chat", {
   title: text("title").notNull(),
   userId: uuid("userId")
     .notNull()
-    .references(() => user.id),
+    .references(() => user.id, { onDelete: "cascade" }),
   lastContext: jsonb("lastContext").$type<AppUsage | null>(),
 });
 
@@ -89,7 +152,7 @@ export const message = pgTable("Message_v2", {
   id: uuid("id").primaryKey().notNull().defaultRandom(),
   chatId: uuid("chatId")
     .notNull()
-    .references(() => chat.id),
+    .references(() => chat.id, { onDelete: "cascade" }),
   role: varchar("role").notNull(),
   parts: json("parts").notNull(),
   attachments: json("attachments").notNull(),
@@ -104,10 +167,10 @@ export const vote = pgTable(
   {
     chatId: uuid("chatId")
       .notNull()
-      .references(() => chat.id),
+      .references(() => chat.id, { onDelete: "cascade" }),
     messageId: uuid("messageId")
       .notNull()
-      .references(() => message.id),
+      .references(() => message.id, { onDelete: "cascade" }),
     isUpvoted: boolean("isUpvoted").notNull(),
   },
   (table) => {
@@ -126,14 +189,14 @@ export const document = pgTable(
     createdAt: timestamp("createdAt").notNull(),
     title: text("title").notNull(),
     content: text("content"),
-    kind: varchar("text", {
+    kind: varchar("kind", {
       enum: ["image", "video"],
     })
       .notNull()
       .default("image"),
     userId: uuid("userId")
       .notNull()
-      .references(() => user.id),
+      .references(() => user.id, { onDelete: "cascade" }),
     generationId: varchar("generationId", { length: 256 }),
   },
   (table) => {
@@ -157,17 +220,16 @@ export const stream = pgTable(
     chatRef: foreignKey({
       columns: [table.chatId],
       foreignColumns: [chat.id],
-    }),
+    }).onDelete("cascade"),
   })
 );
 
 export type Stream = InferSelectModel<typeof stream>;
 
 // ============================================================================
-// TOKEN TRACKING & SUBSCRIPTION TABLES
+// SUBSCRIPTIONS & BILLING
 // ============================================================================
 
-// Billing period enum
 export const billingPeriodEnum = pgEnum("billing_period", [
   "daily",
   "weekly",
@@ -175,7 +237,13 @@ export const billingPeriodEnum = pgEnum("billing_period", [
   "annual",
 ]);
 
-// Payment intent status enum
+export const subscriptionStatusEnum = pgEnum("subscription_status", [
+  "active",
+  "past_due",
+  "cancelled",
+  "expired",
+]);
+
 export const paymentIntentStatusEnum = pgEnum("payment_intent_status", [
   "pending",
   "processing",
@@ -184,50 +252,64 @@ export const paymentIntentStatusEnum = pgEnum("payment_intent_status", [
   "expired",
 ]);
 
-// Subscription Plans
-export const subscriptionPlan = pgTable(
-  "SubscriptionPlan",
+export const paymentIntentKindEnum = pgEnum("payment_intent_kind", [
+  "subscription",
+  "topup",
+]);
+
+// Subscription catalog (dictionary). Immutable once issued — to change pricing,
+// add a new SubscriptionPrice row or a new Subscription and deactivate the old.
+// No quotas/feature flags: this is a pure pay-per-use model.
+export const subscription = pgTable(
+  "Subscription",
   {
     id: uuid("id").primaryKey().notNull().defaultRandom(),
-    name: varchar("name", { length: 64 }).notNull(),
+    code: varchar("code", { length: 64 }).notNull(),
     displayName: varchar("display_name", { length: 128 }),
-
-    // Billing configuration
     billingPeriod: billingPeriodEnum("billing_period")
       .notNull()
       .default("monthly"),
     billingPeriodCount: integer("billing_period_count").notNull().default(1),
-
-    // Token limits (per billing period)
-    tokenQuota: bigint("token_quota", { mode: "number" }).notNull(),
-
-    // Optional: Per-model limits
-    modelLimits: jsonb("model_limits").$type<Record<string, number>>(),
-
-    // Feature flags
-    features: jsonb("features").$type<{
-      searchQuota?: number;
-      maxImageGenerationsPerPeriod?: number;
-      maxVideoGenerationsPerPeriod?: number;
-    }>(),
-
-    // Pricing (for display/reference)
-    price: decimal("price", { precision: 10, scale: 2 }),
-
-    // Meta
-    isActive: boolean("is_active").default(true).notNull(),
-    isTesterPlan: boolean("is_tester_plan").default(false).notNull(),
+    isActive: boolean("is_active").notNull().default(true),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (table) => ({
-    nameIdx: uniqueIndex("subscription_plan_name_idx").on(table.name),
+    codeIdx: uniqueIndex("subscription_code_idx").on(table.code),
   })
 );
 
-export type SubscriptionPlan = InferSelectModel<typeof subscriptionPlan>;
+export type Subscription = InferSelectModel<typeof subscription>;
 
-// User Subscriptions
+// Per-currency price for a subscription. `price` (minor units) is both what the
+// user pays and what is credited to Balance.subscriptionAmount on renewal (1:1).
+export const subscriptionPrice = pgTable(
+  "SubscriptionPrice",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    subscriptionId: uuid("subscription_id")
+      .notNull()
+      .references(() => subscription.id, { onDelete: "cascade" }),
+    currencyCode: varchar("currency_code", { length: 3 })
+      .notNull()
+      .references(() => currency.code),
+    price: bigint("price", { mode: "number" }).notNull(),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    subCurrencyIdx: uniqueIndex("subscription_price_sub_currency_idx").on(
+      table.subscriptionId,
+      table.currencyCode
+    ),
+  })
+);
+
+export type SubscriptionPrice = InferSelectModel<typeof subscriptionPrice>;
+
+// A user's current subscription. At most one active row per user (enforced by a
+// partial unique index). Free users simply have no active row.
 export const userSubscription = pgTable(
   "UserSubscription",
   {
@@ -235,52 +317,45 @@ export const userSubscription = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
-    planId: uuid("plan_id")
+    subscriptionId: uuid("subscription_id")
       .notNull()
-      .references(() => subscriptionPlan.id),
+      .references(() => subscription.id),
+    // Locked at signup; must match Balance.currencyCode.
+    currencyCode: varchar("currency_code", { length: 3 })
+      .notNull()
+      .references(() => currency.code),
 
-    // Billing period configuration
-    billingPeriod: billingPeriodEnum("billing_period").notNull(),
-    billingPeriodCount: integer("billing_period_count").notNull().default(1),
+    status: subscriptionStatusEnum("status").notNull().default("active"),
 
-    // Current billing period
     currentPeriodStart: timestamp("current_period_start").notNull(),
     currentPeriodEnd: timestamp("current_period_end").notNull(),
-
-    // Next billing date
     nextBillingDate: timestamp("next_billing_date").notNull(),
 
-    // Status
-    status: varchar("status", { length: 32 }).notNull().default("active"),
+    cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false).notNull(),
 
-    // Payment integration (CloudPayments)
+    // CloudPayments integration
     externalSubscriptionId: varchar("external_subscription_id", {
       length: 128,
     }),
     cardToken: varchar("card_token", { length: 128 }),
     cardMask: varchar("card_mask", { length: 32 }),
 
-    // Payment history reference
+    // Last payment (minor units of currencyCode)
     lastPaymentDate: timestamp("last_payment_date"),
-    lastPaymentAmount: decimal("last_payment_amount", {
-      precision: 10,
-      scale: 2,
-    }),
-
-    // Cancellation
-    cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false).notNull(),
+    lastPaymentAmount: bigint("last_payment_amount", { mode: "number" }),
 
     // Trial
     isTrial: boolean("is_trial").default(false).notNull(),
     trialEndsAt: timestamp("trial_ends_at"),
 
-    // Meta
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
     cancelledAt: timestamp("cancelled_at"),
   },
   (table) => ({
-    userIdIdx: index("user_subscription_user_id_idx").on(table.userId),
+    activeUserIdx: uniqueIndex("user_subscription_active_user_idx")
+      .on(table.userId)
+      .where(sql`${table.status} = 'active'`),
     statusIdx: index("user_subscription_status_idx").on(table.status),
     nextBillingIdx: index("user_subscription_next_billing_idx").on(
       table.nextBillingDate
@@ -290,52 +365,44 @@ export const userSubscription = pgTable(
 
 export type UserSubscription = InferSelectModel<typeof userSubscription>;
 
-// Payment Intent (tracks payment lifecycle for redirect recovery)
+// Payment lifecycle tracking for redirect recovery. `kind` distinguishes a
+// recurring subscription purchase from a one-off top-up (top-up flow TBD).
 export const paymentIntent = pgTable(
   "PaymentIntent",
   {
     id: uuid("id").primaryKey().notNull().defaultRandom(),
-
-    // Unique session identifier for client-side tracking
     sessionId: varchar("session_id", { length: 64 }).notNull(),
-
-    // User & plan info
     userId: uuid("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
-    planName: varchar("plan_name", { length: 64 }).notNull(),
 
-    // Payment details
-    amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
-    currency: varchar("currency", { length: 3 }).notNull().default("RUB"),
+    kind: paymentIntentKindEnum("kind").notNull().default("subscription"),
+    subscriptionId: uuid("subscription_id").references(() => subscription.id),
 
-    // Status tracking
+    currencyCode: varchar("currency_code", { length: 3 })
+      .notNull()
+      .references(() => currency.code),
+    // Minor units of currencyCode.
+    amount: bigint("amount", { mode: "number" }).notNull(),
+
     status: paymentIntentStatusEnum("status").notNull().default("pending"),
 
-    // Trial
-    isTrial: boolean("is_trial").default(false).notNull(),
-
-    // CloudPayments integration
     externalTransactionId: varchar("external_transaction_id", { length: 128 }),
     externalSubscriptionId: varchar("external_subscription_id", {
       length: 128,
     }),
 
-    // Failure info
     failureReason: text("failure_reason"),
 
-    // Additional metadata
     metadata: jsonb("metadata").$type<{
-      planDisplayName?: string;
+      subscriptionCode?: string;
       billingPeriod?: string;
       clientIp?: string;
       userAgent?: string;
     }>(),
 
-    // Expiration (30 minutes default)
     expiresAt: timestamp("expires_at").notNull(),
 
-    // Meta
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
@@ -354,13 +421,96 @@ export const paymentIntent = pgTable(
 
 export type PaymentIntent = InferSelectModel<typeof paymentIntent>;
 
-// Token Usage Log
-export const tokenUsageLog = pgTable(
-  "TokenUsageLog",
+// ============================================================================
+// TRANSACTION — single audit log for every balance movement
+// ============================================================================
+
+export const transactionTypeEnum = pgEnum("transaction_type", [
+  "welcome",
+  "subscription_renewal",
+  "subscription_purchase",
+  "topup_purchase",
+  "usage_debit",
+  "refund",
+  "adjustment",
+]);
+
+export const balancePoolEnum = pgEnum("balance_pool", [
+  "subscription",
+  "topup",
+]);
+
+// Replaces the old TokenBalanceTransaction + all per-feature usage logs.
+// `amount` is signed minor units (negative = debit). Usage debits snapshot the
+// full pricing inputs (usdCost, fxRate, markup) so any charge is reproducible.
+export const transaction = pgTable(
+  "Transaction",
   {
     id: uuid("id").primaryKey().notNull().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
 
-    // User & subscription
+    type: transactionTypeEnum("type").notNull(),
+    currencyCode: varchar("currency_code", { length: 3 })
+      .notNull()
+      .references(() => currency.code),
+    pool: balancePoolEnum("pool").notNull(),
+
+    amount: bigint("amount", { mode: "number" }).notNull(),
+    subscriptionBalanceAfter: bigint("subscription_balance_after", {
+      mode: "number",
+    }).notNull(),
+    topupBalanceAfter: bigint("topup_balance_after", {
+      mode: "number",
+    }).notNull(),
+
+    // Usage-debit pricing snapshot (nullable for credits)
+    usdCost: decimal("usd_cost", { precision: 18, scale: 10 }),
+    fxRate: decimal("fx_rate", { precision: 18, scale: 8 }),
+    markup: decimal("markup", { precision: 6, scale: 4 }),
+    modelId: varchar("model_id", { length: 128 }),
+
+    chatId: uuid("chat_id").references(() => chat.id, { onDelete: "set null" }),
+    messageId: uuid("message_id").references(() => message.id, {
+      onDelete: "set null",
+    }),
+
+    referenceType: varchar("reference_type", { length: 32 }),
+    referenceId: varchar("reference_id", { length: 128 }),
+    description: text("description"),
+    metadata: jsonb("metadata").$type<{
+      subscriptionCode?: string;
+      subscriptionId?: string;
+      paymentIntentId?: string;
+      refundOf?: string;
+      previousSubscriptionAmount?: number;
+      previousTopupAmount?: number;
+    }>(),
+
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index("transaction_user_id_idx").on(table.userId),
+    userCreatedIdx: index("transaction_user_created_idx").on(
+      table.userId,
+      table.createdAt
+    ),
+    typeIdx: index("transaction_type_idx").on(table.type),
+    referenceIdx: index("transaction_reference_idx").on(
+      table.referenceType,
+      table.referenceId
+    ),
+  })
+);
+
+export type Transaction = InferSelectModel<typeof transaction>;
+
+// Cancellation feedback — product analytics, retained from the old schema.
+export const cancellationFeedback = pgTable(
+  "CancellationFeedback",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
     userId: uuid("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
@@ -369,292 +519,14 @@ export const tokenUsageLog = pgTable(
       { onDelete: "set null" }
     ),
 
-    // Chat context
-    chatId: uuid("chat_id").references(() => chat.id, { onDelete: "set null" }),
-    messageId: uuid("message_id").references(() => message.id, {
-      onDelete: "set null",
-    }),
-
-    // Model & usage
-    modelId: varchar("model_id", { length: 128 }).notNull(),
-
-    inputTokens: integer("input_tokens").notNull().default(0),
-    outputTokens: integer("output_tokens").notNull().default(0),
-    totalTokens: integer("total_tokens").notNull().default(0),
-
-    // Cache tokens (for Claude)
-    cacheWriteTokens: integer("cache_write_tokens").default(0),
-    cacheReadTokens: integer("cache_read_tokens").default(0),
-
-    // Pricing (from TokenLens)
-    inputCost: decimal("input_cost", { precision: 12, scale: 8 }),
-    outputCost: decimal("output_cost", { precision: 12, scale: 8 }),
-    totalCost: decimal("total_cost", { precision: 12, scale: 8 }),
-
-    // Billing period this usage belongs to
-    billingPeriodType: billingPeriodEnum("billing_period_type").notNull(),
-    billingPeriodStart: timestamp("billing_period_start").notNull(),
-    billingPeriodEnd: timestamp("billing_period_end").notNull(),
-
-    // Meta
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-  },
-  (table) => ({
-    userIdIdx: index("token_usage_log_user_id_idx").on(table.userId),
-    chatIdIdx: index("token_usage_log_chat_id_idx").on(table.chatId),
-    createdAtIdx: index("token_usage_log_created_at_idx").on(table.createdAt),
-    billingPeriodIdx: index("token_usage_log_billing_period_idx").on(
-      table.billingPeriodStart,
-      table.billingPeriodEnd
-    ),
-    userPeriodIdx: index("token_usage_log_user_period_idx").on(
-      table.userId,
-      table.billingPeriodStart,
-      table.billingPeriodEnd
-    ),
-  })
-);
-
-export type TokenUsageLog = InferSelectModel<typeof tokenUsageLog>;
-
-// User Token Usage Aggregate
-export const userTokenUsage = pgTable(
-  "UserTokenUsage",
-  {
-    id: uuid("id").primaryKey().notNull().defaultRandom(),
-
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-    subscriptionId: uuid("subscription_id")
-      .notNull()
-      .references(() => userSubscription.id, { onDelete: "cascade" }),
-
-    // Billing period
-    billingPeriodType: billingPeriodEnum("billing_period_type").notNull(),
-    periodStart: timestamp("period_start").notNull(),
-    periodEnd: timestamp("period_end").notNull(),
-
-    // Aggregated totals
-    totalInputTokens: bigint("total_input_tokens", { mode: "number" })
-      .notNull()
-      .default(0),
-    totalOutputTokens: bigint("total_output_tokens", { mode: "number" })
-      .notNull()
-      .default(0),
-    totalTokens: bigint("total_tokens", { mode: "number" })
-      .notNull()
-      .default(0),
-
-    // Per-model breakdowns
-    modelBreakdown:
-      jsonb("model_breakdown").$type<
-        Record<
-          string,
-          {
-            inputTokens: number;
-            outputTokens: number;
-            totalTokens: number;
-            cost: number;
-            requestCount: number;
-          }
-        >
-      >(),
-
-    // Cost totals
-    totalCost: decimal("total_cost", { precision: 12, scale: 4 }),
-
-    // Request count
-    totalRequests: integer("total_requests").notNull().default(0),
-
-    // Meta
-    lastUpdatedAt: timestamp("last_updated_at").notNull().defaultNow(),
-  },
-  (table) => ({
-    userPeriodUnique: uniqueIndex("user_token_usage_user_period_idx").on(
-      table.userId,
-      table.periodStart,
-      table.periodEnd
-    ),
-    subscriptionIdx: index("user_token_usage_subscription_idx").on(
-      table.subscriptionId
-    ),
-  })
-);
-
-export type UserTokenUsage = InferSelectModel<typeof userTokenUsage>;
-
-// Search Usage Log
-export const searchUsageLog = pgTable(
-  "SearchUsageLog",
-  {
-    id: uuid("id").primaryKey().notNull().defaultRandom(),
-
-    // User context
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-    chatId: uuid("chat_id").references(() => chat.id, { onDelete: "set null" }),
-
-    // Search details
-    query: varchar("query", { length: 400 }).notNull(),
-    searchDepth: varchar("search_depth", { length: 20 }).notNull(),
-    resultsCount: integer("results_count").notNull(),
-    responseTimeMs: integer("response_time_ms").notNull(),
-    cached: boolean("cached").notNull().default(false),
-
-    // Billing period this usage belongs to
-    billingPeriodType: billingPeriodEnum("billing_period_type").notNull(),
-    billingPeriodStart: timestamp("billing_period_start").notNull(),
-    billingPeriodEnd: timestamp("billing_period_end").notNull(),
-
-    // Meta
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-  },
-  (table) => ({
-    userIdIdx: index("search_usage_log_user_id_idx").on(table.userId),
-    chatIdIdx: index("search_usage_log_chat_id_idx").on(table.chatId),
-    createdAtIdx: index("search_usage_log_created_at_idx").on(table.createdAt),
-    userPeriodIdx: index("search_usage_log_user_period_idx").on(
-      table.userId,
-      table.billingPeriodStart,
-      table.billingPeriodEnd
-    ),
-  })
-);
-
-export type SearchUsageLog = InferSelectModel<typeof searchUsageLog>;
-
-// Image Generation Usage Log
-export const imageGenerationUsageLog = pgTable(
-  "ImageGenerationUsageLog",
-  {
-    id: uuid("id").primaryKey().notNull().defaultRandom(),
-
-    // User context
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-    chatId: uuid("chat_id").references(() => chat.id, { onDelete: "set null" }),
-
-    // Image generation details
-    modelId: varchar("model_id", { length: 128 }).notNull(),
-    prompt: text("prompt").notNull(),
-    imageUrl: varchar("image_url", { length: 512 }),
-    generationId: varchar("generation_id", { length: 256 }),
-    success: boolean("success").notNull().default(true),
-
-    // Token usage (from metadata.google.usageMetadata)
-    promptTokens: integer("prompt_tokens").default(0),
-    candidatesTokens: integer("candidates_tokens").default(0),
-    thoughtsTokens: integer("thoughts_tokens").default(0),
-    totalTokens: integer("total_tokens").default(0),
-
-    // Pricing (from metadata.gateway.cost - in USD)
-    totalCostUsd: decimal("total_cost_usd", { precision: 12, scale: 8 }),
-
-    // Billing period
-    billingPeriodType: billingPeriodEnum("billing_period_type").notNull(),
-    billingPeriodStart: timestamp("billing_period_start").notNull(),
-    billingPeriodEnd: timestamp("billing_period_end").notNull(),
-
-    // Meta
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-  },
-  (table) => ({
-    userIdIdx: index("image_generation_usage_log_user_id_idx").on(table.userId),
-    chatIdIdx: index("image_generation_usage_log_chat_id_idx").on(table.chatId),
-    createdAtIdx: index("image_generation_usage_log_created_at_idx").on(
-      table.createdAt
-    ),
-    userPeriodIdx: index("image_generation_usage_log_user_period_idx").on(
-      table.userId,
-      table.billingPeriodStart,
-      table.billingPeriodEnd
-    ),
-  })
-);
-
-export type ImageGenerationUsageLog = InferSelectModel<
-  typeof imageGenerationUsageLog
->;
-
-// Video Generation Usage Log
-export const videoGenerationUsageLog = pgTable(
-  "VideoGenerationUsageLog",
-  {
-    id: uuid("id").primaryKey().notNull().defaultRandom(),
-
-    // User context
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-    chatId: uuid("chat_id").references(() => chat.id, { onDelete: "set null" }),
-
-    // Video generation details
-    modelId: varchar("model_id", { length: 128 }).notNull(),
-    prompt: text("prompt").notNull(),
-    videoUrl: varchar("video_url", { length: 512 }),
-    generationId: varchar("generation_id", { length: 256 }),
-    success: boolean("success").notNull().default(true),
-
-    // Video duration in seconds
-    durationSeconds: integer("duration_seconds").default(0),
-
-    // Pricing (in USD)
-    totalCostUsd: decimal("total_cost_usd", { precision: 12, scale: 8 }),
-
-    // Billing period
-    billingPeriodType: billingPeriodEnum("billing_period_type").notNull(),
-    billingPeriodStart: timestamp("billing_period_start").notNull(),
-    billingPeriodEnd: timestamp("billing_period_end").notNull(),
-
-    // Meta
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-  },
-  (table) => ({
-    userIdIdx: index("video_generation_usage_log_user_id_idx").on(table.userId),
-    chatIdIdx: index("video_generation_usage_log_chat_id_idx").on(table.chatId),
-    createdAtIdx: index("video_generation_usage_log_created_at_idx").on(
-      table.createdAt
-    ),
-    userPeriodIdx: index("video_generation_usage_log_user_period_idx").on(
-      table.userId,
-      table.billingPeriodStart,
-      table.billingPeriodEnd
-    ),
-  })
-);
-
-export type VideoGenerationUsageLog = InferSelectModel<
-  typeof videoGenerationUsageLog
->;
-
-// Cancellation Feedback - tracks why users cancel subscriptions
-export const cancellationFeedback = pgTable(
-  "CancellationFeedback",
-  {
-    id: uuid("id").primaryKey().notNull().defaultRandom(),
-
-    // User context
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-    subscriptionId: uuid("subscription_id")
-      .notNull()
-      .references(() => userSubscription.id, { onDelete: "cascade" }),
-
-    // Feedback data
     reasons: jsonb("reasons").$type<string[]>().notNull(),
     additionalFeedback: text("additional_feedback"),
 
-    // Context at cancellation time
-    planName: varchar("plan_name", { length: 64 }),
+    subscriptionCode: varchar("subscription_code", { length: 64 }),
     billingPeriod: billingPeriodEnum("billing_period"),
     subscriptionDurationDays: integer("subscription_duration_days"),
     wasTrial: boolean("was_trial").default(false).notNull(),
 
-    // Meta
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (table) => ({
@@ -669,74 +541,8 @@ export type CancellationFeedback = InferSelectModel<
   typeof cancellationFeedback
 >;
 
-// Token Balance Transaction Type enum
-export const tokenBalanceTransactionTypeEnum = pgEnum(
-  "token_balance_transaction_type",
-  ["credit", "debit", "reset", "adjustment"]
-);
-
-// Token Balance Transaction (audit trail for balance changes)
-export const tokenBalanceTransaction = pgTable(
-  "TokenBalanceTransaction",
-  {
-    id: uuid("id").primaryKey().notNull().defaultRandom(),
-
-    // User reference
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-
-    // Transaction type
-    type: tokenBalanceTransactionTypeEnum("type").notNull(),
-
-    // Amount (positive for credit/reset, negative for debit)
-    amount: bigint("amount", { mode: "number" }).notNull(),
-
-    // Balance after this transaction
-    balanceAfter: bigint("balance_after", { mode: "number" }).notNull(),
-
-    // Reference to what caused this transaction
-    referenceType: varchar("reference_type", { length: 32 }), // "payment" | "usage" | "subscription_reset" | "admin" | "migration"
-    referenceId: varchar("reference_id", { length: 128 }), // e.g., payment intent ID, usage log ID
-
-    // Optional description
-    description: text("description"),
-
-    // Metadata for additional context
-    metadata: jsonb("metadata").$type<{
-      modelId?: string;
-      chatId?: string;
-      planName?: string;
-      subscriptionId?: string;
-      previousBalance?: number;
-    }>(),
-
-    // Meta
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-  },
-  (table) => ({
-    userIdIdx: index("token_balance_transaction_user_id_idx").on(table.userId),
-    typeIdx: index("token_balance_transaction_type_idx").on(table.type),
-    createdAtIdx: index("token_balance_transaction_created_at_idx").on(
-      table.createdAt
-    ),
-    userCreatedIdx: index("token_balance_transaction_user_created_idx").on(
-      table.userId,
-      table.createdAt
-    ),
-    referenceIdx: index("token_balance_transaction_reference_idx").on(
-      table.referenceType,
-      table.referenceId
-    ),
-  })
-);
-
-export type TokenBalanceTransaction = InferSelectModel<
-  typeof tokenBalanceTransaction
->;
-
 // ============================================================================
-// PROJECT TABLE
+// PROJECT (unchanged)
 // ============================================================================
 
 export const project = pgTable(
@@ -762,10 +568,6 @@ export const project = pgTable(
 );
 
 export type Project = InferSelectModel<typeof project>;
-
-// ============================================================================
-// PROJECT FILE TABLE
-// ============================================================================
 
 export const projectFile = pgTable(
   "ProjectFile",

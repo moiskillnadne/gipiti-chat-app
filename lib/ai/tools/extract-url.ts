@@ -1,7 +1,8 @@
 import { tool } from "ai";
 import type { Session } from "next-auth";
 import { z } from "zod";
-import { checkSearchQuota, recordSearchUsage } from "@/lib/search/search-quota";
+import { chargeUsage } from "@/lib/billing/balance";
+import { SEARCH_COST_USD } from "@/lib/billing/constants";
 import {
   extractUrlWithTavily,
   formatExtractedContentForLLM,
@@ -43,29 +44,18 @@ Do NOT use this tool for:
     }),
     execute: async ({ urls, maxContentLength = 5000 }) => {
       try {
-        const quotaCheck = await checkSearchQuota(session.user.id);
-
-        if (!quotaCheck.allowed) {
-          return {
-            error: quotaCheck.reason || "URL extraction quota exceeded",
-            quotaInfo: quotaCheck.quotaInfo,
-            results: [],
-          };
-        }
-
         const extractResult = await extractUrlWithTavily({
           urls,
           maxContentLength,
         });
 
-        await recordSearchUsage({
+        // Charge the URL extraction's provider cost to the user's balance.
+        await chargeUsage({
           userId: session.user.id,
+          usdCost: SEARCH_COST_USD.basic,
           chatId,
-          query: `URL extraction: ${urls.join(", ")}`,
-          searchDepth: "basic",
-          resultsCount: extractResult.successCount,
-          responseTimeMs: extractResult.responseTime,
-          cached: false,
+          modelId: "tavily-extract",
+          description: "URL extraction",
         });
 
         return {

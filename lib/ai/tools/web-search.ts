@@ -1,7 +1,8 @@
 import { tool } from "ai";
 import type { Session } from "next-auth";
 import { z } from "zod";
-import { checkSearchQuota, recordSearchUsage } from "@/lib/search/search-quota";
+import { chargeUsage } from "@/lib/billing/balance";
+import { SEARCH_COST_USD } from "@/lib/billing/constants";
 import {
   formatSearchResultsForLLM,
   searchWithTavily,
@@ -47,16 +48,6 @@ Do NOT use this tool for:
     }),
     execute: async ({ query, maxResults = 5 }) => {
       try {
-        // Check quota before searching
-        const quotaCheck = await checkSearchQuota(session.user.id);
-
-        if (!quotaCheck.allowed) {
-          return {
-            error: quotaCheck.reason || "Search quota exceeded",
-            quotaInfo: quotaCheck.quotaInfo,
-          };
-        }
-
         // All searches run at basic depth
         const searchResult = await searchWithTavily({
           query,
@@ -64,15 +55,13 @@ Do NOT use this tool for:
           maxResults,
         });
 
-        // Record usage
-        await recordSearchUsage({
+        // Charge the search's provider cost to the user's balance.
+        await chargeUsage({
           userId: session.user.id,
+          usdCost: SEARCH_COST_USD.basic,
           chatId,
-          query,
-          searchDepth: "basic",
-          resultsCount: searchResult.results.length,
-          responseTimeMs: searchResult.responseTime,
-          cached: false,
+          modelId: "tavily-search",
+          description: "Web search",
         });
 
         return {

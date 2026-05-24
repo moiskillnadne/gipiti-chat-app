@@ -1,110 +1,65 @@
-import { and, eq, ne } from "drizzle-orm";
-import { FREE_TIER_ENTITLEMENTS } from "@/lib/ai/entitlements";
-import { resetBalance, setBalancePlan } from "@/lib/ai/token-balance";
-import { subscriptionPlan, userSubscription } from "@/lib/db/schema";
+import { and, eq } from "drizzle-orm";
+import { ensureBalance, resetSubscriptionPool } from "@/lib/billing/balance";
+import {
+  getActiveUserSubscription,
+  getSubscriptionByCode,
+  priceForCurrency,
+} from "@/lib/billing/subscriptions";
+import { userSubscription } from "@/lib/db/schema";
 import { db } from "../db/connection";
 import {
   calculateNextBillingDate,
   calculatePeriodEnd,
 } from "./billing-periods";
-import { SUBSCRIPTION_TIERS } from "./subscription-tiers";
 
 /**
- * Assign the free plan to a user.
- *
- * Free is NOT a subscription — no `subscriptionPlan` or `userSubscription` row
- * is created. We only set `User.currentPlan = "free"` and seed the balance
- * with the Tier 1 one-time bonus. Tier 2 / Tier 3 unlocks credit additional
- * tokens via `creditBalance` from the email-verification and survey flows
- * (handled in separate tickets).
+ * Move a user to the free state: no active subscription, an empty subscription
+ * pool. The persistent top-up pool (including the welcome grant) is untouched.
+ * No-ops if the user still has an active subscription.
  */
-export async function assignFreePlan(userId: string) {
-  // Safety guard: do not downgrade a user who has an active paid subscription.
-  const activePaidSubs = await db
-    .select({ id: userSubscription.id })
-    .from(userSubscription)
-    .innerJoin(
-      subscriptionPlan,
-      eq(userSubscription.planId, subscriptionPlan.id)
-    )
-    .where(
-      and(
-        eq(userSubscription.userId, userId),
-        eq(userSubscription.status, "active"),
-        eq(subscriptionPlan.isTesterPlan, false),
-        ne(subscriptionPlan.name, "free")
-      )
-    )
-    .limit(1);
-
-  if (activePaidSubs.length > 0) {
+export async function assignFreePlan(userId: string): Promise<void> {
+  const active = await getActiveUserSubscription(userId);
+  if (active) {
     console.warn(
-      `[assignFreePlan] Skipping: user ${userId} has active paid subscription ${activePaidSubs[0].id}`
+      `[assignFreePlan] user ${userId} has active subscription ${active.id}; skipping downgrade`
     );
     return;
   }
 
-  const tier1 = FREE_TIER_ENTITLEMENTS.tier_1;
-
-  await resetBalance({
+  await ensureBalance(userId);
+  await resetSubscriptionPool({
     userId,
-    newBalance: tier1.tokenBonus,
-    imageGeneration: tier1.imageBonus,
-    videoGeneration: tier1.videoBonus,
-    webSearches: tier1.searchQuota,
-    plan: "free",
-    reason: "subscription_reset",
-    planName: "free",
+    amount: 0,
+    type: "subscription_renewal",
   });
 }
 
 /**
- * Upgrade user to a paid plan
+ * Subscribe a user to a paid plan by its catalog code. Cancels any existing
+ * active subscription, creates a new one in the user's balance currency, and
+ * credits the subscription pool with the plan price (1:1).
  */
-export async function upgradeToPlan(userId: string, planName: string) {
-  const tier = SUBSCRIPTION_TIERS[planName as keyof typeof SUBSCRIPTION_TIERS];
-
-  if (!tier) {
-    throw new Error(`Unknown plan: ${planName}`);
+export async function upgradeToPlan(
+  userId: string,
+  code: string
+): Promise<void> {
+  const sub = await getSubscriptionByCode(code);
+  if (!sub) {
+    throw new Error(`Unknown subscription: ${code}`);
   }
 
-  if (tier.isTesterPlan) {
-    throw new Error("Cannot upgrade to tester plan");
+  const balanceRow = await ensureBalance(userId);
+  const price = await priceForCurrency(sub.id, balanceRow.currencyCode);
+  if (price == null) {
+    throw new Error(
+      `No ${balanceRow.currencyCode} price configured for subscription ${code}`
+    );
   }
 
-  // Get or create plan
-  const plans = await db
-    .select()
-    .from(subscriptionPlan)
-    .where(eq(subscriptionPlan.name, planName))
-    .limit(1);
-
-  let plan = plans[0];
-
-  if (!plan) {
-    const [newPlan] = await db
-      .insert(subscriptionPlan)
-      .values({
-        name: tier.name,
-        displayName: tier.displayName,
-        billingPeriod: tier.billingPeriod,
-        billingPeriodCount: tier.billingPeriodCount,
-        tokenQuota: tier.tokenQuota,
-        features: tier.features,
-        price: tier.price.toString(),
-        isTesterPlan: false,
-      })
-      .returning();
-    plan = newPlan;
-  }
-
-  // Cancel existing subscriptions
+  // Cancel any existing active subscription.
   await db
     .update(userSubscription)
-    .set({
-      status: "cancelled",
-      cancelledAt: new Date(),
-    })
+    .set({ status: "cancelled", cancelledAt: new Date() })
     .where(
       and(
         eq(userSubscription.userId, userId),
@@ -112,30 +67,32 @@ export async function upgradeToPlan(userId: string, planName: string) {
       )
     );
 
-  // Create new subscription
   const now = new Date();
   const periodEnd = calculatePeriodEnd(
     now,
-    tier.billingPeriod,
-    tier.billingPeriodCount
+    sub.billingPeriod,
+    sub.billingPeriodCount
   );
   const nextBilling = calculateNextBillingDate(
     now,
-    tier.billingPeriod,
-    tier.billingPeriodCount
+    sub.billingPeriod,
+    sub.billingPeriodCount
   );
 
   await db.insert(userSubscription).values({
     userId,
-    planId: plan.id,
-    billingPeriod: tier.billingPeriod,
-    billingPeriodCount: tier.billingPeriodCount,
+    subscriptionId: sub.id,
+    currencyCode: balanceRow.currencyCode,
     currentPeriodStart: now,
     currentPeriodEnd: periodEnd,
     nextBillingDate: nextBilling,
     status: "active",
   });
 
-  // Update user's current plan
-  await setBalancePlan({ userId, plan: planName });
+  await resetSubscriptionPool({
+    userId,
+    amount: price,
+    type: "subscription_purchase",
+    metadata: { subscriptionCode: code, subscriptionId: sub.id },
+  });
 }

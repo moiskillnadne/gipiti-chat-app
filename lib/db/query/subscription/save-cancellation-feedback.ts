@@ -27,7 +27,7 @@ export async function saveCancellationFeedback({
       subscriptionId,
       reasons,
       additionalFeedback: additionalFeedback || null,
-      planName: planName || null,
+      subscriptionCode: planName || null,
       billingPeriod: billingPeriod || null,
       subscriptionDurationDays: subscriptionDurationDays || null,
       wasTrial,

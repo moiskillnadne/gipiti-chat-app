@@ -1,41 +1,36 @@
 import "server-only";
-import { count, desc, eq, sql } from "drizzle-orm";
-import { getUserBalance } from "@/lib/ai/token-balance";
-import { balance, chat, tokenBalanceTransaction } from "@/lib/db/schema";
+import { count, desc, eq } from "drizzle-orm";
+import { getBalance } from "@/lib/billing/balance";
+import { chat, type Transaction, transaction } from "@/lib/db/schema";
 import { db } from "../db/connection";
 
-type TransactionWithChat = {
+export type TransactionWithChat = {
   id: string;
-  type: "credit" | "debit" | "reset" | "adjustment";
+  type: Transaction["type"];
+  pool: Transaction["pool"];
+  currencyCode: string;
   amount: number;
-  balanceAfter: number;
+  subscriptionBalanceAfter: number;
+  topupBalanceAfter: number;
+  modelId: string | null;
   description: string | null;
   referenceType: string | null;
-  metadata: {
-    modelId?: string;
-    chatId?: string;
-    planName?: string;
-    subscriptionId?: string;
-    previousBalance?: number;
-  } | null;
   createdAt: Date;
   chatTitle: string | null;
 };
 
-type TransactionsResult = {
+export type TransactionsResult = {
   transactions: TransactionWithChat[];
   total: number;
 };
 
-type UsageSummary = {
-  quota: number;
+export type BalanceSummary = {
   balance: number;
-  spent: number;
-  remaining: number;
+  currencyCode: string;
 };
 
 /**
- * Get paginated balance transactions with chat titles
+ * Get paginated balance transactions with chat titles, most recent first.
  */
 export async function getTransactionsWithChats({
   userId,
@@ -46,73 +41,53 @@ export async function getTransactionsWithChats({
   limit?: number;
   offset?: number;
 }): Promise<TransactionsResult> {
-  // Get total count
   const [countResult] = await db
     .select({ count: count() })
-    .from(tokenBalanceTransaction)
-    .where(eq(tokenBalanceTransaction.userId, userId));
+    .from(transaction)
+    .where(eq(transaction.userId, userId));
 
-  // Get transactions with left join to chat for titles
-  const transactions = await db
+  const rows = await db
     .select({
-      id: tokenBalanceTransaction.id,
-      type: tokenBalanceTransaction.type,
-      amount: tokenBalanceTransaction.amount,
-      balanceAfter: tokenBalanceTransaction.balanceAfter,
-      description: tokenBalanceTransaction.description,
-      referenceType: tokenBalanceTransaction.referenceType,
-      metadata: tokenBalanceTransaction.metadata,
-      createdAt: tokenBalanceTransaction.createdAt,
+      id: transaction.id,
+      type: transaction.type,
+      pool: transaction.pool,
+      currencyCode: transaction.currencyCode,
+      amount: transaction.amount,
+      subscriptionBalanceAfter: transaction.subscriptionBalanceAfter,
+      topupBalanceAfter: transaction.topupBalanceAfter,
+      modelId: transaction.modelId,
+      description: transaction.description,
+      referenceType: transaction.referenceType,
+      createdAt: transaction.createdAt,
       chatTitle: chat.title,
     })
-    .from(tokenBalanceTransaction)
-    .leftJoin(
-      chat,
-      sql`${tokenBalanceTransaction.metadata}->>'chatId' = ${chat.id}::text`
-    )
-    .where(eq(tokenBalanceTransaction.userId, userId))
-    .orderBy(desc(tokenBalanceTransaction.createdAt))
+    .from(transaction)
+    .leftJoin(chat, eq(transaction.chatId, chat.id))
+    .where(eq(transaction.userId, userId))
+    .orderBy(desc(transaction.createdAt))
     .limit(limit)
     .offset(offset);
 
   return {
-    transactions: transactions as TransactionWithChat[],
+    transactions: rows,
     total: countResult?.count ?? 0,
   };
 }
 
 /**
- * Get usage summary for current billing period
+ * Get the user's combined balance summary (total across both pools).
+ * Returns null when the user has no balance row yet.
  */
 export async function getUsageSummary(
   userId: string
-): Promise<UsageSummary | null> {
-  // Get user's token balance
-  const [balanceRow] = await db
-    .select({ tokens: balance.tokens })
-    .from(balance)
-    .where(eq(balance.userId, userId))
-    .limit(1);
-
-  if (!balanceRow) {
+): Promise<BalanceSummary | null> {
+  const summary = await getBalance(userId);
+  if (!summary) {
     return null;
   }
-
-  // Get quota from active subscription using existing function
-  const balanceInfo = await getUserBalance(userId);
-
-  if (!balanceInfo?.subscription) {
-    return null;
-  }
-
-  const quota = balanceInfo.subscription.tokenQuota;
-  const tokens = Number(balanceRow.tokens) || 0;
-  const spent = Math.max(0, quota - tokens);
 
   return {
-    quota,
-    balance: tokens,
-    spent,
-    remaining: Math.max(0, tokens),
+    balance: summary.total,
+    currencyCode: summary.currencyCode,
   };
 }

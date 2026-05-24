@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { auth } from "@/app/(auth)/auth";
 import { db } from "@/lib/db/connection";
-import { paymentIntent, userSubscription } from "@/lib/db/schema";
+import { paymentIntent, subscription, userSubscription } from "@/lib/db/schema";
 import { checkPaymentStatusRateLimit } from "@/lib/rate-limit";
 import type { PaymentStatusResponse } from "@/lib/types";
 
@@ -98,11 +98,19 @@ export async function GET(request: Request) {
     const hasActivity =
       intent.status !== "pending" || !!intent.externalTransactionId;
 
-    // If succeeded, fetch subscription details
+    // If succeeded, fetch subscription details (join catalog for the plan code)
     if (intent.status === "succeeded" && intent.externalSubscriptionId) {
       const subscriptions = await db
-        .select()
+        .select({
+          id: userSubscription.id,
+          status: userSubscription.status,
+          code: subscription.code,
+        })
         .from(userSubscription)
+        .innerJoin(
+          subscription,
+          eq(userSubscription.subscriptionId, subscription.id)
+        )
         .where(
           eq(
             userSubscription.externalSubscriptionId,
@@ -118,7 +126,7 @@ export async function GET(request: Request) {
           hasActivity: true,
           subscription: {
             id: sub.id,
-            planName: intent.planName,
+            planName: sub.code ?? intent.metadata?.subscriptionCode ?? "",
             status: sub.status,
           },
         };

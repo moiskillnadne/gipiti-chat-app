@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useTranslations } from "@/lib/i18n/translate";
-import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
+import { getSubscriptionSeedByCode } from "@/lib/subscription/subscription-tiers";
 import styles from "./dashboard.module.css";
 import { CheckIcon } from "./icons";
 
@@ -23,7 +23,9 @@ const PLAN_ITEMS: readonly PlanItem[] = [
   {
     key: "tester",
     tierName: "tester_paid",
-    priceNumber: formatRubles(SUBSCRIPTION_TIERS.tester_paid?.price.RUB ?? 5),
+    priceNumber: formatRubles(
+      getSubscriptionSeedByCode("tester_paid")?.prices.RUB ?? 5
+    ),
     priceSuffix: "₽ /день",
     featureKeys: ["f1", "f2", "f3", "f4"],
   },
@@ -31,7 +33,7 @@ const PLAN_ITEMS: readonly PlanItem[] = [
     key: "monthly",
     tierName: "basic_monthly",
     priceNumber: formatRubles(
-      SUBSCRIPTION_TIERS.basic_monthly?.price.RUB ?? 1999
+      getSubscriptionSeedByCode("basic_monthly")?.prices.RUB ?? 1999
     ),
     priceSuffix: "₽ /мес",
     featureKeys: ["f1", "f2", "f3", "f4"],

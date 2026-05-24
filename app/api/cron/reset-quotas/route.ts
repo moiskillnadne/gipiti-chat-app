@@ -1,13 +1,12 @@
-import { and, eq, lte, ne } from "drizzle-orm";
-import { resetBalance } from "@/lib/ai/token-balance";
+import { and, eq, isNull, lte } from "drizzle-orm";
+import { resetSubscriptionPool } from "@/lib/billing/balance";
+import { priceForCurrency } from "@/lib/billing/subscriptions";
 import { db } from "@/lib/db/connection";
-import { subscriptionPlan, userSubscription } from "@/lib/db/schema";
+import { subscription, userSubscription } from "@/lib/db/schema";
 import {
   calculateNextBillingDate,
   calculatePeriodEnd,
 } from "@/lib/subscription/billing-periods";
-import { buildRefillFromTier } from "@/lib/subscription/refill";
-import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 
 export async function GET(request: Request) {
   // Verify cron secret
@@ -17,58 +16,58 @@ export async function GET(request: Request) {
   }
 
   const now = new Date();
-  // Renew slightly before expiry so users don't see a gap between the period
-  // ending and the next cron tick. Cron must run at least hourly for this to
-  // cover every sub.
-  const renewalLookahead = new Date(now.getTime() + 30 * 60 * 1000);
 
-  console.log("[Cron:ResetQuotas] Starting quota reset for unlim plan");
+  console.log("[Cron:ResetQuotas] Starting non-recurring subscription renewal");
 
-  // Find unlim plan subscriptions whose period has ended or is ending within
-  // the next hour. Paid plans (including tester_paid) use CloudPayments
-  // webhooks for resets. Free and legacy tester plans no longer receive
-  // cron refreshes.
+  // Renew active subscriptions whose period has ended and that are NOT backed by
+  // a CloudPayments recurring subscription (externalSubscriptionId IS NULL).
+  // CloudPayments-recurring subs are renewed by the recurrent webhook instead.
   const expiredSubscriptions = await db
     .select({
-      subscription: userSubscription,
-      plan: subscriptionPlan,
+      sub: userSubscription,
+      billingPeriod: subscription.billingPeriod,
+      billingPeriodCount: subscription.billingPeriodCount,
     })
     .from(userSubscription)
     .innerJoin(
-      subscriptionPlan,
-      eq(userSubscription.planId, subscriptionPlan.id)
+      subscription,
+      eq(userSubscription.subscriptionId, subscription.id)
     )
     .where(
       and(
         eq(userSubscription.status, "active"),
-        lte(userSubscription.currentPeriodEnd, renewalLookahead),
-        eq(subscriptionPlan.name, "unlim")
+        lte(userSubscription.currentPeriodEnd, now),
+        isNull(userSubscription.externalSubscriptionId)
       )
     );
 
   console.log(
-    `[Cron:ResetQuotas] Found ${expiredSubscriptions.length} unlim subscriptions due for renewal`
+    `[Cron:ResetQuotas] Found ${expiredSubscriptions.length} non-recurring subscriptions due for renewal`
   );
 
   let renewed = 0;
   let balancesReset = 0;
 
-  // Renew each subscription based on its billing period and count
-  for (const { subscription: sub, plan } of expiredSubscriptions) {
+  // Renew each subscription based on its catalog billing period and count.
+  for (const {
+    sub,
+    billingPeriod,
+    billingPeriodCount,
+  } of expiredSubscriptions) {
     console.log(
-      `[Cron:ResetQuotas] Renewing subscription ${sub.id} for user ${sub.userId}, plan: ${plan.name}`
+      `[Cron:ResetQuotas] Renewing subscription ${sub.id} for user ${sub.userId}`
     );
 
     const newPeriodStart = sub.currentPeriodEnd;
     const newPeriodEnd = calculatePeriodEnd(
       newPeriodStart,
-      sub.billingPeriod,
-      sub.billingPeriodCount
+      billingPeriod,
+      billingPeriodCount
     );
     const newBillingDate = calculateNextBillingDate(
       newPeriodStart,
-      sub.billingPeriod,
-      sub.billingPeriodCount
+      billingPeriod,
+      billingPeriodCount
     );
 
     await db
@@ -87,47 +86,30 @@ export async function GET(request: Request) {
 
     renewed++;
 
-    // Check if user has an active paid subscription (orphaned unlim sub guard)
-    const paidSub = await db
-      .select({ id: userSubscription.id })
-      .from(userSubscription)
-      .innerJoin(
-        subscriptionPlan,
-        eq(userSubscription.planId, subscriptionPlan.id)
-      )
-      .where(
-        and(
-          eq(userSubscription.userId, sub.userId),
-          eq(userSubscription.status, "active"),
-          ne(subscriptionPlan.name, "unlim")
-        )
-      )
-      .limit(1);
-
-    if (paidSub.length > 0) {
-      console.log(
-        `[Cron:ResetQuotas] User ${sub.userId} has active paid subscription ${paidSub[0].id}, skipping unlim balance reset`
-      );
-      continue;
-    }
-
-    // Reset token balance + quota counters to plan quota
+    // Reset the subscription balance pool to the plan price for the new period.
     try {
-      const tier = SUBSCRIPTION_TIERS[plan.name];
-      const refill = tier
-        ? buildRefillFromTier(tier)
-        : { newBalance: plan.tokenQuota };
-      await resetBalance({
+      const price = await priceForCurrency(
+        sub.subscriptionId,
+        sub.currencyCode
+      );
+
+      if (price == null) {
+        console.error(
+          `[Cron:ResetQuotas] No ${sub.currencyCode} price for subscription ${sub.subscriptionId}, skipping pool reset`
+        );
+        continue;
+      }
+
+      await resetSubscriptionPool({
         userId: sub.userId,
-        ...refill,
-        plan: plan.name,
-        reason: "subscription_reset",
+        amount: price,
+        currencyCode: sub.currencyCode,
+        type: "subscription_renewal",
         referenceId: sub.id,
-        planName: plan.name,
-        subscriptionId: sub.id,
       });
+
       console.log(
-        `[Cron:ResetQuotas] Token balance reset to ${plan.tokenQuota} for user ${sub.userId}`
+        `[Cron:ResetQuotas] Subscription pool reset to ${price} for user ${sub.userId}`
       );
       balancesReset++;
     } catch (balanceError) {

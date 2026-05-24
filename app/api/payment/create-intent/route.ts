@@ -1,8 +1,12 @@
 import crypto from "node:crypto";
 import { auth } from "@/app/(auth)/auth";
+import { DEFAULT_CURRENCY_CODE } from "@/lib/billing/constants";
+import {
+  getSubscriptionByCode,
+  priceForCurrency,
+} from "@/lib/billing/subscriptions";
 import { db } from "@/lib/db/connection";
 import { paymentIntent } from "@/lib/db/schema";
-import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 import type { PaymentIntentResponse } from "@/lib/types";
 
 /**
@@ -25,12 +29,19 @@ export async function POST(request: Request) {
   try {
     const { planName } = await request.json();
 
-    // Validate plan exists
-    const tier =
-      SUBSCRIPTION_TIERS[planName as keyof typeof SUBSCRIPTION_TIERS];
-    if (!tier) {
+    // Resolve the subscription catalog entry by its stable code.
+    const sub = await getSubscriptionByCode(planName);
+    if (!sub || !sub.isActive) {
       return Response.json(
         { error: "Invalid subscription plan" },
+        { status: 400 }
+      );
+    }
+
+    const price = await priceForCurrency(sub.id, DEFAULT_CURRENCY_CODE);
+    if (price == null) {
+      return Response.json(
+        { error: "No price configured for subscription" },
         { status: 400 }
       );
     }
@@ -46,17 +57,18 @@ export async function POST(request: Request) {
     // Set expiration to 30 minutes from now
     const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
 
-    // Create payment intent record
+    // Create payment intent record (amount stored in minor units of RUB)
     await db.insert(paymentIntent).values({
       sessionId,
       userId: session.user.id,
-      planName: tier.name,
-      amount: tier.price.RUB.toString(),
-      currency: "RUB",
+      kind: "subscription",
+      subscriptionId: sub.id,
+      currencyCode: DEFAULT_CURRENCY_CODE,
+      amount: price,
       status: "pending",
       metadata: {
-        planDisplayName: tier.displayName,
-        billingPeriod: `${tier.billingPeriodCount} ${tier.billingPeriod}`,
+        subscriptionCode: sub.code,
+        billingPeriod: `${sub.billingPeriodCount} ${sub.billingPeriod}`,
         clientIp: clientIp || undefined,
         userAgent: userAgent || undefined,
       },

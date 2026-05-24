@@ -1,17 +1,16 @@
+import { desc, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { auth } from "@/app/(auth)/auth";
-import {
-  FREE_TIER_ENTITLEMENTS,
-  getDefaultFreePlanSeed,
-} from "@/lib/ai/entitlements";
-import { getBalanceRecord } from "@/lib/ai/token-balance";
-import { getLatestUserSubscriptionWithPlan } from "@/lib/db/query/subscription/get-latest-user-subscription-with-plan";
+import { getBalance } from "@/lib/billing/balance";
+import { getMinorUnits } from "@/lib/billing/currencies";
+import { formatCurrency } from "@/lib/billing/money";
+import { db } from "@/lib/db/connection";
+import { subscription, userSubscription } from "@/lib/db/schema";
 import { getTranslations } from "@/lib/i18n/translate";
 import {
   deriveSubscriptionUiState,
   type SubscriptionUiState,
 } from "@/lib/subscription/subscription-state";
-import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 import {
   daysUntil,
   formatRelativeRu,
@@ -21,16 +20,12 @@ import {
 import { DangerZoneStrip } from "./_components/danger-zone-strip";
 import styles from "./_components/dashboard.module.css";
 import { FreePlanCard } from "./_components/free-plan-card";
-import {
-  type FreeLimitBonus,
-  PeriodLimitsCard,
-} from "./_components/period-limits-card";
 import { PlanCard, type PlanCardData } from "./_components/plan-card";
 import { StatusBanner } from "./_components/status-banner";
 import { SubscriptionHeader } from "./_components/subscription-header";
 import { SubscriptionTopNav } from "./_components/subscription-top-nav";
 import {
-  type FreeUsageData,
+  type BalanceSummaryData,
   UsageGaugeCard,
 } from "./_components/usage-gauge-card";
 
@@ -50,12 +45,39 @@ const PERIOD_LABEL_KEY_BY_PERIOD: Record<BillingPeriodKey, string> = {
   annual: "annual",
 };
 
-function formatRubles(amount: number): string {
-  return amount.toLocaleString("ru-RU");
-}
+type LatestSubscription = {
+  subscription: typeof userSubscription.$inferSelect;
+  displayName: string | null;
+  billingPeriod: BillingPeriodKey;
+};
 
-function priceForPlan(planName: string, fallback: number): number {
-  return SUBSCRIPTION_TIERS[planName]?.price.RUB ?? fallback;
+async function getLatestSubscription(
+  userId: string
+): Promise<LatestSubscription | null> {
+  const [row] = await db
+    .select({
+      subscription: userSubscription,
+      displayName: subscription.displayName,
+      billingPeriod: subscription.billingPeriod,
+    })
+    .from(userSubscription)
+    .innerJoin(
+      subscription,
+      eq(userSubscription.subscriptionId, subscription.id)
+    )
+    .where(eq(userSubscription.userId, userId))
+    .orderBy(desc(userSubscription.currentPeriodEnd))
+    .limit(1);
+
+  if (!row) {
+    return null;
+  }
+
+  return {
+    subscription: row.subscription,
+    displayName: row.displayName,
+    billingPeriod: row.billingPeriod as BillingPeriodKey,
+  };
 }
 
 export default async function SubscriptionPage() {
@@ -65,113 +87,107 @@ export default async function SubscriptionPage() {
     redirect("/login");
   }
 
-  const subscriptionData = await getLatestUserSubscriptionWithPlan({
-    userId: session.user.id,
-  });
+  const [latest, balanceSummary] = await Promise.all([
+    getLatestSubscription(session.user.id),
+    getBalance(session.user.id),
+  ]);
 
-  const subscription = subscriptionData?.subscription ?? null;
-  const plan = subscriptionData?.plan ?? null;
+  const subscriptionRow = latest?.subscription ?? null;
   const state: SubscriptionUiState = deriveSubscriptionUiState({
-    subscription,
-    plan,
+    subscription: subscriptionRow,
+    plan: null,
   });
 
   const tPlan = await getTranslations("auth.subscription.dashboard.plan");
-  const periodKey: BillingPeriodKey =
-    (plan?.billingPeriod as BillingPeriodKey | undefined) ?? "monthly";
+  const periodKey: BillingPeriodKey = latest?.billingPeriod ?? "monthly";
   const periodLabel = tPlan(
     `billingPeriod.${PERIOD_LABEL_KEY_BY_PERIOD[periodKey]}`
   );
 
   const now = new Date();
   const trialDaysLeft =
-    state === "trial" && subscription?.trialEndsAt
-      ? daysUntil(subscription.trialEndsAt, now)
+    state === "trial" && subscriptionRow?.trialEndsAt
+      ? daysUntil(subscriptionRow.trialEndsAt, now)
       : 0;
 
-  const planRubPrice = plan
-    ? priceForPlan(plan.name, Number(plan.price ?? 0))
-    : 0;
-  const formattedPrice = `${formatRubles(planRubPrice)} ₽ ${PRICE_SUFFIX_BY_PERIOD[periodKey]}`;
+  const currencyCode = balanceSummary?.currencyCode ?? "RUB";
+  const minorUnits = balanceSummary ? await getMinorUnits(currencyCode) : 2;
+
+  const balanceData: BalanceSummaryData | null = balanceSummary
+    ? {
+        currencyCode,
+        subscriptionAmount: balanceSummary.subscriptionAmount,
+        topupAmount: balanceSummary.topupAmount,
+        total: balanceSummary.total,
+        formattedTotal: formatCurrency(
+          balanceSummary.total,
+          currencyCode,
+          minorUnits
+        ),
+        formattedSubscription: formatCurrency(
+          balanceSummary.subscriptionAmount,
+          currencyCode,
+          minorUnits
+        ),
+        formattedTopup: formatCurrency(
+          balanceSummary.topupAmount,
+          currencyCode,
+          minorUnits
+        ),
+      }
+    : null;
+
+  // Subscription price label derived from the last charged amount (1:1 with the
+  // credited subscription balance). Falls back to an empty label when unknown.
+  const formattedPrice = subscriptionRow?.lastPaymentAmount
+    ? `${formatCurrency(Number(subscriptionRow.lastPaymentAmount), currencyCode, minorUnits)} ${PRICE_SUFFIX_BY_PERIOD[periodKey]}`
+    : "";
 
   const lastPaymentText =
-    subscription?.lastPaymentDate && subscription.lastPaymentAmount
-      ? `${formatRuDate(subscription.lastPaymentDate)} · ${formatRubles(Number(subscription.lastPaymentAmount))} ₽`
+    subscriptionRow?.lastPaymentDate && subscriptionRow.lastPaymentAmount
+      ? `${formatRuDate(subscriptionRow.lastPaymentDate)} · ${formatCurrency(Number(subscriptionRow.lastPaymentAmount), currencyCode, minorUnits)}`
       : null;
 
+  const planDisplayName = latest?.displayName ?? "";
+
   const planCardData: PlanCardData | null =
-    state === "none" || !plan
+    state === "none" || !subscriptionRow
       ? null
       : {
-          displayName: plan.displayName ?? plan.name,
+          displayName: planDisplayName,
           periodLabel,
           formattedPrice,
-          nextPaymentDate: subscription?.nextBillingDate
-            ? formatRuDate(subscription.nextBillingDate)
+          nextPaymentDate: subscriptionRow.nextBillingDate
+            ? formatRuDate(subscriptionRow.nextBillingDate)
             : null,
           lastPayment: lastPaymentText,
-          cardMask: subscription?.cardMask ?? null,
-          accessUntilDate: subscription?.currentPeriodEnd
-            ? formatRuDate(subscription.currentPeriodEnd)
+          cardMask: subscriptionRow.cardMask ?? null,
+          accessUntilDate: subscriptionRow.currentPeriodEnd
+            ? formatRuDate(subscriptionRow.currentPeriodEnd)
             : null,
-          chargingStartDate: subscription?.trialEndsAt
-            ? formatRuDate(subscription.trialEndsAt)
+          chargingStartDate: subscriptionRow.trialEndsAt
+            ? formatRuDate(subscriptionRow.trialEndsAt)
             : null,
-          nextRetryDate: subscription?.nextBillingDate
+          nextRetryDate: subscriptionRow.nextBillingDate
             ? state === "past_due"
-              ? formatRuDayTime(subscription.nextBillingDate, now)
-              : formatRuDate(subscription.nextBillingDate)
+              ? formatRuDayTime(subscriptionRow.nextBillingDate, now)
+              : formatRuDate(subscriptionRow.nextBillingDate)
             : null,
-          pastDueLastAmount: subscription?.lastPaymentAmount
-            ? `${formatRubles(Number(subscription.lastPaymentAmount))} ₽`
+          pastDueLastAmount: subscriptionRow.lastPaymentAmount
+            ? formatCurrency(
+                Number(subscriptionRow.lastPaymentAmount),
+                currencyCode,
+                minorUnits
+              )
             : null,
         };
 
   const pastDueRetryIn =
-    state === "past_due" && subscription?.nextBillingDate
-      ? formatRelativeRu(subscription.nextBillingDate, now)
+    state === "past_due" && subscriptionRow?.nextBillingDate
+      ? formatRelativeRu(subscriptionRow.nextBillingDate, now)
       : null;
 
   const emailVerified = session.user.emailVerified === true;
-  let freeUsage: FreeUsageData | null = null;
-  let freeBonuses: FreeLimitBonus | null = null;
-  let rewardAmountK = 0;
-
-  if (state === "none") {
-    const seed = getDefaultFreePlanSeed();
-    const balanceRow = await getBalanceRecord(session.user.id);
-    const quota = seed.tokenQuota;
-    const tokenBalance = balanceRow ? Number(balanceRow.tokens) || 0 : 0;
-    const spent = Math.max(0, quota - tokenBalance);
-    const remaining = Math.max(0, tokenBalance);
-
-    const tier1 = FREE_TIER_ENTITLEMENTS.tier_1;
-    const tier3 = FREE_TIER_ENTITLEMENTS.tier_3;
-    const tokenDeltaK = Math.max(
-      0,
-      Math.round((tier3.tokenBonus - tier1.tokenBonus) / 1000)
-    );
-    rewardAmountK = tokenDeltaK;
-
-    freeUsage = {
-      quota,
-      spent,
-      remaining,
-      quotaBonusK: emailVerified ? null : tokenDeltaK || null,
-    };
-
-    if (!emailVerified) {
-      const imageDelta = Math.max(0, tier3.imageBonus - tier1.imageBonus);
-      const videoDelta = Math.max(0, tier3.videoBonus - tier1.videoBonus);
-      const searchDelta = Math.max(0, tier3.searchQuota - tier1.searchQuota);
-      freeBonuses = {
-        webSearch: searchDelta > 0 ? searchDelta : null,
-        imageGeneration: imageDelta > 0 ? imageDelta : null,
-        videoGeneration: videoDelta > 0 ? "static" : null,
-      };
-    }
-  }
-
   const dimmedCards = state === "cancelled" || state === "past_due";
 
   return (
@@ -179,29 +195,29 @@ export default async function SubscriptionPage() {
       <SubscriptionTopNav state={state} />
       <main className={styles.body}>
         <SubscriptionHeader
-          periodEnd={subscription?.currentPeriodEnd ?? null}
-          periodStart={subscription?.currentPeriodStart ?? null}
+          periodEnd={subscriptionRow?.currentPeriodEnd ?? null}
+          periodStart={subscriptionRow?.currentPeriodStart ?? null}
           state={state}
           trialDaysLeft={trialDaysLeft}
         />
 
         <StatusBanner
-          cancelCurrentPeriodEnd={subscription?.currentPeriodEnd ?? null}
-          cancelEndDate={subscription?.currentPeriodEnd ?? null}
-          pastDueCardMask={subscription?.cardMask ?? null}
+          cancelCurrentPeriodEnd={subscriptionRow?.currentPeriodEnd ?? null}
+          cancelEndDate={subscriptionRow?.currentPeriodEnd ?? null}
+          pastDueCardMask={subscriptionRow?.cardMask ?? null}
           pastDuePriceLabel={formattedPrice}
           pastDueRetryIn={pastDueRetryIn}
           state={state}
-          trialChargingStartDate={subscription?.trialEndsAt ?? null}
+          trialChargingStartDate={subscriptionRow?.trialEndsAt ?? null}
           trialDaysLeft={trialDaysLeft}
-          trialPlanName={plan?.displayName ?? plan?.name ?? ""}
+          trialPlanName={planDisplayName}
           trialPriceLabel={formattedPrice}
         />
 
         <div className={styles.grid}>
           <UsageGaugeCard
+            balance={balanceData}
             dimmed={dimmedCards}
-            freeUsage={freeUsage}
             state={state}
           />
 
@@ -209,7 +225,7 @@ export default async function SubscriptionPage() {
             <FreePlanCard
               email={session.user.email ?? ""}
               emailVerified={emailVerified}
-              rewardAmountK={rewardAmountK}
+              rewardAmountK={0}
             />
           ) : (
             planCardData && (
@@ -221,14 +237,10 @@ export default async function SubscriptionPage() {
             )
           )}
 
-          <PeriodLimitsCard
-            dimmed={dimmedCards}
-            freeBonuses={freeBonuses}
-            state={state}
-          />
-
-          {state === "active" && subscription?.currentPeriodEnd && (
-            <DangerZoneStrip currentPeriodEnd={subscription.currentPeriodEnd} />
+          {state === "active" && subscriptionRow?.currentPeriodEnd && (
+            <DangerZoneStrip
+              currentPeriodEnd={subscriptionRow.currentPeriodEnd}
+            />
           )}
         </div>
       </main>
