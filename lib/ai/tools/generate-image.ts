@@ -1,20 +1,8 @@
-import { put } from "@vercel/blob";
 import { streamText, tool } from "ai";
 import z from "zod/v4";
 import { saveDocument } from "../../db/query/document/save-document";
 import { generateUUID } from "../../utils";
-
-async function uploadGeneratedImage(
-  base64Data: string,
-  mediaType: string
-): Promise<string> {
-  const buffer = Buffer.from(base64Data, "base64");
-  const extension = mediaType.split("/").at(1) ?? "png";
-  const filename = `generated-${generateUUID()}.${extension}`;
-
-  const { url } = await put(filename, buffer, { access: "public" });
-  return url;
-}
+import { uploadGeneratedImage } from "../media-upload";
 
 type ImageUsageMetadata = {
   promptTokenCount?: number;

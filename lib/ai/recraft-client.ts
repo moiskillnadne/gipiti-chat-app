@@ -32,6 +32,9 @@ export async function generateRecraftImage(
     }),
   });
 
+  console.log("generateRecraftImage result");
+  console.dir(result, { depth: null });
+
   const image = result.image;
   if (!image) {
     throw new Error("Recraft did not return an image");
@@ -39,6 +42,9 @@ export async function generateRecraftImage(
 
   // Extract usage metadata
   const imgUsage = result.usage;
+
+  console.log("generateRecraftImage imgUsage");
+  console.dir(imgUsage, { depth: null });
 
   // Extract cost from provider metadata
   const provMeta = result.providerMetadata;

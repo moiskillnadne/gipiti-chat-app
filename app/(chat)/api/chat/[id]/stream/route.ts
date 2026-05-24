@@ -7,7 +7,7 @@ import { getStreamIdsByChatId } from "@/lib/db/query/chat/get-stream-ids-by-chat
 import type { Chat } from "@/lib/db/schema";
 import { ChatSDKError } from "@/lib/errors";
 import type { ChatMessage } from "@/lib/types";
-import { getStreamContext } from "../../route";
+import { getStreamContext } from "../../_lib/stream-context";
 
 export async function GET(
   _: Request,
