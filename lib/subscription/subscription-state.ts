@@ -1,3 +1,4 @@
+import { LOW_BALANCE_THRESHOLD_MINOR } from "@/lib/billing/constants";
 import type { UserSubscription } from "@/lib/db/schema";
 
 export type SubscriptionUiState =
@@ -47,4 +48,38 @@ export function deriveSubscriptionUiState({
   }
 
   return "active";
+}
+
+/**
+ * The 7 states the balance-first dashboard renders. Extends the 5 subscription
+ * states with a low-balance warning and a free-tier split by remaining balance.
+ */
+export type BalanceViewState =
+  | "active"
+  | "low"
+  | "trial"
+  | "cancelled"
+  | "past_due"
+  | "free_with_balance"
+  | "free_zero";
+
+/**
+ * Layer the user's balance on top of the subscription state. Free users (no
+ * subscription) split by whether any spendable balance remains; active
+ * subscribers below the low-balance threshold surface a warning state.
+ */
+export function deriveBalanceViewState({
+  uiState,
+  balanceTotal,
+}: {
+  uiState: SubscriptionUiState;
+  balanceTotal: number;
+}): BalanceViewState {
+  if (uiState === "none") {
+    return balanceTotal > 0 ? "free_with_balance" : "free_zero";
+  }
+  if (uiState === "active" && balanceTotal < LOW_BALANCE_THRESHOLD_MINOR) {
+    return "low";
+  }
+  return uiState;
 }

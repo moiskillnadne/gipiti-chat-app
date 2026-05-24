@@ -52,6 +52,16 @@ export function formatRuDayMonth(date: Date): string {
   return RU_DATE_DAY_MONTH.format(date);
 }
 
+const RU_DATE_DAY_MONTH_SHORT = new Intl.DateTimeFormat("ru-RU", {
+  day: "numeric",
+  month: "short",
+});
+
+/** Compact uppercase day + month for tags, e.g. "1 ИЮН". */
+export function formatRuDayMonthShort(date: Date): string {
+  return RU_DATE_DAY_MONTH_SHORT.format(date).replace(".", "").toUpperCase();
+}
+
 export type RuPluralForms = readonly [string, string, string];
 
 export function pluralRu(n: number, forms: RuPluralForms): string {

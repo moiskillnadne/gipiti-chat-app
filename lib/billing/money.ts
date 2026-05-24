@@ -55,3 +55,44 @@ export function formatCurrency(
     return `${major.toFixed(minorUnits)} ${currencyCode}`;
   }
 }
+
+/**
+ * The currency symbol for a code (₽, $, ₸, …) via Intl, falling back to the
+ * code itself when the runtime can't resolve it.
+ */
+export function currencySymbol(currencyCode: string): string {
+  try {
+    const parts = new Intl.NumberFormat("ru-RU", {
+      style: "currency",
+      currency: currencyCode,
+    }).formatToParts(0);
+    return (
+      parts.find((part) => part.type === "currency")?.value ?? currencyCode
+    );
+  } catch {
+    return currencyCode;
+  }
+}
+
+export type SplitMoney = {
+  sign: string;
+  whole: string;
+  frac: string;
+};
+
+/**
+ * Split a minor-unit amount into sign / grouped whole part / fractional part so
+ * the balance hero can render the fraction at a smaller size. ru-RU grouping
+ * (spaces). Integer math only — no float-rounding surprises.
+ */
+export function splitMoney(minorAmount: number, minorUnits = 2): SplitMoney {
+  const negative = minorAmount < 0;
+  const absMinor = Math.abs(Math.trunc(minorAmount));
+  const factor = 10 ** minorUnits;
+  const whole = Math.floor(absMinor / factor);
+  const fracValue = absMinor % factor;
+  const wholeStr = whole.toLocaleString("ru-RU").replace(/ /g, " ");
+  const frac =
+    minorUnits > 0 ? String(fracValue).padStart(minorUnits, "0") : "";
+  return { sign: negative ? "−" : "", whole: wholeStr, frac };
+}

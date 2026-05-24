@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { getTranslations } from "@/lib/i18n/translate";
-import type { SubscriptionUiState } from "@/lib/subscription/subscription-state";
+import type { BalanceViewState } from "@/lib/subscription/subscription-state";
 import styles from "./dashboard.module.css";
 import { ArrowLeftIcon } from "./icons";
 import { StatusPill } from "./status-pill";
 
 type SubscriptionTopNavProps = {
-  state: SubscriptionUiState;
+  state: BalanceViewState;
 };
 
 export async function SubscriptionTopNav({ state }: SubscriptionTopNavProps) {

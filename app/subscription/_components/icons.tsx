@@ -232,3 +232,73 @@ export function ArrowRightIcon(props: IconProps) {
     </svg>
   );
 }
+
+export function InfinityIcon(props: IconProps) {
+  return (
+    <svg
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={1.8}
+      viewBox="0 0 24 24"
+      {...props}
+    >
+      <title>{props["aria-label"] ?? "Never expires"}</title>
+      <path d="M6 12c0-2.2 1.8-4 4-4 1.5 0 2.6 1 3.6 2.4l.8 1.2c1 1.4 2.1 2.4 3.6 2.4 2.2 0 4-1.8 4-4s-1.8-4-4-4c-1.5 0-2.6 1-3.6 2.4l-.8 1.2C12.6 11 11.5 12 10 12c-2.2 0-4 1.8-4 4s1.8 4 4 4c1.5 0 2.6-1 3.6-2.4" />
+    </svg>
+  );
+}
+
+export function BoltIcon(props: IconProps) {
+  return (
+    <svg
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={1.8}
+      viewBox="0 0 24 24"
+      {...props}
+    >
+      <title>{props["aria-label"] ?? "Power"}</title>
+      <path d="M13 2 4 14h7l-1 8 9-12h-7z" />
+    </svg>
+  );
+}
+
+export function CardIcon(props: IconProps) {
+  return (
+    <svg
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={1.8}
+      viewBox="0 0 24 24"
+      {...props}
+    >
+      <title>{props["aria-label"] ?? "Card"}</title>
+      <rect height={14} rx={2} width={18} x={3} y={5} />
+      <path d="M3 10h18" />
+    </svg>
+  );
+}
+
+export function InfoIcon(props: IconProps) {
+  return (
+    <svg
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={1.8}
+      viewBox="0 0 24 24"
+      {...props}
+    >
+      <title>{props["aria-label"] ?? "Info"}</title>
+      <circle cx={12} cy={12} r={10} />
+      <path d="M12 16v-4M12 8h.01" />
+    </svg>
+  );
+}

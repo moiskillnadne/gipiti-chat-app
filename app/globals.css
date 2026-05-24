@@ -40,6 +40,10 @@
   --danger: oklch(0.58 0.18 25);
   --danger-soft: oklch(0.94 0.05 25);
 
+  /* Color · top-up pool (persistent balance — never resets) */
+  --topup: oklch(0.58 0.14 220);
+  --topup-soft: oklch(0.94 0.04 220);
+
   /* Card surfaces */
   --card-bg: #ffffff;
   --card-sunk: #fafaf9;
@@ -57,6 +61,10 @@
   --d-fast: 160ms;
   --d-base: 240ms;
   --d-slow: 400ms;
+
+  /* Display/serif face for the balance hero. Fraunces covers Latin + digits
+     (the hero number); Cyrillic falls back to Rubik. */
+  --font-display: var(--font-fraunces), var(--font-rubik), Georgia, serif;
 
   /* shadcn semantic mapping (subtle-hover semantics preserved on --accent) */
   --background: var(--paper);
@@ -174,6 +182,8 @@
   --color-warn-soft: var(--warn-soft);
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
+  --color-topup: var(--topup);
+  --color-topup-soft: var(--topup-soft);
   --color-card-sunk: var(--card-sunk);
   --color-model-claude: var(--model-claude);
   --color-model-gpt: var(--model-gpt);

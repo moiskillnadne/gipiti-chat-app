@@ -1,46 +1,56 @@
 import { getTranslations } from "@/lib/i18n/translate";
-import type { SubscriptionUiState } from "@/lib/subscription/subscription-state";
+import type { BalanceViewState } from "@/lib/subscription/subscription-state";
 import {
   formatBillingCycle,
   formatRuDate,
   pluralRu,
+  type RuPluralForms,
 } from "@/lib/utils/format-billing";
 import styles from "./dashboard.module.css";
 
+const DAY_FORMS: RuPluralForms = ["день", "дня", "дней"];
+
+const FREE_STATES = new Set<BalanceViewState>([
+  "free_with_balance",
+  "free_zero",
+]);
+
 type SubscriptionHeaderProps = {
-  state: SubscriptionUiState;
+  state: BalanceViewState;
   periodStart: Date | null;
   periodEnd: Date | null;
   trialDaysLeft: number;
+  pastDueRetryIn: string | null;
 };
-
-const DAY_FORMS = ["день", "дня", "дней"] as const;
 
 export async function SubscriptionHeader({
   state,
   periodStart,
   periodEnd,
   trialDaysLeft,
+  pastDueRetryIn,
 }: SubscriptionHeaderProps) {
-  const t = await getTranslations("auth.subscription.dashboard");
-  const showCycle = state !== "none";
-  const titleSuffix = t("titleSuffix.overview");
-  const lede = state === "none" ? t("lede.free") : t("lede.overview");
+  const t = await getTranslations("auth.subscription.balance.header");
+  const isFree = FREE_STATES.has(state);
 
   let cycleLabel: string | null = null;
   let cycleValue: string | null = null;
 
   if (state === "trial") {
-    cycleLabel = t("cycle.trialLabel");
-    cycleValue = t("cycle.trialDaysValue", {
-      days: trialDaysLeft,
-      dayWord: pluralRu(trialDaysLeft, DAY_FORMS),
-    });
+    cycleLabel = t("cycle.trial");
+    cycleValue = `${trialDaysLeft} ${pluralRu(trialDaysLeft, DAY_FORMS)}`;
   } else if (state === "cancelled" && periodEnd) {
-    cycleLabel = t("cycle.cancelledLabel");
+    cycleLabel = t("cycle.cancelled");
     cycleValue = formatRuDate(periodEnd);
-  } else if (periodStart && periodEnd) {
-    cycleLabel = t("cycle.label");
+  } else if (state === "past_due") {
+    cycleLabel = t("cycle.pastDue");
+    cycleValue = pastDueRetryIn ?? t("cycle.soon");
+  } else if (
+    (state === "active" || state === "low") &&
+    periodStart &&
+    periodEnd
+  ) {
+    cycleLabel = t("cycle.period");
     cycleValue = formatBillingCycle(periodStart, periodEnd);
   }
 
@@ -49,11 +59,11 @@ export async function SubscriptionHeader({
       <div>
         <h1 className={styles.headTitle}>
           {t("title")}
-          <em>{titleSuffix}</em>
+          <em>{isFree ? t("emFree") : t("emPaid")}</em>
         </h1>
-        <p className={styles.headLede}>{lede}</p>
+        <p className={styles.headLede}>{t(`sub.${state}`)}</p>
       </div>
-      {showCycle && cycleLabel && cycleValue && (
+      {cycleLabel && cycleValue && (
         <div className={styles.cycle}>
           {cycleLabel}
           <b>{cycleValue}</b>
