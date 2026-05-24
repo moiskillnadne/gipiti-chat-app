@@ -1,5 +1,7 @@
-import { uploadGeneratedImage } from "@/lib/ai/media-upload";
-import { generateImageGenerationId } from "@/lib/ai/openai-client";
+import {
+  generateImageGenerationId,
+  uploadGeneratedImage,
+} from "@/lib/ai/media-upload";
 import { saveDocument } from "@/lib/db/query/document/save-document";
 import { ChatSDKError } from "@/lib/errors";
 import { generateUUID } from "@/lib/utils";

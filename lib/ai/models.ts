@@ -623,6 +623,19 @@ export const getDedicatedImageGatewayModelId = (modelId: string): string => {
   return gatewayId;
 };
 
+/** Gateway model id backing the OpenAI gpt-image generation/edit flow. */
+export const OPENAI_IMAGE_GATEWAY_MODEL_ID = "openai/gpt-image-1.5";
+
+/**
+ * OpenAI's gpt-image model. Unlike dedicated image models it also advertises
+ * `reasoning` + `attachments` (to enable the image-edit upload flow in the UI),
+ * so it needs its own predicate rather than being matched by
+ * `isDedicatedImageModel`. It is generated via `generateImage()` +
+ * `gateway.imageModel()`, supporting both text-to-image and edit modes.
+ */
+export const isOpenAIImageModel = (modelId: string): boolean =>
+  modelId === "gpt-image-1.5";
+
 type VideoModelId = "veo-3.1" | "veo-3.1-fast" | "grok-imagine-video";
 
 const VIDEO_GATEWAY_MODEL_MAP: Record<VideoModelId, string> = {

@@ -1,22 +1,18 @@
 import { gateway } from "@ai-sdk/gateway";
-import type { SharedV2ProviderOptions } from "@ai-sdk/provider";
+import { APICallError, type SharedV2ProviderOptions } from "@ai-sdk/provider";
 import {
   convertToModelMessages,
   generateImage as sdkGenerateImage,
   streamText,
 } from "ai";
-import OpenAI from "openai";
+import { generateImageGenerationId } from "@/lib/ai/media-upload";
 import {
   getDedicatedImageGatewayModelId,
   getModelById,
   isDedicatedImageModel,
+  isOpenAIImageModel,
+  OPENAI_IMAGE_GATEWAY_MODEL_ID,
 } from "@/lib/ai/models";
-import {
-  downloadImageAsFile,
-  generateImageGenerationId,
-  isDirectOpenAIModel,
-  openaiClient,
-} from "@/lib/ai/openai-client";
 import { myProvider } from "@/lib/ai/providers";
 import { generateRecraftImage, isRecraftModel } from "@/lib/ai/recraft-client";
 import { getDocumentById } from "@/lib/db/query/document/get-document-by-id";
@@ -25,9 +21,18 @@ import type { ImageGenResult, ImageProvider } from "./types";
 
 const DEFAULT_IMAGE_MEDIA_TYPE = "image/png";
 
-type OpenAIImageSize = "auto" | "1024x1024" | "1536x1024" | "1024x1536";
-type OpenAIEditSize = "1024x1024" | "1536x1024" | "1024x1536";
-type OpenAIImageQuality = "auto" | "low" | "medium" | "high";
+/** The edit endpoint requires a concrete size; "auto" is not accepted. */
+const OPENAI_EDIT_DEFAULT_SIZE = "1024x1024";
+
+/** Download a previously generated image as raw bytes for edit input. */
+async function fetchImageBytes(url: string): Promise<Uint8Array> {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to download image: ${response.statusText}`);
+  }
+  const arrayBuffer = await response.arrayBuffer();
+  return new Uint8Array(arrayBuffer);
+}
 
 async function resolvePreviousImageUrl(
   previousGenerationId: string | undefined
@@ -47,7 +52,12 @@ async function resolvePreviousImageUrl(
   return;
 }
 
-/** gpt-image-1.5 via the OpenAI SDK directly (supports edit mode). */
+/**
+ * gpt-image-1.5 via gateway.imageModel(). Supports text-to-image and edit mode
+ * (input image forwarded through generateImage's prompt object). Cost is read
+ * from the gateway provider metadata, unlike the prior direct-SDK path which
+ * could not report image usage.
+ */
 const openaiImageProvider: ImageProvider = async ({
   prompt,
   settings,
@@ -55,61 +65,62 @@ const openaiImageProvider: ImageProvider = async ({
   onReasoning,
 }): Promise<ImageGenResult> => {
   const previousImageUrl = await resolvePreviousImageUrl(previousGenerationId);
+  const isEdit = Boolean(previousImageUrl);
   onReasoning(
-    previousImageUrl
-      ? "Editing image with OpenAI..."
-      : "Generating image with OpenAI..."
+    isEdit ? "Editing image with OpenAI..." : "Generating image with OpenAI..."
   );
 
-  try {
-    let response: OpenAI.Images.ImagesResponse;
+  // For OpenAI the aspectRatio setting holds a concrete size string
+  // ("1024x1024" | "1536x1024" | "1024x1536") or "auto". Map it to `size`;
+  // the edit path requires a concrete size, so fall back to the square default.
+  const requestedSize =
+    settings?.aspectRatio && settings.aspectRatio !== "auto"
+      ? settings.aspectRatio
+      : undefined;
+  const size = isEdit
+    ? (requestedSize ?? OPENAI_EDIT_DEFAULT_SIZE)
+    : requestedSize;
 
-    if (previousImageUrl) {
-      const imageFile = await downloadImageAsFile(previousImageUrl);
-      // The edit API does not support an "auto" size.
-      const editSize: OpenAIEditSize =
-        settings?.aspectRatio && settings.aspectRatio !== "auto"
-          ? (settings.aspectRatio as OpenAIEditSize)
-          : "1024x1024";
-      response = await openaiClient.images.edit({
-        model: "gpt-image-1",
-        image: imageFile,
-        prompt,
-        size: editSize,
-        n: 1,
-      });
-    } else {
-      const genSize = (settings?.aspectRatio ?? "auto") as OpenAIImageSize;
-      const genQuality = (settings?.quality ?? "auto") as OpenAIImageQuality;
-      response = await openaiClient.images.generate({
-        model: "gpt-image-1.5",
-        prompt,
-        size: genSize,
-        quality: genQuality,
-        n: 1,
-      });
-    }
+  // Quality is a provider-specific option ("auto" | "low" | "medium" | "high").
+  const providerOptions: SharedV2ProviderOptions | undefined = settings?.quality
+    ? { openai: { quality: settings.quality } }
+    : undefined;
+
+  try {
+    const generationPrompt = previousImageUrl
+      ? { images: [await fetchImageBytes(previousImageUrl)], text: prompt }
+      : prompt;
+
+    const result = await sdkGenerateImage({
+      model: gateway.imageModel(OPENAI_IMAGE_GATEWAY_MODEL_ID),
+      prompt: generationPrompt,
+      ...(size && { size: size as `${number}x${number}` }),
+      ...(providerOptions && { providerOptions }),
+    });
+
+    const gatewayCost = (
+      result.providerMetadata?.gateway as Record<string, unknown> | undefined
+    )?.cost;
 
     return {
-      base64: response.data?.[0]?.b64_json,
-      mediaType: DEFAULT_IMAGE_MEDIA_TYPE,
-      // OpenAI does not return token counts for images.
+      base64: result.image?.base64,
+      mediaType: result.image?.mediaType ?? DEFAULT_IMAGE_MEDIA_TYPE,
       usageMetadata: {
-        promptTokenCount: 0,
-        candidatesTokenCount: 0,
+        promptTokenCount: result.usage.inputTokens ?? 0,
+        candidatesTokenCount: result.usage.outputTokens ?? 0,
         thoughtsTokenCount: 0,
-        totalTokenCount: 0,
+        totalTokenCount: result.usage.totalTokens ?? 0,
       },
-      costUsd: 0,
+      costUsd: gatewayCost == null ? 0 : Number.parseFloat(String(gatewayCost)),
       responseId: generateImageGenerationId(),
     };
   } catch (error) {
-    if (error instanceof OpenAI.APIError) {
-      console.error("OpenAI API Error:", error);
-      if (error.status === 400) {
+    if (APICallError.isInstance(error)) {
+      console.error("OpenAI image generation error:", error);
+      if (error.statusCode === 400) {
         throw new ChatSDKError("bad_request:api");
       }
-      if (error.status === 429) {
+      if (error.statusCode === 429) {
         throw new ChatSDKError("rate_limit:chat");
       }
     }
@@ -267,7 +278,7 @@ const multimodalImageProvider: ImageProvider = async ({
 
 /** Pick the image provider for a model id. */
 export function resolveImageProvider(modelId: string): ImageProvider {
-  if (isDirectOpenAIModel(modelId)) {
+  if (isOpenAIImageModel(modelId)) {
     return openaiImageProvider;
   }
   if (isRecraftModel(modelId)) {

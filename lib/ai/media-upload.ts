@@ -18,6 +18,13 @@ export async function uploadGeneratedImage(
 }
 
 /**
+ * Generate a unique id for tracking an image generation/edit chain.
+ */
+export function generateImageGenerationId(): string {
+  return `img_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+}
+
+/**
  * Upload raw video bytes to Vercel Blob as an mp4 and return its public URL.
  */
 export async function uploadGeneratedVideo(
