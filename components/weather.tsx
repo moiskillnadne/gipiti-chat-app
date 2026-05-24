@@ -1,6 +1,6 @@
 "use client";
 
-import cx from "classnames";
+import { clsx } from "clsx";
 import { format, isWithinInterval } from "date-fns";
 import { useEffect, useState } from "react";
 
@@ -329,7 +329,7 @@ export function Weather({
 
   return (
     <div
-      className={cx(
+      className={clsx(
         "relative flex w-full flex-col gap-6 overflow-hidden rounded-3xl p-6 shadow-lg backdrop-blur-sm",
         {
           "bg-gradient-to-br from-sky-400 via-blue-500 to-blue-600": isDay,
@@ -353,7 +353,7 @@ export function Weather({
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div
-              className={cx("text-white/90", {
+              className={clsx("text-white/90", {
                 "text-yellow-200": isDay,
                 "text-blue-200": !isDay,
               })}
@@ -388,7 +388,7 @@ export function Weather({
 
               return (
                 <div
-                  className={cx(
+                  className={clsx(
                     "flex min-w-0 flex-1 flex-col items-center gap-2 rounded-lg px-1 py-2",
                     {
                       "bg-white/20": isCurrentHour,
@@ -401,7 +401,7 @@ export function Weather({
                   </div>
 
                   <div
-                    className={cx("text-white/60", {
+                    className={clsx("text-white/60", {
                       "text-yellow-200": isDay,
                       "text-blue-200": !isDay,
                     })}
