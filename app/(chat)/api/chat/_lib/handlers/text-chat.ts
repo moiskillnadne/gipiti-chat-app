@@ -3,7 +3,6 @@ import {
   getProviderOptions,
   isAutoReasoning,
   isReasoningModelId,
-  supportsAttachments,
   supportsThinkingConfig,
 } from "@/lib/ai/models";
 import { systemPrompt } from "@/lib/ai/prompts";
@@ -11,7 +10,6 @@ import { myProvider } from "@/lib/ai/providers";
 import { calculator } from "@/lib/ai/tools/calculator";
 import { extractUrl } from "@/lib/ai/tools/extract-url";
 import { generateImage } from "@/lib/ai/tools/generate-image";
-import { getWeather } from "@/lib/ai/tools/get-weather";
 import { webSearch } from "@/lib/ai/tools/web-search";
 import { isProductionEnvironment } from "@/lib/constants";
 import { chargeUsageSafe } from "../charge";
@@ -34,8 +32,6 @@ export async function runTextChat(
   const { model, thinkingSetting, stepLimit } = ctx;
 
   const providerOptions = getProviderOptions(model, thinkingSetting);
-  const toolsDisabled =
-    isReasoningModelId(model) && !supportsAttachments(model);
 
   const isThinkingEnabled =
     supportsThinkingConfig(model) &&
@@ -59,16 +55,6 @@ export async function runTextChat(
         reasoningEffort: thinkingSetting.value,
       }),
     providerOptions,
-    experimental_activeTools: toolsDisabled
-      ? []
-      : [
-          "calculator",
-          "getWeather",
-          ...(ctx.webSearchEnabled
-            ? (["webSearch", "extractUrl"] as const)
-            : []),
-          "generateImage",
-        ],
     prepareStep: ({ steps, stepNumber, messages }) => {
       // On the second-to-last step with no text yet, disable tools and nudge
       // the model toward a final answer.
@@ -90,7 +76,6 @@ export async function runTextChat(
     },
     tools: {
       calculator,
-      getWeather,
       webSearch: webSearch({ session: ctx.session, chatId: ctx.chatId }),
       extractUrl: extractUrl({ session: ctx.session, chatId: ctx.chatId }),
       generateImage: generateImage({

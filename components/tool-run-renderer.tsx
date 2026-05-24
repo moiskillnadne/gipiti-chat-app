@@ -22,7 +22,6 @@ import {
   ToolRunStep,
 } from "./elements/tool-run";
 import { toast } from "./toast";
-import { Weather } from "./weather";
 
 type ChatMessagePart = ChatMessage["parts"][number];
 type AnyPart = ChatMessagePart;
@@ -128,25 +127,6 @@ const sourcesFromExtractUrl = (
     }
   }
   return [...seen.values()];
-};
-
-const formatLocationFromInput = (
-  // biome-ignore lint/suspicious/noExplicitAny: weather input type
-  input: any
-): string => {
-  if (!input) {
-    return "";
-  }
-  if (typeof input.city === "string" && input.city.trim()) {
-    return input.city.trim();
-  }
-  if (
-    typeof input.latitude === "number" &&
-    typeof input.longitude === "number"
-  ) {
-    return `${input.latitude.toFixed(2)}, ${input.longitude.toFixed(2)}`;
-  }
-  return "";
 };
 
 const TICK_MS = 1000;
@@ -328,26 +308,6 @@ const buildStep = ({
             </code>
             {error && (
               <span className="ml-2 text-destructive">{String(error)}</span>
-            )}
-          </>
-        ),
-      };
-    }
-    case "tool-getWeather": {
-      const location = formatLocationFromInput(toolPart.input);
-      return {
-        key,
-        kind: "weather",
-        isActive,
-        hasSources: 0,
-        verbKey: "weather",
-        body: (
-          <>
-            {location && <span className="text-ink">{location}</span>}
-            {state === "output-available" && toolPart.output && (
-              <StepBody>
-                <Weather weatherAtLocation={toolPart.output} />
-              </StepBody>
             )}
           </>
         ),
