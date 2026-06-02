@@ -1,30 +1,64 @@
 import type { LanguageModelUsage } from "ai";
-import { unstable_cache as cache } from "next/cache";
 import type { ModelCatalog } from "tokenlens/core";
 import { fetchModels } from "tokenlens/fetch";
 import { getUsage } from "tokenlens/helpers";
 import type { ImageGenerationUsageAccumulator } from "@/lib/ai/tools/generate-image";
 import type { AppUsage } from "@/lib/usage";
 
+const CATALOG_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+// Module-scoped in-memory cache shared across requests on the same instance.
+// The catalog (~2.4MB from models.dev) exceeds the 2MB per-entry limit of the
+// Next.js data cache (`unstable_cache`/`use cache`), so it cannot be persisted
+// there — attempting to do so throws "items over 2MB can not be cached" and
+// breaks the onFinish charging flow. An in-memory cache sidesteps that limit.
+let cachedCatalog: ModelCatalog | undefined;
+let catalogFetchedAt = 0;
+let inflightCatalogFetch: Promise<ModelCatalog | undefined> | undefined;
+
 /**
- * Fetch the TokenLens model catalog (cached 24h). Returns undefined on failure
- * so TokenLens helpers fall back to their bundled default catalog.
+ * Fetch the catalog from the network and refresh the module-scoped cache. On
+ * failure, the last successful catalog is served (or undefined if none yet) so
+ * tokenlens helpers fall back to their bundled defaultCatalog.
  */
-export const getTokenlensCatalog = cache(
-  async (): Promise<ModelCatalog | undefined> => {
-    try {
-      return await fetchModels();
-    } catch (err) {
-      console.warn(
-        "TokenLens: catalog fetch failed, using default catalog",
-        err
-      );
-      return; // tokenlens helpers will fall back to defaultCatalog
-    }
-  },
-  ["tokenlens-catalog"],
-  { revalidate: 24 * 60 * 60 } // 24 hours
-);
+async function fetchAndCacheCatalog(): Promise<ModelCatalog | undefined> {
+  try {
+    const catalog = await fetchModels();
+    cachedCatalog = catalog;
+    catalogFetchedAt = Date.now();
+    return catalog;
+  } catch (err) {
+    console.warn(
+      "TokenLens: catalog fetch failed, using cached or default catalog",
+      err
+    );
+    return cachedCatalog;
+  } finally {
+    inflightCatalogFetch = undefined;
+  }
+}
+
+/**
+ * Fetch the TokenLens model catalog (cached 24h in memory). Concurrent refreshes
+ * are coalesced into a single network call, and a stale catalog is served if a
+ * refresh fails. Returns undefined only when no catalog has ever been fetched
+ * successfully, so TokenLens helpers fall back to their bundled default catalog.
+ */
+export async function getTokenlensCatalog(): Promise<ModelCatalog | undefined> {
+  const isFresh =
+    cachedCatalog !== undefined &&
+    Date.now() - catalogFetchedAt < CATALOG_TTL_MS;
+
+  if (isFresh) {
+    return cachedCatalog;
+  }
+
+  if (!inflightCatalogFetch) {
+    inflightCatalogFetch = fetchAndCacheCatalog();
+  }
+
+  return await inflightCatalogFetch;
+}
 
 type MergeUsageInput = {
   usage: LanguageModelUsage;
@@ -81,5 +115,12 @@ export function mergeUsage({
  * Matches the previous inline charge computation exactly.
  */
 export function usageChargeUsd(usage: AppUsage): number {
-  return (usage.inputCost ?? 0) + (usage.outputCost ?? 0);
+  const totalUSD = usage.costUSD?.totalUSD;
+
+  if (!totalUSD) {
+    console.warn("[ALARM-USAGE]No totalUSD found in usage", usage);
+    return 0;
+  }
+
+  return totalUSD;
 }

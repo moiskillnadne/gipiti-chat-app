@@ -101,6 +101,8 @@ export async function runTextChat(
         ctx.lastUsage.value = merged;
         writer.write({ type: "data-usage", data: merged });
 
+        console.info("------TOTAL USAGE", usageChargeUsd(merged));
+
         // Charge only when usage was priced (resolved model + catalog present).
         if (resolvedModelId && catalog) {
           await chargeUsageSafe({
@@ -109,6 +111,12 @@ export async function runTextChat(
             modelId: resolvedModelId,
             chatId: ctx.chatId,
             description: "Chat completion",
+          });
+        } else {
+          console.warn("[ALARM-USAGE]No resolvedModelId or catalog found", {
+            resolvedModelId,
+            catalog,
+            usage,
           });
         }
       } catch (err) {
