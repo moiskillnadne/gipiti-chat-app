@@ -1347,6 +1347,52 @@
   color: var(--citrus-deep);
 }
 
+/* Reward / promo banner — invites an action for a bonus (success palette). */
+.bannerReward {
+  background: var(--success-soft);
+  border: 1px solid color-mix(in oklch, var(--success) 32%, transparent);
+  color: var(--ink);
+}
+
+.rewardGift {
+  align-items: center;
+  background: var(--success);
+  border-radius: 50%;
+  color: #fff;
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+
+.rewardGift svg {
+  height: 17px;
+  width: 17px;
+}
+
+.bannerReward .bannerBody b {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.rewardAmount {
+  color: var(--success);
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+.btnReward {
+  background: var(--success);
+  color: #fff;
+}
+
+.btnReward:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
 .histList {
   display: flex;
   flex-direction: column;

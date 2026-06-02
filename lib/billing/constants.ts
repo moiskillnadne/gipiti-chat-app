@@ -12,6 +12,11 @@ export const DEFAULT_CURRENCY_CODE = "RUB";
 // it never resets on renewal.
 export const WELCOME_GRANT_MAJOR_UNITS = 100;
 
+// One-time bonus granted when a user confirms their email, expressed in MAJOR
+// units of the default currency (e.g. 50 RUB). Surfaced by the reward banner on
+// the subscription dashboard; credited to the persistent top-up pool.
+export const EMAIL_CONFIRM_BONUS_MAJOR_UNITS = 50;
+
 // Below this balance (minor units of the user's currency) an active
 // subscriber is shown the "low balance" warning state on the dashboard.
 // ~75 RUB by default; purely a UI cue, not an enforcement threshold.

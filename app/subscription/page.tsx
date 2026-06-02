@@ -2,7 +2,10 @@ import { desc, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { auth } from "@/app/(auth)/auth";
 import { getBalance } from "@/lib/billing/balance";
-import { WELCOME_GRANT_MAJOR_UNITS } from "@/lib/billing/constants";
+import {
+  EMAIL_CONFIRM_BONUS_MAJOR_UNITS,
+  WELCOME_GRANT_MAJOR_UNITS,
+} from "@/lib/billing/constants";
 import { getMinorUnits } from "@/lib/billing/currencies";
 import { formatCurrency, majorToMinorUnits } from "@/lib/billing/money";
 import { getChatSpendHistory, getRecentSpendMinor } from "@/lib/billing/spend";
@@ -27,6 +30,7 @@ import { BalanceHero } from "./_components/balance-hero";
 import styles from "./_components/dashboard.module.css";
 import { FreeSideCard } from "./_components/free-side-card";
 import { PlanCard, type PlanCardData } from "./_components/plan-card";
+import { RewardBanner } from "./_components/reward-banner";
 import { StatusBanner } from "./_components/status-banner";
 import { SubscriptionHeader } from "./_components/subscription-header";
 import { SubscriptionTopNav } from "./_components/subscription-top-nav";
@@ -185,6 +189,16 @@ export default async function SubscriptionPage() {
   );
   const dimmed = state === "cancelled" || state === "past_due";
 
+  // Reward banner: invites users who have not confirmed their email to do so
+  // in exchange for a one-time bonus. Hidden once the email is verified.
+  const userEmail = session.user.email ?? null;
+  const showRewardBanner = !session.user.emailVerified && userEmail !== null;
+  const emailBonusAmount = formatCurrency(
+    majorToMinorUnits(EMAIL_CONFIRM_BONUS_MAJOR_UNITS, minorUnits),
+    currencyCode,
+    minorUnits
+  );
+
   return (
     <>
       <SubscriptionTopNav state={state} />
@@ -237,6 +251,10 @@ export default async function SubscriptionPage() {
               <PlanCard data={planCardData} dimmed={dimmed} state={state} />
             )}
           </div>
+
+          {showRewardBanner && userEmail ? (
+            <RewardBanner bonusAmount={emailBonusAmount} email={userEmail} />
+          ) : null}
 
           <TransactionHistoryCard
             chats={chatHistory}
