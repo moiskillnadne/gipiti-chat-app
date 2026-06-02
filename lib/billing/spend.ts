@@ -8,6 +8,7 @@ import { chat, transaction } from "@/lib/db/schema";
 // is a chat completion. See lib/billing/balance.ts + the tool callsites.
 const SEARCH_MODEL_IDS = new Set(["tavily-search", "tavily-extract"]);
 const IMAGE_DESCRIPTION = "Image generation";
+const VIDEO_DESCRIPTION = "Video generation";
 
 // How many recent debit rows to scan when rolling up per-chat spend. The card
 // only shows the few most-recent chats, so a bounded window is plenty.
@@ -28,6 +29,7 @@ export type ChatSpendRow = {
   messages: number;
   searches: number;
   images: number;
+  videos: number;
   totalMinor: number;
   last: Date;
 };
@@ -44,6 +46,7 @@ function createSpendRow(
     messages: 0,
     searches: 0,
     images: 0,
+    videos: 0,
     totalMinor: 0,
     last,
   };
@@ -51,7 +54,7 @@ function createSpendRow(
 
 /**
  * Roll up recent usage debits into per-chat spend: total cost, message/search/
- * image counts, the chat's primary model, and last activity. Most-recent chats
+ * image/video counts, the chat's primary model, and last activity. Most-recent chats
  * first. Built in JS over a bounded recent window (no fragile SQL aggregation).
  */
 export async function getChatSpendHistory(
@@ -94,11 +97,14 @@ export async function getChatSpendHistory(
 
     const isSearch = row.modelId != null && SEARCH_MODEL_IDS.has(row.modelId);
     const isImage = row.description === IMAGE_DESCRIPTION;
+    const isVideo = row.description === VIDEO_DESCRIPTION;
 
     if (isSearch) {
       agg.searches += 1;
     } else if (isImage) {
       agg.images += 1;
+    } else if (isVideo) {
+      agg.videos += 1;
     } else {
       agg.messages += 1;
       // Rows are newest-first, so the first chat model seen is the most recent.

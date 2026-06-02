@@ -6,6 +6,7 @@ import { saveDocument } from "@/lib/db/query/document/save-document";
 import { ChatSDKError } from "@/lib/errors";
 import type { AppUsage } from "@/lib/usage";
 import { generateUUID } from "@/lib/utils";
+import { chargeUsageSafe } from "../charge";
 import type { ChatTurnContext, StreamWriter } from "../context";
 
 const VIDEO_DURATION_SECONDS = 8;
@@ -16,9 +17,8 @@ const IMAGE_TO_VIDEO_MEDIA_TYPES = new Set(["image/jpeg", "image/png"]);
 /**
  * Run a direct video-generation turn: optional image-to-video seeding, a
  * keep-alive heartbeat to hold the connection through the long generation,
- * upload, Document persistence, and a usage event carrying the wall-clock
- * duration. Video provider cost is not yet surfaced by the gateway, so no
- * charge is applied (see the TODO below).
+ * upload, Document persistence, a balance charge for the provider cost read
+ * from gateway metadata, and a usage event carrying the wall-clock duration.
  */
 export async function runVideoGeneration(
   ctx: ChatTurnContext,
@@ -54,6 +54,7 @@ export async function runVideoGeneration(
   }, KEEPALIVE_INTERVAL_MS);
 
   let videoUrl: string | undefined;
+  let costUsd = 0;
   try {
     const gatewayModelId = getVideoGatewayModelId(ctx.model);
     const videoPrompt = referenceImageUrl
@@ -68,6 +69,13 @@ export async function runVideoGeneration(
     });
 
     clearInterval(keepAliveInterval);
+
+    // Read the provider USD cost from gateway metadata, mirroring image
+    // generation (see _lib/image/providers.ts).
+    const gatewayCost = (
+      result.providerMetadata?.gateway as Record<string, unknown> | undefined
+    )?.cost;
+    costUsd = gatewayCost == null ? 0 : Number.parseFloat(String(gatewayCost));
 
     writer.write({
       id: documentId,
@@ -113,9 +121,24 @@ export async function runVideoGeneration(
     generationId: responseId,
   });
 
-  // Video provider cost is not yet surfaced by the gateway response, so no
-  // charge is applied here. TODO(billing): call chargeUsage once the video
-  // provider USD cost is available at this point.
+  if (costUsd <= 0) {
+    console.warn(
+      `Gateway returned no video cost for model "${ctx.model}"; skipping charge`
+    );
+  }
+
+  // Charge the provider USD cost to the user's balance (no-ops when costUsd
+  // is 0). Mirrors the image-generation charge site.
+  await chargeUsageSafe(
+    {
+      userId: ctx.userId,
+      usdCost: costUsd,
+      modelId: ctx.model,
+      chatId: ctx.chatId,
+      description: "Video generation",
+    },
+    "video generation usage"
+  );
 
   const directVideoUsage: AppUsage = {
     modelId: ctx.model,
@@ -123,7 +146,7 @@ export async function runVideoGeneration(
     outputTokens: 0,
     totalTokens: 0,
     inputCost: 0,
-    outputCost: 0,
+    outputCost: costUsd,
     inputTokenDetails: {
       noCacheTokens: undefined,
       cacheReadTokens: undefined,

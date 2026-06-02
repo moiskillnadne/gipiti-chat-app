@@ -9,6 +9,7 @@ import { ArrowRightIcon } from "./icons";
 const MESSAGE_FORMS: RuPluralForms = ["сообщение", "сообщения", "сообщений"];
 const SEARCH_FORMS: RuPluralForms = ["поиск", "поиска", "поисков"];
 const IMAGE_FORMS: RuPluralForms = ["картинка", "картинки", "картинок"];
+const VIDEO_FORMS: RuPluralForms = ["видео", "видео", "видео"];
 
 const DETAILS_HREF = "/subscription/usage";
 
@@ -23,6 +24,9 @@ function buildSubline(chat: ChatSpendRow): string {
   }
   if (chat.images > 0) {
     parts.push(`${chat.images} ${pluralRu(chat.images, IMAGE_FORMS)}`);
+  }
+  if (chat.videos > 0) {
+    parts.push(`${chat.videos} ${pluralRu(chat.videos, VIDEO_FORMS)}`);
   }
   return parts.join(" · ");
 }
