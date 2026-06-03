@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef } from "react";
 import {
   type ResendVerificationActionState,
@@ -10,6 +11,8 @@ import { useTranslations } from "@/lib/i18n/translate";
 import styles from "./dashboard.module.css";
 import { GiftIcon } from "./icons";
 
+const VERIFY_EMAIL_PATH = "/subscription/verify-email";
+
 export type RewardBannerProps = {
   email: string;
   bonusAmount: string;
@@ -19,6 +22,7 @@ const INITIAL_STATE: ResendVerificationActionState = { status: "idle" };
 
 export function RewardBanner({ email, bonusAmount }: RewardBannerProps) {
   const t = useTranslations("auth.subscription.balance.banner.reward");
+  const router = useRouter();
   const [state, formAction, isPending] = useActionState(
     resendVerificationCode,
     INITIAL_STATE
@@ -32,20 +36,17 @@ export function RewardBanner({ email, bonusAmount }: RewardBannerProps) {
     }
     lastHandledStatus.current = state.status;
 
-    if (state.status === "success") {
-      toast({ type: "success", description: t("sent") });
-      return;
-    }
-
-    if (state.status === "rate_limited") {
-      toast({ type: "error", description: t("cooldown") });
+    // The code was just sent (or was sent very recently) — take the user to the
+    // confirmation page where they enter the 6-digit code.
+    if (state.status === "success" || state.status === "rate_limited") {
+      router.push(VERIFY_EMAIL_PATH);
       return;
     }
 
     if (state.status === "failed" || state.status === "invalid_data") {
       toast({ type: "error", description: t("sendError") });
     }
-  }, [state.status, t]);
+  }, [state.status, router, t]);
 
   return (
     <div className={`${styles.banner} ${styles.bannerReward}`}>

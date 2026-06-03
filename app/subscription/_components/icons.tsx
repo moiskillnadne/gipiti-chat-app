@@ -302,3 +302,20 @@ export function InfoIcon(props: IconProps) {
     </svg>
   );
 }
+
+export function XIcon(props: IconProps) {
+  return (
+    <svg
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      viewBox="0 0 24 24"
+      {...props}
+    >
+      <title>{props["aria-label"] ?? "Close"}</title>
+      <path d="M18 6 6 18M6 6l12 12" />
+    </svg>
+  );
+}

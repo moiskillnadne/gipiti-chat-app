@@ -666,7 +666,6 @@
   border-radius: var(--radius-lg);
   display: flex;
   gap: 14px;
-  margin-bottom: 24px;
   padding: 16px 22px;
 }
 

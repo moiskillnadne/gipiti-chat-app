@@ -1,10 +1,14 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db/connection";
 import { balance, transaction } from "@/lib/db/schema";
-import { DEFAULT_CURRENCY_CODE, USAGE_MARKUP } from "./constants";
+import {
+  DEFAULT_CURRENCY_CODE,
+  EMAIL_CONFIRM_BONUS_MAJOR_UNITS,
+  USAGE_MARKUP,
+} from "./constants";
 import { getMinorUnits } from "./currencies";
 import { getLatestFxRate } from "./fx";
-import { usdToMinorUnits } from "./money";
+import { majorToMinorUnits, usdToMinorUnits } from "./money";
 
 export type BalanceSummary = {
   currencyCode: string;
@@ -207,7 +211,7 @@ export async function creditBalance({
   userId: string;
   pool: BalancePool;
   amount: number;
-  type: "welcome" | "topup_purchase" | "refund" | "adjustment";
+  type: "welcome" | "email_bonus" | "topup_purchase" | "refund" | "adjustment";
   referenceType?: string;
   referenceId?: string;
   description?: string;
@@ -267,6 +271,79 @@ export async function creditBalance({
     return {
       amount,
       subscriptionBalanceAfter: newSubscription,
+      topupBalanceAfter: newTopup,
+      transactionId: credit.id,
+    };
+  });
+}
+
+/**
+ * Credit the one-time email-verification bonus to the persistent top-up pool.
+ *
+ * Idempotent: if an `email_bonus` transaction already exists for the user this
+ * is a no-op and returns null. The existence check and the credit run inside a
+ * single row-locked transaction, so concurrent callers cannot double-credit.
+ */
+export async function grantEmailVerificationBonus(
+  userId: string
+): Promise<BalanceChangeResult | null> {
+  await ensureBalance(userId);
+
+  const summary = await getBalance(userId);
+  const currencyCode = summary?.currencyCode ?? DEFAULT_CURRENCY_CODE;
+  const minorUnits = await getMinorUnits(currencyCode);
+  const amount = majorToMinorUnits(EMAIL_CONFIRM_BONUS_MAJOR_UNITS, minorUnits);
+
+  return await db.transaction(async (tx) => {
+    const [row] = await tx
+      .select()
+      .from(balance)
+      .where(eq(balance.userId, userId))
+      .for("update")
+      .limit(1);
+
+    if (!row) {
+      throw new Error(`Balance not found for user ${userId}`);
+    }
+
+    const [existing] = await tx
+      .select({ id: transaction.id })
+      .from(transaction)
+      .where(
+        and(eq(transaction.userId, userId), eq(transaction.type, "email_bonus"))
+      )
+      .limit(1);
+
+    // Already granted — preserve idempotency under retries/concurrent calls.
+    if (existing) {
+      return null;
+    }
+
+    const newTopup = row.topupAmount + amount;
+
+    await tx
+      .update(balance)
+      .set({ topupAmount: newTopup, updatedAt: new Date() })
+      .where(eq(balance.userId, userId));
+
+    const [credit] = await tx
+      .insert(transaction)
+      .values({
+        userId,
+        type: "email_bonus",
+        currencyCode: row.currencyCode,
+        pool: "topup",
+        amount,
+        subscriptionBalanceAfter: row.subscriptionAmount,
+        topupBalanceAfter: newTopup,
+        referenceType: "email_verification",
+        description: "Email verification bonus",
+      })
+      .returning({ id: transaction.id });
+
+    return {
+      amount,
+      subscriptionBalanceAfter: row.subscriptionAmount,
       topupBalanceAfter: newTopup,
       transactionId: credit.id,
     };

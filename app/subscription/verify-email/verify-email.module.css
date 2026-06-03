@@ -1,0 +1,594 @@
+/* ============================================================
+   GIPITI · Email confirmation (OTP) page
+   Scoped styles ported from the design handoff prototype.
+   Design tokens map: --accent* → --citrus*, --r-* → --radius-*,
+   --ease → --ease-canon, --card → --card-bg.
+   ============================================================ */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+/* ── topnav (matches subscription dashboard) ── */
+.topnav {
+  align-items: center;
+  backdrop-filter: blur(10px);
+  background: rgb(250 250 249 / 0.85);
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  flex-shrink: 0;
+  gap: 14px;
+  padding: 18px 40px;
+}
+
+.back {
+  align-items: center;
+  color: var(--ink-2);
+  display: inline-flex;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  gap: 6px;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color var(--d-fast) var(--ease-canon);
+}
+
+.back:hover {
+  color: var(--ink);
+}
+
+.back svg {
+  height: 12px;
+  width: 12px;
+}
+
+.crumb {
+  color: var(--ink-3);
+  font-size: 13px;
+  margin-left: 8px;
+}
+
+.crumbSep {
+  color: var(--ink-4);
+  margin: 0 6px;
+}
+
+.crumbActive {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.navSpacer {
+  flex: 1;
+}
+
+.pill {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  gap: 6px;
+  letter-spacing: 0.06em;
+  padding: 4px 10px;
+  text-transform: uppercase;
+}
+
+.pill::before {
+  background: currentcolor;
+  border-radius: 50%;
+  content: "";
+  height: 6px;
+  width: 6px;
+}
+
+.pillWarn {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.pillWarn::before {
+  background: var(--warn);
+}
+
+.pillDone {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.pillDone::before {
+  background: var(--success);
+}
+
+/* ── stage ── */
+.stage {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  padding: 48px 40px 64px;
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-xl);
+  box-shadow:
+    0 1px 2px rgb(20 22 26 / 0.04),
+    0 24px 48px -32px rgb(20 22 26 / 0.18);
+  max-width: 460px;
+  padding: 40px;
+  width: 100%;
+}
+
+.eyebrow {
+  align-items: center;
+  color: var(--ink-3);
+  display: inline-flex;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  gap: 8px;
+  letter-spacing: 0.1em;
+  margin-bottom: 18px;
+  text-transform: uppercase;
+}
+
+.eyebrowDot {
+  animation: pulse 1.8s var(--ease-canon) infinite;
+  background: var(--warn);
+  border-radius: 50%;
+  height: 6px;
+  width: 6px;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  margin-bottom: 10px;
+}
+
+.title em {
+  color: var(--ink-2);
+  font-style: italic;
+  font-weight: 300;
+}
+
+.lede {
+  color: var(--ink-2);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.lede em {
+  color: var(--ink);
+  font-style: italic;
+}
+
+.sentTo {
+  align-items: center;
+  background: var(--paper-2);
+  border-radius: 999px;
+  color: var(--ink-3);
+  display: inline-flex;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  gap: 7px;
+  margin-top: 14px;
+  padding: 7px 12px;
+}
+
+.sentTo svg {
+  height: 13px;
+  width: 13px;
+}
+
+.sentTo b {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+/* ── reward label ── */
+.reward {
+  align-items: center;
+  background: linear-gradient(
+    135deg,
+    var(--citrus-soft) 0%,
+    color-mix(in oklch, var(--citrus-soft) 55%, var(--paper)) 100%
+  );
+  border: 1px solid color-mix(in oklch, var(--citrus-deep) 30%, transparent);
+  border-radius: var(--radius-md);
+  display: flex;
+  gap: 12px;
+  margin-top: 22px;
+  padding: 13px 16px;
+}
+
+.rewardGift {
+  align-items: center;
+  background: var(--ink);
+  border-radius: 9px;
+  color: var(--citrus);
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+
+.rewardGift svg {
+  height: 17px;
+  width: 17px;
+}
+
+.rewardText {
+  min-width: 0;
+}
+
+.rewardText b {
+  color: var(--ink);
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.rewardAmount {
+  color: var(--citrus-deep);
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+.rewardText span {
+  color: var(--ink-2);
+  display: block;
+  font-size: 12px;
+  margin-top: 1px;
+}
+
+/* ── OTP ── */
+.otpRow {
+  display: flex;
+  gap: 10px;
+  margin-top: 26px;
+}
+
+.otpCell {
+  aspect-ratio: 1;
+  background: var(--paper);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-md);
+  caret-color: var(--citrus-deep);
+  color: var(--ink);
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 26px;
+  font-weight: 500;
+  max-width: 60px;
+  min-width: 0;
+  outline: none;
+  padding: 0;
+  text-align: center;
+  transition:
+    border-color 140ms var(--ease-canon),
+    box-shadow 140ms var(--ease-canon),
+    background 140ms var(--ease-canon);
+}
+
+.otpCell:hover {
+  border-color: var(--ink-3);
+}
+
+.otpCellFilled {
+  background: var(--card-bg);
+  border-color: var(--ink);
+}
+
+.otpCell:focus {
+  background: var(--card-bg);
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px var(--citrus-soft);
+}
+
+.otpCellError {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px var(--danger-soft);
+  color: var(--danger);
+}
+
+.otpCell:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.otpShake {
+  animation: shake 360ms var(--ease-canon);
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-6px);
+  }
+  40% {
+    transform: translateX(6px);
+  }
+  60% {
+    transform: translateX(-4px);
+  }
+  80% {
+    transform: translateX(4px);
+  }
+}
+
+.otpStatus {
+  align-items: center;
+  display: flex;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  gap: 6px;
+  letter-spacing: 0.01em;
+  margin-top: 12px;
+  min-height: 18px;
+}
+
+.otpStatus svg {
+  height: 13px;
+  width: 13px;
+}
+
+.otpStatusError {
+  color: var(--danger);
+}
+
+.otpStatusOk {
+  color: var(--success);
+}
+
+.otpStatusIdle {
+  color: var(--ink-3);
+}
+
+/* ── resend ── */
+.resendRow {
+  align-items: center;
+  border-top: 1px dashed var(--rule);
+  color: var(--ink-3);
+  display: flex;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  gap: 12px;
+  justify-content: space-between;
+  margin-top: 4px;
+  padding-top: 18px;
+}
+
+.resendBtn {
+  align-items: center;
+  color: var(--ink);
+  display: inline-flex;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  gap: 7px;
+}
+
+.resendBtn svg {
+  height: 13px;
+  width: 13px;
+}
+
+.resendReady {
+  cursor: pointer;
+}
+
+.resendReady u {
+  text-decoration: underline;
+  text-decoration-color: var(--rule-strong);
+  text-underline-offset: 3px;
+}
+
+.resendReady:hover u {
+  text-decoration-color: var(--ink);
+}
+
+.resendCooling {
+  color: var(--ink-3);
+  cursor: default;
+}
+
+.resendCooling svg {
+  animation: spin 1.6s linear infinite;
+}
+
+.resendTimer {
+  color: var(--ink-3);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── actions ── */
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.btn {
+  align-items: center;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  font-size: 14px;
+  font-weight: 500;
+  gap: 8px;
+  justify-content: center;
+  padding: 12px 18px;
+  transition: all 160ms var(--ease-canon);
+  white-space: nowrap;
+}
+
+.btn svg {
+  height: 14px;
+  width: 14px;
+}
+
+.btnPrimary {
+  background: var(--ink);
+  color: var(--paper);
+  flex: 1;
+}
+
+.btnPrimary:hover:not(:disabled) {
+  background: var(--ink-2);
+}
+
+.btnPrimary:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.btnGhost {
+  color: var(--ink-2);
+}
+
+.btnGhost:hover {
+  background: var(--paper-2);
+  color: var(--ink);
+}
+
+.btnSpinner {
+  animation: spin 0.7s linear infinite;
+  border: 2px solid color-mix(in oklch, var(--paper) 40%, transparent);
+  border-radius: 50%;
+  border-top-color: var(--paper);
+  height: 14px;
+  width: 14px;
+}
+
+/* ── success state ── */
+.check {
+  align-items: center;
+  animation: pop 420ms var(--ease-canon);
+  background: var(--success-soft);
+  border: 1px solid var(--success);
+  border-radius: 50%;
+  color: var(--success);
+  display: inline-flex;
+  height: 56px;
+  justify-content: center;
+  margin-bottom: 20px;
+  width: 56px;
+}
+
+.check svg {
+  height: 28px;
+  width: 28px;
+}
+
+@keyframes pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  60% {
+    transform: scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.creditBurst {
+  align-items: baseline;
+  border-bottom: 1px dashed var(--rule);
+  border-top: 1px dashed var(--rule);
+  display: flex;
+  gap: 8px;
+  margin-top: 24px;
+  padding: 18px 0;
+}
+
+.creditLabel {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.creditAmount {
+  font-feature-settings: "tnum";
+  font-size: 30px;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  margin-left: auto;
+}
+
+.creditPlus {
+  color: var(--success);
+}
+
+/* ── mobile ── */
+@media (max-width: 560px) {
+  .topnav {
+    padding: 14px 18px;
+  }
+  .crumb {
+    display: none;
+  }
+  .stage {
+    align-items: stretch;
+    padding: 24px 16px 40px;
+  }
+  .card {
+    border-radius: var(--radius-lg);
+    max-width: none;
+    padding: 26px 22px;
+  }
+  .title {
+    font-size: 23px;
+  }
+  .otpRow {
+    gap: 7px;
+  }
+  .otpCell {
+    border-radius: var(--radius-sm);
+    font-size: 22px;
+  }
+  .resendRow {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .actions {
+    flex-direction: column-reverse;
+  }
+  .btnGhost {
+    width: 100%;
+  }
+  .creditAmount {
+    font-size: 26px;
+  }
+}

@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { z } from "zod";
 import { createPasswordResetToken, hashToken } from "@/lib/auth/reset-token";
+import { grantEmailVerificationBonus } from "@/lib/billing/balance";
 import { getUserByEmail } from "@/lib/db/query/user/get-by-email";
 import { getUserByResetToken } from "@/lib/db/query/user/get-user-by-reset-token";
 import { getUserByVerificationCode } from "@/lib/db/query/user/get-user-by-verification-code";
@@ -193,6 +194,14 @@ export const verifyEmail = async (
 
     // Mark email as verified
     await markEmailAsVerified({ email: validatedData.email });
+
+    // Credit the one-time email-confirmation bonus. Best-effort and idempotent:
+    // verification has already succeeded, so a bonus failure must not block it.
+    try {
+      await grantEmailVerificationBonus(foundUser.id);
+    } catch (bonusError) {
+      console.error("Failed to grant email verification bonus:", bonusError);
+    }
 
     return { status: "success" };
   } catch (error) {

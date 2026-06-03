@@ -427,6 +427,7 @@ export type PaymentIntent = InferSelectModel<typeof paymentIntent>;
 
 export const transactionTypeEnum = pgEnum("transaction_type", [
   "welcome",
+  "email_bonus",
   "subscription_renewal",
   "subscription_purchase",
   "topup_purchase",

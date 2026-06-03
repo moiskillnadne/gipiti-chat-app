@@ -267,6 +267,13 @@
       "when": 1779559760022,
       "tag": "0037_billing_currency_rewrite",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1780469303625,
+      "tag": "0038_cute_vector",
+      "breakpoints": true
     }
   ]
 }
