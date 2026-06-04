@@ -669,6 +669,10 @@
   padding: 16px 22px;
 }
 
+.marginBottom16 {
+  margin-bottom: 16px;
+}
+
 .bannerIcon {
   flex-shrink: 0;
   height: 20px;

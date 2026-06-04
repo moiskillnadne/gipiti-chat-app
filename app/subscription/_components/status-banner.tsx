@@ -65,7 +65,9 @@ function TrialBanner({
 
   return (
     <>
-      <div className={`${styles.banner} ${styles.bannerTrial}`}>
+      <div
+        className={`${styles.banner} ${styles.bannerTrial} ${styles.marginBottom16}`}
+      >
         <InfoIcon className={styles.bannerIcon} />
         <div className={styles.bannerBody}>
           <b>{t("title", { date: trialChargeDate ?? "—" })}</b>
@@ -140,7 +142,9 @@ function CancelledBanner({
   const t = useTranslations("auth.subscription.balance.banner.cancelled");
 
   return (
-    <div className={`${styles.banner} ${styles.bannerCancelled}`}>
+    <div
+      className={`${styles.banner} ${styles.bannerCancelled} ${styles.marginBottom16}`}
+    >
       <PauseIcon className={styles.bannerIcon} />
       <div className={styles.bannerBody}>
         <b>{t("title", { date: cancelledDate ?? "—" })}</b>
@@ -170,7 +174,9 @@ function PastDueBanner({
   const t = useTranslations("auth.subscription.balance.banner.pastDue");
 
   return (
-    <div className={`${styles.banner} ${styles.bannerPastDue}`}>
+    <div
+      className={`${styles.banner} ${styles.bannerPastDue} ${styles.marginBottom16}`}
+    >
       <WarnIcon className={styles.bannerIcon} />
       <div className={styles.bannerBody}>
         <b>
@@ -198,7 +204,9 @@ function LowBanner() {
   const t = useTranslations("auth.subscription.balance.banner.low");
 
   return (
-    <div className={`${styles.banner} ${styles.bannerLow}`}>
+    <div
+      className={`${styles.banner} ${styles.bannerLow} ${styles.marginBottom16}`}
+    >
       <WarnIcon className={styles.bannerIcon} />
       <div className={styles.bannerBody}>
         <b>{t("title")}</b>
@@ -213,7 +221,9 @@ function ZeroBanner() {
   const t = useTranslations("auth.subscription.balance.banner.zero");
 
   return (
-    <div className={`${styles.banner} ${styles.bannerZero}`}>
+    <div
+      className={`${styles.banner} ${styles.bannerZero} ${styles.marginBottom16}`}
+    >
       <WarnIcon className={styles.bannerIcon} />
       <div className={styles.bannerBody}>
         <b>{t("title")}</b>
