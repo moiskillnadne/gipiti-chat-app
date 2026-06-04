@@ -4,6 +4,7 @@ import {
 } from "@/lib/ai/media-upload";
 import { saveDocument } from "@/lib/db/query/document/save-document";
 import { ChatSDKError } from "@/lib/errors";
+import { isFreeUserById } from "@/lib/subscription/is-free-user";
 import { generateUUID } from "@/lib/utils";
 import { chargeUsageSafe } from "../charge";
 import type { ChatTurnContext, StreamWriter } from "../context";
@@ -49,7 +50,8 @@ export async function runImageGeneration(
     });
     imageUrl = await uploadGeneratedImage(
       result.base64,
-      result.mediaType ?? DEFAULT_IMAGE_MEDIA_TYPE
+      result.mediaType ?? DEFAULT_IMAGE_MEDIA_TYPE,
+      { watermark: await isFreeUserById(ctx.userId) }
     );
   }
 

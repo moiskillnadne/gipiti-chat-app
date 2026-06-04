@@ -1,6 +1,7 @@
 import { streamText, tool } from "ai";
 import z from "zod/v4";
 import { saveDocument } from "../../db/query/document/save-document";
+import { isFreeUserById } from "../../subscription/is-free-user";
 import { generateUUID } from "../../utils";
 import { uploadGeneratedImage } from "../media-upload";
 
@@ -70,7 +71,8 @@ export const generateImageTool = ({
           if (file.base64Data) {
             imageUrl = await uploadGeneratedImage(
               file.base64Data,
-              file.mediaType
+              file.mediaType,
+              { watermark: await isFreeUserById(userId) }
             );
           }
         }
