@@ -1,7 +1,7 @@
 import type { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google";
 import type { SharedV2ProviderOptions } from "@ai-sdk/provider";
 
-export const DEFAULT_CHAT_MODEL: string = "gpt-5.4";
+export const DEFAULT_CHAT_MODEL: string = "gpt-5.5";
 
 export type ChatModelCapabilities = {
   reasoning?: boolean;
@@ -170,7 +170,7 @@ const RECRAFT_IMAGE_GEN_CONFIG: ImageGenConfig = {
   },
 };
 
-const GPT52_THINKING_CONFIG: ThinkingEffortConfig = {
+const GPT5_THINKING_CONFIG: ThinkingEffortConfig = {
   type: "effort",
   values: ["auto", "none", "medium", "high"] as const,
   default: "auto",
@@ -190,30 +190,9 @@ const OPUS_THINKING_CONFIG: ThinkingEffortConfig = {
 
 export const chatModels: ChatModel[] = [
   {
-    id: "chat-model",
-    name: "grokVision.name",
-    description: "grokVision.description",
-    provider: "xai",
-    capabilities: {
-      attachments: true,
-    },
-    showInUI: false,
-  },
-  {
-    id: "chat-model-reasoning",
-    name: "grokReasoning.name",
-    description: "grokReasoning.description",
-    provider: "xai",
-    capabilities: {
-      reasoning: true,
-      attachments: false,
-    },
-    showInUI: false,
-  },
-  {
-    id: "grok-4.1-reasoning",
-    name: "grok41Reasoning.name",
-    description: "grok41Reasoning.description",
+    id: "grok-4.3",
+    name: "grok43.name",
+    description: "grok43.description",
     provider: "xai",
     capabilities: {
       reasoning: true,
@@ -222,105 +201,16 @@ export const chatModels: ChatModel[] = [
     showInUI: true,
   },
   {
-    id: "grok-4.1-non-reasoning",
-    name: "grok41Fast.name",
-    description: "grok41Fast.description",
-    provider: "xai",
-    capabilities: {
-      reasoning: false,
-      attachments: true,
-    },
-    showInUI: true,
-  },
-  {
-    id: "grok-code-fast-1",
-    name: "grokCodeFast1.name",
-    description: "grokCodeFast1.description",
-    provider: "xai",
-    capabilities: {
-      reasoning: true,
-      attachments: true,
-    },
-    showInUI: true,
-  },
-  {
-    id: "gpt-5",
-    name: "gpt5.name",
-    description: "gpt5.description",
-    provider: "openai",
-    capabilities: {
-      reasoning: true,
-      attachments: true,
-    },
-    showInUI: false,
-  },
-  {
-    id: "gpt-5.1-instant",
-    name: "gpt51Instant.name",
-    description: "gpt51Instant.description",
-    provider: "openai",
-    capabilities: {
-      reasoning: false,
-      attachments: true,
-    },
-    showInUI: false,
-  },
-  {
-    id: "gpt-5.1-thinking",
-    name: "gpt51Thinking.name",
-    description: "gpt51Thinking.description",
-    provider: "openai",
-    capabilities: {
-      reasoning: true,
-      attachments: true,
-    },
-    showInUI: false,
-  },
-  {
-    id: "gpt-5.2",
-    name: "gpt52.name",
-    description: "gpt52.description",
-    provider: "openai",
-    capabilities: {
-      reasoning: true,
-      attachments: true,
-    },
-    showInUI: false,
-    thinkingConfig: GPT52_THINKING_CONFIG,
-  },
-  {
-    id: "gpt-5.4",
-    name: "gpt54.name",
-    description: "gpt54.description",
+    id: "gpt-5.5",
+    name: "gpt55.name",
+    description: "gpt55.description",
     provider: "openai",
     capabilities: {
       reasoning: true,
       attachments: true,
     },
     showInUI: true,
-    thinkingConfig: GPT52_THINKING_CONFIG,
-  },
-  {
-    id: "gpt-5.2-pro",
-    name: "gpt52Pro.name",
-    description: "gpt52Pro.description",
-    provider: "openai",
-    capabilities: {
-      reasoning: true,
-      attachments: true,
-    },
-    showInUI: false,
-  },
-  {
-    id: "gpt-5-mini",
-    name: "gpt5Mini.name",
-    description: "gpt5Mini.description",
-    provider: "openai",
-    capabilities: {
-      reasoning: true,
-      attachments: true,
-    },
-    showInUI: false,
+    thinkingConfig: GPT5_THINKING_CONFIG,
   },
   {
     id: "gpt-5.4-mini",
@@ -345,32 +235,33 @@ export const chatModels: ChatModel[] = [
     showInUI: true,
   },
   {
-    id: "gpt-codex-5.2",
-    name: "gptCodex52.name",
-    description: "gptCodex52.description",
+    id: "gpt-codex-5.3",
+    name: "gptCodex53.name",
+    description: "gptCodex53.description",
     provider: "openai",
     capabilities: {
       reasoning: true,
       attachments: true,
     },
     showInUI: true,
-    thinkingConfig: GPT52_THINKING_CONFIG,
-  },
-  {
-    id: "gemini-2.5-pro",
-    name: "gemini25Pro.name",
-    description: "gemini25Pro.description",
-    provider: "google",
-    capabilities: {
-      reasoning: true,
-      attachments: true,
-    },
-    showInUI: false,
+    thinkingConfig: GPT5_THINKING_CONFIG,
   },
   {
     id: "gemini-3.1-pro",
     name: "gemini31Pro.name",
     description: "gemini31Pro.description",
+    provider: "google",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+    thinkingConfig: GEMINI31_THINKING_CONFIG,
+  },
+  {
+    id: "gemini-3.5-flash",
+    name: "gemini35Flash.name",
+    description: "gemini35Flash.description",
     provider: "google",
     capabilities: {
       reasoning: true,
@@ -424,9 +315,9 @@ export const chatModels: ChatModel[] = [
     imageGenConfig: GOOGLE_IMAGE_GEN_CONFIG,
   },
   {
-    id: "grok-imagine-image-pro",
-    name: "grokImagineImagePro.name",
-    description: "grokImagineImagePro.description",
+    id: "grok-imagine-image",
+    name: "grokImagineImage.name",
+    description: "grokImagineImage.description",
     provider: "xai",
     capabilities: {
       imageGeneration: true,
@@ -434,9 +325,9 @@ export const chatModels: ChatModel[] = [
     showInUI: true,
   },
   {
-    id: "gpt-image-1.5",
-    name: "gptImage15.name",
-    description: "gptImage15.description",
+    id: "gpt-image-2",
+    name: "gptImage2.name",
+    description: "gptImage2.description",
     provider: "openai",
     capabilities: {
       reasoning: true,
@@ -453,20 +344,9 @@ export const chatModels: ChatModel[] = [
     imageGenConfig: OPENAI_IMAGE_GEN_CONFIG,
   },
   {
-    id: "opus-4.1",
-    name: "opus41.name",
-    description: "opus41.description",
-    provider: "anthropic",
-    capabilities: {
-      reasoning: true,
-      attachments: true,
-    },
-    showInUI: false,
-  },
-  {
-    id: "opus-4.6",
-    name: "opus46.name",
-    description: "opus46.description",
+    id: "opus-4.8",
+    name: "opus48.name",
+    description: "opus48.description",
     provider: "anthropic",
     capabilities: {
       reasoning: true,
@@ -479,6 +359,18 @@ export const chatModels: ChatModel[] = [
     id: "sonnet-4.6",
     name: "sonnet46.name",
     description: "sonnet46.description",
+    provider: "anthropic",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+    thinkingConfig: OPUS_THINKING_CONFIG,
+  },
+  {
+    id: "haiku-4.5",
+    name: "haiku45.name",
+    description: "haiku45.description",
     provider: "anthropic",
     capabilities: {
       reasoning: true,
@@ -532,9 +424,9 @@ export const chatModels: ChatModel[] = [
     imageGenConfig: BFL_IMAGE_GEN_CONFIG,
   },
   {
-    id: "flux-kontext-pro",
-    name: "fluxKontextPro.name",
-    description: "fluxKontextPro.description",
+    id: "flux-kontext-max",
+    name: "fluxKontextMax.name",
+    description: "fluxKontextMax.description",
     provider: "bfl",
     capabilities: {
       imageGeneration: true,
@@ -543,9 +435,9 @@ export const chatModels: ChatModel[] = [
     imageGenConfig: BFL_IMAGE_GEN_CONFIG,
   },
   {
-    id: "recraft-v4-pro",
-    name: "recraftV4Pro.name",
-    description: "recraftV4Pro.description",
+    id: "recraft-v4.1-pro",
+    name: "recraftV41Pro.name",
+    description: "recraftV41Pro.description",
     provider: "recraft",
     capabilities: {
       imageGeneration: true,
@@ -602,16 +494,16 @@ export const isVideoGenerationModel = (modelId: string) =>
   videoGenerationModelIds.has(modelId);
 
 type DedicatedImageModelId =
-  | "grok-imagine-image-pro"
+  | "grok-imagine-image"
   | "flux-2-max"
-  | "flux-kontext-pro"
-  | "recraft-v4-pro";
+  | "flux-kontext-max"
+  | "recraft-v4.1-pro";
 
 const DEDICATED_IMAGE_GATEWAY_MAP: Record<DedicatedImageModelId, string> = {
-  "grok-imagine-image-pro": "xai/grok-imagine-image-pro",
+  "grok-imagine-image": "xai/grok-imagine-image",
   "flux-2-max": "bfl/flux-2-max",
-  "flux-kontext-pro": "bfl/flux-kontext-pro",
-  "recraft-v4-pro": "recraft/recraft-v4-pro",
+  "flux-kontext-max": "bfl/flux-kontext-max",
+  "recraft-v4.1-pro": "recraft/recraft-v4.1-pro",
 };
 
 export const getDedicatedImageGatewayModelId = (modelId: string): string => {
@@ -624,7 +516,7 @@ export const getDedicatedImageGatewayModelId = (modelId: string): string => {
 };
 
 /** Gateway model id backing the OpenAI gpt-image generation/edit flow. */
-export const OPENAI_IMAGE_GATEWAY_MODEL_ID = "openai/gpt-image-1.5";
+export const OPENAI_IMAGE_GATEWAY_MODEL_ID = "openai/gpt-image-2";
 
 /**
  * OpenAI's gpt-image model. Unlike dedicated image models it also advertises
@@ -634,14 +526,14 @@ export const OPENAI_IMAGE_GATEWAY_MODEL_ID = "openai/gpt-image-1.5";
  * `gateway.imageModel()`, supporting both text-to-image and edit modes.
  */
 export const isOpenAIImageModel = (modelId: string): boolean =>
-  modelId === "gpt-image-1.5";
+  modelId === "gpt-image-2";
 
 type VideoModelId = "veo-3.1" | "veo-3.1-fast" | "grok-imagine-video";
 
 const VIDEO_GATEWAY_MODEL_MAP: Record<VideoModelId, string> = {
   "veo-3.1": "google/veo-3.1-generate-001",
   "veo-3.1-fast": "google/veo-3.1-fast-generate-001",
-  "grok-imagine-video": "xai/grok-imagine-video",
+  "grok-imagine-video": "xai/grok-imagine-video-1.5-preview",
 };
 
 export const getVideoGatewayModelId = (modelId: string): string => {
@@ -690,13 +582,10 @@ export type ReasoningSummary = (typeof REASONING_SUMMARY)[number];
 export const DEFAULT_REASONING_SUMMARY: ReasoningSummary = "auto";
 
 export const openaiModelIds = [
-  "gpt-5.2",
-  "gpt-5.2-pro",
-  "gpt-5.4",
-  "gpt-5-mini",
+  "gpt-5.5",
   "gpt-5.4-mini",
   "gpt-5.4-nano",
-  "gpt-codex-5.2",
+  "gpt-codex-5.3",
 ] as const;
 export type OpenAIModelId = (typeof openaiModelIds)[number];
 
@@ -720,7 +609,7 @@ export const getOpenAIProviderOptions = (
   };
 };
 
-export const googleModelIds = ["gemini-3.1-pro"] as const;
+export const googleModelIds = ["gemini-3.1-pro", "gemini-3.5-flash"] as const;
 export type GoogleModelId = (typeof googleModelIds)[number];
 
 export const isGoogleModel = (modelId: string) => {
@@ -745,9 +634,9 @@ export const getGoogleProviderOptions = (
 };
 
 export const anthropicModelIds = [
-  "opus-4.1",
-  "opus-4.6",
+  "opus-4.8",
   "sonnet-4.6",
+  "haiku-4.5",
 ] as const;
 export type AnthropicModelId = (typeof anthropicModelIds)[number];
 

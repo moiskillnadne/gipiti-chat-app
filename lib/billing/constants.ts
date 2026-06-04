@@ -2,7 +2,7 @@
 
 // Multiplier applied to the raw provider USD cost when charging a user's
 // balance: charge = providerUsdCost × liveFxRate × USAGE_MARKUP.
-export const USAGE_MARKUP = 3;
+export const USAGE_MARKUP = 2;
 
 // Currency assigned to a new user's balance until support changes it.
 export const DEFAULT_CURRENCY_CODE = "RUB";

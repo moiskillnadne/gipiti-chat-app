@@ -62,7 +62,7 @@ export async function generateTitleFromUserMessage({
     prompt: JSON.stringify(message),
     providerOptions: {
       gateway: {
-        models: ["openai/gpt-4.1-nano", "anthropic/claude-3-haiku"],
+        models: ["openai/gpt-5.4-nano", "anthropic/claude-haiku-4.5"],
       } satisfies GatewayProviderOptions,
     },
   });

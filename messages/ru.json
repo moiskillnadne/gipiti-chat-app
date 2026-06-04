@@ -1307,33 +1307,13 @@
     "trigger": {
       "open": "Выбрать модель"
     },
-    "grokVision": {
-      "name": "Grok Vision",
-      "description": "Средняя модель с маленьким объемом памяти. Очень быстрая и дешевая."
+    "grok43": {
+      "name": "Grok 4.3",
+      "description": "Новейшая модель от xAI с продвинутыми рассуждениями, работой с инструментами и поддержкой изображений."
     },
-    "grokReasoning": {
-      "name": "Grok Reasoning",
-      "description": "Модель с расширенными возможностями обработки цепочки мыслей для сложных задач."
-    },
-    "grok41Reasoning": {
-      "name": "Grok 4.1 Reasoning",
-      "description": "Новейшая модель от xAI, оптимизированная для работы с инструментами, веб-поиска и сложных рассуждений с контекстом 2М токенов."
-    },
-    "grok41Fast": {
-      "name": "Grok 4.1 Fast",
-      "description": "Сверхбыстрая модель от xAI, оптимизированная для простых запросов с контекстом 2М токенов."
-    },
-    "grokCodeFast1": {
-      "name": "Grok 1 Code Fast",
-      "description": "Специализированная быстрая модель xAI для генерации кода и задач программирования."
-    },
-    "gpt5": {
-      "name": "GPT-5",
-      "description": "Последняя модель от OpenAI для сложных задач."
-    },
-    "gpt5Mini": {
-      "name": "GPT-5 Mini",
-      "description": "Самая маленькая модель от OpenAI для быстрых задач."
+    "gpt55": {
+      "name": "GPT-5.5",
+      "description": "Новейшая флагманская модель OpenAI с продвинутыми возможностями рассуждения."
     },
     "gpt54Mini": {
       "name": "GPT-5.4 Mini",
@@ -1343,37 +1323,29 @@
       "name": "GPT-5.4 Nano",
       "description": "Самая быстрая и экономичная модель OpenAI для повседневных задач."
     },
-    "gptCodex52": {
-      "name": "GPT-Codex 5.2",
+    "gptCodex53": {
+      "name": "GPT-Codex 5.3",
       "description": "Специализированная модель OpenAI для кода с продвинутой генерацией и рассуждениями."
-    },
-    "gpt51Instant": {
-      "name": "GPT-5.1 Instant",
-      "description": "Самая быстрая модель от OpenAI для быстрых задач."
-    },
-    "gpt51Thinking": {
-      "name": "GPT-5.1 Thinking",
-      "description": "Модель с расширенными возможностями обработки цепочки мыслей для сложных задач."
-    },
-    "gpt52": {
-      "name": "GPT-5.2",
-      "description": "Отличная модель для повседневных и сложных задач."
-    },
-    "gpt54": {
-      "name": "GPT-5.4",
-      "description": "Новейшая модель OpenAI с продвинутыми возможностями рассуждения."
-    },
-    "gpt52Pro": {
-      "name": "GPT-5.2 Pro",
-      "description": "Самая мощная модель OpenAI с расширенным контекстом и рассуждениями."
-    },
-    "gemini25Pro": {
-      "name": "Gemini 2.5 Pro",
-      "description": "Последняя модель от Google Gemini для ежедневных задач."
     },
     "gemini31Pro": {
       "name": "Gemini 3.1 Pro",
       "description": "Отличная модель для сложных задач."
+    },
+    "gemini35Flash": {
+      "name": "Gemini 3.5 Flash",
+      "description": "Быстрая модель Google для повседневных задач с рассуждениями."
+    },
+    "opus48": {
+      "name": "Opus 4.8",
+      "description": "Новейшая модель Anthropic Opus с расширенным контекстом и рассуждениями."
+    },
+    "sonnet46": {
+      "name": "Sonnet 4.6",
+      "description": "Сбалансированная модель Anthropic с быстрым рассуждением и отличной генерацией кода."
+    },
+    "haiku45": {
+      "name": "Haiku 4.5",
+      "description": "Быстрая и компактная модель Anthropic для повседневных задач с рассуждениями."
     },
     "gemini3ProImage": {
       "name": "Gemini Nano banana Pro",
@@ -1383,25 +1355,13 @@
       "name": "Gemini Nano banana 2",
       "description": "Быстрая модель Google с возможностью генерации изображений."
     },
-    "grokImagineImagePro": {
-      "name": "Grok Imagine Pro",
+    "grokImagineImage": {
+      "name": "Grok Imagine",
       "description": "Генерация изображений с помощью новейшей модели xAI."
     },
-    "gptImage15": {
-      "name": "GPT Image 1.5",
+    "gptImage2": {
+      "name": "GPT Image 2",
       "description": "Генерация высококачественных изображений с помощью новейшей модели OpenAI."
-    },
-    "opus41": {
-      "name": "Opus 4.1",
-      "description": "Последняя модель от Anthropic Opus для ежедневных задач."
-    },
-    "opus46": {
-      "name": "Opus 4.6",
-      "description": "Новейшая модель Anthropic Opus с расширенным контекстом и рассуждениями."
-    },
-    "sonnet46": {
-      "name": "Sonnet 4.6",
-      "description": "Сбалансированная модель Anthropic с быстрым рассуждением и отличной генерацией кода."
     },
     "veo31": {
       "name": "Veo 3.1",
@@ -1419,12 +1379,12 @@
       "name": "Flux 2 Max",
       "description": "Высококачественная генерация изображений от Black Forest Labs."
     },
-    "fluxKontextPro": {
-      "name": "Flux Kontext Pro",
+    "fluxKontextMax": {
+      "name": "Flux Kontext Max",
       "description": "Высококачественная генерация изображений от Black Forest Labs с продвинутыми возможностями редактирования."
     },
-    "recraftV4Pro": {
-      "name": "Recraft v4 Pro",
+    "recraftV41Pro": {
+      "name": "Recraft v4.1 Pro",
       "description": "Генерация изображений с художественными стилями."
     }
   },

@@ -7,30 +7,12 @@ import {
 
 export const myProvider = customProvider({
   languageModels: {
-    "chat-model": gateway.languageModel("xai/grok-2-vision"),
-    "chat-model-reasoning": wrapLanguageModel({
-      model: gateway.languageModel("xai/grok-3-mini"),
-      middleware: extractReasoningMiddleware({ tagName: "think" }),
-    }),
-    "grok-4.1-reasoning": wrapLanguageModel({
-      model: gateway.languageModel("xai/grok-4-1-fast-reasoning"),
-      middleware: extractReasoningMiddleware({ tagName: "think" }),
-    }),
-    "grok-4.1-non-reasoning": gateway.languageModel(
-      "xai/grok-4-1-fast-non-reasoning"
-    ),
-    "grok-code-fast-1": wrapLanguageModel({
-      model: gateway.languageModel("xai/grok-code-fast-1"),
-      middleware: extractReasoningMiddleware({ tagName: "think" }),
-    }),
-    "title-model": gateway.languageModel("google/gemini-2.5-flash-lite"),
-    "artifact-model": gateway.languageModel("xai/grok-2-vision"),
-    "gpt-5": wrapLanguageModel({
-      model: gateway.languageModel("openai/gpt-5"),
-      middleware: extractReasoningMiddleware({ tagName: "think" }),
-    }),
-    "gpt-5-mini": wrapLanguageModel({
-      model: gateway.languageModel("openai/gpt-5-mini"),
+    // xAI grok-4.x streams reasoning natively (not <think> tags), so no
+    // extractReasoningMiddleware wrapper here.
+    "grok-4.3": gateway.languageModel("xai/grok-4.3"),
+    "title-model": gateway.languageModel("google/gemini-3.1-flash-lite"),
+    "gpt-5.5": wrapLanguageModel({
+      model: gateway.languageModel("openai/gpt-5.5"),
       middleware: extractReasoningMiddleware({ tagName: "think" }),
     }),
     "gpt-5.4-mini": wrapLanguageModel({
@@ -41,45 +23,24 @@ export const myProvider = customProvider({
       model: gateway.languageModel("openai/gpt-5.4-nano"),
       middleware: extractReasoningMiddleware({ tagName: "think" }),
     }),
-    "gpt-5.1-instant": gateway.languageModel("openai/gpt-5.1-instant"),
-    "gpt-5.1-thinking": wrapLanguageModel({
-      model: gateway.languageModel("openai/gpt-5.1-thinking"),
-      middleware: extractReasoningMiddleware({ tagName: "think" }),
-    }),
-    "gpt-5.2": wrapLanguageModel({
-      model: gateway.languageModel("openai/gpt-5.2"),
-      middleware: extractReasoningMiddleware({ tagName: "think" }),
-    }),
-    "gpt-5.4": wrapLanguageModel({
-      model: gateway.languageModel("openai/gpt-5.4"),
-      middleware: extractReasoningMiddleware({ tagName: "think" }),
-    }),
-    "gpt-5.2-pro": wrapLanguageModel({
-      model: gateway.languageModel("openai/gpt-5.2-pro"),
-      middleware: extractReasoningMiddleware({ tagName: "think" }),
-    }),
-    "gpt-codex-5.2": wrapLanguageModel({
-      model: gateway.languageModel("openai/gpt-5.2-codex"),
-      middleware: extractReasoningMiddleware({ tagName: "think" }),
-    }),
-    "gemini-2.5-pro": wrapLanguageModel({
-      model: gateway.languageModel("google/gemini-2.5-pro"),
+    "gpt-codex-5.3": wrapLanguageModel({
+      model: gateway.languageModel("openai/gpt-5.3-codex"),
       middleware: extractReasoningMiddleware({ tagName: "think" }),
     }),
     "gemini-3.1-pro": wrapLanguageModel({
       model: gateway.languageModel("google/gemini-3.1-pro-preview"),
       middleware: extractReasoningMiddleware({ tagName: "think" }),
     }),
-    "gemini-3-pro-image": gateway.languageModel("google/gemini-3-pro-image"),
-    "gemini-3.1-flash-image": gateway.languageModel(
-      "google/gemini-3.1-flash-image-preview"
-    ),
-    "gpt-image-1.5": gateway.languageModel("openai/dall-e-3"), // Fallback only
-    "opus-4.1": wrapLanguageModel({
-      model: gateway.languageModel("anthropic/claude-opus-4.1"),
+    "gemini-3.5-flash": wrapLanguageModel({
+      model: gateway.languageModel("google/gemini-3.5-flash"),
       middleware: extractReasoningMiddleware({ tagName: "think" }),
     }),
-    "opus-4.6": gateway.languageModel("anthropic/claude-opus-4.6"),
+    "gemini-3-pro-image": gateway.languageModel("google/gemini-3-pro-image"),
+    "gemini-3.1-flash-image": gateway.languageModel(
+      "google/gemini-3.1-flash-image"
+    ),
+    "opus-4.8": gateway.languageModel("anthropic/claude-opus-4.8"),
     "sonnet-4.6": gateway.languageModel("anthropic/claude-sonnet-4.6"),
+    "haiku-4.5": gateway.languageModel("anthropic/claude-haiku-4.5"),
   },
 });
