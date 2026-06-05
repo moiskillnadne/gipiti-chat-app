@@ -11,6 +11,8 @@ import type { ChatTurnContext, StreamWriter } from "../context";
 
 const VIDEO_DURATION_SECONDS = 8;
 const VIDEO_ASPECT_RATIO = "16:9";
+// Re-emit the (reconciled) "generating" part on this cadence to keep the
+// connection alive through the long video generation.
 const KEEPALIVE_INTERVAL_MS = 15_000;
 const IMAGE_TO_VIDEO_MEDIA_TYPES = new Set(["image/jpeg", "image/png"]);
 
@@ -41,17 +43,24 @@ export async function runVideoGeneration(
   const documentId = generateUUID();
   const generationStartTime = Date.now();
 
-  writer.write({ id: documentId, type: "reasoning-start" });
-  writer.write({
-    id: documentId,
-    type: "reasoning-delta",
-    delta: "Generating video...",
-  });
+  const writeGenerating = () => {
+    writer.write({
+      id: documentId,
+      type: "data-mediaGeneration",
+      data: {
+        documentId,
+        mediaType: "video",
+        status: "generating",
+        prompt: userPrompt,
+        modelId: ctx.model,
+      },
+    });
+  };
 
-  // Periodic dots keep the connection alive during the long generation.
-  const keepAliveInterval = setInterval(() => {
-    writer.write({ id: documentId, type: "reasoning-delta", delta: "." });
-  }, KEEPALIVE_INTERVAL_MS);
+  // Drive the media-preview card and keep the connection alive during the long
+  // generation by re-emitting the same reconcilable "generating" part.
+  writeGenerating();
+  const keepAliveInterval = setInterval(writeGenerating, KEEPALIVE_INTERVAL_MS);
 
   let videoUrl: string | undefined;
   let costUsd = 0;
@@ -77,19 +86,24 @@ export async function runVideoGeneration(
     )?.cost;
     costUsd = gatewayCost == null ? 0 : Number.parseFloat(String(gatewayCost));
 
-    writer.write({
-      id: documentId,
-      type: "reasoning-delta",
-      delta: " Uploading video...",
-    });
-
     if (result.video) {
       videoUrl = await uploadGeneratedVideo(result.video.uint8Array);
     }
   } catch (error) {
     clearInterval(keepAliveInterval);
     console.error("Video generation failed:", error);
-    throw error;
+    writer.write({
+      id: documentId,
+      type: "data-mediaGeneration",
+      data: {
+        documentId,
+        mediaType: "video",
+        status: "error",
+        prompt: userPrompt,
+        modelId: ctx.model,
+      },
+    });
+    return;
   }
 
   if (!videoUrl) {
@@ -102,11 +116,15 @@ export async function runVideoGeneration(
   const responseId = `vgen-${generateUUID()}`;
 
   writer.write({
-    type: "data-videoGenerationFinish",
+    id: documentId,
+    type: "data-mediaGeneration",
     data: {
-      responseId,
-      videoUrl,
-      userPrompt,
+      documentId,
+      mediaType: "video",
+      status: "done",
+      prompt: userPrompt,
+      modelId: ctx.model,
+      url: videoUrl,
       durationSeconds: VIDEO_DURATION_SECONDS,
     },
   });

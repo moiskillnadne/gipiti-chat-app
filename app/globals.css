@@ -507,6 +507,41 @@
   animation: streaming-blink 1s steps(1) infinite;
 }
 
+/* Media preview · skeleton sheen sweep */
+@keyframes media-sweep {
+  0% {
+    transform: translateX(-60%);
+  }
+  100% {
+    transform: translateX(60%);
+  }
+}
+
+.animate-media-sweep {
+  animation: media-sweep 2.1s var(--ease-canon) infinite;
+}
+
+/* Media preview · queued dot blink */
+@keyframes media-blink {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-media-blink {
+  animation: media-blink 1.4s var(--ease-canon) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-media-sweep {
+    animation: none;
+  }
+}
+
 /* Breathing dot · thinking */
 @keyframes breathe {
   0%,

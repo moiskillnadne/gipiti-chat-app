@@ -28,42 +28,75 @@ export async function runImageGeneration(
   }
 
   const documentId = generateUUID();
-  writer.write({ id: documentId, type: "reasoning-start" });
 
-  const provider = resolveImageProvider(ctx.model);
-  const result = await provider({
-    modelId: ctx.model,
-    prompt: userPrompt,
-    settings: ctx.imageGenSetting,
-    previousGenerationId: ctx.previousGenerationId,
-    uiMessages: ctx.uiMessages,
-    onReasoning: (text) =>
-      writer.write({ id: documentId, type: "reasoning-delta", delta: text }),
-  });
-
-  let imageUrl: string | undefined;
-  if (result.base64) {
+  // Drive the media-preview card: emit the "generating" lifecycle part up front.
+  // Reusing the same part `id` lets later writes (done/error) replace this one.
+  const writeGenerating = () => {
     writer.write({
       id: documentId,
-      type: "reasoning-delta",
-      delta: "Uploading image...",
+      type: "data-mediaGeneration",
+      data: {
+        documentId,
+        mediaType: "image",
+        status: "generating",
+        prompt: userPrompt,
+        modelId: ctx.model,
+      },
     });
-    imageUrl = await uploadGeneratedImage(
-      result.base64,
-      result.mediaType ?? DEFAULT_IMAGE_MEDIA_TYPE,
-      { watermark: await isFreeUserById(ctx.userId) }
-    );
+  };
+
+  writeGenerating();
+
+  let result: Awaited<ReturnType<ReturnType<typeof resolveImageProvider>>>;
+  let imageUrl: string | undefined;
+  try {
+    const provider = resolveImageProvider(ctx.model);
+    result = await provider({
+      modelId: ctx.model,
+      prompt: userPrompt,
+      settings: ctx.imageGenSetting,
+      previousGenerationId: ctx.previousGenerationId,
+      uiMessages: ctx.uiMessages,
+      // Re-emit the (reconciled) generating part as the provider streams, which
+      // keeps the connection flushing while the card stays in its loading state.
+      onReasoning: writeGenerating,
+    });
+
+    if (result.base64) {
+      imageUrl = await uploadGeneratedImage(
+        result.base64,
+        result.mediaType ?? DEFAULT_IMAGE_MEDIA_TYPE,
+        { watermark: await isFreeUserById(ctx.userId) }
+      );
+    }
+  } catch (error) {
+    console.error("Image generation failed:", error);
+    writer.write({
+      id: documentId,
+      type: "data-mediaGeneration",
+      data: {
+        documentId,
+        mediaType: "image",
+        status: "error",
+        prompt: userPrompt,
+        modelId: ctx.model,
+      },
+    });
+    return;
   }
 
   if (imageUrl) {
     writer.write({
-      type: "data-imageGenerationFinish",
+      id: documentId,
+      type: "data-mediaGeneration",
       data: {
-        responseId: result.responseId,
-        imageUrl,
-        userPrompt,
-        usageMetadata: result.usageMetadata,
         documentId,
+        mediaType: "image",
+        status: "done",
+        prompt: userPrompt,
+        modelId: ctx.model,
+        url: imageUrl,
+        generationId: result.responseId,
       },
     });
     writer.write({

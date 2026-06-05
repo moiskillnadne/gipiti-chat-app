@@ -115,7 +115,7 @@ const GOOGLE_IMAGE_GEN_CONFIG: ImageGenConfig = {
       { value: "4:5", labelKey: "photo45" },
       { value: "21:9", labelKey: "ultrawide" },
     ],
-    default: "16:9",
+    default: "1:1",
   },
 };
 
@@ -136,7 +136,7 @@ const OPENAI_IMAGE_GEN_CONFIG: ImageGenConfig = {
       { value: "1536x1024", labelKey: "landscape" },
       { value: "1024x1536", labelKey: "portrait" },
     ],
-    default: "auto",
+    default: "1024x1024",
   },
 };
 

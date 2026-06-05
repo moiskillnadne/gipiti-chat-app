@@ -113,17 +113,21 @@ export function Chat({
         setUsage(dataPart.data);
       }
       if (dataPart.type === "data-imageGenerationFinish") {
-        console.log("Image generation finished event received!");
-        console.log("Full dataPart:", JSON.stringify(dataPart, null, 2));
         const generationId = dataPart.data.responseId;
-        console.log("Extracted generationId:", generationId);
-        console.log("Type of generationId:", typeof generationId);
-
         if (generationId && typeof generationId === "string") {
-          console.log("Setting lastGenerationId to:", generationId);
           lastGenerationIdRef.current = generationId;
-        } else {
-          console.warn("GenerationId is invalid:", generationId);
+        }
+      }
+      // The unified media-generation lifecycle part carries the provider
+      // generation id on completion; keep it for multi-turn image editing.
+      if (
+        dataPart.type === "data-mediaGeneration" &&
+        dataPart.data.status === "done" &&
+        dataPart.data.mediaType === "image"
+      ) {
+        const generationId = dataPart.data.generationId;
+        if (generationId && typeof generationId === "string") {
+          lastGenerationIdRef.current = generationId;
         }
       }
     },

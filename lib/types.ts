@@ -48,6 +48,18 @@ export type CustomUIDataTypes = {
     userPrompt: string;
     durationSeconds: number;
   };
+  mediaGeneration: {
+    documentId: string;
+    mediaType: "image" | "video";
+    status: "generating" | "done" | "error";
+    prompt: string;
+    modelId: string;
+    url?: string;
+    durationSeconds?: number;
+    errorMessage?: string;
+    /** Provider generation id (image) — drives multi-turn image editing. */
+    generationId?: string;
+  };
 };
 
 export type ChatMessage = UIMessage<
