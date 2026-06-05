@@ -130,27 +130,45 @@ const sourcesFromExtractUrl = (
 };
 
 const TICK_MS = 1000;
-const useElapsedSeconds = (
-  isStreaming: boolean,
-  startedAt: number,
-  endedAt: number | null
-): number => {
-  const [now, setNow] = useState<number>(() => Date.now());
+
+/**
+ * Elapsed seconds since the tool run was first rendered. SSR-safe: the wall
+ * clock is only read after mount (inside effects), so the server and the first
+ * client render both produce `0` and hydration stays deterministic. The run is
+ * measured from mount, matching the previous behaviour for historical messages.
+ */
+const useElapsedSeconds = (isStreaming: boolean): number => {
+  const [elapsed, setElapsed] = useState(0);
+  const startedAtRef = useRef<number | null>(null);
+  const endedAtRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!isStreaming) {
-      return;
+    if (startedAtRef.current === null) {
+      startedAtRef.current = Date.now();
     }
-    const interval = window.setInterval(() => {
-      setNow(Date.now());
-    }, TICK_MS);
-    return () => {
-      window.clearInterval(interval);
-    };
+    const startedAt = startedAtRef.current;
+
+    if (isStreaming) {
+      endedAtRef.current = null;
+      const update = () => {
+        setElapsed(Math.max(0, Math.round((Date.now() - startedAt) / 1000)));
+      };
+      update();
+      const interval = window.setInterval(update, TICK_MS);
+      return () => {
+        window.clearInterval(interval);
+      };
+    }
+
+    if (endedAtRef.current === null) {
+      endedAtRef.current = Date.now();
+    }
+    setElapsed(
+      Math.max(0, Math.round((endedAtRef.current - startedAt) / 1000))
+    );
   }, [isStreaming]);
 
-  const reference = isStreaming ? now : (endedAt ?? now);
-  return Math.max(0, Math.round((reference - startedAt) / 1000));
+  return elapsed;
 };
 
 type ToolImagePreviewProps = {
@@ -378,20 +396,7 @@ export const ToolRunRenderer = ({
     isLastAssistantMessage &&
     (lastIsToolStreaming || lastPart?.type === "reasoning");
 
-  const startedAtRef = useRef<number>(Date.now());
-  const endedAtRef = useRef<number | null>(null);
-  if (!isMessageStreaming && endedAtRef.current === null) {
-    endedAtRef.current = Date.now();
-  }
-  if (isMessageStreaming && endedAtRef.current !== null) {
-    endedAtRef.current = null;
-  }
-
-  const elapsed = useElapsedSeconds(
-    isMessageStreaming,
-    startedAtRef.current,
-    endedAtRef.current
-  );
+  const elapsed = useElapsedSeconds(isMessageStreaming);
 
   const steps = useMemo(() => {
     const result: StepDescriptor[] = [];

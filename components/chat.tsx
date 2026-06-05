@@ -3,7 +3,7 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import useSWR, { useSWRConfig } from "swr";
 import { unstable_serialize } from "swr/infinite";
 import { ChatHeader } from "@/components/chat-header";
@@ -224,15 +224,17 @@ export function Chat({
       <div className="overscroll-behavior-contain flex h-dvh min-w-0 touch-pan-y flex-col bg-background">
         <ChatHeader chatId={id} isReadonly={isReadonly} />
 
-        <Messages
-          chatId={id}
-          isReadonly={isReadonly}
-          messages={messages}
-          regenerate={regenerate}
-          setMessages={setMessages}
-          status={status}
-          votes={votes}
-        />
+        <Suspense fallback={<div className="flex-1" />}>
+          <Messages
+            chatId={id}
+            isReadonly={isReadonly}
+            messages={messages}
+            regenerate={regenerate}
+            setMessages={setMessages}
+            status={status}
+            votes={votes}
+          />
+        </Suspense>
 
         <div className="sticky bottom-0 z-1 mx-auto flex w-full max-w-4xl gap-2 border-t-0 bg-background px-2 pb-3 md:px-4 md:pb-4">
           {!isReadonly && (
