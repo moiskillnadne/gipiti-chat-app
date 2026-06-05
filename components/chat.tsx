@@ -174,8 +174,12 @@ export function Chat({
 
   const searchParams = useSearchParams();
   const query = searchParams.get("query");
+  // `prefill` fills the composer without sending (used by the prompt library
+  // "Use in new chat" flow); `query` auto-sends.
+  const prefill = searchParams.get("prefill");
 
   const [hasAppendedQuery, setHasAppendedQuery] = useState(false);
+  const [hasPrefilled, setHasPrefilled] = useState(false);
 
   useEffect(() => {
     setIsEmptyChat(initialMessages.length === 0);
@@ -192,6 +196,14 @@ export function Chat({
       window.history.replaceState({}, "", `/chat/${id}`);
     }
   }, [query, sendMessage, hasAppendedQuery, id]);
+
+  useEffect(() => {
+    if (prefill && !hasPrefilled) {
+      setInput(prefill);
+      setHasPrefilled(true);
+      window.history.replaceState({}, "", `/chat/${id}`);
+    }
+  }, [prefill, hasPrefilled, id]);
 
   const { data: votes } = useSWR<Vote[]>(
     messages.length >= 2 ? `/api/vote?chatId=${id}` : null,
