@@ -1,38 +1,40 @@
+import { desc, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { auth } from "@/app/(auth)/auth";
+import { getBalance } from "@/lib/billing/balance";
 import {
-  FREE_TIER_ENTITLEMENTS,
-  getDefaultFreePlanSeed,
-} from "@/lib/ai/entitlements";
-import { getBalanceRecord } from "@/lib/ai/token-balance";
-import { getLatestUserSubscriptionWithPlan } from "@/lib/db/query/subscription/get-latest-user-subscription-with-plan";
+  EMAIL_CONFIRM_BONUS_MAJOR_UNITS,
+  WELCOME_GRANT_MAJOR_UNITS,
+} from "@/lib/billing/constants";
+import { getMinorUnits } from "@/lib/billing/currencies";
+import { formatCurrency, majorToMinorUnits } from "@/lib/billing/money";
+import { getChatSpendHistory, getRecentSpendMinor } from "@/lib/billing/spend";
+import { priceForCurrency } from "@/lib/billing/subscriptions";
+import { db } from "@/lib/db/connection";
+import { subscription, userSubscription } from "@/lib/db/schema";
 import { getTranslations } from "@/lib/i18n/translate";
 import {
+  type BalanceViewState,
+  deriveBalanceViewState,
   deriveSubscriptionUiState,
-  type SubscriptionUiState,
 } from "@/lib/subscription/subscription-state";
-import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 import {
   daysUntil,
   formatRelativeRu,
   formatRuDate,
+  formatRuDayMonth,
+  formatRuDayMonthShort,
   formatRuDayTime,
 } from "@/lib/utils/format-billing";
-import { DangerZoneStrip } from "./_components/danger-zone-strip";
+import { BalanceHero } from "./_components/balance-hero";
 import styles from "./_components/dashboard.module.css";
-import { FreePlanCard } from "./_components/free-plan-card";
-import {
-  type FreeLimitBonus,
-  PeriodLimitsCard,
-} from "./_components/period-limits-card";
+import { FreeSideCard } from "./_components/free-side-card";
 import { PlanCard, type PlanCardData } from "./_components/plan-card";
+import { RewardBanner } from "./_components/reward-banner";
 import { StatusBanner } from "./_components/status-banner";
 import { SubscriptionHeader } from "./_components/subscription-header";
 import { SubscriptionTopNav } from "./_components/subscription-top-nav";
-import {
-  type FreeUsageData,
-  UsageGaugeCard,
-} from "./_components/usage-gauge-card";
+import { TransactionHistoryCard } from "./_components/transaction-history-card";
 
 type BillingPeriodKey = "daily" | "weekly" | "monthly" | "annual";
 
@@ -43,19 +45,47 @@ const PRICE_SUFFIX_BY_PERIOD: Record<BillingPeriodKey, string> = {
   annual: "/год",
 };
 
-const PERIOD_LABEL_KEY_BY_PERIOD: Record<BillingPeriodKey, string> = {
-  daily: "daily",
-  weekly: "weekly",
-  monthly: "monthly",
-  annual: "annual",
+const PAID_STATES = new Set<BalanceViewState>([
+  "active",
+  "low",
+  "trial",
+  "cancelled",
+  "past_due",
+]);
+
+type LatestSubscription = {
+  subscription: typeof userSubscription.$inferSelect;
+  displayName: string | null;
+  billingPeriod: BillingPeriodKey;
 };
 
-function formatRubles(amount: number): string {
-  return amount.toLocaleString("ru-RU");
-}
+async function getLatestSubscription(
+  userId: string
+): Promise<LatestSubscription | null> {
+  const [row] = await db
+    .select({
+      subscription: userSubscription,
+      displayName: subscription.displayName,
+      billingPeriod: subscription.billingPeriod,
+    })
+    .from(userSubscription)
+    .innerJoin(
+      subscription,
+      eq(userSubscription.subscriptionId, subscription.id)
+    )
+    .where(eq(userSubscription.userId, userId))
+    .orderBy(desc(userSubscription.currentPeriodEnd))
+    .limit(1);
 
-function priceForPlan(planName: string, fallback: number): number {
-  return SUBSCRIPTION_TIERS[planName]?.price.RUB ?? fallback;
+  if (!row) {
+    return null;
+  }
+
+  return {
+    subscription: row.subscription,
+    displayName: row.displayName,
+    billingPeriod: row.billingPeriod as BillingPeriodKey,
+  };
 }
 
 export default async function SubscriptionPage() {
@@ -65,173 +95,203 @@ export default async function SubscriptionPage() {
     redirect("/login");
   }
 
-  const subscriptionData = await getLatestUserSubscriptionWithPlan({
-    userId: session.user.id,
-  });
+  const [latest, balanceSummary, chatHistory, recentSpendMinor] =
+    await Promise.all([
+      getLatestSubscription(session.user.id),
+      getBalance(session.user.id),
+      getChatSpendHistory(session.user.id),
+      getRecentSpendMinor(session.user.id),
+    ]);
 
-  const subscription = subscriptionData?.subscription ?? null;
-  const plan = subscriptionData?.plan ?? null;
-  const state: SubscriptionUiState = deriveSubscriptionUiState({
-    subscription,
-    plan,
-  });
-
-  const tPlan = await getTranslations("auth.subscription.dashboard.plan");
-  const periodKey: BillingPeriodKey =
-    (plan?.billingPeriod as BillingPeriodKey | undefined) ?? "monthly";
-  const periodLabel = tPlan(
-    `billingPeriod.${PERIOD_LABEL_KEY_BY_PERIOD[periodKey]}`
-  );
-
+  const t = await getTranslations("auth.subscription.balance");
   const now = new Date();
+  const subscriptionRow = latest?.subscription ?? null;
+  const periodKey: BillingPeriodKey = latest?.billingPeriod ?? "monthly";
+
+  const currencyCode = balanceSummary?.currencyCode ?? "RUB";
+  const minorUnits = balanceSummary ? await getMinorUnits(currencyCode) : 2;
+  const subscriptionAmount = balanceSummary?.subscriptionAmount ?? 0;
+  const topupAmount = balanceSummary?.topupAmount ?? 0;
+  const total = balanceSummary?.total ?? 0;
+
+  const uiState = deriveSubscriptionUiState({
+    subscription: subscriptionRow,
+    plan: null,
+  });
+  const state = deriveBalanceViewState({ uiState, balanceTotal: total });
+  const isFree = !PAID_STATES.has(state);
+
+  const periodStart = subscriptionRow?.currentPeriodStart ?? null;
+  const periodEnd = subscriptionRow?.currentPeriodEnd ?? null;
+  const trialEndsAt = subscriptionRow?.trialEndsAt ?? null;
   const trialDaysLeft =
-    state === "trial" && subscription?.trialEndsAt
-      ? daysUntil(subscription.trialEndsAt, now)
-      : 0;
+    state === "trial" && trialEndsAt ? daysUntil(trialEndsAt, now) : 0;
 
-  const planRubPrice = plan
-    ? priceForPlan(plan.name, Number(plan.price ?? 0))
-    : 0;
-  const formattedPrice = `${formatRubles(planRubPrice)} ₽ ${PRICE_SUFFIX_BY_PERIOD[periodKey]}`;
-
-  const lastPaymentText =
-    subscription?.lastPaymentDate && subscription.lastPaymentAmount
-      ? `${formatRuDate(subscription.lastPaymentDate)} · ${formatRubles(Number(subscription.lastPaymentAmount))} ₽`
-      : null;
-
-  const planCardData: PlanCardData | null =
-    state === "none" || !plan
-      ? null
-      : {
-          displayName: plan.displayName ?? plan.name,
-          periodLabel,
-          formattedPrice,
-          nextPaymentDate: subscription?.nextBillingDate
-            ? formatRuDate(subscription.nextBillingDate)
-            : null,
-          lastPayment: lastPaymentText,
-          cardMask: subscription?.cardMask ?? null,
-          accessUntilDate: subscription?.currentPeriodEnd
-            ? formatRuDate(subscription.currentPeriodEnd)
-            : null,
-          chargingStartDate: subscription?.trialEndsAt
-            ? formatRuDate(subscription.trialEndsAt)
-            : null,
-          nextRetryDate: subscription?.nextBillingDate
-            ? state === "past_due"
-              ? formatRuDayTime(subscription.nextBillingDate, now)
-              : formatRuDate(subscription.nextBillingDate)
-            : null,
-          pastDueLastAmount: subscription?.lastPaymentAmount
-            ? `${formatRubles(Number(subscription.lastPaymentAmount))} ₽`
-            : null,
-        };
-
+  const planPriceMinor = subscriptionRow
+    ? await priceForCurrency(subscriptionRow.subscriptionId, currencyCode)
+    : null;
+  const planPriceText =
+    planPriceMinor == null
+      ? "—"
+      : formatCurrency(planPriceMinor, currencyCode, minorUnits);
   const pastDueRetryIn =
-    state === "past_due" && subscription?.nextBillingDate
-      ? formatRelativeRu(subscription.nextBillingDate, now)
+    state === "past_due" && subscriptionRow?.nextBillingDate
+      ? formatRelativeRu(subscriptionRow.nextBillingDate, now)
       : null;
 
-  const emailVerified = session.user.emailVerified === true;
-  let freeUsage: FreeUsageData | null = null;
-  let freeBonuses: FreeLimitBonus | null = null;
-  let rewardAmountK = 0;
-
-  if (state === "none") {
-    const seed = getDefaultFreePlanSeed();
-    const balanceRow = await getBalanceRecord(session.user.id);
-    const quota = seed.tokenQuota;
-    const tokenBalance = balanceRow ? Number(balanceRow.tokens) || 0 : 0;
-    const spent = Math.max(0, quota - tokenBalance);
-    const remaining = Math.max(0, tokenBalance);
-
-    const tier1 = FREE_TIER_ENTITLEMENTS.tier_1;
-    const tier3 = FREE_TIER_ENTITLEMENTS.tier_3;
-    const tokenDeltaK = Math.max(
-      0,
-      Math.round((tier3.tokenBonus - tier1.tokenBonus) / 1000)
-    );
-    rewardAmountK = tokenDeltaK;
-
-    freeUsage = {
-      quota,
-      spent,
-      remaining,
-      quotaBonusK: emailVerified ? null : tokenDeltaK || null,
-    };
-
-    if (!emailVerified) {
-      const imageDelta = Math.max(0, tier3.imageBonus - tier1.imageBonus);
-      const videoDelta = Math.max(0, tier3.videoBonus - tier1.videoBonus);
-      const searchDelta = Math.max(0, tier3.searchQuota - tier1.searchQuota);
-      freeBonuses = {
-        webSearch: searchDelta > 0 ? searchDelta : null,
-        imageGeneration: imageDelta > 0 ? imageDelta : null,
-        videoGeneration: videoDelta > 0 ? "static" : null,
-      };
-    }
+  // Hero pool reset tag + caption, per state.
+  let subResetTag = "—";
+  let subResetText = t("resetText.noSub");
+  if (state === "active" || state === "low") {
+    subResetTag = periodEnd ? formatRuDayMonthShort(periodEnd) : "—";
+    subResetText = t("resetText.onRenewal");
+  } else if (state === "trial") {
+    subResetTag = trialEndsAt ? formatRuDayMonthShort(trialEndsAt) : "—";
+    subResetText = t("resetText.chargesOn", {
+      date: trialEndsAt ? formatRuDayMonth(trialEndsAt) : "—",
+    });
+  } else if (state === "cancelled") {
+    subResetTag = periodEnd ? formatRuDayMonthShort(periodEnd) : "—";
+    subResetText = t("resetText.burnsOn", {
+      date: periodEnd ? formatRuDayMonth(periodEnd) : "—",
+    });
+  } else if (state === "past_due") {
+    subResetTag = t("resetText.pausedTag");
+    subResetText = t("resetText.nothing");
   }
 
-  const dimmedCards = state === "cancelled" || state === "past_due";
+  const planCardData: PlanCardData | null =
+    isFree || !subscriptionRow
+      ? null
+      : {
+          displayName: latest?.displayName ?? "",
+          planTag: t(`plan.period.${periodKey}`),
+          formattedPrice: `${planPriceText}${PRICE_SUFFIX_BY_PERIOD[periodKey]}`,
+          nextPaymentLabel:
+            state === "past_due" ? t("plan.nextRetry") : t("plan.nextPayment"),
+          nextPaymentDate: resolveNextPaymentDate(state, {
+            now,
+            periodEnd,
+            trialEndsAt,
+            nextBillingDate: subscriptionRow.nextBillingDate ?? null,
+          }),
+          nextPaymentAmount:
+            state === "past_due" || planPriceMinor == null
+              ? null
+              : planPriceText,
+          cardMask: subscriptionRow.cardMask ?? null,
+        };
+
+  const welcomeAmount = formatCurrency(
+    majorToMinorUnits(WELCOME_GRANT_MAJOR_UNITS, minorUnits),
+    currencyCode,
+    minorUnits
+  );
+  const dimmed = state === "cancelled" || state === "past_due";
+
+  // Reward banner: invites users who have not confirmed their email to do so
+  // in exchange for a one-time bonus. Hidden once the email is verified.
+  const userEmail = session.user.email ?? null;
+  const showRewardBanner = !session.user.emailVerified && userEmail !== null;
+  const emailBonusAmount = formatCurrency(
+    majorToMinorUnits(EMAIL_CONFIRM_BONUS_MAJOR_UNITS, minorUnits),
+    currencyCode,
+    minorUnits
+  );
 
   return (
     <>
       <SubscriptionTopNav state={state} />
       <main className={styles.body}>
         <SubscriptionHeader
-          periodEnd={subscription?.currentPeriodEnd ?? null}
-          periodStart={subscription?.currentPeriodStart ?? null}
+          pastDueRetryIn={pastDueRetryIn}
+          periodEnd={periodEnd}
+          periodStart={periodStart}
           state={state}
           trialDaysLeft={trialDaysLeft}
         />
 
         <StatusBanner
-          cancelCurrentPeriodEnd={subscription?.currentPeriodEnd ?? null}
-          cancelEndDate={subscription?.currentPeriodEnd ?? null}
-          pastDueCardMask={subscription?.cardMask ?? null}
-          pastDuePriceLabel={formattedPrice}
+          cancelledDate={periodEnd ? formatRuDate(periodEnd) : null}
+          cancelledSubAmount={formatCurrency(
+            subscriptionAmount,
+            currencyCode,
+            minorUnits
+          )}
+          cancelledTopupAmount={formatCurrency(
+            topupAmount,
+            currencyCode,
+            minorUnits
+          )}
+          pastDueCardMask={subscriptionRow?.cardMask ?? null}
+          pastDuePrice={planPriceText}
           pastDueRetryIn={pastDueRetryIn}
           state={state}
-          trialChargingStartDate={subscription?.trialEndsAt ?? null}
-          trialDaysLeft={trialDaysLeft}
-          trialPlanName={plan?.displayName ?? plan?.name ?? ""}
-          trialPriceLabel={formattedPrice}
+          trialChargeDate={trialEndsAt ? formatRuDate(trialEndsAt) : null}
+          trialCurrentPeriodEnd={periodEnd}
+          trialPrice={planPriceText}
         />
 
         <div className={styles.grid}>
-          <UsageGaugeCard
-            dimmed={dimmedCards}
-            freeUsage={freeUsage}
-            state={state}
-          />
-
-          {state === "none" ? (
-            <FreePlanCard
-              email={session.user.email ?? ""}
-              emailVerified={emailVerified}
-              rewardAmountK={rewardAmountK}
+          <div className={styles.row}>
+            <BalanceHero
+              currencyCode={currencyCode}
+              minorUnits={minorUnits}
+              state={state}
+              subResetTag={subResetTag}
+              subResetText={subResetText}
+              subscriptionAmount={subscriptionAmount}
+              topupAmount={topupAmount}
+              total={total}
             />
-          ) : (
-            planCardData && (
-              <PlanCard
-                data={planCardData}
-                dimmed={dimmedCards}
-                state={state}
-              />
-            )
-          )}
 
-          <PeriodLimitsCard
-            dimmed={dimmedCards}
-            freeBonuses={freeBonuses}
-            state={state}
+            {isFree || !planCardData ? (
+              <FreeSideCard welcomeAmount={welcomeAmount} />
+            ) : (
+              <PlanCard data={planCardData} dimmed={dimmed} state={state} />
+            )}
+          </div>
+
+          {showRewardBanner && userEmail ? (
+            <RewardBanner bonusAmount={emailBonusAmount} email={userEmail} />
+          ) : null}
+
+          <TransactionHistoryCard
+            chats={chatHistory}
+            currencyCode={currencyCode}
+            minorUnits={minorUnits}
+            recentSpendMinor={recentSpendMinor}
           />
 
-          {state === "active" && subscription?.currentPeriodEnd && (
-            <DangerZoneStrip currentPeriodEnd={subscription.currentPeriodEnd} />
-          )}
+          <div className={styles.footnote}>{t("footnote")}</div>
         </div>
       </main>
     </>
   );
+}
+
+function resolveNextPaymentDate(
+  state: BalanceViewState,
+  dates: {
+    now: Date;
+    periodEnd: Date | null;
+    trialEndsAt: Date | null;
+    nextBillingDate: Date | null;
+  }
+): string | null {
+  if (state === "cancelled") {
+    return null;
+  }
+  if (state === "trial") {
+    return dates.trialEndsAt ? formatRuDate(dates.trialEndsAt) : null;
+  }
+  if (state === "past_due") {
+    return dates.nextBillingDate
+      ? formatRuDayTime(dates.nextBillingDate, dates.now)
+      : null;
+  }
+  if (dates.nextBillingDate) {
+    return formatRuDate(dates.nextBillingDate);
+  }
+  return dates.periodEnd ? formatRuDate(dates.periodEnd) : null;
 }

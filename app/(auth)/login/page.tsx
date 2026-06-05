@@ -123,6 +123,12 @@ function LoginPage() {
     tErrors,
   ]);
 
+  console.log(
+    "SHOW_SIGNUP",
+    process.env.SHOW_SIGNUP,
+    typeof process.env.SHOW_SIGNUP
+  );
+
   const showSignup = process.env.SHOW_SIGNUP === "true";
 
   return (

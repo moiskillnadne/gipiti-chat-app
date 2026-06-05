@@ -1,9 +1,15 @@
 import { and, eq, ne } from "drizzle-orm";
-import { resetBalance } from "@/lib/ai/token-balance";
+import { ensureBalance, resetSubscriptionPool } from "@/lib/billing/balance";
+import { majorToMinorUnits } from "@/lib/billing/money";
+import {
+  getSubscriptionByCode,
+  priceForCurrency,
+} from "@/lib/billing/subscriptions";
 import { db } from "@/lib/db/connection";
 import {
   paymentIntent,
-  subscriptionPlan,
+  type Subscription,
+  subscription,
   user,
   userSubscription,
 } from "@/lib/db/schema";
@@ -13,11 +19,19 @@ import {
   calculateNextBillingDate,
   calculatePeriodEnd,
 } from "@/lib/subscription/billing-periods";
-import { buildRefillFromTier } from "@/lib/subscription/refill";
-import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 import { parseWebhookData, toNumber } from "./utils";
 
 const TRIAL_DAYS = 3;
+const RUB_MINOR_UNITS = 2;
+
+// The schema's payment-intent metadata column type is closed; widen it locally
+// to carry the trial flag (the column accepts any structurally-compatible
+// object).
+type PaymentIntentMetadata = NonNullable<
+  (typeof paymentIntent.$inferInsert)["metadata"]
+> & {
+  isTrial?: boolean;
+};
 
 export async function handlePayWebhook(
   payload: CloudPaymentsPayWebhook
@@ -88,40 +102,35 @@ export async function handlePayWebhook(
     JSON.stringify(existingSubscription, null, 2)
   );
 
-  if (!planName && existingSubscription) {
-    const existingPlans = await db
-      .select()
-      .from(subscriptionPlan)
-      .where(eq(subscriptionPlan.id, existingSubscription.planId))
-      .limit(1);
+  // Resolve the subscription code. The catalog Subscription is the source of
+  // truth for period math and pricing.
+  let sub: Subscription | null = null;
 
-    planName = existingPlans[0]?.name ?? null;
+  if (planName) {
+    sub = await getSubscriptionByCode(planName);
   }
 
-  if (!planName) {
-    console.error("[CloudPayments:Pay] Missing planName in webhook data");
+  if (!sub && existingSubscription) {
+    const [catalog] = await db
+      .select()
+      .from(subscription)
+      .where(eq(subscription.id, existingSubscription.subscriptionId))
+      .limit(1);
+
+    if (catalog) {
+      sub = catalog;
+      planName = catalog.code;
+    }
+  }
+
+  if (!(planName && sub)) {
+    console.error(
+      "[CloudPayments:Pay] Could not resolve subscription from webhook data"
+    );
     return Response.json({ code: 13 });
   }
 
   console.log("[CloudPayments:Pay] Plan Name: ", planName);
-
-  const tier = SUBSCRIPTION_TIERS[planName as keyof typeof SUBSCRIPTION_TIERS];
-
-  if (!tier) {
-    console.error(
-      `[CloudPayments:Pay] Subscription tier not found: ${planName}`
-    );
-    return Response.json({ code: 13 });
-  }
-
-  const isFreeTesterPlan = tier.isTesterPlan && tier.price.RUB === 0;
-
-  if (isFreeTesterPlan) {
-    console.error(
-      "[CloudPayments:Pay] Free tester plans are not allowed to be charged."
-    );
-    return Response.json({ code: 13 });
-  }
 
   if (amountValue === null) {
     console.error(`[CloudPayments:Pay] Amount is not a number: ${Amount}`);
@@ -135,9 +144,24 @@ export async function handlePayWebhook(
     return Response.json({ code: 13 });
   }
 
-  if (!isTrial && amountValue !== tier.price.RUB) {
+  // The user's balance currency drives pricing; new users default to RUB.
+  const balanceSummary = await ensureBalance(AccountId);
+  const price = await priceForCurrency(sub.id, balanceSummary.currencyCode);
+
+  if (price == null) {
     console.error(
-      `[CloudPayments:Pay] Amount mismatch for plan ${planName}. Expected ${tier.price.RUB}, Received ${amountValue}`
+      `[CloudPayments:Pay] No ${balanceSummary.currencyCode} price for subscription ${planName}`
+    );
+    return Response.json({ code: 13 });
+  }
+
+  // CloudPayments Amount arrives in MAJOR RUB units; compare against minor-unit
+  // catalog price.
+  const amountMinor = majorToMinorUnits(amountValue, RUB_MINOR_UNITS);
+
+  if (!isTrial && amountMinor !== price) {
+    console.error(
+      `[CloudPayments:Pay] Amount mismatch for plan ${planName}. Expected ${price}, Received ${amountMinor}`
     );
     return Response.json({ code: 13 });
   }
@@ -158,8 +182,9 @@ export async function handlePayWebhook(
       email: userEmail,
       token: Token,
       transactionId: TransactionId,
-      planName,
-      tier,
+      sub,
+      currencyCode: balanceSummary.currencyCode,
+      price,
       sessionId,
       cardMask: CardLastFour
         ? `${CardType ?? "Card"} ****${CardLastFour}`
@@ -199,46 +224,6 @@ export async function handlePayWebhook(
       return Response.json({ code: 13 });
     }
 
-    const plans = await db
-      .select()
-      .from(subscriptionPlan)
-      .where(eq(subscriptionPlan.name, planName))
-      .limit(1);
-
-    let plan = plans[0];
-
-    console.log("[CloudPayments:Pay] Plan: ", JSON.stringify(plan, null, 2));
-
-    // Ensure a SubscriptionPlan row exists: use the fetched plan if present, otherwise create one from the tier config
-    // (e.g., first time this plan processes a payment, the DB has no row yet, so we insert it and use that record).
-    if (!plan) {
-      console.log(
-        "[CloudPayments:Pay] Plan not found, creating new plan based on tier:",
-        JSON.stringify(tier, null, 2)
-      );
-      const [newPlan] = await db
-        .insert(subscriptionPlan)
-        .values({
-          name: tier.name,
-          displayName: tier.displayName,
-          billingPeriod: tier.billingPeriod,
-          billingPeriodCount: tier.billingPeriodCount,
-          tokenQuota: tier.tokenQuota,
-          features: {
-            searchQuota: tier.features.searchQuota,
-            maxImageGenerationsPerPeriod:
-              tier.features.maxImageGenerationsPerPeriod,
-            maxVideoGenerationsPerPeriod:
-              tier.features.maxVideoGenerationsPerPeriod,
-          },
-          price: tier.price.USD.toString(),
-          isTesterPlan: tier.isTesterPlan ?? false,
-        })
-        .returning();
-
-      plan = newPlan;
-    }
-
     const cardMask = CardLastFour
       ? `${CardType ?? "Card"} ****${CardLastFour}`
       : null;
@@ -246,7 +231,7 @@ export async function handlePayWebhook(
     const now = new Date();
 
     if (existingSubscription) {
-      // If the user already has an active subscription, update the existing subscription.
+      // If the user already has an active subscription, update it in place.
       const periodStart =
         existingSubscription.currentPeriodEnd > now
           ? existingSubscription.currentPeriodEnd
@@ -254,22 +239,21 @@ export async function handlePayWebhook(
 
       const periodEnd = calculatePeriodEnd(
         periodStart,
-        tier.billingPeriod,
-        tier.billingPeriodCount
+        sub.billingPeriod,
+        sub.billingPeriodCount
       );
 
       const nextBilling = calculateNextBillingDate(
         periodStart,
-        tier.billingPeriod,
-        tier.billingPeriodCount
+        sub.billingPeriod,
+        sub.billingPeriodCount
       );
 
       await db
         .update(userSubscription)
         .set({
-          planId: plan.id,
-          billingPeriod: tier.billingPeriod,
-          billingPeriodCount: tier.billingPeriodCount,
+          subscriptionId: sub.id,
+          currencyCode: balanceSummary.currencyCode,
           currentPeriodStart: periodStart,
           currentPeriodEnd: periodEnd,
           nextBillingDate: nextBilling,
@@ -279,14 +263,14 @@ export async function handlePayWebhook(
           cardToken: Token ?? existingSubscription.cardToken,
           cardMask: cardMask ?? existingSubscription.cardMask,
           lastPaymentDate: now,
-          lastPaymentAmount: amountValue.toFixed(2),
+          lastPaymentAmount: amountMinor,
           isTrial: false,
           trialEndsAt: null,
           updatedAt: now,
         })
         .where(eq(userSubscription.id, existingSubscription.id));
 
-      // Cancel any other active subscriptions for this user (orphaned free/tester subs)
+      // Cancel any other active subscriptions for this user (orphaned subs)
       await db
         .update(userSubscription)
         .set({ status: "cancelled", cancelledAt: now })
@@ -298,7 +282,7 @@ export async function handlePayWebhook(
           )
         );
     } else {
-      // If the user does not have an active subscription, cancel the existing subscription and create a new one.
+      // No active subscription — cancel any leftover active rows and insert a new one.
       await db
         .update(userSubscription)
         .set({
@@ -314,21 +298,20 @@ export async function handlePayWebhook(
 
       const periodEnd = calculatePeriodEnd(
         now,
-        tier.billingPeriod,
-        tier.billingPeriodCount
+        sub.billingPeriod,
+        sub.billingPeriodCount
       );
 
       const nextBilling = calculateNextBillingDate(
         now,
-        tier.billingPeriod,
-        tier.billingPeriodCount
+        sub.billingPeriod,
+        sub.billingPeriodCount
       );
 
       await db.insert(userSubscription).values({
         userId: AccountId,
-        planId: plan.id,
-        billingPeriod: tier.billingPeriod,
-        billingPeriodCount: tier.billingPeriodCount,
+        subscriptionId: sub.id,
+        currencyCode: balanceSummary.currencyCode,
         currentPeriodStart: now,
         currentPeriodEnd: periodEnd,
         nextBillingDate: nextBilling,
@@ -337,35 +320,32 @@ export async function handlePayWebhook(
         cardToken: Token ?? null,
         cardMask,
         lastPaymentDate: now,
-        lastPaymentAmount: amountValue.toFixed(2),
+        lastPaymentAmount: amountMinor,
         cancelAtPeriodEnd: false,
         cancelledAt: null,
       });
     }
 
-    // Reset token balance + quota counters to plan quota on successful payment
+    // Reset the subscription balance pool to the plan price on successful payment.
     try {
-      const refill = buildRefillFromTier(tier);
-      await resetBalance({
+      await resetSubscriptionPool({
         userId: AccountId,
-        ...refill,
-        plan: planName,
-        reason: "payment",
+        amount: price,
+        currencyCode: balanceSummary.currencyCode,
+        type: "subscription_purchase",
         referenceId: transactionId ?? undefined,
-        planName,
+        metadata: { subscriptionCode: planName, subscriptionId: sub.id },
       });
       console.log(
-        `[CloudPayments:Pay] Token balance reset to ${tier.tokenQuota} for user ${AccountId}`
+        `[CloudPayments:Pay] Subscription pool reset to ${price} for user ${AccountId}`
       );
     } catch (balanceError) {
       console.error(
-        "[CloudPayments:Pay] Failed to reset token balance:",
+        "[CloudPayments:Pay] Failed to reset subscription pool:",
         balanceError
       );
       // Continue processing - balance reset failure shouldn't block subscription
     }
-
-    const amountString = amountValue.toFixed(2);
 
     const upsertPaymentIntent = async (session: string) => {
       const intents = await db
@@ -384,12 +364,14 @@ export async function handlePayWebhook(
           .update(paymentIntent)
           .set({
             status: "succeeded",
+            kind: "subscription",
+            subscriptionId: sub.id,
+            currencyCode: balanceSummary.currencyCode,
+            amount: amountMinor,
             externalSubscriptionId:
               SubscriptionId ?? intents[0].externalSubscriptionId,
             externalTransactionId:
               transactionId ?? intents[0].externalTransactionId,
-            amount: amountString,
-            currency: normalizedCurrency,
             updatedAt: now,
           })
           .where(eq(paymentIntent.id, intents[0].id));
@@ -400,16 +382,17 @@ export async function handlePayWebhook(
       await db.insert(paymentIntent).values({
         sessionId: session,
         userId: AccountId,
-        planName,
-        amount: amountString,
-        currency: normalizedCurrency,
+        kind: "subscription",
+        subscriptionId: sub.id,
+        currencyCode: balanceSummary.currencyCode,
+        amount: amountMinor,
         status: "succeeded",
         externalSubscriptionId: SubscriptionId ?? null,
         externalTransactionId: transactionId,
         expiresAt: now,
         metadata: {
-          planDisplayName: tier.displayName,
-          billingPeriod: `${tier.billingPeriodCount} ${tier.billingPeriod}`,
+          subscriptionCode: planName,
+          billingPeriod: `${sub.billingPeriodCount} ${sub.billingPeriod}`,
         },
       });
     };
@@ -419,13 +402,15 @@ export async function handlePayWebhook(
         .update(paymentIntent)
         .set({
           status: "succeeded",
+          kind: "subscription",
+          subscriptionId: sub.id,
+          currencyCode: balanceSummary.currencyCode,
+          amount: amountMinor,
           externalSubscriptionId:
             SubscriptionId ??
             existingTransactionIntent[0].externalSubscriptionId,
           externalTransactionId:
             transactionId ?? existingTransactionIntent[0].externalTransactionId,
-          amount: amountString,
-          currency: normalizedCurrency,
           updatedAt: now,
         })
         .where(eq(paymentIntent.id, existingTransactionIntent[0].id));
@@ -447,8 +432,9 @@ async function handleTrialPayment({
   email,
   token,
   transactionId,
-  planName,
-  tier,
+  sub,
+  currencyCode,
+  price,
   sessionId,
   cardMask,
 }: {
@@ -456,8 +442,9 @@ async function handleTrialPayment({
   email: string;
   token?: string;
   transactionId: number;
-  planName: string;
-  tier: (typeof SUBSCRIPTION_TIERS)[keyof typeof SUBSCRIPTION_TIERS];
+  sub: Subscription;
+  currencyCode: string;
+  price: number;
   sessionId: string | null;
   cardMask: string | null;
 }): Promise<Response> {
@@ -477,26 +464,28 @@ async function handleTrialPayment({
     );
 
     let recurrentConfig: { interval: "Day" | "Month"; period: number };
-    if (tier.billingPeriod === "daily") {
-      recurrentConfig = { interval: "Day", period: tier.billingPeriodCount };
-    } else if (tier.billingPeriod === "annual") {
+    if (sub.billingPeriod === "daily") {
+      recurrentConfig = { interval: "Day", period: sub.billingPeriodCount };
+    } else if (sub.billingPeriod === "annual") {
       recurrentConfig = {
         interval: "Month",
-        period: 12 * tier.billingPeriodCount,
+        period: 12 * sub.billingPeriodCount,
       };
     } else {
-      recurrentConfig = { interval: "Month", period: tier.billingPeriodCount };
+      recurrentConfig = { interval: "Month", period: sub.billingPeriodCount };
     }
 
     console.log(
       "[CloudPayments:Pay:Trial] Creating subscription with delayed start..."
     );
+    // CloudPayments expects the recurring charge in MAJOR RUB units.
+    const recurringAmountMajor = price / 10 ** RUB_MINOR_UNITS;
     const subscriptionResult = await createSubscription({
       token: token ?? "",
       email,
       accountId,
-      description: tier.displayName,
-      amount: tier.price.RUB,
+      description: sub.displayName ?? sub.code,
+      amount: recurringAmountMajor,
       currency: "RUB",
       interval: recurrentConfig.interval,
       period: recurrentConfig.period,
@@ -518,36 +507,6 @@ async function handleTrialPayment({
       externalSubscriptionId
     );
 
-    const plans = await db
-      .select()
-      .from(subscriptionPlan)
-      .where(eq(subscriptionPlan.name, planName))
-      .limit(1);
-
-    let plan = plans[0];
-    if (!plan) {
-      const [newPlan] = await db
-        .insert(subscriptionPlan)
-        .values({
-          name: tier.name,
-          displayName: tier.displayName,
-          billingPeriod: tier.billingPeriod,
-          billingPeriodCount: tier.billingPeriodCount,
-          tokenQuota: tier.tokenQuota,
-          features: {
-            searchQuota: tier.features.searchQuota,
-            maxImageGenerationsPerPeriod:
-              tier.features.maxImageGenerationsPerPeriod,
-            maxVideoGenerationsPerPeriod:
-              tier.features.maxVideoGenerationsPerPeriod,
-          },
-          price: tier.price.USD.toString(),
-          isTesterPlan: tier.isTesterPlan ?? false,
-        })
-        .returning();
-      plan = newPlan;
-    } // TODO: Check it later
-
     await db
       .update(userSubscription)
       .set({ status: "cancelled", cancelledAt: now })
@@ -560,9 +519,8 @@ async function handleTrialPayment({
 
     await db.insert(userSubscription).values({
       userId: accountId,
-      planId: plan.id,
-      billingPeriod: tier.billingPeriod,
-      billingPeriodCount: tier.billingPeriodCount,
+      subscriptionId: sub.id,
+      currencyCode,
       currentPeriodStart: now,
       currentPeriodEnd: trialEndsAt,
       nextBillingDate: trialEndsAt,
@@ -581,27 +539,7 @@ async function handleTrialPayment({
       .set({ trialUsedAt: now })
       .where(eq(user.id, accountId));
 
-    // Reset token balance + quota counters to plan quota for trial users
-    try {
-      const refill = buildRefillFromTier(tier);
-      await resetBalance({
-        userId: accountId,
-        ...refill,
-        plan: planName,
-        reason: "payment",
-        referenceId: `trial_${externalSubscriptionId}`,
-        planName,
-      });
-      console.log(
-        `[CloudPayments:Pay:Trial] Token balance reset to ${tier.tokenQuota} for user ${accountId}`
-      );
-    } catch (balanceError) {
-      console.error(
-        "[CloudPayments:Pay:Trial] Failed to reset token balance:",
-        balanceError
-      );
-      // Continue processing - balance reset failure shouldn't block trial activation
-    }
+    // Trials grant NO balance until the first real (recurring) payment lands.
 
     if (sessionId) {
       const intents = await db
@@ -616,12 +554,22 @@ async function handleTrialPayment({
         .limit(1);
 
       if (intents.length > 0) {
+        const trialMetadata: PaymentIntentMetadata = {
+          ...(intents[0].metadata ?? {}),
+          subscriptionCode: sub.code,
+          isTrial: true,
+        };
+
         await db
           .update(paymentIntent)
           .set({
             status: "succeeded",
+            kind: "subscription",
+            subscriptionId: sub.id,
+            currencyCode,
             externalSubscriptionId,
             externalTransactionId: transactionId.toString(),
+            metadata: trialMetadata,
             updatedAt: now,
           })
           .where(eq(paymentIntent.id, intents[0].id));

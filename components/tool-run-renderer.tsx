@@ -1,12 +1,12 @@
 "use client";
 
-import { DownloadIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { downloadFromUrl } from "@/lib/download";
 import { useTranslations } from "@/lib/i18n/translate";
 import type { RunGroupPart } from "@/lib/messages/group-tool-runs";
 import type { ChatMessage } from "@/lib/types";
 import { extractDomain, faviconUrl } from "@/lib/url";
+import { MediaPreview, type MediaPreviewState } from "./elements/media-preview";
 import { Response } from "./elements/response";
 import {
   EarlierStepsToggle,
@@ -22,7 +22,6 @@ import {
   ToolRunStep,
 } from "./elements/tool-run";
 import { toast } from "./toast";
-import { Weather } from "./weather";
 
 type ChatMessagePart = ChatMessage["parts"][number];
 type AnyPart = ChatMessagePart;
@@ -130,25 +129,6 @@ const sourcesFromExtractUrl = (
   return [...seen.values()];
 };
 
-const formatLocationFromInput = (
-  // biome-ignore lint/suspicious/noExplicitAny: weather input type
-  input: any
-): string => {
-  if (!input) {
-    return "";
-  }
-  if (typeof input.city === "string" && input.city.trim()) {
-    return input.city.trim();
-  }
-  if (
-    typeof input.latitude === "number" &&
-    typeof input.longitude === "number"
-  ) {
-    return `${input.latitude.toFixed(2)}, ${input.longitude.toFixed(2)}`;
-  }
-  return "";
-};
-
 const TICK_MS = 1000;
 const useElapsedSeconds = (
   isStreaming: boolean,
@@ -173,15 +153,18 @@ const useElapsedSeconds = (
   return Math.max(0, Math.round((reference - startedAt) / 1000));
 };
 
-type ImageStepProps = {
-  imageUrl: string;
-  prompt: string;
+type ToolImagePreviewProps = {
+  state: MediaPreviewState;
+  imageUrl?: string;
 };
 
-const ImageStepBody = ({ imageUrl, prompt }: ImageStepProps) => {
+const ToolImagePreview = ({ state, imageUrl }: ToolImagePreviewProps) => {
   const t = useTranslations("chat.messages");
 
   const handleDownload = async () => {
+    if (!imageUrl) {
+      return;
+    }
     try {
       await downloadFromUrl(imageUrl, "generated-image.png");
     } catch {
@@ -191,23 +174,12 @@ const ImageStepBody = ({ imageUrl, prompt }: ImageStepProps) => {
 
   return (
     <StepBody>
-      <div className="group/image relative w-fit max-w-full overflow-hidden rounded-md">
-        {/** biome-ignore lint/performance/noImgElement: model-generated image, no Next loader */}
-        {/** biome-ignore lint/nursery/useImageSize: dimensions unknown */}
-        <img
-          alt={prompt}
-          className="block max-w-full rounded-md"
-          src={imageUrl}
-        />
-        <button
-          className="absolute right-2 bottom-2 inline-flex size-8 items-center justify-center rounded-md bg-black/55 text-white transition-opacity duration-fast ease-canon hover:bg-black/75 md:opacity-0 md:group-hover/image:opacity-100"
-          onClick={handleDownload}
-          title={t("download")}
-          type="button"
-        >
-          <DownloadIcon className="size-4" />
-        </button>
-      </div>
+      <MediaPreview
+        mediaType="image"
+        onDownload={imageUrl ? handleDownload : undefined}
+        state={state}
+        url={imageUrl}
+      />
     </StepBody>
   );
 };
@@ -333,30 +305,17 @@ const buildStep = ({
         ),
       };
     }
-    case "tool-getWeather": {
-      const location = formatLocationFromInput(toolPart.input);
-      return {
-        key,
-        kind: "weather",
-        isActive,
-        hasSources: 0,
-        verbKey: "weather",
-        body: (
-          <>
-            {location && <span className="text-ink">{location}</span>}
-            {state === "output-available" && toolPart.output && (
-              <StepBody>
-                <Weather weatherAtLocation={toolPart.output} />
-              </StepBody>
-            )}
-          </>
-        ),
-      };
-    }
     case "tool-generateImage": {
       const prompt: string = toolPart.input?.prompt ?? "";
       const imageUrl: string | undefined =
         state === "output-available" ? toolPart.output?.imageUrl : undefined;
+      const isError =
+        state === "output-error" || (state === "output-available" && !imageUrl);
+      const previewState: MediaPreviewState = isError
+        ? "error"
+        : imageUrl
+          ? "done"
+          : "generating";
       return {
         key,
         kind: "generatedImage",
@@ -366,7 +325,7 @@ const buildStep = ({
         body: (
           <>
             {prompt && <StepQuery>{prompt}</StepQuery>}
-            {imageUrl && <ImageStepBody imageUrl={imageUrl} prompt={prompt} />}
+            <ToolImagePreview imageUrl={imageUrl} state={previewState} />
           </>
         ),
       };

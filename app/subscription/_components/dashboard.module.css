@@ -150,6 +150,7 @@
 }
 
 .headTitle {
+  font-family: var(--font-display);
   font-size: 32px;
   font-weight: 400;
   letter-spacing: -0.025em;
@@ -191,7 +192,7 @@
   display: grid;
   gap: 16px;
   grid-auto-rows: min-content;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
 }
 
 .card {
@@ -665,8 +666,11 @@
   border-radius: var(--radius-lg);
   display: flex;
   gap: 14px;
-  margin-bottom: 24px;
   padding: 16px 22px;
+}
+
+.marginBottom16 {
+  margin-bottom: 16px;
 }
 
 .bannerIcon {
@@ -1039,5 +1043,522 @@
   }
   .freeQuotaMeter {
     width: 100%;
+  }
+}
+
+/* ============================================================
+   BALANCE-FIRST REDESIGN — hero, pools, per-chat history
+   (additive; older gauge/limits classes above are kept for
+   plans-grid-card and remain unused by the balance dashboard)
+   ============================================================ */
+
+.row {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1.4fr 1fr;
+}
+
+.hero {
+  background: var(--card-bg);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  padding: 28px 28px 24px;
+  position: relative;
+}
+
+.heroWash {
+  background:
+    radial-gradient(
+      120% 80% at 100% 0%,
+      color-mix(in oklch, var(--citrus-soft) 70%, transparent) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      80% 60% at 0% 100%,
+      color-mix(in oklch, var(--topup-soft) 60%, transparent) 0%,
+      transparent 60%
+    );
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+.heroZero {
+  background: linear-gradient(
+    135deg,
+    oklch(0.96 0.04 30) 0%,
+    oklch(0.93 0.06 25) 100%
+  );
+}
+
+.heroLow {
+  background: linear-gradient(
+    135deg,
+    oklch(0.97 0.05 90) 0%,
+    oklch(0.93 0.08 70) 100%
+  );
+}
+
+.heroTrial {
+  background: linear-gradient(
+    135deg,
+    oklch(0.97 0.03 245) 0%,
+    oklch(0.93 0.05 245) 100%
+  );
+}
+
+.heroInner {
+  position: relative;
+}
+
+.heroHead {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  margin-bottom: 18px;
+  text-transform: uppercase;
+}
+
+.balanceRow {
+  align-items: baseline;
+  display: flex;
+  font-family: var(--font-display);
+  font-feature-settings: "tnum";
+  font-weight: 300;
+  gap: 4px;
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+}
+
+.balanceNum {
+  color: var(--ink);
+  font-size: 96px;
+}
+
+.balanceFrac {
+  color: var(--ink-2);
+  font-size: 40px;
+  font-weight: 300;
+  margin-left: -2px;
+}
+
+.balanceCur {
+  color: var(--ink-2);
+  font-size: 56px;
+  font-weight: 300;
+  margin-left: 6px;
+}
+
+.balanceZero .balanceNum,
+.balanceZero .balanceFrac {
+  color: var(--ink-2);
+}
+
+.balanceSub {
+  align-items: center;
+  color: var(--danger);
+  display: flex;
+  font-size: 13px;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.poolChips {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr 1fr;
+  margin-top: 22px;
+}
+
+.poolChip {
+  backdrop-filter: blur(6px);
+  background: color-mix(in oklch, var(--paper) 80%, transparent);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.poolChipEmpty {
+  opacity: 0.55;
+}
+
+.chipHead {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.chipSwatch {
+  border-radius: 2px;
+  flex-shrink: 0;
+  height: 8px;
+  width: 8px;
+}
+
+.chipSwatchSub {
+  background: var(--ink);
+}
+
+.chipSwatchTop {
+  background: var(--topup);
+}
+
+.chipLbl {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.chipTag {
+  align-items: center;
+  color: var(--ink-4);
+  display: inline-flex;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  gap: 3px;
+  letter-spacing: 0.08em;
+  margin-left: auto;
+  text-transform: uppercase;
+}
+
+.chipTag svg {
+  height: 10px;
+  width: 10px;
+}
+
+.chipAmt {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-feature-settings: "tnum";
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.chipSub {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  margin-top: 4px;
+}
+
+.heroActions {
+  border-top: 1px dashed var(--rule);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 22px;
+  padding-top: 18px;
+}
+
+.planKvList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.planKv {
+  align-items: baseline;
+  border-bottom: 1px dashed var(--rule);
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding-bottom: 12px;
+}
+
+.planKv:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.planKvK {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.planKvV {
+  color: var(--ink);
+  font-size: 13px;
+  text-align: right;
+}
+
+.planKvVMono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.planKvVStrike {
+  color: var(--ink-3);
+  margin-right: 6px;
+  text-decoration: line-through;
+}
+
+.planActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.freeFeatures {
+  color: var(--ink-2);
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  gap: 10px;
+}
+
+.freeFeature {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.freeFeature svg {
+  color: var(--ink-3);
+  flex-shrink: 0;
+  height: 14px;
+  width: 14px;
+}
+
+.bannerLow {
+  background: var(--warn-soft);
+  border: 1px solid color-mix(in oklch, var(--warn) 30%, transparent);
+  color: var(--ink);
+}
+
+.bannerLow .bannerIcon {
+  color: var(--warn);
+}
+
+.bannerZero {
+  background: linear-gradient(135deg, oklch(0.96 0.06 95), oklch(0.94 0.04 60));
+  border: 1px solid color-mix(in oklch, var(--citrus-deep) 25%, transparent);
+  color: var(--ink);
+}
+
+.bannerZero .bannerIcon {
+  color: var(--citrus-deep);
+}
+
+/* Reward / promo banner — invites an action for a bonus (success palette). */
+.bannerReward {
+  background: var(--success-soft);
+  border: 1px solid color-mix(in oklch, var(--success) 32%, transparent);
+  color: var(--ink);
+}
+
+.rewardGift {
+  align-items: center;
+  background: var(--success);
+  border-radius: 50%;
+  color: #fff;
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+
+.rewardGift svg {
+  height: 17px;
+  width: 17px;
+}
+
+.bannerReward .bannerBody b {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.rewardAmount {
+  color: var(--success);
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+.btnReward {
+  background: var(--success);
+  color: #fff;
+}
+
+.btnReward:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.histList {
+  display: flex;
+  flex-direction: column;
+}
+
+.histRow {
+  align-items: baseline;
+  border-bottom: 1px solid var(--rule);
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr auto;
+  padding: 12px 0;
+}
+
+.histRow:last-child {
+  border-bottom: none;
+}
+
+.histTtl {
+  color: var(--ink);
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.histSub {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.01em;
+  margin-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.histAmt {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-feature-settings: "tnum";
+  font-size: 19px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.histEmpty {
+  color: var(--ink-3);
+  font-size: 13px;
+  padding: 20px 4px;
+  text-align: center;
+}
+
+.histFoot {
+  align-items: center;
+  border-top: 1px solid var(--rule);
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  padding-top: 10px;
+}
+
+.histFootSummary {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.histFootSummary b {
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin-left: 4px;
+  text-transform: none;
+}
+
+.histFootLink {
+  align-items: center;
+  color: var(--ink-2);
+  display: inline-flex;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  gap: 6px;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color var(--d-fast) var(--ease-canon);
+}
+
+.histFootLink:hover {
+  color: var(--ink);
+}
+
+.histFootLink svg {
+  height: 11px;
+  width: 11px;
+}
+
+.cardTight {
+  padding: 16px 20px 12px;
+}
+
+.footnote {
+  color: var(--ink-4);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  padding-top: 24px;
+  text-transform: uppercase;
+}
+
+.btnGhost {
+  color: var(--ink-2);
+}
+
+.btnGhost:hover:not(:disabled) {
+  background: var(--paper-2);
+  color: var(--ink);
+}
+
+.pillLow {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.pillLow::before {
+  background: var(--warn);
+}
+
+.cardMeta {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.freeCtas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+@media (max-width: 720px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+  .poolChips {
+    grid-template-columns: 1fr;
+  }
+  .balanceNum {
+    font-size: 64px;
+  }
+  .balanceFrac {
+    font-size: 28px;
+  }
+  .balanceCur {
+    font-size: 36px;
   }
 }

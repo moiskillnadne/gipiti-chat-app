@@ -2,7 +2,7 @@ import type {
   CloudPaymentsReceipt,
   CloudPaymentsWidgetOptions,
 } from "@/lib/payments/cloudpayments-types";
-import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
+import { getSubscriptionSeedByCode } from "@/lib/subscription/subscription-tiers";
 import type { PlanType } from "../hooks/payment-reducer";
 
 export type Currency = "RUB" | "USD";
@@ -43,18 +43,19 @@ export function buildReceipt(
  * Format price for display (always RUB)
  */
 export function formatPrice(plan: PlanType): string {
-  const tier = SUBSCRIPTION_TIERS[plan];
-  return `${tier.price.RUB.toLocaleString("ru-RU")} ₽`;
+  const seed = getSubscriptionSeedByCode(plan);
+  return `${(seed?.prices.RUB ?? 0).toLocaleString("ru-RU")} ₽`;
 }
 
 /**
  * Get the amount for a plan in the specified currency
  */
 export function getAmount(plan: PlanType, currency: Currency): number {
-  const tier = SUBSCRIPTION_TIERS[plan];
+  const seed = getSubscriptionSeedByCode(plan);
+  const amount = seed?.prices[currency];
 
-  if (tier.price[currency]) {
-    return tier.price[currency];
+  if (amount != null) {
+    return amount;
   }
 
   throw new Error(`Price for ${plan} in ${currency} is not defined`);
@@ -71,8 +72,7 @@ export function getCurrency(): Currency {
  * Get the display name for a plan
  */
 export function getPlanDisplayName(plan: PlanType): string {
-  const tier = SUBSCRIPTION_TIERS[plan];
-  return tier.displayName;
+  return getSubscriptionSeedByCode(plan)?.displayName ?? plan;
 }
 
 /**
@@ -82,17 +82,19 @@ export function getRecurrentConfig(plan: PlanType): {
   interval: "Day" | "Month";
   period: number;
 } {
-  const tier = SUBSCRIPTION_TIERS[plan];
+  const seed = getSubscriptionSeedByCode(plan);
+  const billingPeriod = seed?.billingPeriod ?? "monthly";
+  const count = seed?.billingPeriodCount ?? 1;
 
-  if (tier.billingPeriod === "daily") {
-    return { interval: "Day", period: tier.billingPeriodCount };
+  if (billingPeriod === "daily") {
+    return { interval: "Day", period: count };
   }
 
-  if (tier.billingPeriod === "annual") {
-    return { interval: "Month", period: 12 * tier.billingPeriodCount };
+  if (billingPeriod === "annual") {
+    return { interval: "Month", period: 12 * count };
   }
 
-  return { interval: "Month", period: tier.billingPeriodCount };
+  return { interval: "Month", period: count };
 }
 
 /**

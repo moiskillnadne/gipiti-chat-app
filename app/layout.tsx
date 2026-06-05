@@ -1,7 +1,7 @@
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
-import { Geist_Mono, Rubik } from "next/font/google";
+import { Fraunces, Geist_Mono, Rubik } from "next/font/google";
 import { Toaster } from "sonner";
 import { ErrorLogger } from "@/components/error-logger";
 import { UtmCapture } from "@/components/utm-capture";
@@ -75,6 +75,14 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
 });
 
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-fraunces",
+  weight: ["300", "400", "500"],
+  style: ["normal", "italic"],
+});
+
 const PAPER_THEME_COLOR = "#fafaf9";
 
 export default function RootLayout({
@@ -84,7 +92,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      className={`${rubik.variable} ${geistMono.variable} scroll-smooth`}
+      className={`${rubik.variable} ${geistMono.variable} ${fraunces.variable} scroll-smooth`}
       lang="ru"
       suppressHydrationWarning
     >

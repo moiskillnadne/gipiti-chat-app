@@ -1,6 +1,5 @@
 "use client";
 
-import { format, parseISO } from "date-fns";
 import { InfoIcon } from "lucide-react";
 import useSWR from "swr";
 import {
@@ -8,81 +7,44 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Progress } from "@/components/ui/progress";
 import { useTranslations } from "@/lib/i18n/translate";
-import type { AppUsage } from "@/lib/usage";
 import { cn, fetcher } from "@/lib/utils";
 
 type UsageApiResponse = {
   balance?: {
-    current?: number | null;
-    formatted?: string | null;
-    lastResetAt?: string | null;
-  };
-  subscription?: {
-    periodEnd?: string | null;
-    tokenQuota?: number | null;
-  };
-  quota?: {
+    currencyCode?: string | null;
     total?: number | null;
-    used?: number | null;
-    percentUsed?: string | null;
-  };
+    formatted?: string | null;
+  } | null;
 };
 
 type UsageHintProps = {
   className?: string;
-  usage?: AppUsage;
 };
 
-const percentFromQuota = (usedTokens: number, totalTokens: number) => {
-  if (
-    !Number.isFinite(usedTokens) ||
-    !Number.isFinite(totalTokens) ||
-    totalTokens <= 0
-  ) {
-    return 0;
-  }
+// Minor-unit thresholds for the low-balance warning. Currency-agnostic and
+// intentionally coarse — exact pricing is per-request, so this only nudges the
+// user to top up before they run dry.
+const EXCEEDED_THRESHOLD = 0;
+const CRITICAL_THRESHOLD = 5000;
+const WARNING_THRESHOLD = 20_000;
 
-  return Math.min(100, (usedTokens / totalTokens) * 100);
-};
+type BalanceState = "normal" | "warning" | "critical" | "exceeded";
 
-const formatReset = (isoDate?: string | null) => {
-  if (!isoDate) {
-    return;
-  }
-
-  try {
-    const parsed = parseISO(isoDate);
-    if (Number.isNaN(parsed.getTime())) {
-      return;
-    }
-
-    return format(parsed, "LLL d, yyyy");
-  } catch (_error) {
-    return;
-  }
-};
-
-const WARNING_THRESHOLD = 80; // Show warning at 80%
-const CRITICAL_THRESHOLD = 95; // Show critical warning at 95%
-
-const getWarningState = (
-  percent: number
-): "normal" | "warning" | "critical" | "exceeded" => {
-  if (percent >= 100) {
+const getBalanceState = (total: number): BalanceState => {
+  if (total <= EXCEEDED_THRESHOLD) {
     return "exceeded";
   }
-  if (percent >= CRITICAL_THRESHOLD) {
+  if (total <= CRITICAL_THRESHOLD) {
     return "critical";
   }
-  if (percent >= WARNING_THRESHOLD) {
+  if (total <= WARNING_THRESHOLD) {
     return "warning";
   }
   return "normal";
 };
 
-const getWarningColor = (state: ReturnType<typeof getWarningState>) => {
+const getStateColor = (state: BalanceState): string => {
   switch (state) {
     case "exceeded":
       return "text-destructive";
@@ -108,7 +70,7 @@ const InfoRow = ({ label, value }: { label: string; value?: string }) => {
   );
 };
 
-export const UsageHint = ({ className, usage }: UsageHintProps) => {
+export const UsageHint = ({ className }: UsageHintProps) => {
   const { data } = useSWR<UsageApiResponse>("/api/usage", fetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
@@ -117,64 +79,16 @@ export const UsageHint = ({ className, usage }: UsageHintProps) => {
 
   const t = useTranslations("usage");
 
-  // Use balance-based system (primary)
-  const balance = data?.balance?.current ?? null;
-  const tokenQuota =
-    data?.subscription?.tokenQuota ?? data?.quota?.total ?? null;
+  const total = data?.balance?.total ?? null;
+  const formatted = data?.balance?.formatted ?? null;
 
-  // Fallback to old quota system if balance not available
-  const totalTokens = tokenQuota ?? undefined;
-  const usedTokens = data?.quota?.used ?? usage?.totalTokens ?? undefined;
-
-  // Calculate percentage from balance (for progress bar and warnings)
-  const percentFromBalance = (
-    currentBalance: number | null,
-    quota: number | null
-  ): number => {
-    if (
-      currentBalance === null ||
-      quota === null ||
-      !Number.isFinite(currentBalance) ||
-      !Number.isFinite(quota) ||
-      quota <= 0
-    ) {
-      return 0;
-    }
-    // Percent USED = (quota - balance) / quota * 100
-    const used = quota - currentBalance;
-    return Math.min(100, Math.max(0, (used / quota) * 100));
-  };
-
-  // If no data available, don't render
-  if (
-    balance === null &&
-    (totalTokens === undefined || usedTokens === undefined)
-  ) {
+  if (total === null) {
     return null;
   }
 
-  // Calculate percent used (for warning states and progress bar)
-  let percent: number;
-  if (balance !== null && tokenQuota !== null) {
-    // New balance-based calculation
-    percent = percentFromBalance(balance, tokenQuota);
-  } else if (data?.quota?.percentUsed) {
-    percent = Number.parseFloat(data.quota.percentUsed);
-  } else if (
-    usedTokens !== undefined &&
-    totalTokens !== undefined &&
-    totalTokens > 0
-  ) {
-    percent = percentFromQuota(usedTokens, totalTokens);
-  } else {
-    percent = 0;
-  }
-
-  percent = Number.isFinite(percent) ? Math.min(100, percent) : 0;
-
-  const resetDate = formatReset(data?.subscription?.periodEnd);
-  const warningState = getWarningState(percent);
-  const colorClass = getWarningColor(warningState);
+  const balanceState = getBalanceState(total);
+  const colorClass = getStateColor(balanceState);
+  const balanceLabel = formatted ?? String(total);
 
   return (
     <Popover>
@@ -195,43 +109,29 @@ export const UsageHint = ({ className, usage }: UsageHintProps) => {
             )}
             strokeWidth={1.5}
           />
-          <span>
-            {t(`tooltip.${warningState}`, { percent: percent.toFixed(1) })}
-          </span>
+          <span>{t("tooltip.balance", { balance: balanceLabel })}</span>
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-72 space-y-3 p-4">
-        <Progress
-          className={cn(
-            "h-2",
-            warningState === "exceeded" && "bg-destructive/20",
-            warningState === "critical" && "bg-orange-200",
-            warningState === "warning" && "bg-yellow-200",
-            warningState === "normal" && "bg-muted"
-          )}
-          value={percent}
-        />
-
-        {warningState !== "normal" && (
+        {balanceState !== "normal" && (
           <div
             className={cn(
               "rounded-md p-2 text-xs",
-              warningState === "exceeded" &&
+              balanceState === "exceeded" &&
                 "bg-destructive/10 text-destructive",
-              warningState === "critical" && "bg-orange-100 text-orange-900",
-              warningState === "warning" && "bg-yellow-100 text-yellow-900"
+              balanceState === "critical" && "bg-orange-100 text-orange-900",
+              balanceState === "warning" && "bg-yellow-100 text-yellow-900"
             )}
           >
-            {t(`warning.${warningState}`)}
+            {t(`warning.${balanceState}`)}
           </div>
         )}
 
         <div className="space-y-1">
-          <InfoRow label={t("used")} value={`${percent.toFixed(1)}%`} />
-          <InfoRow label={t("resetDate")} value={resetDate} />
+          <InfoRow label={t("balance")} value={balanceLabel} />
         </div>
 
-        {warningState === "exceeded" && (
+        {balanceState === "exceeded" && (
           <button
             className="w-full rounded-md bg-primary px-3 py-2 text-primary-foreground text-sm hover:bg-primary/90"
             onClick={() => {

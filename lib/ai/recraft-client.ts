@@ -2,7 +2,7 @@ import { gateway } from "@ai-sdk/gateway";
 import { generateImage } from "ai";
 
 export const isRecraftModel = (modelId: string): boolean => {
-  return modelId === "recraft-v4-pro";
+  return modelId === "recraft-v4.1-pro";
 };
 
 type RecraftImageOptions = {
@@ -25,12 +25,15 @@ export async function generateRecraftImage(
   options: RecraftImageOptions = {}
 ): Promise<RecraftImageResult> {
   const result = await generateImage({
-    model: gateway.imageModel("recraft/recraft-v4-pro"),
+    model: gateway.imageModel("recraft/recraft-v4.1-pro"),
     prompt,
     ...(options.aspectRatio && {
       aspectRatio: options.aspectRatio as `${number}:${number}`,
     }),
   });
+
+  console.log("generateRecraftImage result");
+  console.dir(result, { depth: null });
 
   const image = result.image;
   if (!image) {
@@ -39,6 +42,9 @@ export async function generateRecraftImage(
 
   // Extract usage metadata
   const imgUsage = result.usage;
+
+  console.log("generateRecraftImage imgUsage");
+  console.dir(imgUsage, { depth: null });
 
   // Extract cost from provider metadata
   const provMeta = result.providerMetadata;

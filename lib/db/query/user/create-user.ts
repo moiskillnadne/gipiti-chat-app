@@ -1,8 +1,13 @@
-import { FREE_TIER_ENTITLEMENTS } from "../../../ai/entitlements";
+import { creditBalance, ensureBalance } from "../../../billing/balance";
+import {
+  DEFAULT_CURRENCY_CODE,
+  WELCOME_GRANT_MAJOR_UNITS,
+} from "../../../billing/constants";
+import { majorToMinorUnits } from "../../../billing/money";
 import { ChatSDKError } from "../../../errors";
 import type { UtmData } from "../../../utm/constants";
 import { db } from "../../connection";
-import { balance, user } from "../../schema";
+import { user } from "../../schema";
 import { generateHashedPassword } from "../../utils";
 
 export async function createUser(
@@ -12,39 +17,39 @@ export async function createUser(
 ) {
   const hashedPassword = generateHashedPassword(password);
 
+  let newUser: typeof user.$inferSelect;
+
   try {
-    return await db.transaction(async (tx) => {
-      const [newUser] = await tx
-        .insert(user)
-        .values({
-          email,
-          password: hashedPassword,
-          ...(utmData && {
-            utmSource: utmData.utmSource,
-            utmMedium: utmData.utmMedium,
-            utmCampaign: utmData.utmCampaign,
-            utmContent: utmData.utmContent,
-            utmTerm: utmData.utmTerm,
-          }),
-        })
-        .returning();
+    const [created] = await db
+      .insert(user)
+      .values({
+        email,
+        password: hashedPassword,
+        ...(utmData && {
+          utmSource: utmData.utmSource,
+          utmMedium: utmData.utmMedium,
+          utmCampaign: utmData.utmCampaign,
+          utmContent: utmData.utmContent,
+          utmTerm: utmData.utmTerm,
+        }),
+      })
+      .returning();
 
-      // Create user's balance row. Free plan with Tier 1 entitlements is the default.
-      await tx
-        .insert(balance)
-        .values({
-          userId: newUser.id,
-          plan: "free",
-          tokens: FREE_TIER_ENTITLEMENTS.tier_1.tokenBonus,
-          imageGeneration: FREE_TIER_ENTITLEMENTS.tier_1.imageBonus,
-          videoGeneration: FREE_TIER_ENTITLEMENTS.tier_1.videoBonus,
-          webSearches: FREE_TIER_ENTITLEMENTS.tier_1.searchQuota,
-        })
-        .onConflictDoNothing({ target: balance.userId });
-
-      return newUser;
-    });
+    newUser = created;
   } catch (_error) {
     throw new ChatSDKError("bad_request:database", "Failed to create user");
   }
+
+  // Seed the currency-based balance: ensure a zeroed RUB row, then credit the
+  // one-time welcome grant to the persistent top-up pool so it never resets.
+  await ensureBalance(newUser.id, DEFAULT_CURRENCY_CODE);
+  await creditBalance({
+    userId: newUser.id,
+    pool: "topup",
+    amount: majorToMinorUnits(WELCOME_GRANT_MAJOR_UNITS, 2),
+    type: "welcome",
+    description: "Welcome grant",
+  });
+
+  return newUser;
 }

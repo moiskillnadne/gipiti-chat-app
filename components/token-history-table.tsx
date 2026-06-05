@@ -8,24 +8,30 @@ import { ModelBadge } from "@/components/model-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatTokenBalance } from "@/lib/format-tokens";
+import { formatCurrency } from "@/lib/billing/money";
 import { useTranslations } from "@/lib/i18n/translate";
 import { fetcher } from "@/lib/utils";
 
-type TransactionMetadata = {
-  modelId?: string;
-  chatId?: string;
-};
+type TransactionType =
+  | "welcome"
+  | "email_bonus"
+  | "subscription_renewal"
+  | "subscription_purchase"
+  | "topup_purchase"
+  | "usage_debit"
+  | "refund"
+  | "adjustment";
 
 type Transaction = {
   id: string;
-  type: "credit" | "debit" | "reset" | "adjustment";
+  type: TransactionType;
+  pool: "subscription" | "topup";
+  currencyCode: string;
   amount: number;
-  balanceAfter: number;
   createdAt: string;
+  modelId: string | null;
   chatTitle: string | null;
   description: string | null;
-  metadata: TransactionMetadata | null;
 };
 
 type TransactionsApiResponse = {
@@ -35,6 +41,17 @@ type TransactionsApiResponse = {
 };
 
 const PAGE_SIZE = 20;
+
+const BADGE_CLASS_BY_TYPE: Record<TransactionType, string> = {
+  welcome: "bg-green-100 text-green-800",
+  email_bonus: "bg-green-100 text-green-800",
+  subscription_renewal: "bg-green-100 text-green-800",
+  subscription_purchase: "bg-green-100 text-green-800",
+  topup_purchase: "bg-green-100 text-green-800",
+  usage_debit: "bg-red-100 text-red-800",
+  refund: "bg-blue-100 text-blue-800",
+  adjustment: "",
+};
 
 export function TokenHistoryTable() {
   const t = useTranslations("auth.subscription.history");
@@ -55,29 +72,12 @@ export function TokenHistoryTable() {
   const total = data?.total ?? 0;
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
-  const getTypeBadge = (type: Transaction["type"]) => {
-    switch (type) {
-      case "credit":
-        return (
-          <Badge className="bg-green-100 text-green-800">
-            {t("types.credit")}
-          </Badge>
-        );
-      case "debit":
-        return (
-          <Badge className="bg-red-100 text-red-800">{t("types.debit")}</Badge>
-        );
-      case "reset":
-        return (
-          <Badge className="bg-blue-100 text-blue-800">
-            {t("types.reset")}
-          </Badge>
-        );
-      case "adjustment":
-        return <Badge variant="outline">{t("types.adjustment")}</Badge>;
-      default:
-        return null;
+  const getTypeBadge = (type: TransactionType) => {
+    const className = BADGE_CLASS_BY_TYPE[type];
+    if (type === "adjustment") {
+      return <Badge variant="outline">{t(`types.${type}`)}</Badge>;
     }
+    return <Badge className={className}>{t(`types.${type}`)}</Badge>;
   };
 
   return (
@@ -99,7 +99,7 @@ export function TokenHistoryTable() {
                 {t("columns.chat")}
               </th>
               <th className="px-4 py-3 text-right font-medium">
-                {t("columns.tokens")}
+                {t("columns.amount")}
               </th>
             </tr>
           </thead>
@@ -121,8 +121,8 @@ export function TokenHistoryTable() {
                   </td>
                   <td className="px-4 py-3">{getTypeBadge(tx.type)}</td>
                   <td className="px-4 py-3">
-                    {tx.metadata?.modelId ? (
-                      <ModelBadge modelId={tx.metadata.modelId} />
+                    {tx.modelId ? (
+                      <ModelBadge modelId={tx.modelId} />
                     ) : (
                       <span className="text-muted-foreground">-</span>
                     )}
@@ -136,8 +136,8 @@ export function TokenHistoryTable() {
                         tx.amount > 0 ? "text-green-600" : "text-red-600"
                       }
                     >
-                      {tx.amount > 0 ? "+" : ""}
-                      {formatTokenBalance(Math.abs(tx.amount))}
+                      {tx.amount > 0 ? "+" : "-"}
+                      {formatCurrency(Math.abs(tx.amount), tx.currencyCode)}
                     </span>
                   </td>
                 </tr>

@@ -13,103 +13,74 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useTranslations } from "@/lib/i18n/translate";
-import type { SubscriptionUiState } from "@/lib/subscription/subscription-state";
+import type { BalanceViewState } from "@/lib/subscription/subscription-state";
 import { useCancelSubscription } from "@/lib/subscription/use-cancel-subscription";
-import {
-  formatRuDate,
-  pluralRu,
-  type RuPluralForms,
-} from "@/lib/utils/format-billing";
 import styles from "./dashboard.module.css";
-import { PauseIcon, SparkIcon, WarnIcon } from "./icons";
-
-const DAY_FORMS: RuPluralForms = ["день", "дня", "дней"];
+import { InfoIcon, PauseIcon, WarnIcon } from "./icons";
 
 const MANAGE_HREF = "/manage-subscription";
 
-type StatusBannerProps = {
-  state: SubscriptionUiState;
-  trialDaysLeft: number;
-  trialChargingStartDate: Date | null;
-  trialPlanName: string;
-  trialPriceLabel: string;
-  cancelEndDate: Date | null;
-  pastDuePriceLabel: string;
+export type StatusBannerProps = {
+  state: BalanceViewState;
+  trialChargeDate: string | null;
+  trialPrice: string;
+  trialCurrentPeriodEnd: Date | null;
+  cancelledDate: string | null;
+  cancelledSubAmount: string;
+  cancelledTopupAmount: string;
+  pastDuePrice: string;
   pastDueCardMask: string | null;
   pastDueRetryIn: string | null;
-  cancelCurrentPeriodEnd: Date | null;
 };
 
 export function StatusBanner(props: StatusBannerProps) {
-  if (props.state === "active") {
-    return null;
+  switch (props.state) {
+    case "trial":
+      return <TrialBanner {...props} />;
+    case "cancelled":
+      return <CancelledBanner {...props} />;
+    case "past_due":
+      return <PastDueBanner {...props} />;
+    case "low":
+      return <LowBanner />;
+    case "free_zero":
+      return <ZeroBanner />;
+    default:
+      return null;
   }
-
-  if (props.state === "trial") {
-    return <TrialBanner {...props} />;
-  }
-
-  if (props.state === "cancelled") {
-    return <CancelledBanner {...props} />;
-  }
-
-  if (props.state === "past_due") {
-    return <PastDueBanner {...props} />;
-  }
-
-  return null;
 }
 
 function TrialBanner({
-  trialDaysLeft,
-  trialChargingStartDate,
-  trialPlanName,
-  trialPriceLabel,
-  cancelCurrentPeriodEnd,
+  trialChargeDate,
+  trialPrice,
+  trialCurrentPeriodEnd,
 }: StatusBannerProps) {
-  const router = useRouter();
-  const t = useTranslations("auth.subscription.dashboard.banner.trial");
+  const t = useTranslations("auth.subscription.balance.banner.trial");
   const tDanger = useTranslations("auth.subscription.management.dangerZone");
   const tCommon = useTranslations("common.buttons");
   const cancelFlow = useCancelSubscription({
-    currentPeriodEnd: cancelCurrentPeriodEnd ?? new Date(),
+    currentPeriodEnd: trialCurrentPeriodEnd ?? new Date(),
     isTrial: true,
   });
 
-  const dayWord = pluralRu(trialDaysLeft, DAY_FORMS);
-  const endDateText = trialChargingStartDate
-    ? formatRuDate(trialChargingStartDate)
-    : "—";
-
   return (
     <>
-      <div className={`${styles.banner} ${styles.bannerTrial}`}>
-        <SparkIcon className={styles.bannerIcon} />
+      <div
+        className={`${styles.banner} ${styles.bannerTrial} ${styles.marginBottom16}`}
+      >
+        <InfoIcon className={styles.bannerIcon} />
         <div className={styles.bannerBody}>
-          <b>{t("title", { days: trialDaysLeft, dayWord })}</b>
-          <span>
-            {t("body", {
-              endDate: endDateText,
-              planName: trialPlanName,
-              price: trialPriceLabel,
-            })}
-          </span>
+          <b>{t("title", { date: trialChargeDate ?? "—" })}</b>
+          <span>{t("body", { price: trialPrice })}</span>
         </div>
         <div className={styles.bannerActions}>
           <button
-            className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm}`}
-            disabled={!cancelCurrentPeriodEnd || cancelFlow.isLoading}
+            className={`${styles.btn} ${styles.btnGhost} ${styles.btnSm}`}
+            disabled={!trialCurrentPeriodEnd || cancelFlow.isLoading}
             onClick={cancelFlow.openFeedback}
             type="button"
           >
             {t("cancel")}
-          </button>
-          <button
-            className={`${styles.btn} ${styles.btnPrimary} ${styles.btnSm}`}
-            onClick={() => router.push(MANAGE_HREF)}
-            type="button"
-          >
-            {t("upgrade")}
           </button>
         </div>
       </div>
@@ -162,21 +133,28 @@ function TrialBanner({
   );
 }
 
-function CancelledBanner({ cancelEndDate }: StatusBannerProps) {
+function CancelledBanner({
+  cancelledDate,
+  cancelledSubAmount,
+  cancelledTopupAmount,
+}: StatusBannerProps) {
   const router = useRouter();
-  const t = useTranslations("auth.subscription.dashboard.banner.cancelled");
-  const endDateText = cancelEndDate ? formatRuDate(cancelEndDate) : "—";
+  const t = useTranslations("auth.subscription.balance.banner.cancelled");
 
   return (
-    <div className={`${styles.banner} ${styles.bannerCancelled}`}>
+    <div
+      className={`${styles.banner} ${styles.bannerCancelled} ${styles.marginBottom16}`}
+    >
       <PauseIcon className={styles.bannerIcon} />
       <div className={styles.bannerBody}>
-        <b>{t("title", { endDate: endDateText })}</b>
-        <span>{t("body")}</span>
+        <b>{t("title", { date: cancelledDate ?? "—" })}</b>
+        <span>
+          {t("body", { sub: cancelledSubAmount, topup: cancelledTopupAmount })}
+        </span>
       </div>
       <div className={styles.bannerActions}>
         <button
-          className={`${styles.btn} ${styles.btnAccent} ${styles.btnSm}`}
+          className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm}`}
           onClick={() => router.push(MANAGE_HREF)}
           type="button"
         >
@@ -188,40 +166,76 @@ function CancelledBanner({ cancelEndDate }: StatusBannerProps) {
 }
 
 function PastDueBanner({
-  pastDuePriceLabel,
+  pastDuePrice,
   pastDueCardMask,
   pastDueRetryIn,
 }: StatusBannerProps) {
   const router = useRouter();
-  const t = useTranslations("auth.subscription.dashboard.banner.pastDue");
+  const t = useTranslations("auth.subscription.balance.banner.pastDue");
 
   return (
-    <div className={`${styles.banner} ${styles.bannerPastDue}`}>
+    <div
+      className={`${styles.banner} ${styles.bannerPastDue} ${styles.marginBottom16}`}
+    >
       <WarnIcon className={styles.bannerIcon} />
       <div className={styles.bannerBody}>
-        <b>{t("title")}</b>
-        <span>
-          {t("body", {
-            price: pastDuePriceLabel,
+        <b>
+          {t("title", {
+            price: pastDuePrice,
             cardMask: pastDueCardMask ?? "—",
-            retryIn: pastDueRetryIn ?? "скоро",
           })}
-        </span>
+        </b>
+        <span>{t("body", { retryIn: pastDueRetryIn ?? t("soon") })}</span>
       </div>
       <div className={styles.bannerActions}>
         <button
-          className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm}`}
-          onClick={() => router.push(MANAGE_HREF)}
-          type="button"
-        >
-          {t("retry")}
-        </button>
-        <button
-          className={`${styles.btn} ${styles.btnDanger} ${styles.btnSm}`}
+          className={`${styles.btn} ${styles.btnPrimary} ${styles.btnSm}`}
           onClick={() => router.push(MANAGE_HREF)}
           type="button"
         >
           {t("updateCard")}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function LowBanner() {
+  const t = useTranslations("auth.subscription.balance.banner.low");
+
+  return (
+    <div
+      className={`${styles.banner} ${styles.bannerLow} ${styles.marginBottom16}`}
+    >
+      <WarnIcon className={styles.bannerIcon} />
+      <div className={styles.bannerBody}>
+        <b>{t("title")}</b>
+        <span>{t("body")}</span>
+      </div>
+    </div>
+  );
+}
+
+function ZeroBanner() {
+  const router = useRouter();
+  const t = useTranslations("auth.subscription.balance.banner.zero");
+
+  return (
+    <div
+      className={`${styles.banner} ${styles.bannerZero} ${styles.marginBottom16}`}
+    >
+      <WarnIcon className={styles.bannerIcon} />
+      <div className={styles.bannerBody}>
+        <b>{t("title")}</b>
+        <span>{t("body")}</span>
+      </div>
+      <div className={styles.bannerActions}>
+        <button
+          className={`${styles.btn} ${styles.btnPrimary} ${styles.btnSm}`}
+          onClick={() => router.push(MANAGE_HREF)}
+          type="button"
+        >
+          {t("subscribe")}
         </button>
       </div>
     </div>

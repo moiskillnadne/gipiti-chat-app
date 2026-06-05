@@ -2,44 +2,32 @@ import { config } from "dotenv";
 import { and, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { FREE_TIER_ENTITLEMENTS } from "@/lib/ai/entitlements";
-import {
-  balance,
-  tokenBalanceTransaction,
-  user,
-  userSubscription,
-} from "@/lib/db/schema";
+import { balance, transaction, user, userSubscription } from "@/lib/db/schema";
 
 config({ path: ".env.local" });
 
-const FREE_PLAN_NAME = "free";
-
-async function main() {
+/**
+ * Admin: move a user to the free state — cancel active subscriptions and clear
+ * the subscription balance pool. The persistent top-up pool is preserved.
+ * Usage: npx tsx scripts/assign-free-plan.ts <userId>
+ */
+async function main(): Promise<void> {
   const userId = process.argv.at(2);
 
   if (!userId) {
     console.error("❌ Usage: npx tsx scripts/assign-free-plan.ts <userId>");
-    console.error(
-      "   Example: npx tsx scripts/assign-free-plan.ts 4c2b7f0e-..."
-    );
     process.exit(1);
   }
-
-  const freeBalance = FREE_TIER_ENTITLEMENTS.tier_1.tokenBonus;
-
-  console.log(`🔧 Assigning free plan to user: ${userId}\n`);
 
   // biome-ignore lint: Forbidden non-null assertion.
   const client = postgres(process.env.POSTGRES_URL!);
   const db = drizzle(client);
 
-  const existingUsers = await db
+  const [existingUser] = await db
     .select({ id: user.id, email: user.email })
     .from(user)
     .where(eq(user.id, userId))
     .limit(1);
-
-  const existingUser = existingUsers.at(0);
 
   if (!existingUser) {
     console.error(`❌ User not found: ${userId}`);
@@ -47,28 +35,10 @@ async function main() {
     process.exit(1);
   }
 
-  const existingBalances = await db
-    .select({ plan: balance.plan, tokens: balance.tokens })
-    .from(balance)
-    .where(eq(balance.userId, userId))
-    .limit(1);
-
-  const existingBalance = existingBalances.at(0);
-
-  console.log(`User:           ${existingUser.email} (${existingUser.id})`);
-  console.log(`Current plan:   ${existingBalance?.plan ?? "(none)"}`);
-  console.log(
-    `Current balance: ${(existingBalance?.tokens ?? 0).toLocaleString()} tokens\n`
-  );
-
-  // Free is not a subscription. Cancel any existing active subscriptions
-  // (e.g. tester_paid, basic_*) so the user is clearly on the free track.
   const activeSubs = await db
     .select({
       id: userSubscription.id,
       externalSubscriptionId: userSubscription.externalSubscriptionId,
-      status: userSubscription.status,
-      currentPeriodEnd: userSubscription.currentPeriodEnd,
     })
     .from(userSubscription)
     .where(
@@ -78,28 +48,13 @@ async function main() {
       )
     );
 
-  if (activeSubs.length > 0) {
-    console.log(`\n📋 Existing active subscriptions (${activeSubs.length}):`);
-    for (const sub of activeSubs) {
-      console.log(`   - sub ${sub.id}`);
-      console.log(
-        `     externalSubscriptionId: ${sub.externalSubscriptionId ?? "(none)"}`
-      );
-      console.log(
-        `     currentPeriodEnd:        ${sub.currentPeriodEnd.toISOString()}`
-      );
-    }
-  } else {
-    console.log("\n📋 No active subscriptions to cancel");
-  }
-
-  const cloudPaymentsIdsToCancel = activeSubs
-    .map((s) => s.externalSubscriptionId)
-    .filter((id): id is string => Boolean(id));
+  const [balanceRow] = await db
+    .select()
+    .from(balance)
+    .where(eq(balance.userId, userId))
+    .limit(1);
 
   const now = new Date();
-  const previousBalance = existingBalance?.tokens ?? 0;
-  const tier1 = FREE_TIER_ENTITLEMENTS.tier_1;
 
   await db.transaction(async (tx) => {
     if (activeSubs.length > 0) {
@@ -114,57 +69,49 @@ async function main() {
         );
     }
 
-    await tx
-      .insert(balance)
-      .values({
-        userId,
-        plan: FREE_PLAN_NAME,
-        tokens: freeBalance,
-        imageGeneration: tier1.imageBonus,
-        videoGeneration: tier1.videoBonus,
-        webSearches: tier1.searchQuota,
-        updatedAt: now,
-      })
-      .onConflictDoUpdate({
-        target: balance.userId,
-        set: {
-          plan: FREE_PLAN_NAME,
-          tokens: freeBalance,
-          imageGeneration: tier1.imageBonus,
-          videoGeneration: tier1.videoBonus,
-          webSearches: tier1.searchQuota,
-          updatedAt: now,
-        },
-      });
+    if (balanceRow) {
+      const previousSubscription = balanceRow.subscriptionAmount;
+      if (previousSubscription !== 0) {
+        await tx
+          .update(balance)
+          .set({ subscriptionAmount: 0, updatedAt: now })
+          .where(eq(balance.userId, userId));
 
-    await tx.insert(tokenBalanceTransaction).values({
-      userId,
-      type: "reset",
-      amount: freeBalance,
-      balanceAfter: freeBalance,
-      referenceType: "admin",
-      description: `Balance reset from ${previousBalance} to ${freeBalance} (free plan assignment)`,
-      metadata: {
-        previousBalance,
-        planName: FREE_PLAN_NAME,
-      },
-    });
+        await tx.insert(transaction).values({
+          userId,
+          type: "adjustment",
+          currencyCode: balanceRow.currencyCode,
+          pool: "subscription",
+          amount: -previousSubscription,
+          subscriptionBalanceAfter: 0,
+          topupBalanceAfter: balanceRow.topupAmount,
+          referenceType: "admin",
+          description: "Free plan assignment (subscription pool cleared)",
+          metadata: { previousSubscriptionAmount: previousSubscription },
+        });
+      }
+    } else {
+      await tx
+        .insert(balance)
+        .values({ userId, currencyCode: "RUB" })
+        .onConflictDoNothing({ target: balance.userId });
+    }
   });
 
-  console.log("\n✅ Free plan assigned");
-  console.log(`   New balance: ${freeBalance.toLocaleString()} tokens`);
+  console.log(`\n✅ Free state assigned to ${existingUser.email}`);
+  console.log("   Subscription pool cleared; top-up balance preserved.");
 
-  if (cloudPaymentsIdsToCancel.length > 0) {
+  const cloudPaymentsIds = activeSubs
+    .map((sub) => sub.externalSubscriptionId)
+    .filter((id): id is string => Boolean(id));
+
+  if (cloudPaymentsIds.length > 0) {
     console.log(
       "\n⚠️  CloudPayments subscriptions still active — cancel manually:"
     );
-    for (const id of cloudPaymentsIdsToCancel) {
+    for (const id of cloudPaymentsIds) {
       console.log(`   - ${id}`);
     }
-    console.log(
-      "   Cancel via CloudPayments dashboard, OR use cancelSubscription() from"
-    );
-    console.log("   lib/payments/cloudpayments.ts to stop recurrent billing.");
   }
 
   await client.end();

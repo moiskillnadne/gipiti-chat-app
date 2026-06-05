@@ -1,9 +1,10 @@
 import { and, eq } from "drizzle-orm";
 import { auth } from "@/app/(auth)/auth";
-import { getUserQuotaInfo } from "@/lib/ai/token-quota";
+import { getBalance } from "@/lib/billing/balance";
+import { getActiveUserSubscription } from "@/lib/billing/subscriptions";
 import { db } from "@/lib/db/connection";
 import { saveCancellationFeedback } from "@/lib/db/query/subscription/save-cancellation-feedback";
-import { subscriptionPlan, userSubscription } from "@/lib/db/schema";
+import { subscription, userSubscription } from "@/lib/db/schema";
 import {
   cancelSubscription,
   getSubscription,
@@ -13,7 +14,6 @@ import {
   validateReasonCodes,
 } from "@/lib/subscription/cancellation-reasons";
 import { upgradeToPlan } from "@/lib/subscription/subscription-init";
-import { SUBSCRIPTION_TIERS } from "@/lib/subscription/subscription-tiers";
 
 type CancellationFeedback = {
   reasons: string[];
@@ -22,6 +22,11 @@ type CancellationFeedback = {
 
 type CancelRequestBody = {
   feedback?: CancellationFeedback;
+};
+
+type UpgradeRequestBody = {
+  code?: string;
+  planName?: string;
 };
 
 /**
@@ -33,18 +38,22 @@ export async function POST(request: Request) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const { planName } = await request.json();
+  const body: UpgradeRequestBody = await request.json();
+  const code = body.code ?? body.planName;
 
-  if (!SUBSCRIPTION_TIERS[planName as keyof typeof SUBSCRIPTION_TIERS]) {
-    return Response.json({ error: "Invalid plan" }, { status: 400 });
+  if (!code) {
+    return Response.json(
+      { error: "Missing subscription code" },
+      { status: 400 }
+    );
   }
 
   try {
-    await upgradeToPlan(session.user.id, planName);
+    await upgradeToPlan(session.user.id, code);
 
     return Response.json({
       success: true,
-      message: `Successfully upgraded to ${planName}`,
+      message: `Successfully upgraded to ${code}`,
     });
   } catch (error) {
     console.error("Failed to upgrade plan:", error);
@@ -53,7 +62,7 @@ export async function POST(request: Request) {
 }
 
 /**
- * Get current subscription
+ * Get current subscription and balance
  */
 export async function GET(_request: Request) {
   const session = await auth();
@@ -61,21 +70,14 @@ export async function GET(_request: Request) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const quotaInfo = await getUserQuotaInfo(session.user.id);
-
-  if (!quotaInfo) {
-    return Response.json({ subscription: null });
-  }
+  const [subscriptionRow, balanceSummary] = await Promise.all([
+    getActiveUserSubscription(session.user.id),
+    getBalance(session.user.id),
+  ]);
 
   return Response.json({
-    subscription: quotaInfo.subscription,
-    plan: quotaInfo.plan,
-    quota: {
-      total: quotaInfo.quota,
-      used: quotaInfo.usage.totalTokens,
-      remaining: quotaInfo.remaining,
-      percentUsed: quotaInfo.percentUsed.toFixed(2),
-    },
+    subscription: subscriptionRow,
+    balance: balanceSummary,
   });
 }
 
@@ -146,23 +148,22 @@ export async function DELETE(request: Request) {
       );
     }
 
-    const subscription = subscriptions[0];
+    const activeSubscription = subscriptions[0];
 
-    // Get plan details for feedback context
-    let planName: string | undefined;
-    if (subscription.planId) {
-      const [plan] = await db
-        .select({ name: subscriptionPlan.name })
-        .from(subscriptionPlan)
-        .where(eq(subscriptionPlan.id, subscription.planId))
-        .limit(1);
-      planName = plan?.name;
-    }
+    // Resolve catalog metadata (code + billing period) for feedback context.
+    const [catalogEntry] = await db
+      .select({
+        code: subscription.code,
+        billingPeriod: subscription.billingPeriod,
+      })
+      .from(subscription)
+      .where(eq(subscription.id, activeSubscription.subscriptionId))
+      .limit(1);
 
-    if (subscription.externalSubscriptionId) {
+    if (activeSubscription.externalSubscriptionId) {
       try {
         const cancelResponse = await cancelSubscription(
-          subscription.externalSubscriptionId
+          activeSubscription.externalSubscriptionId
         );
 
         if (!cancelResponse.Success) {
@@ -173,7 +174,7 @@ export async function DELETE(request: Request) {
         }
 
         const statusResponse = await getSubscription(
-          subscription.externalSubscriptionId
+          activeSubscription.externalSubscriptionId
         );
 
         const isCancelled =
@@ -199,18 +200,18 @@ export async function DELETE(request: Request) {
     ) {
       try {
         const subscriptionDurationDays = calculateDaysSince(
-          subscription.createdAt
+          activeSubscription.createdAt
         );
 
         await saveCancellationFeedback({
           userId: session.user.id,
-          subscriptionId: subscription.id,
+          subscriptionId: activeSubscription.id,
           reasons: feedback.reasons,
           additionalFeedback: feedback.additionalFeedback,
-          planName,
-          billingPeriod: subscription.billingPeriod,
+          planName: catalogEntry?.code,
+          billingPeriod: catalogEntry?.billingPeriod,
           subscriptionDurationDays,
-          wasTrial: subscription.isTrial,
+          wasTrial: activeSubscription.isTrial,
         });
 
         console.log(
@@ -225,7 +226,7 @@ export async function DELETE(request: Request) {
       }
     }
 
-    if (subscription.isTrial) {
+    if (activeSubscription.isTrial) {
       await db
         .update(userSubscription)
         .set({
@@ -235,7 +236,7 @@ export async function DELETE(request: Request) {
           isTrial: false,
           trialEndsAt: null,
         })
-        .where(eq(userSubscription.id, subscription.id));
+        .where(eq(userSubscription.id, activeSubscription.id));
 
       return Response.json({
         success: true,
@@ -249,7 +250,7 @@ export async function DELETE(request: Request) {
         cancelAtPeriodEnd: true,
         cancelledAt: now,
       })
-      .where(eq(userSubscription.id, subscription.id));
+      .where(eq(userSubscription.id, activeSubscription.id));
 
     return Response.json({
       success: true,

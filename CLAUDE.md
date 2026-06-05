@@ -47,7 +47,7 @@ tsx scripts/add-tokens.ts  # Add tokens to a user
 - **Framework**: Next.js 15 App Router with React Server Components
 - **Database**: PostgreSQL with Drizzle ORM (30+ migrations)
 - **Authentication**: NextAuth v5 beta (Credentials provider, bcrypt-ts)
-- **AI**: Vercel AI SDK with multi-provider gateway (@ai-sdk/gateway, @ai-sdk/google, @ai-sdk/xai)
+- **AI**: Vercel AI SDK with multi-provider gateway (@ai-sdk/gateway, @ai-sdk/google); Xai/Anthropic models reached via the gateway (no direct SDK)
 - **Styling**: TailwindCSS 4 + Radix UI + shadcn/ui components
 - **State**: React Context + SWR for data fetching + Cookies for persistence
 - **Real-time**: Resumable streams backed by Redis (Upstash or standard)

@@ -1,4 +1,4 @@
-import cn from "classnames";
+import { clsx } from "clsx";
 import { LoaderIcon } from "./icons";
 
 type VideoPlayerProps = {
@@ -18,7 +18,7 @@ export function VideoPlayer({
 }: VideoPlayerProps) {
   return (
     <div
-      className={cn("flex w-full flex-row items-center justify-center", {
+      className={clsx("flex w-full flex-row items-center justify-center", {
         "h-[calc(100dvh-60px)]": !isInline,
         "h-[200px]": isInline,
       })}
@@ -34,7 +34,7 @@ export function VideoPlayer({
         </div>
       ) : (
         <video
-          className={cn("h-fit w-full max-w-[800px] rounded-lg", {
+          className={clsx("h-fit w-full max-w-[800px] rounded-lg", {
             "p-0 md:p-20": !isInline,
           })}
           controls

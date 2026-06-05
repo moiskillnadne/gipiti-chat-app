@@ -3,7 +3,6 @@ import { z } from "zod";
 import type { calculator } from "./ai/tools/calculator";
 import type { extractUrl } from "./ai/tools/extract-url";
 import type { generateImageTool } from "./ai/tools/generate-image";
-import type { getWeather } from "./ai/tools/get-weather";
 import type { webSearch } from "./ai/tools/web-search";
 import type { AppUsage } from "./usage";
 
@@ -17,14 +16,12 @@ export const messageMetadataSchema = z.object({
 export type MessageMetadata = z.infer<typeof messageMetadataSchema>;
 
 type calculatorTool = InferUITool<typeof calculator>;
-type weatherTool = InferUITool<typeof getWeather>;
 type webSearchTool = InferUITool<ReturnType<typeof webSearch>>;
 type extractUrlTool = InferUITool<ReturnType<typeof extractUrl>>;
 type generateImageToolType = InferUITool<ReturnType<typeof generateImageTool>>;
 
 export type ChatTools = {
   calculator: calculatorTool;
-  getWeather: weatherTool;
   webSearch: webSearchTool;
   extractUrl: extractUrlTool;
   generateImage: generateImageToolType;
@@ -50,6 +47,18 @@ export type CustomUIDataTypes = {
     videoUrl: string;
     userPrompt: string;
     durationSeconds: number;
+  };
+  mediaGeneration: {
+    documentId: string;
+    mediaType: "image" | "video";
+    status: "generating" | "done" | "error";
+    prompt: string;
+    modelId: string;
+    url?: string;
+    durationSeconds?: number;
+    errorMessage?: string;
+    /** Provider generation id (image) — drives multi-turn image editing. */
+    generationId?: string;
   };
 };
 

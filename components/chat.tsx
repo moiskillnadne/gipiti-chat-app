@@ -2,7 +2,6 @@
 
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { format } from "date-fns";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import useSWR, { useSWRConfig } from "swr";
@@ -18,7 +17,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Progress } from "@/components/ui/progress";
 import { useModel, useModelRefs } from "@/contexts/model-context";
 import { useProjectRef } from "@/contexts/project-context";
 import { useWebSearchRef } from "@/contexts/web-search-context";
@@ -28,12 +26,7 @@ import { ChatSDKError } from "@/lib/errors";
 import { useTranslations } from "@/lib/i18n/translate";
 import type { Attachment, ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
-import {
-  fetcher,
-  fetchWithErrorHandlers,
-  generateUUID,
-  parseQuotaInfo,
-} from "@/lib/utils";
+import { fetcher, fetchWithErrorHandlers, generateUUID } from "@/lib/utils";
 import { useDataStream } from "./data-stream-provider";
 import { Messages } from "./messages";
 import { MultimodalInput } from "./multimodal-input";
@@ -57,7 +50,6 @@ export function Chat({
   const { setDataStream } = useDataStream();
   const t = useTranslations("chat");
   const tCommon = useTranslations("common");
-  const tUsage = useTranslations("usage");
 
   // Use model context for stable refs
   const { modelIdRef, thinkingSettingRef, imageGenSettingRef } = useModelRefs();
@@ -69,8 +61,6 @@ export function Chat({
   const [usage, setUsage] = useState<AppUsage | undefined>(initialLastContext);
   const [showCreditCardAlert, setShowCreditCardAlert] = useState(false);
   const [showQuotaExceededDialog, setShowQuotaExceededDialog] = useState(false);
-  const [quotaErrorInfo, setQuotaErrorInfo] =
-    useState<ReturnType<typeof parseQuotaInfo>>(null);
 
   // Use ref to avoid closure issues in prepareSendMessagesRequest
   const lastGenerationIdRef = useRef<string | undefined>(undefined);
@@ -123,17 +113,21 @@ export function Chat({
         setUsage(dataPart.data);
       }
       if (dataPart.type === "data-imageGenerationFinish") {
-        console.log("Image generation finished event received!");
-        console.log("Full dataPart:", JSON.stringify(dataPart, null, 2));
         const generationId = dataPart.data.responseId;
-        console.log("Extracted generationId:", generationId);
-        console.log("Type of generationId:", typeof generationId);
-
         if (generationId && typeof generationId === "string") {
-          console.log("Setting lastGenerationId to:", generationId);
           lastGenerationIdRef.current = generationId;
-        } else {
-          console.warn("GenerationId is invalid:", generationId);
+        }
+      }
+      // The unified media-generation lifecycle part carries the provider
+      // generation id on completion; keep it for multi-turn image editing.
+      if (
+        dataPart.type === "data-mediaGeneration" &&
+        dataPart.data.status === "done" &&
+        dataPart.data.mediaType === "image"
+      ) {
+        const generationId = dataPart.data.generationId;
+        if (generationId && typeof generationId === "string") {
+          lastGenerationIdRef.current = generationId;
         }
       }
     },
@@ -145,10 +139,8 @@ export function Chat({
     onError: (error) => {
       console.error("Error in chat", error);
       if (error instanceof ChatSDKError) {
-        // Handle quota exceeded
+        // Handle insufficient balance (still surfaced as "quota_exceeded")
         if (error.type === "quota_exceeded") {
-          const quotaInfo = parseQuotaInfo(error.cause as string);
-          setQuotaErrorInfo(quotaInfo);
           setShowQuotaExceededDialog(true);
 
           setMessages((prev) => [
@@ -286,53 +278,7 @@ export function Chat({
           <AlertDialogHeader>
             <AlertDialogTitle>{t("quota.title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              <div className="space-y-4">
-                <p>{t("quota.description")}</p>
-
-                {quotaErrorInfo && (
-                  <div className="space-y-2 rounded-lg bg-muted p-4">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">
-                        {t("quota.used")}
-                      </span>
-                      <span className="font-medium">
-                        {quotaErrorInfo.used?.toLocaleString()} /{" "}
-                        {quotaErrorInfo.quota?.toLocaleString()}{" "}
-                        {tUsage("tokens")}
-                      </span>
-                    </div>
-
-                    {quotaErrorInfo.percentUsed !== undefined && (
-                      <Progress
-                        className="h-2"
-                        value={quotaErrorInfo.percentUsed}
-                      />
-                    )}
-
-                    {quotaErrorInfo.periodEnd && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">
-                          {t("quota.resetDate")}
-                        </span>
-                        <span className="font-medium">
-                          {format(quotaErrorInfo.periodEnd, "LLL d, yyyy")}
-                        </span>
-                      </div>
-                    )}
-
-                    {quotaErrorInfo.planName && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">
-                          {t("quota.currentPlan")}
-                        </span>
-                        <span className="font-medium">
-                          {quotaErrorInfo.planName}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+              {t("quota.description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -3,6 +3,7 @@ import type { UseChatHelpers } from "@ai-sdk/react";
 import equal from "fast-deep-equal";
 import { motion } from "framer-motion";
 import { memo, useMemo, useState } from "react";
+import { getModelById } from "@/lib/ai/models";
 import type { Vote } from "@/lib/db/schema";
 import { downloadFromUrl } from "@/lib/download";
 import { useTranslations } from "@/lib/i18n/translate";
@@ -10,9 +11,9 @@ import { groupToolRuns } from "@/lib/messages/group-tool-runs";
 import type { ChatMessage } from "@/lib/types";
 import { cn, sanitizeText } from "@/lib/utils";
 import { AssistantIcon } from "./assistant-icon";
+import { MediaPreview } from "./elements/media-preview";
 import { MessageContent } from "./elements/message";
 import { Response } from "./elements/response";
-import { DownloadIcon } from "./icons";
 import { MessageActions } from "./message-actions";
 import { MessageEditor } from "./message-editor";
 import { PreviewAttachment } from "./preview-attachment";
@@ -60,7 +61,34 @@ const PurePreviewMessage = ({
   isLastAssistantMessage: boolean;
 }) => {
   const t = useTranslations("chat.messages");
+  const tModels = useTranslations("modelList");
   const [mode, setMode] = useState<"view" | "edit">("view");
+
+  // Resolve a human label for the media-preview model chip. getModelById maps
+  // the model id to its translation key; a missing key returns the key itself
+  // (contains "."), so we hide the chip in that case.
+  const resolveModelLabel = (modelId: string): string | undefined => {
+    const model = getModelById(modelId);
+    if (!model) {
+      return;
+    }
+    const label = tModels(model.name);
+    return label.includes(".") ? undefined : label;
+  };
+
+  const downloadMedia = async (
+    mediaUrl: string,
+    mediaType: "image" | "video"
+  ) => {
+    try {
+      await downloadFromUrl(
+        mediaUrl,
+        mediaType === "image" ? "generated-image.png" : "generated-video.mp4"
+      );
+    } catch {
+      toast({ type: "error", description: t("downloadError") });
+    }
+  };
 
   const attachmentsFromMessage = message.parts.filter(
     (part) => part.type === "file"
@@ -101,7 +129,11 @@ const PurePreviewMessage = ({
             "w-full":
               (message.role === "assistant" &&
                 message.parts?.some(
-                  (p) => p.type === "text" && p.text?.trim()
+                  (p) =>
+                    (p.type === "text" && p.text?.trim()) ||
+                    p.type === "data-mediaGeneration" ||
+                    p.type === "data-imageGenerationFinish" ||
+                    p.type === "data-videoGenerationFinish"
                 )) ||
               mode === "edit",
             "max-w-[calc(100%-2.5rem)] sm:max-w-[min(fit-content,80%)]":
@@ -140,101 +172,77 @@ const PurePreviewMessage = ({
               );
             }
 
+            if (part.type === "data-mediaGeneration") {
+              const {
+                documentId,
+                mediaType,
+                status,
+                prompt,
+                modelId,
+                url,
+                durationSeconds,
+                errorMessage,
+              } = part.data;
+
+              return (
+                <MediaPreview
+                  durationSeconds={durationSeconds}
+                  errorMessage={errorMessage}
+                  key={documentId}
+                  mediaType={mediaType}
+                  modelLabel={resolveModelLabel(modelId)}
+                  onDownload={
+                    url ? () => downloadMedia(url, mediaType) : undefined
+                  }
+                  onRegenerate={isReadonly ? undefined : () => regenerate()}
+                  prompt={prompt}
+                  state={status}
+                  url={url}
+                />
+              );
+            }
+
+            // Back-compat: historical messages persisted before the unified
+            // mediaGeneration part still carry these finish parts.
             if (part.type === "data-imageGenerationFinish") {
               const { imageUrl, userPrompt, responseId } = part.data;
 
-              const handleDownload = async (propUrl: string) => {
-                try {
-                  await downloadFromUrl(propUrl, "generated-image.png");
-                } catch {
-                  toast({
-                    type: "error",
-                    description: t("downloadError"),
-                  });
-                }
-              };
-
               return (
-                <div
-                  className="group/image relative overflow-hidden rounded-lg"
+                <MediaPreview
                   key={responseId}
-                >
-                  <picture>
-                    {/* biome-ignore lint/nursery/useImageSize: "Generated image" */}
-                    <img
-                      alt={userPrompt}
-                      className="max-w-full rounded-lg"
-                      src={imageUrl}
-                    />
-                  </picture>
-                  <button
-                    className="absolute right-2 bottom-2 flex size-8 items-center justify-center rounded-lg bg-black/50 text-white transition-opacity hover:bg-black/70 md:opacity-0 md:group-hover/image:opacity-100"
-                    onClick={() => {
-                      if (imageUrl) {
-                        handleDownload(imageUrl);
-                      } else {
-                        toast({
-                          type: "error",
-                          description: t("downloadError"),
-                        });
-                      }
-                    }}
-                    title={t("download")}
-                    type="button"
-                  >
-                    <DownloadIcon size={16} />
-                  </button>
-                </div>
+                  mediaType="image"
+                  onDownload={
+                    imageUrl
+                      ? () => downloadMedia(imageUrl, "image")
+                      : undefined
+                  }
+                  onRegenerate={isReadonly ? undefined : () => regenerate()}
+                  prompt={userPrompt}
+                  state="done"
+                  url={imageUrl}
+                />
               );
             }
 
             if (part.type === "data-videoGenerationFinish") {
-              const { videoUrl, userPrompt, responseId } = part.data;
-
-              const handleVideoDownload = async (propUrl: string) => {
-                try {
-                  await downloadFromUrl(propUrl, "generated-video.mp4");
-                } catch {
-                  toast({
-                    type: "error",
-                    description: t("downloadError"),
-                  });
-                }
-              };
+              const { videoUrl, userPrompt, responseId, durationSeconds } =
+                part.data;
 
               return (
-                <div
-                  className="group/video relative overflow-hidden rounded-lg"
+                <MediaPreview
+                  durationSeconds={durationSeconds}
                   key={responseId}
-                >
-                  <video
-                    className="max-w-full rounded-lg"
-                    controls
-                    playsInline
-                    preload="metadata"
-                    title={userPrompt}
-                  >
-                    <source src={videoUrl} type="video/mp4" />
-                    <track kind="captions" />
-                  </video>
-                  <button
-                    className="absolute right-2 bottom-2 flex size-8 items-center justify-center rounded-lg bg-black/50 text-white transition-opacity hover:bg-black/70 md:opacity-0 md:group-hover/video:opacity-100"
-                    onClick={() => {
-                      if (videoUrl) {
-                        handleVideoDownload(videoUrl);
-                      } else {
-                        toast({
-                          type: "error",
-                          description: t("downloadError"),
-                        });
-                      }
-                    }}
-                    title={t("downloadVideo")}
-                    type="button"
-                  >
-                    <DownloadIcon size={16} />
-                  </button>
-                </div>
+                  mediaType="video"
+                  onDownload={
+                    videoUrl
+                      ? () => downloadMedia(videoUrl, "video")
+                      : undefined
+                  }
+                  onRegenerate={isReadonly ? undefined : () => regenerate()}
+                  prompt={userPrompt}
+                  state="done"
+                  url={videoUrl}
+                />
               );
             }
 
