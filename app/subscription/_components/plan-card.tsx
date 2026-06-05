@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { getTranslations } from "@/lib/i18n/translate";
-import type { BalanceViewState } from "@/lib/subscription/subscription-state";
 import styles from "./dashboard.module.css";
 import { CardIcon } from "./icons";
 
@@ -17,17 +16,16 @@ export type PlanCardData = {
 };
 
 type PlanCardProps = {
-  state: BalanceViewState;
   data: PlanCardData;
   dimmed?: boolean;
 };
 
-export async function PlanCard({ state, data, dimmed = false }: PlanCardProps) {
+export async function PlanCard({ data, dimmed = false }: PlanCardProps) {
   const t = await getTranslations("auth.subscription.balance.plan");
   const cardClass = [styles.card, dimmed ? styles.cardDimmed : ""]
     .filter(Boolean)
     .join(" ");
-  const metaLabel = state === "trial" ? t("metaTrial") : t("metaActive");
+  const metaLabel = t("metaActive");
 
   return (
     <section aria-label={t("title")} className={cardClass}>

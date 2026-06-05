@@ -4,7 +4,7 @@ import { getTranslations } from "@/lib/i18n/translate";
 
 type AccountPageTopNavProps = {
   backHref?: string;
-  currentLabelKey: "projects" | "promptLibrary";
+  currentLabelKey: "projects" | "promptLibrary" | "subscription";
 };
 
 export async function AccountPageTopNav({

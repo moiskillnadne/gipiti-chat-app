@@ -19,7 +19,6 @@ import {
   deriveSubscriptionUiState,
 } from "@/lib/subscription/subscription-state";
 import {
-  daysUntil,
   formatRelativeRu,
   formatRuDate,
   formatRuDayMonth,
@@ -48,7 +47,6 @@ const PRICE_SUFFIX_BY_PERIOD: Record<BillingPeriodKey, string> = {
 const PAID_STATES = new Set<BalanceViewState>([
   "active",
   "low",
-  "trial",
   "cancelled",
   "past_due",
 ]);
@@ -123,9 +121,6 @@ export default async function SubscriptionPage() {
 
   const periodStart = subscriptionRow?.currentPeriodStart ?? null;
   const periodEnd = subscriptionRow?.currentPeriodEnd ?? null;
-  const trialEndsAt = subscriptionRow?.trialEndsAt ?? null;
-  const trialDaysLeft =
-    state === "trial" && trialEndsAt ? daysUntil(trialEndsAt, now) : 0;
 
   const planPriceMinor = subscriptionRow
     ? await priceForCurrency(subscriptionRow.subscriptionId, currencyCode)
@@ -145,11 +140,6 @@ export default async function SubscriptionPage() {
   if (state === "active" || state === "low") {
     subResetTag = periodEnd ? formatRuDayMonthShort(periodEnd) : "—";
     subResetText = t("resetText.onRenewal");
-  } else if (state === "trial") {
-    subResetTag = trialEndsAt ? formatRuDayMonthShort(trialEndsAt) : "—";
-    subResetText = t("resetText.chargesOn", {
-      date: trialEndsAt ? formatRuDayMonth(trialEndsAt) : "—",
-    });
   } else if (state === "cancelled") {
     subResetTag = periodEnd ? formatRuDayMonthShort(periodEnd) : "—";
     subResetText = t("resetText.burnsOn", {
@@ -172,7 +162,6 @@ export default async function SubscriptionPage() {
           nextPaymentDate: resolveNextPaymentDate(state, {
             now,
             periodEnd,
-            trialEndsAt,
             nextBillingDate: subscriptionRow.nextBillingDate ?? null,
           }),
           nextPaymentAmount:
@@ -208,7 +197,6 @@ export default async function SubscriptionPage() {
           periodEnd={periodEnd}
           periodStart={periodStart}
           state={state}
-          trialDaysLeft={trialDaysLeft}
         />
 
         <StatusBanner
@@ -227,9 +215,6 @@ export default async function SubscriptionPage() {
           pastDuePrice={planPriceText}
           pastDueRetryIn={pastDueRetryIn}
           state={state}
-          trialChargeDate={trialEndsAt ? formatRuDate(trialEndsAt) : null}
-          trialCurrentPeriodEnd={periodEnd}
-          trialPrice={planPriceText}
         />
 
         <div className={styles.grid}>
@@ -248,7 +233,7 @@ export default async function SubscriptionPage() {
             {isFree || !planCardData ? (
               <FreeSideCard welcomeAmount={welcomeAmount} />
             ) : (
-              <PlanCard data={planCardData} dimmed={dimmed} state={state} />
+              <PlanCard data={planCardData} dimmed={dimmed} />
             )}
           </div>
 
@@ -275,15 +260,11 @@ function resolveNextPaymentDate(
   dates: {
     now: Date;
     periodEnd: Date | null;
-    trialEndsAt: Date | null;
     nextBillingDate: Date | null;
   }
 ): string | null {
   if (state === "cancelled") {
     return null;
-  }
-  if (state === "trial") {
-    return dates.trialEndsAt ? formatRuDate(dates.trialEndsAt) : null;
   }
   if (state === "past_due") {
     return dates.nextBillingDate

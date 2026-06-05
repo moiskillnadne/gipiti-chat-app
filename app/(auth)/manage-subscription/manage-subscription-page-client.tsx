@@ -7,14 +7,15 @@ import { Loader } from "@/components/elements/loader";
 import { PaymentLoadingOverlay } from "@/components/payment-loading-overlay";
 import { useTranslations } from "@/lib/i18n/translate";
 import { FAQ } from "./components/faq";
-import { FeaturesTable } from "./components/features-table";
-import { PlanSelector } from "./components/plan-selector";
-import { TesterPlan } from "./components/tester-plan";
+import { PlanCardFull, type PlanFeature } from "./components/plan-card-full";
+import { TrustRow } from "./components/trust-row";
+import type { PlanType } from "./hooks/payment-reducer";
 import { usePayment } from "./hooks/use-payment";
+import { formatPrice, getPriceParts } from "./utils/payment-utils";
 
 function SupportLink({ text, linkText }: { text: string; linkText: string }) {
   return (
-    <p className="fixed right-4 bottom-4 z-50 text-gray-500 text-xs">
+    <p className="fixed right-4 bottom-4 z-50 text-ink-3 text-xs">
       {text}{" "}
       <Link className="hover:underline" href="/legal/support">
         {linkText}
@@ -32,113 +33,132 @@ export function ManageSubscriptionPageClient() {
 }
 
 function ManageSubscriptionFallback() {
-  const t = useTranslations("auth.subscription");
-
   return (
-    <div className="flex min-h-dvh w-screen items-start justify-center bg-background pt-12 md:items-center md:pt-0">
-      <div className="flex w-full max-w-3xl flex-col gap-8 px-4">
-        <div className="flex flex-col items-center justify-center gap-2 text-center">
-          <h1 className="font-bold text-3xl">{t("title")}</h1>
-          <p className="text-gray-500 text-lg">{t("subtitle")}</p>
-        </div>
-      </div>
+    <div className="flex min-h-dvh w-full items-center justify-center bg-paper">
+      <Loader />
     </div>
   );
 }
 
 function ManageSubscriptionContent() {
   const t = useTranslations("auth.subscription");
+  const tPlans = useTranslations("auth.subscription.plansPage");
   const tLegal = useTranslations("legal");
   const tSupport = useTranslations("legal.support");
-  const tManage = useTranslations("auth.subscription.management");
 
   const { data: session, status: sessionStatus } = useSession();
   const isSessionLoading = sessionStatus === "loading";
-
   const isTester = session?.user?.isTester ?? false;
-  const hasUsedTrial = session?.user?.hasUsedTrial ?? true;
-  const canStartTrial = !hasUsedTrial;
 
-  const { state, subscribe, startTrial, reset } = usePayment({
+  const { state, subscribe, reset } = usePayment({
     isTester,
     successRedirectUrl: "/subscription",
   });
 
-  const handleSubscribe = canStartTrial ? startTrial : subscribe;
+  const plan: PlanType = isTester ? "tester_paid" : "basic_monthly";
+  const { amount, currency } = getPriceParts(plan);
+  const period = isTester ? tPlans("perDay") : tPlans("perMonth");
+  const balancePeriod = isTester ? tPlans("eachDay") : tPlans("eachMonth");
+  const name = isTester ? t("tester.name") : t("monthly.name");
+  const description = isTester
+    ? t("tester.description")
+    : tPlans("cardDescription");
+
+  const features: PlanFeature[] = [
+    {
+      label: tPlans("features.balanceLabel", {
+        amount: formatPrice(plan),
+        period: balancePeriod,
+      }),
+      sub: tPlans("features.balanceSub"),
+    },
+    { label: tPlans("features.paygLabel"), sub: tPlans("features.paygSub") },
+    {
+      label: tPlans("features.searchLabel"),
+      sub: tPlans("features.searchSub"),
+    },
+    { label: tPlans("features.mediaLabel"), sub: tPlans("features.mediaSub") },
+    {
+      label: tPlans("features.documentsLabel"),
+      sub: tPlans("features.documentsSub"),
+    },
+    { label: tPlans("features.topupLabel"), sub: tPlans("features.topupSub") },
+  ];
 
   return (
-    <div className="flex min-h-dvh w-screen items-start justify-center bg-background pt-12 md:items-center md:pt-0">
-      <div className="flex w-full max-w-3xl flex-col gap-10 px-4 py-8">
-        {/* Header */}
-        <div className="flex flex-col items-center justify-center gap-2 text-center">
-          <h1 className="font-bold text-3xl">{t("title")}</h1>
-          <p className="text-gray-500 text-lg">{t("subtitle")}</p>
-        </div>
+    <div className="min-h-dvh w-full bg-paper">
+      <div className="mx-auto w-full max-w-[1080px] px-6 pb-16">
+        {/* Hero */}
+        <header className="px-2 pt-16 pb-12 text-center">
+          <h1 className="font-medium text-[40px] text-ink leading-[1.02] tracking-[-0.035em] sm:text-[54px]">
+            {tPlans("heroTitleLine1")}
+            <br />
+            <em className="text-citrus-deep not-italic">
+              {tPlans("heroTitleLine2")}
+            </em>
+          </h1>
+          <p className="mx-auto mt-[22px] max-w-[52ch] text-[17px] text-ink-2 leading-[1.55]">
+            {tPlans("heroSubtitle")}
+          </p>
+        </header>
 
-        {/* Loading State */}
-        {isSessionLoading && (
-          <div className="flex items-center justify-center">
+        {/* Plan card */}
+        {isSessionLoading ? (
+          <div className="flex items-center justify-center py-8">
             <Loader />
           </div>
-        )}
-
-        {/* Plan Selection */}
-        {isTester && !isSessionLoading && (
-          <TesterPlan
-            canStartTrial={canStartTrial}
+        ) : (
+          <PlanCardFull
+            ctaLabel={tPlans("buy")}
+            currency={currency}
+            description={description}
+            features={features}
             isLoading={state.isLoading}
-            onSubscribe={() => handleSubscribe("tester_paid")}
+            loadingLabel={t("subscribing")}
+            name={name}
+            onSubscribe={() => subscribe(plan)}
+            period={period}
+            priceAmount={amount}
+            whatsIncludedLabel={tPlans("whatsIncluded")}
           />
         )}
 
-        {!isTester && !isSessionLoading && (
-          <PlanSelector
-            canStartTrial={canStartTrial}
-            isLoading={state.isLoading}
-            loadingPlan={state.loadingPlan}
-            onSubscribe={handleSubscribe}
-          />
-        )}
+        {/* Trust */}
+        <div className="mt-12">
+          <TrustRow />
+        </div>
 
-        {/* Features List */}
-        <FeaturesTable />
+        {/* FAQ */}
+        <div className="mt-20">
+          <FAQ />
+        </div>
 
-        {/* FAQ Section */}
-        <FAQ />
-
-        {/* Footer Links */}
-        <div className="flex flex-col items-center gap-4">
-          <Link
-            className="my-2 font-medium text-gray-600 text-sm hover:underline"
-            href="/subscription"
-          >
-            {tManage("backToSubscription")}
-          </Link>
-
-          <div className="mb-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+        {/* Footer */}
+        <footer className="mt-12 border-rule border-t pt-9">
+          <div className="flex flex-wrap justify-center gap-x-7 gap-y-2">
             <Link
-              className="font-medium text-gray-500 text-xs hover:underline"
+              className="text-[13px] text-ink-3 hover:text-ink"
               href="/legal/offer"
               target="_blank"
             >
               {tLegal("offer.linkText")}
             </Link>
             <Link
-              className="font-medium text-gray-500 text-xs hover:underline"
+              className="text-[13px] text-ink-3 hover:text-ink"
               href="/legal/privacy"
               target="_blank"
             >
               {tLegal("privacy.linkText")}
             </Link>
             <Link
-              className="font-medium text-gray-500 text-xs hover:underline"
+              className="text-[13px] text-ink-3 hover:text-ink"
               href="/legal/requisites"
               target="_blank"
             >
               {tLegal("requisites.linkText")}
             </Link>
           </div>
-        </div>
+        </footer>
       </div>
 
       <SupportLink

@@ -1,14 +1,7 @@
 import { getTranslations } from "@/lib/i18n/translate";
 import type { BalanceViewState } from "@/lib/subscription/subscription-state";
-import {
-  formatBillingCycle,
-  formatRuDate,
-  pluralRu,
-  type RuPluralForms,
-} from "@/lib/utils/format-billing";
+import { formatBillingCycle, formatRuDate } from "@/lib/utils/format-billing";
 import styles from "./dashboard.module.css";
-
-const DAY_FORMS: RuPluralForms = ["день", "дня", "дней"];
 
 const FREE_STATES = new Set<BalanceViewState>([
   "free_with_balance",
@@ -19,7 +12,6 @@ type SubscriptionHeaderProps = {
   state: BalanceViewState;
   periodStart: Date | null;
   periodEnd: Date | null;
-  trialDaysLeft: number;
   pastDueRetryIn: string | null;
 };
 
@@ -27,7 +19,6 @@ export async function SubscriptionHeader({
   state,
   periodStart,
   periodEnd,
-  trialDaysLeft,
   pastDueRetryIn,
 }: SubscriptionHeaderProps) {
   const t = await getTranslations("auth.subscription.balance.header");
@@ -36,10 +27,7 @@ export async function SubscriptionHeader({
   let cycleLabel: string | null = null;
   let cycleValue: string | null = null;
 
-  if (state === "trial") {
-    cycleLabel = t("cycle.trial");
-    cycleValue = `${trialDaysLeft} ${pluralRu(trialDaysLeft, DAY_FORMS)}`;
-  } else if (state === "cancelled" && periodEnd) {
+  if (state === "cancelled" && periodEnd) {
     cycleLabel = t("cycle.cancelled");
     cycleValue = formatRuDate(periodEnd);
   } else if (state === "past_due") {

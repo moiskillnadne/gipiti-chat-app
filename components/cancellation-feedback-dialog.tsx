@@ -26,7 +26,6 @@ type CancellationFeedbackDialogProps = {
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: { reasons: string[]; additionalFeedback: string }) => void;
   isLoading: boolean;
-  isTrial: boolean;
 };
 
 export function CancellationFeedbackDialog({
@@ -34,7 +33,6 @@ export function CancellationFeedbackDialog({
   onOpenChange,
   onSubmit,
   isLoading,
-  isTrial,
 }: CancellationFeedbackDialogProps) {
   const t = useTranslations("auth.subscription.management.dangerZone.feedback");
 
@@ -72,12 +70,8 @@ export function CancellationFeedbackDialog({
     <AlertDialog onOpenChange={handleClose} open={isOpen}>
       <AlertDialogContent className="max-h-[90vh] max-w-md overflow-y-auto">
         <AlertDialogHeader>
-          <AlertDialogTitle>
-            {isTrial ? t("titleTrial") : t("title")}
-          </AlertDialogTitle>
-          <AlertDialogDescription>
-            {isTrial ? t("descriptionTrial") : t("description")}
-          </AlertDialogDescription>
+          <AlertDialogTitle>{t("title")}</AlertDialogTitle>
+          <AlertDialogDescription>{t("description")}</AlertDialogDescription>
         </AlertDialogHeader>
 
         <div className="space-y-4 py-4">

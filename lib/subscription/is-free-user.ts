@@ -7,7 +7,7 @@ import { getUserById } from "@/lib/db/query/user/get-by-id";
  * A "free" user has no active paid subscription and is not an internal tester.
  * This intentionally does NOT read the session JWT: `hasActiveSubscription` and
  * `isTester` are baked into the token at login and only refresh on an explicit
- * session update, so a token can be stale (e.g. after a trial expires). Used to
+ * session update, so a token can be stale (e.g. after a subscription lapses). Used to
  * gate free-tier-only treatments such as watermarking generated images.
  */
 export async function isFreeUserById(userId: string): Promise<boolean> {

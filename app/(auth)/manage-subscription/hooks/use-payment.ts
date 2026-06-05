@@ -37,7 +37,6 @@ export type UsePaymentOptions = {
 export type UsePaymentReturn = {
   state: PaymentState;
   subscribe: (plan: PlanType) => Promise<void>;
-  startTrial: (plan: PlanType) => Promise<void>;
   reset: () => void;
 };
 
@@ -409,109 +408,6 @@ export function usePayment(options: UsePaymentOptions): UsePaymentReturn {
     [session, t, pollPaymentStatus]
   );
 
-  const startTrial = useCallback(
-    async (plan: PlanType) => {
-      if (!session?.user?.id || !session?.user?.email) {
-        toast({ type: "error", description: t("error") });
-        return;
-      }
-
-      if (typeof window === "undefined" || !window.cp) {
-        toast({ type: "error", description: t("error") });
-        return;
-      }
-
-      const publicId = process.env.NEXT_PUBLIC_CLOUDPAYMENTS_PUBLIC_ID;
-      if (!publicId) {
-        toast({ type: "error", description: t("error") });
-        return;
-      }
-
-      try {
-        dispatch({ type: "START_PAYMENT", plan });
-
-        const intentRes = await fetch("/api/payment/create-trial-intent", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ planName: plan }),
-        });
-
-        if (!intentRes.ok) {
-          const errorData = await intentRes.json();
-          if (errorData.code === "TRIAL_ALREADY_USED") {
-            toast({ type: "error", description: t("trial.alreadyUsed") });
-            dispatch({ type: "RESET" });
-            return;
-          }
-          throw new Error("Failed to create trial intent");
-        }
-
-        const intentData: PaymentIntentResponse = await intentRes.json();
-
-        storePaymentSession(intentData.sessionId, intentData.expiresAt, plan);
-
-        const returnUrl = buildReturnUrl(intentData.sessionId);
-        const widgetOptions = createWidgetOptions(session.user.email);
-
-        const widget: CloudPaymentsWidget = new window.cp.CloudPayments(
-          widgetOptions
-        );
-
-        widget.pay(
-          "auth",
-          {
-            publicId,
-            description: t("trial.cardVerification"),
-            amount: 1,
-            currency: "RUB",
-            accountId: session.user.id,
-            email: session.user.email,
-            skin: "classic",
-            data: {
-              sessionId: intentData.sessionId,
-              planName: plan,
-              isTrial: true,
-            },
-            jsonData: {
-              returnUrl,
-            },
-          },
-          {
-            onSuccess: async () => {
-              await pollPaymentStatus(intentData.sessionId);
-            },
-            onFail: (reason) => {
-              dispatch({
-                type: "PAYMENT_FAILED",
-                error: typeof reason === "string" ? reason : t("error"),
-              });
-              clearPaymentSession();
-              console.error("[CloudPayments] Trial payment failed:", reason);
-              toast({ type: "error", description: t("error") });
-            },
-            onComplete: (paymentResult) => {
-              if (!paymentResult?.success) {
-                dispatch({ type: "WIDGET_CLOSED" });
-              }
-            },
-          }
-        );
-
-        // Mark that widget.pay() was called - this is the checkpoint for session recovery.
-        // If user refreshes before this point, the session will be cleared as stale.
-        storeWidgetOpened();
-      } catch (error) {
-        dispatch({
-          type: "PAYMENT_FAILED",
-          error: error instanceof Error ? error.message : t("error"),
-        });
-        console.error("Error in startTrial:", error);
-        toast({ type: "error", description: t("error") });
-      }
-    },
-    [session, t, pollPaymentStatus]
-  );
-
   const reset = useCallback(() => {
     dispatch({ type: "RESET" });
     clearPaymentSession();
@@ -520,7 +416,6 @@ export function usePayment(options: UsePaymentOptions): UsePaymentReturn {
   return {
     state,
     subscribe,
-    startTrial,
     reset,
   };
 }

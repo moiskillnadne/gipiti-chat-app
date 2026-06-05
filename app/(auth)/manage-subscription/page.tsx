@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/app/(auth)/auth";
+import { AccountPageTopNav } from "@/components/account-page-top-nav";
 import { ManageSubscriptionPageClient } from "./manage-subscription-page-client";
 
 export default async function ManageSubscriptionPage() {
@@ -9,5 +10,10 @@ export default async function ManageSubscriptionPage() {
     redirect("/login");
   }
 
-  return <ManageSubscriptionPageClient />;
+  return (
+    <>
+      <AccountPageTopNav currentLabelKey="subscription" />
+      <ManageSubscriptionPageClient />
+    </>
+  );
 }

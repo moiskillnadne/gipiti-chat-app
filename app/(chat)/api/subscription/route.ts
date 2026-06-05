@@ -211,7 +211,6 @@ export async function DELETE(request: Request) {
           planName: catalogEntry?.code,
           billingPeriod: catalogEntry?.billingPeriod,
           subscriptionDurationDays,
-          wasTrial: activeSubscription.isTrial,
         });
 
         console.log(
@@ -224,24 +223,6 @@ export async function DELETE(request: Request) {
         // Log but don't fail the cancellation if feedback save fails
         console.error("Failed to save cancellation feedback:", feedbackError);
       }
-    }
-
-    if (activeSubscription.isTrial) {
-      await db
-        .update(userSubscription)
-        .set({
-          status: "cancelled",
-          cancelAtPeriodEnd: false,
-          cancelledAt: now,
-          isTrial: false,
-          trialEndsAt: null,
-        })
-        .where(eq(userSubscription.id, activeSubscription.id));
-
-      return Response.json({
-        success: true,
-        message: "Trial cancelled successfully.",
-      });
     }
 
     await db

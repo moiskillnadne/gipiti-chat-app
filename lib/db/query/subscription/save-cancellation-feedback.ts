@@ -10,7 +10,6 @@ export async function saveCancellationFeedback({
   planName,
   billingPeriod,
   subscriptionDurationDays,
-  wasTrial,
 }: {
   userId: string;
   subscriptionId: string;
@@ -19,7 +18,6 @@ export async function saveCancellationFeedback({
   planName?: string;
   billingPeriod?: "daily" | "weekly" | "monthly" | "annual";
   subscriptionDurationDays?: number;
-  wasTrial: boolean;
 }): Promise<void> {
   try {
     await db.insert(cancellationFeedback).values({
@@ -30,7 +28,6 @@ export async function saveCancellationFeedback({
       subscriptionCode: planName || null,
       billingPeriod: billingPeriod || null,
       subscriptionDurationDays: subscriptionDurationDays || null,
-      wasTrial,
     });
   } catch (_error) {
     throw new ChatSDKError(

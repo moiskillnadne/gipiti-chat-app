@@ -14,7 +14,6 @@ const MANAGE_HREF = "/manage-subscription";
 const WASH_CLASS: Partial<Record<BalanceViewState, string>> = {
   free_zero: styles.heroZero,
   low: styles.heroLow,
-  trial: styles.heroTrial,
 };
 
 export type BalanceHeroProps = {

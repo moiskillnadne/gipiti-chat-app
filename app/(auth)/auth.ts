@@ -72,7 +72,6 @@ export const {
           emailVerified: userRecord.emailVerified,
           hasActiveSubscription: subscription !== null,
           isTester: userRecord.isTester,
-          hasUsedTrial: userRecord.trialUsedAt !== null,
         };
       },
     }),
@@ -86,7 +85,6 @@ export const {
         token.hasActiveSubscription = (user.hasActiveSubscription ??
           false) as boolean;
         token.isTester = (user.isTester ?? false) as boolean;
-        token.hasUsedTrial = (user.hasUsedTrial ?? false) as boolean;
       }
 
       // Refresh from database on session update
@@ -111,7 +109,6 @@ export const {
             console.log("DB user emailVerified:", userRecord.emailVerified);
             token.emailVerified = userRecord.emailVerified as boolean;
             token.isTester = userRecord.isTester as boolean;
-            token.hasUsedTrial = userRecord.trialUsedAt !== null;
           }
         }
 
@@ -141,7 +138,6 @@ export const {
         session.user.emailVerified = token.emailVerified;
         session.user.hasActiveSubscription = token.hasActiveSubscription;
         session.user.isTester = token.isTester;
-        session.user.hasUsedTrial = token.hasUsedTrial;
         console.log("Session callback - emailVerified:", token.emailVerified);
       }
 

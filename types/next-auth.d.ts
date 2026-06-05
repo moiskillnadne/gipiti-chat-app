@@ -11,7 +11,6 @@ declare module "next-auth" {
       emailVerified: boolean;
       hasActiveSubscription: boolean;
       isTester: boolean;
-      hasUsedTrial: boolean;
     } & DefaultSession["user"];
   }
 
@@ -22,7 +21,6 @@ declare module "next-auth" {
     emailVerified: boolean;
     hasActiveSubscription: boolean;
     isTester: boolean;
-    hasUsedTrial: boolean;
   }
 }
 
@@ -33,7 +31,6 @@ declare module "next-auth/jwt" {
     emailVerified: boolean;
     hasActiveSubscription: boolean;
     isTester: boolean;
-    hasUsedTrial: boolean;
   }
 }
 
