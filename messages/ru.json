@@ -68,7 +68,8 @@
   "accountNav": {
     "back": "Назад",
     "account": "Аккаунт",
-    "projects": "Проекты"
+    "projects": "Проекты",
+    "promptLibrary": "Библиотека промптов"
   },
   "auth": {
     "login": {
@@ -1524,5 +1525,41 @@
     "swatchPicker": {
       "label": "Цвет"
     }
+  },
+  "promptLibrary": {
+    "managePrompts": "Библиотека промптов",
+    "title": "Найдите промпт",
+    "titleEm": "под задачу",
+    "searchPlaceholder": "Опишите задачу или ищите по теме, тегу, модели…",
+    "tabFavorites": "Избранное",
+    "tabAll": "Все",
+    "categoryText": "Текст",
+    "categoryCode": "Код",
+    "categoryImage": "Изображения",
+    "categoryVideo": "Видео",
+    "categoryResearch": "Анализ",
+    "categoryMarketing": "Маркетинг",
+    "categoryLearning": "Обучение",
+    "promptsNoun": "{count, plural, one {промпт} few {промпта} many {промптов} other {промптов}}",
+    "inFavorites": "в избранном",
+    "byQuery": "по запросу",
+    "pageIndicator": "стр. {current} из {total}",
+    "recommended": "рекомендуем",
+    "promptLabel": "Промпт",
+    "tagsLabel": "Теги",
+    "copy": "Копировать",
+    "copied": "Скопировано",
+    "favorite": "В избранное",
+    "favorited": "В избранном",
+    "useInNewChat": "Использовать в новом чате",
+    "close": "Закрыть",
+    "useToast": "Промпт скопирован · открываем чат",
+    "favoriteError": "Не удалось обновить избранное",
+    "emptyTitle": "Ничего не нашлось",
+    "emptyDesc": "Попробуйте другой запрос или сбросьте фильтры.",
+    "emptyFavDesc": "Добавьте промпты в избранное звёздочкой на карточке.",
+    "pagerPrev": "Назад",
+    "pagerNext": "Далее",
+    "loading": "Загрузка…"
   }
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { Library } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { User } from "next-auth";
@@ -41,6 +42,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
   const t = useTranslations("chat.sidebar");
   const tCommon = useTranslations("common.buttons");
   const tProjects = useTranslations("projects");
+  const tPrompts = useTranslations("promptLibrary");
   const router = useRouter();
   const { setOpenMobile } = useSidebar();
   const { mutate } = useSWRConfig();
@@ -126,6 +128,18 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               >
                 <FolderIcon size={14} />
                 <span>{tProjects("manageProjects")}</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                className="h-9 gap-2.5 rounded-sm px-3 text-[13px] text-ink-2 hover:bg-paper-3 hover:text-ink"
+                onClick={() => {
+                  setOpenMobile(false);
+                  router.push("/prompts");
+                }}
+              >
+                <Library className="size-3.5" />
+                <span>{tPrompts("managePrompts")}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>

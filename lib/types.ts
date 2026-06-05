@@ -4,9 +4,15 @@ import type { calculator } from "./ai/tools/calculator";
 import type { extractUrl } from "./ai/tools/extract-url";
 import type { generateImageTool } from "./ai/tools/generate-image";
 import type { webSearch } from "./ai/tools/web-search";
+import type { Prompt } from "./db/schema";
 import type { AppUsage } from "./usage";
 
 export type DataPart = { type: "append-message"; message: string };
+
+export type PromptsResponse = {
+  prompts: Prompt[];
+  favoriteIds: string[];
+};
 
 export const messageMetadataSchema = z.object({
   createdAt: z.string(),

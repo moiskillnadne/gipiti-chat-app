@@ -593,3 +593,49 @@ export const projectFile = pgTable(
 );
 
 export type ProjectFile = InferSelectModel<typeof projectFile>;
+
+// ============================================================================
+// PROMPT LIBRARY
+// ============================================================================
+
+export const prompt = pgTable(
+  "Prompt",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    // Stable identifier from the curated catalog (e.g. "t1") so seeds can
+    // upsert idempotently by key. Seeding the catalog is a separate task.
+    key: varchar("key", { length: 64 }).notNull().unique(),
+    category: varchar("category", { length: 32 }).notNull(),
+    modelId: varchar("model_id", { length: 64 }).notNull(),
+    title: varchar("title", { length: 200 }).notNull(),
+    body: text("body").notNull(),
+    tags: jsonb("tags").$type<string[]>().notNull(),
+    sortOrder: integer("sort_order").default(0).notNull(),
+    isActive: boolean("is_active").default(true).notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    categoryIdx: index("prompt_category_idx").on(table.category),
+  })
+);
+
+export type Prompt = InferSelectModel<typeof prompt>;
+
+export const promptFavorite = pgTable(
+  "PromptFavorite",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    promptId: uuid("prompt_id")
+      .notNull()
+      .references(() => prompt.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.userId, table.promptId] }),
+  })
+);
+
+export type PromptFavorite = InferSelectModel<typeof promptFavorite>;

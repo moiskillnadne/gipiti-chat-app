@@ -274,6 +274,13 @@
       "when": 1780469303625,
       "tag": "0038_cute_vector",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1780645053230,
+      "tag": "0039_simple_kid_colt",
+      "breakpoints": true
     }
   ]
 }
