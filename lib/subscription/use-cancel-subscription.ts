@@ -12,7 +12,6 @@ export type CancelSubscriptionFeedback = {
 
 type UseCancelSubscriptionParams = {
   currentPeriodEnd: Date;
-  isTrial: boolean;
 };
 
 export type UseCancelSubscriptionReturn = {
@@ -34,7 +33,6 @@ const FORMAT_RU_DATE = new Intl.DateTimeFormat("ru-RU", {
 
 export function useCancelSubscription({
   currentPeriodEnd,
-  isTrial,
 }: UseCancelSubscriptionParams): UseCancelSubscriptionReturn {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -73,15 +71,11 @@ export function useCancelSubscription({
         return;
       }
 
-      if (isTrial) {
-        toast({ type: "success", description: t("cancelSuccessTrial") });
-      } else {
-        const formattedDate = FORMAT_RU_DATE.format(currentPeriodEnd);
-        toast({
-          type: "success",
-          description: t("cancelSuccess", { date: formattedDate }),
-        });
-      }
+      const formattedDate = FORMAT_RU_DATE.format(currentPeriodEnd);
+      toast({
+        type: "success",
+        description: t("cancelSuccess", { date: formattedDate }),
+      });
 
       setIsConfirmOpen(false);
       setFeedbackData(null);

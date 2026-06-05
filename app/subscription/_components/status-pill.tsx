@@ -5,7 +5,6 @@ import styles from "./dashboard.module.css";
 const PILL_VARIANT_CLASS: Record<BalanceViewState, string> = {
   active: styles.pillActive,
   low: styles.pillLow,
-  trial: styles.pillTrial,
   cancelled: styles.pillCancelled,
   past_due: styles.pillPastDue,
   free_with_balance: styles.pillNone,
@@ -15,7 +14,6 @@ const PILL_VARIANT_CLASS: Record<BalanceViewState, string> = {
 const PILL_LABEL_KEY: Record<BalanceViewState, string> = {
   active: "active",
   low: "low",
-  trial: "trial",
   cancelled: "cancelled",
   past_due: "pastDue",
   free_with_balance: "none",

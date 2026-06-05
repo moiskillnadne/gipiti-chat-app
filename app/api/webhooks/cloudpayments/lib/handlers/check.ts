@@ -39,15 +39,9 @@ export async function handleCheckWebhook(
   }
 
   let planName: string | null = null;
-  const data = parseWebhookData<{ planName?: string; isTrial?: boolean }>(Data);
+  const data = parseWebhookData<{ planName?: string }>(Data);
   if (data?.planName) {
     planName = data.planName;
-  }
-
-  const isTrial = data?.isTrial === true && Number(Amount) === 1;
-  if (isTrial) {
-    console.log("[CloudPayments:Check] Trial payment - 1 RUB verification");
-    return Response.json({ code: 0 });
   }
 
   if (!planName) {

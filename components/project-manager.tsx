@@ -34,8 +34,6 @@ export function ProjectManager() {
     title: t("title"),
     headlineEm: t("headlineEm"),
     description: t("pageDescription"),
-    eyebrow: ({ count, tplCount }) =>
-      t("eyebrow", { count, tplCount: tplCount.toString() }),
     createCta: t("createProject"),
     yourEntities: t("yourProjects"),
     newCardLabel: t("newProject"),

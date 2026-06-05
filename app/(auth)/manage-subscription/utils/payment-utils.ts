@@ -48,6 +48,21 @@ export function formatPrice(plan: PlanType): string {
 }
 
 /**
+ * Split the RUB price into amount and currency parts for the styled
+ * price display (large numeral + smaller currency glyph).
+ */
+export function getPriceParts(plan: PlanType): {
+  amount: string;
+  currency: string;
+} {
+  const seed = getSubscriptionSeedByCode(plan);
+  return {
+    amount: (seed?.prices.RUB ?? 0).toLocaleString("ru-RU"),
+    currency: "₽",
+  };
+}
+
+/**
  * Get the amount for a plan in the specified currency
  */
 export function getAmount(plan: PlanType, currency: Currency): number {

@@ -34,7 +34,7 @@ export const SUBSCRIPTION_SEEDS: SubscriptionSeed[] = [
   },
   {
     code: "basic_monthly",
-    displayName: "Базовый месячный план",
+    displayName: "Pro",
     billingPeriod: "monthly",
     billingPeriodCount: 1,
     isTester: false,

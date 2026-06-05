@@ -35,7 +35,6 @@ export const user = pgTable(
     emailVerificationCodeExpiry: timestamp("email_verification_code_expiry"),
     resetPasswordToken: varchar("reset_password_token", { length: 255 }),
     resetPasswordTokenExpiry: timestamp("reset_password_token_expiry"),
-    trialUsedAt: timestamp("trial_used_at"),
 
     // UTM attribution
     utmSource: varchar("utm_source", { length: 255 }),
@@ -344,10 +343,6 @@ export const userSubscription = pgTable(
     lastPaymentDate: timestamp("last_payment_date"),
     lastPaymentAmount: bigint("last_payment_amount", { mode: "number" }),
 
-    // Trial
-    isTrial: boolean("is_trial").default(false).notNull(),
-    trialEndsAt: timestamp("trial_ends_at"),
-
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
     cancelledAt: timestamp("cancelled_at"),
@@ -526,7 +521,6 @@ export const cancellationFeedback = pgTable(
     subscriptionCode: varchar("subscription_code", { length: 64 }),
     billingPeriod: billingPeriodEnum("billing_period"),
     subscriptionDurationDays: integer("subscription_duration_days"),
-    wasTrial: boolean("was_trial").default(false).notNull(),
 
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },

@@ -78,13 +78,6 @@ export async function handleRecurrentWebhook(
       catalog.billingPeriodCount
     );
 
-    const wasTrialConversion = userSub.isTrial;
-    if (wasTrialConversion) {
-      console.log(
-        `[CloudPayments:Recurrent] Trial conversion for subscription ${userSub.id}`
-      );
-    }
-
     // CloudPayments Amount is in MAJOR RUB units; store last payment in minor units.
     const lastPaymentMinor =
       paymentAmount !== null ? Math.round(paymentAmount * 100) : null;
@@ -98,8 +91,6 @@ export async function handleRecurrentWebhook(
         nextBillingDate: nextBilling,
         lastPaymentDate: now,
         lastPaymentAmount: lastPaymentMinor,
-        isTrial: false,
-        trialEndsAt: null,
         updatedAt: now,
       })
       .where(eq(userSubscription.id, userSub.id));

@@ -1,14 +1,8 @@
 import { LOW_BALANCE_THRESHOLD_MINOR } from "@/lib/billing/constants";
 import type { UserSubscription } from "@/lib/db/schema";
 
-export type SubscriptionUiState =
-  | "active"
-  | "trial"
-  | "cancelled"
-  | "past_due"
-  | "none";
+export type SubscriptionUiState = "active" | "cancelled" | "past_due" | "none";
 
-const TRIAL_LIKE_STATUSES = new Set(["active", "trialing", "trial"]);
 const PAST_DUE_STATUSES = new Set(["past_due", "unpaid"]);
 const CANCELLED_STATUSES = new Set(["cancelled", "canceled", "ended"]);
 
@@ -31,13 +25,6 @@ export function deriveSubscriptionUiState({
   }
 
   const status = subscription.status;
-  const isTrialActive =
-    subscription.isTrial &&
-    (!subscription.trialEndsAt || subscription.trialEndsAt > new Date());
-
-  if (isTrialActive && TRIAL_LIKE_STATUSES.has(status)) {
-    return "trial";
-  }
 
   if (PAST_DUE_STATUSES.has(status)) {
     return "past_due";
@@ -51,13 +38,12 @@ export function deriveSubscriptionUiState({
 }
 
 /**
- * The 7 states the balance-first dashboard renders. Extends the 5 subscription
+ * The 6 states the balance-first dashboard renders. Extends the 4 subscription
  * states with a low-balance warning and a free-tier split by remaining balance.
  */
 export type BalanceViewState =
   | "active"
   | "low"
-  | "trial"
   | "cancelled"
   | "past_due"
   | "free_with_balance"

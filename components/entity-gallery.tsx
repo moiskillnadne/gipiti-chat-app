@@ -52,7 +52,6 @@ export type EntityGalleryLabels = {
   title: string;
   headlineEm: string;
   description: string;
-  eyebrow: (params: { count: number; tplCount: number }) => string;
   createCta: string;
   yourEntities: string;
   newCardLabel: string;
@@ -270,11 +269,6 @@ export function EntityGallery<T extends GalleryEntity>({
     labels.deleteError,
   ]);
 
-  const eyebrowText = labels.eyebrow({
-    count: entities.length,
-    tplCount: templates.length,
-  });
-
   const closeCreate = () => {
     setIsCreateOpen(false);
     setCreateName("");
@@ -285,9 +279,6 @@ export function EntityGallery<T extends GalleryEntity>({
       {/* Header */}
       <div className="flex items-end justify-between gap-4">
         <div className="min-w-0">
-          <div className="mb-1.5 font-mono text-[10px] text-ink-3 uppercase tracking-[0.1em]">
-            {eyebrowText}
-          </div>
           <h1 className="font-light text-[26px] text-ink leading-[1.1] tracking-[-0.02em]">
             {labels.title}{" "}
           </h1>

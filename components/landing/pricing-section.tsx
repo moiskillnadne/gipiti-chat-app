@@ -26,8 +26,8 @@ export const PricingSection = () => (
           Простой и понятный тариф
         </h2>
         <p className="mx-auto mb-12 max-w-xl text-center text-zinc-400">
-          Все AI-модели и функции в одной подписке. 3 дня бесплатного пробного
-          периода.
+          Все AI-модели и функции в одной подписке. При регистрации дарим 100 ₽
+          на баланс.
         </p>
 
         {/* Animated gradient border */}
@@ -75,7 +75,7 @@ export const PricingSection = () => (
                   className="inline-flex w-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-8 py-4 font-semibold text-lg text-white shadow-indigo-500/25 shadow-lg transition-all hover:shadow-2xl hover:shadow-indigo-500/30 sm:w-auto"
                   href="/register"
                 >
-                  Начать 3-ех дневный пробный период
+                  Начать бесплатно
                 </Link>
               </motion.div>
 
