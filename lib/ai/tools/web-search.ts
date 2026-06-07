@@ -30,7 +30,17 @@ Do NOT use this tool for:
 - Creative tasks (writing, brainstorming)
 - Mathematical calculations
 - Coding questions
-- Historical events with well-established facts`,
+- Historical events with well-established facts
+
+Querying tips:
+- Formulate clear, specific search queries (terms, not full questions)
+- Synthesize information from multiple results when appropriate
+- If search results conflict, note the discrepancy
+
+Formatting results in your reply:
+- Integrate findings naturally into the response
+- Cite sources inline with [Source](URL) markdown format
+- Note if information might be time-sensitive`,
     inputSchema: z.object({
       query: z
         .string()

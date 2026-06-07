@@ -46,8 +46,31 @@ export const generateImageTool = ({
   usageAccumulator,
 }: GenerateImageProps) =>
   tool({
-    description:
-      "Tool for image generation. Use it when you want to generate an image from a prompt.",
+    description: `Generate an image from a text description. Use this tool when:
+- User explicitly asks to create, draw, generate, or visualize an image
+- User requests illustrations, artwork, or visual content
+- User asks for visual representations of concepts
+- User wants to see what something might look like
+
+Do NOT use this tool when:
+- User is asking for information or explanations
+- User wants to analyze or discuss existing images
+- The request doesn't require visual output
+- The request is inappropriate or violates content policies
+
+Prompt-writing best practices:
+- Write detailed, descriptive prompts that specify:
+  * Subject matter and composition
+  * Style (realistic, artistic, cartoon, etc.)
+  * Colors and lighting
+  * Mood and atmosphere
+  * Perspective and framing
+- Use "vivid" style for dramatic, hyper-real images
+- Use "natural" style for more realistic, subdued images
+
+Example prompt transformation:
+- User: "Draw a cat"
+- Better prompt: "A fluffy orange tabby cat sitting on a windowsill, warm afternoon sunlight streaming through, photorealistic style with soft bokeh background"`,
     inputSchema: z.object({
       prompt: z.string(),
       modelId: z.string(),
