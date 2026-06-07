@@ -17,6 +17,7 @@ import {
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
+import type { QuizAnswers } from "../quiz/types";
 import type { AppUsage } from "../usage";
 
 // ============================================================================
@@ -423,6 +424,7 @@ export type PaymentIntent = InferSelectModel<typeof paymentIntent>;
 export const transactionTypeEnum = pgEnum("transaction_type", [
   "welcome",
   "email_bonus",
+  "quiz_bonus",
   "subscription_renewal",
   "subscription_purchase",
   "topup_purchase",
@@ -633,3 +635,32 @@ export const promptFavorite = pgTable(
 );
 
 export type PromptFavorite = InferSelectModel<typeof promptFavorite>;
+
+// ============================================================================
+// QUIZZES (reward-driven onboarding / profiling surveys)
+// ============================================================================
+
+// One completed quiz response per user per quiz. `quizKey` namespaces the quiz
+// (e.g. "onboarding") so the same table backs any future reward quiz; the unique
+// (userId, quizKey) index makes completion a single row and blocks duplicates.
+export const quizResponse = pgTable(
+  "QuizResponse",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    quizKey: varchar("quiz_key", { length: 64 }).notNull(),
+    answers: jsonb("answers").$type<QuizAnswers>().notNull(),
+    completedAt: timestamp("completed_at").notNull().defaultNow(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    userQuizIdx: uniqueIndex("quiz_response_user_quiz_idx").on(
+      table.userId,
+      table.quizKey
+    ),
+  })
+);
+
+export type QuizResponse = InferSelectModel<typeof quizResponse>;

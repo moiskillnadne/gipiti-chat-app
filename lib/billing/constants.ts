@@ -17,6 +17,11 @@ export const WELCOME_GRANT_MAJOR_UNITS = 100;
 // the subscription dashboard; credited to the persistent top-up pool.
 export const EMAIL_CONFIRM_BONUS_MAJOR_UNITS = 50;
 
+// One-time bonus granted when a user completes the onboarding quiz, expressed in
+// MAJOR units of the default currency (e.g. 50 RUB). Surfaced by the quiz reward
+// banner once the email is confirmed; credited to the persistent top-up pool.
+export const ONBOARDING_QUIZ_BONUS_MAJOR_UNITS = 50;
+
 // Below this balance (minor units of the user's currency) an active
 // subscriber is shown the "low balance" warning state on the dashboard.
 // ~75 RUB by default; purely a UI cue, not an enforcement threshold.

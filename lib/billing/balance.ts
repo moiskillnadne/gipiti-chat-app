@@ -351,6 +351,88 @@ export async function grantEmailVerificationBonus(
 }
 
 /**
+ * Credit a one-time reward for completing a quiz to the persistent top-up pool.
+ *
+ * Generic across quizzes: `quizKey` is stored as the transaction `referenceId`,
+ * so each distinct quiz can grant exactly once. Idempotent — if a `quiz_bonus`
+ * transaction already exists for this user and `quizKey` this is a no-op and
+ * returns null. The existence check and the credit run inside a single
+ * row-locked transaction, so concurrent callers cannot double-credit.
+ */
+export async function grantQuizBonus(
+  userId: string,
+  quizKey: string,
+  bonusMajorUnits: number
+): Promise<BalanceChangeResult | null> {
+  await ensureBalance(userId);
+
+  const summary = await getBalance(userId);
+  const currencyCode = summary?.currencyCode ?? DEFAULT_CURRENCY_CODE;
+  const minorUnits = await getMinorUnits(currencyCode);
+  const amount = majorToMinorUnits(bonusMajorUnits, minorUnits);
+
+  return await db.transaction(async (tx) => {
+    const [row] = await tx
+      .select()
+      .from(balance)
+      .where(eq(balance.userId, userId))
+      .for("update")
+      .limit(1);
+
+    if (!row) {
+      throw new Error(`Balance not found for user ${userId}`);
+    }
+
+    const [existing] = await tx
+      .select({ id: transaction.id })
+      .from(transaction)
+      .where(
+        and(
+          eq(transaction.userId, userId),
+          eq(transaction.type, "quiz_bonus"),
+          eq(transaction.referenceId, quizKey)
+        )
+      )
+      .limit(1);
+
+    // Already granted — preserve idempotency under retries/concurrent calls.
+    if (existing) {
+      return null;
+    }
+
+    const newTopup = row.topupAmount + amount;
+
+    await tx
+      .update(balance)
+      .set({ topupAmount: newTopup, updatedAt: new Date() })
+      .where(eq(balance.userId, userId));
+
+    const [credit] = await tx
+      .insert(transaction)
+      .values({
+        userId,
+        type: "quiz_bonus",
+        currencyCode: row.currencyCode,
+        pool: "topup",
+        amount,
+        subscriptionBalanceAfter: row.subscriptionAmount,
+        topupBalanceAfter: newTopup,
+        referenceType: "onboarding_quiz",
+        referenceId: quizKey,
+        description: "Onboarding quiz bonus",
+      })
+      .returning({ id: transaction.id });
+
+    return {
+      amount,
+      subscriptionBalanceAfter: row.subscriptionAmount,
+      topupBalanceAfter: newTopup,
+      transactionId: credit.id,
+    };
+  });
+}
+
+/**
  * Set the subscription pool to a fixed amount (renewal/purchase). The unused
  * remainder of the previous period is discarded (resets), then re-credited to
  * the new amount. Top-up pool is untouched. Records a `subscription_renewal`

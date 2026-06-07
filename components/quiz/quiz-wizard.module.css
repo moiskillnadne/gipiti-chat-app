@@ -1,0 +1,881 @@
+/* Quiz wizard — ported from the Claude Design handoff (variant A, centered card).
+   Reuses the app's global design tokens from globals.css (--paper*, --ink*,
+   --citrus*, --model-*, --font-display, --ease-canon). Only a few design-local
+   radii are declared on the modal root. */
+
+/* ===================== overlay + modal shell ===================== */
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(15, 16, 20, 0.34);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+.scrim[data-state="open"] {
+  animation: qzFade 200ms var(--ease-canon);
+}
+
+.modal {
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 51;
+  transform: translate(-50%, -50%);
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-xl);
+  box-shadow:
+    0 24px 60px -20px rgba(20, 22, 26, 0.3),
+    0 4px 14px rgba(20, 22, 26, 0.06);
+  overflow: hidden;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.55;
+}
+.modal:focus {
+  outline: none;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ===================== buttons ===================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 20px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background-color 160ms var(--ease-canon),
+    color 160ms var(--ease-canon),
+    box-shadow 160ms var(--ease-canon),
+    transform 120ms var(--ease-canon);
+}
+.btn svg {
+  width: 15px;
+  height: 15px;
+}
+.btn:active {
+  transform: scale(0.98);
+}
+.btnPrimary {
+  background: var(--ink);
+  color: var(--paper);
+}
+.btnPrimary:hover {
+  background: var(--ink-2);
+}
+.btnPrimary:disabled {
+  opacity: 0.32;
+  cursor: not-allowed;
+}
+.btnGhost {
+  color: var(--ink-2);
+  padding: 11px 14px;
+  background: transparent;
+}
+.btnGhost:hover {
+  background: var(--paper-2);
+  color: var(--ink);
+}
+.btnLg {
+  padding: 14px 26px;
+  font-size: 15px;
+}
+
+/* ===================== type / eyebrow ===================== */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-3);
+}
+.eyebrow i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--citrus-deep);
+}
+.qTitle {
+  font-size: 23px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin-top: 12px;
+}
+.qHelp {
+  font-size: 13.5px;
+  color: var(--ink-3);
+  margin-top: 7px;
+  line-height: 1.5;
+}
+.stepHead {
+  margin-bottom: 22px;
+}
+
+/* ===================== progress ===================== */
+.prog {
+  width: 100%;
+}
+.progCounter {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.progNum {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--ink-4);
+}
+.progNum b {
+  color: var(--ink);
+  font-weight: 600;
+}
+.progRule {
+  display: block;
+  height: 2px;
+  background: var(--paper-3);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.progRule i {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+  border-radius: 999px;
+  transition: width 360ms var(--ease-canon);
+}
+.progBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.progTrack {
+  flex: 1;
+  height: 6px;
+  background: var(--paper-3);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.progTrack i {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+  border-radius: 999px;
+  transition: width 360ms var(--ease-canon);
+}
+.progPct {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-3);
+  min-width: 34px;
+  text-align: right;
+}
+.progDots {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--paper-3);
+  transition: all 280ms var(--ease-canon);
+}
+.dot.done {
+  background: var(--ink);
+}
+.dot.now {
+  background: var(--citrus-deep);
+  transform: scale(1.35);
+}
+.progSeg {
+  display: flex;
+  gap: 5px;
+}
+.seg {
+  flex: 1;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--paper-3);
+  transition: background 280ms var(--ease-canon);
+}
+.seg.done {
+  background: var(--ink);
+}
+
+/* ===================== options (radio / checkbox) ===================== */
+.opts {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.opt {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+  padding: 14px 16px;
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  background: var(--card);
+  cursor: pointer;
+  transition:
+    border-color 140ms var(--ease-canon),
+    background-color 140ms var(--ease-canon),
+    box-shadow 140ms var(--ease-canon);
+}
+.opt:hover {
+  border-color: var(--rule-strong);
+}
+.opt.on {
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+.optIco {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--r-sm);
+  background: var(--paper-2);
+  color: var(--ink-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 140ms var(--ease-canon);
+}
+.optIco svg {
+  width: 18px;
+  height: 18px;
+}
+.opt.on .optIco {
+  background: var(--ink);
+  color: var(--citrus);
+}
+.optMain {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.optLabel {
+  font-size: 15px;
+  color: var(--ink);
+  font-weight: 500;
+}
+.optDesc {
+  font-size: 12.5px;
+  color: var(--ink-3);
+}
+.optMark {
+  flex-shrink: 0;
+}
+.radio {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid var(--rule-strong);
+  position: relative;
+  transition: border-color 140ms var(--ease-canon);
+}
+.opt.on .radio {
+  border-color: var(--ink);
+}
+.opt.on .radio::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: var(--ink);
+}
+.check {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1.5px solid var(--rule-strong);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: transparent;
+  transition: all 140ms var(--ease-canon);
+}
+.check svg {
+  width: 14px;
+  height: 14px;
+}
+.opt.on .check {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+.mdot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-left: 2px;
+}
+
+/* ===================== inline "other" text ===================== */
+.optOther {
+  margin-top: 2px;
+}
+
+/* ===================== cards ===================== */
+.cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  background: var(--card);
+  cursor: pointer;
+  transition:
+    border-color 140ms var(--ease-canon),
+    background-color 140ms var(--ease-canon),
+    box-shadow 140ms var(--ease-canon),
+    transform 120ms var(--ease-canon);
+}
+.card:hover {
+  border-color: var(--rule-strong);
+  transform: translateY(-1px);
+}
+.card.on {
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+  background: var(--citrus-soft);
+}
+.cardIco {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--r-sm);
+  background: var(--paper-2);
+  color: var(--ink-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 140ms var(--ease-canon);
+}
+.cardIco svg {
+  width: 21px;
+  height: 21px;
+}
+.card.on .cardIco {
+  background: var(--ink);
+  color: var(--citrus);
+}
+.cardLabel {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+}
+.cardTick {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--paper);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: all 160ms var(--ease-canon);
+}
+.cardTick svg {
+  width: 13px;
+  height: 13px;
+}
+.card.on .cardTick {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* ===================== rating ===================== */
+.rating {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.stars {
+  display: flex;
+  gap: 10px;
+}
+.star {
+  width: 54px;
+  height: 54px;
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-4);
+  cursor: pointer;
+  background: var(--card);
+  transition: all 140ms var(--ease-canon);
+}
+.star svg {
+  width: 24px;
+  height: 24px;
+}
+.star:hover {
+  border-color: var(--rule-strong);
+  color: var(--citrus-deep);
+  transform: translateY(-1px);
+}
+.star.on {
+  border-color: var(--ink);
+  color: var(--citrus-deep);
+  background: var(--citrus-soft);
+}
+.ratingLabels {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.ratingNow {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+/* ===================== text ===================== */
+.textWrap {
+  position: relative;
+}
+.text {
+  width: 100%;
+  resize: none;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+  outline: none;
+  transition:
+    border-color 140ms var(--ease-canon),
+    box-shadow 140ms var(--ease-canon);
+}
+.text::placeholder {
+  color: var(--ink-4);
+}
+.text:focus {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px var(--citrus-soft);
+  background: var(--card);
+}
+.textOpt {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-4);
+}
+
+/* ===================== footers ===================== */
+.foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.footMeta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-4);
+}
+.footError {
+  color: var(--danger);
+  font-size: 12.5px;
+}
+
+/* ===================== intro ===================== */
+.intro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.introGift {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--citrus);
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+.introGift svg {
+  width: 24px;
+  height: 24px;
+}
+.introTitle {
+  font-size: 27px;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  margin-top: 12px;
+}
+.introLede {
+  font-size: 14.5px;
+  color: var(--ink-2);
+  line-height: 1.6;
+  margin-top: 10px;
+}
+.introReward {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: var(--citrus-soft);
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+.introReward b {
+  color: var(--ink);
+  font-weight: 600;
+}
+.tagGift {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--citrus);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.tagGift svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ===================== reward screen ===================== */
+.reward {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.gift {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: var(--ink);
+  color: var(--citrus);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 22px;
+  animation: qzPop 520ms var(--ease-canon);
+}
+.gift svg {
+  width: 30px;
+  height: 30px;
+}
+.giftCore {
+  display: inline-flex;
+}
+.rewardAmount {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.rewardPlus {
+  font-family: var(--font-display);
+  font-size: 52px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--ink);
+}
+.rewardUnit {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+}
+.rewardTitle {
+  font-size: 21px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  margin-top: 16px;
+}
+.rewardLede {
+  font-size: 14px;
+  color: var(--ink-2);
+  line-height: 1.6;
+  margin-top: 8px;
+  max-width: 380px;
+}
+.rewardPerks {
+  display: flex;
+  gap: 10px;
+  margin-top: 22px;
+  width: 100%;
+}
+.perk {
+  flex: 1;
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  text-align: left;
+}
+.perkK {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+}
+.perkV {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  margin-top: 4px;
+}
+.rewardCta {
+  margin-top: 24px;
+  align-self: stretch;
+}
+.rewardNote {
+  font-size: 11.5px;
+  color: var(--ink-4);
+  margin-top: 14px;
+  line-height: 1.5;
+  max-width: 320px;
+}
+
+/* sparks (playful burst) */
+.spark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 2px;
+  background: var(--citrus);
+  transform: rotate(var(--a)) translateY(0);
+  opacity: 0;
+}
+.gift.burst {
+  animation: qzPop 520ms var(--ease-canon);
+}
+.gift.burst .spark {
+  animation: qzBurst 720ms var(--ease-canon) forwards;
+}
+@keyframes qzBurst {
+  0% {
+    opacity: 0;
+    transform: rotate(var(--a)) translateY(-6px) scale(0.6);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--a)) translateY(-46px) scale(1);
+  }
+}
+@keyframes qzPop {
+  0% {
+    transform: scale(0.6);
+  }
+  55% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes qzFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ===================== variant A · centered card ===================== */
+.modalA {
+  width: 560px;
+  height: 600px;
+  max-height: calc(100dvh - 32px);
+  padding: 30px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.modalA > .step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.body {
+  flex: 1;
+  overflow-y: auto;
+}
+.modalA .intro {
+  flex: 1;
+  justify-content: center;
+}
+.paneCenter {
+  justify-content: center;
+}
+
+/* top bar with close — desktop hides it (ESC / click-outside close). */
+.mtop {
+  display: none;
+  align-items: center;
+  justify-content: flex-end;
+}
+.mtopX {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-3);
+  background: var(--paper-2);
+  cursor: pointer;
+}
+.mtopX svg {
+  width: 16px;
+  height: 16px;
+}
+.mtopX:hover {
+  color: var(--ink);
+}
+
+/* ---- mobile full-screen takeover ---- */
+@media (max-width: 480px) {
+  .modal.modalA {
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    transform: none;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
+    gap: 0;
+  }
+  .modalA .mtop {
+    display: flex;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--rule);
+    flex-shrink: 0;
+  }
+  .modalA .bar {
+    padding: 18px 20px 0;
+    flex-shrink: 0;
+  }
+  .modalA > .step.body {
+    padding: 20px;
+  }
+  .modalA .intro {
+    padding: 0 20px;
+  }
+  .modalA .foot {
+    padding: 16px 20px;
+    border-top: 1px solid var(--rule);
+    flex-shrink: 0;
+  }
+  .modalA .paneCenter {
+    padding: 24px 20px;
+  }
+  .modalA .qTitle {
+    font-size: 21px;
+  }
+  .modalA .introTitle {
+    font-size: 24px;
+  }
+}
+
+/* ===================== motion ===================== */
+/* Reveal animates transform only (opacity stays 1 — the default) so content is
+   never hidden; resting state is the visible end-state — only first mount slides. */
+.rv {
+  transition: transform 460ms var(--ease-canon);
+}
+@starting-style {
+  .rvSubtle {
+    transform: translateY(14px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rv {
+    transition: none;
+  }
+  .gift,
+  .gift.burst,
+  .gift.burst .spark {
+    animation: none;
+  }
+}
