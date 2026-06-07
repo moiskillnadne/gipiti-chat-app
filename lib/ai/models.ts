@@ -666,51 +666,70 @@ export const getProviderOptions = (
   modelId: string,
   thinkingSetting?: ThinkingSetting
 ): SharedV2ProviderOptions => {
+  const base: SharedV2ProviderOptions = {
+    gateway: { caching: "auto" },
+  };
+
   const model = getModelById(modelId);
   if (!model?.provider || !model.thinkingConfig || !thinkingSetting) {
-    return {};
+    return base;
   }
 
   // Auto mode: let the model decide reasoning depth by omitting effort params
   if (isAutoReasoning(thinkingSetting)) {
     if (model.provider === "google") {
       return {
+        ...base,
         google: {
           thinkingConfig: { includeThoughts: true },
         },
       };
     }
-    return {};
+    return base;
   }
 
   switch (model.provider) {
     case "openai": {
       if (thinkingSetting.type !== "effort") {
-        return {};
+        return base;
       }
-      return getOpenAIProviderOptions({
-        reasoningEffort: thinkingSetting.value,
-        reasoningSummary: "auto",
-      });
+      return {
+        ...base,
+        ...getOpenAIProviderOptions({
+          reasoningEffort: thinkingSetting.value,
+          reasoningSummary: "auto",
+        }),
+      };
     }
+
     case "google": {
       if (thinkingSetting.type !== "effort") {
-        return {};
+        return base;
       }
-      return getGoogleProviderOptions({
-        reasoningEffort: thinkingSetting.value,
-      });
+
+      return {
+        ...base,
+        ...getGoogleProviderOptions({
+          reasoningEffort: thinkingSetting.value,
+        }),
+      };
     }
+
     case "anthropic": {
       if (thinkingSetting.type !== "effort") {
-        return {};
+        return base;
       }
-      return getAnthropicProviderOptions({
-        effort: thinkingSetting.value,
-      });
+
+      return {
+        ...base,
+        ...getAnthropicProviderOptions({
+          effort: thinkingSetting.value,
+        }),
+      };
     }
+
     default:
-      return {};
+      return base;
   }
 };
 
