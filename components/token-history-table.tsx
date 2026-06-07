@@ -15,6 +15,7 @@ import { fetcher } from "@/lib/utils";
 type TransactionType =
   | "welcome"
   | "email_bonus"
+  | "quiz_bonus"
   | "subscription_renewal"
   | "subscription_purchase"
   | "topup_purchase"
@@ -45,6 +46,7 @@ const PAGE_SIZE = 20;
 const BADGE_CLASS_BY_TYPE: Record<TransactionType, string> = {
   welcome: "bg-green-100 text-green-800",
   email_bonus: "bg-green-100 text-green-800",
+  quiz_bonus: "bg-green-100 text-green-800",
   subscription_renewal: "bg-green-100 text-green-800",
   subscription_purchase: "bg-green-100 text-green-800",
   topup_purchase: "bg-green-100 text-green-800",

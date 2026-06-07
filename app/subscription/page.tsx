@@ -4,6 +4,7 @@ import { auth } from "@/app/(auth)/auth";
 import { getBalance } from "@/lib/billing/balance";
 import {
   EMAIL_CONFIRM_BONUS_MAJOR_UNITS,
+  ONBOARDING_QUIZ_BONUS_MAJOR_UNITS,
   WELCOME_GRANT_MAJOR_UNITS,
 } from "@/lib/billing/constants";
 import { getMinorUnits } from "@/lib/billing/currencies";
@@ -11,8 +12,10 @@ import { formatCurrency, majorToMinorUnits } from "@/lib/billing/money";
 import { getChatSpendHistory, getRecentSpendMinor } from "@/lib/billing/spend";
 import { priceForCurrency } from "@/lib/billing/subscriptions";
 import { db } from "@/lib/db/connection";
+import { getQuizResponse } from "@/lib/db/query/quiz/get-quiz-response";
 import { subscription, userSubscription } from "@/lib/db/schema";
 import { getTranslations } from "@/lib/i18n/translate";
+import { ONBOARDING_QUIZ_KEY } from "@/lib/quiz/types";
 import {
   type BalanceViewState,
   deriveBalanceViewState,
@@ -29,6 +32,7 @@ import { BalanceHero } from "./_components/balance-hero";
 import styles from "./_components/dashboard.module.css";
 import { FreeSideCard } from "./_components/free-side-card";
 import { PlanCard, type PlanCardData } from "./_components/plan-card";
+import { QuizRewardBanner } from "./_components/quiz-reward-banner";
 import { RewardBanner } from "./_components/reward-banner";
 import { StatusBanner } from "./_components/status-banner";
 import { SubscriptionHeader } from "./_components/subscription-header";
@@ -93,13 +97,22 @@ export default async function SubscriptionPage() {
     redirect("/login");
   }
 
-  const [latest, balanceSummary, chatHistory, recentSpendMinor] =
-    await Promise.all([
-      getLatestSubscription(session.user.id),
-      getBalance(session.user.id),
-      getChatSpendHistory(session.user.id),
-      getRecentSpendMinor(session.user.id),
-    ]);
+  const [
+    latest,
+    balanceSummary,
+    chatHistory,
+    recentSpendMinor,
+    onboardingQuizResponse,
+  ] = await Promise.all([
+    getLatestSubscription(session.user.id),
+    getBalance(session.user.id),
+    getChatSpendHistory(session.user.id),
+    getRecentSpendMinor(session.user.id),
+    getQuizResponse({
+      userId: session.user.id,
+      quizKey: ONBOARDING_QUIZ_KEY,
+    }),
+  ]);
 
   const t = await getTranslations("auth.subscription.balance");
   const now = new Date();
@@ -188,6 +201,17 @@ export default async function SubscriptionPage() {
     minorUnits
   );
 
+  // Quiz banner: once the email is verified, invite the user to complete the
+  // onboarding quiz for a one-time bonus. Mutually exclusive with the email
+  // banner; hidden once the quiz is completed.
+  const showQuizBanner =
+    session.user.emailVerified && onboardingQuizResponse === null;
+  const quizBonusAmount = formatCurrency(
+    majorToMinorUnits(ONBOARDING_QUIZ_BONUS_MAJOR_UNITS, minorUnits),
+    currencyCode,
+    minorUnits
+  );
+
   return (
     <>
       <SubscriptionTopNav state={state} />
@@ -239,6 +263,10 @@ export default async function SubscriptionPage() {
 
           {showRewardBanner && userEmail ? (
             <RewardBanner bonusAmount={emailBonusAmount} email={userEmail} />
+          ) : null}
+
+          {showQuizBanner ? (
+            <QuizRewardBanner bonusAmount={quizBonusAmount} />
           ) : null}
 
           <TransactionHistoryCard
