@@ -462,6 +462,25 @@ const reasoningModelIds = new Set(
 export const isReasoningModelId = (modelId: string) =>
   reasoningModelIds.has(modelId);
 
+/**
+ * True when this model is wrapped with `extractReasoningMiddleware({tagName:"think"})`
+ * in `lib/ai/providers.ts` and therefore needs the system prompt to instruct
+ * `<think></think>` tag emission. Native-reasoning models (Anthropic extended
+ * thinking, grok-4.3) must NOT receive that instruction — they'd echo literal
+ * `<think>` tags into the visible message body since no middleware strips them.
+ *
+ * Keep this in sync if the wrapping rule in providers.ts ever changes (e.g. a
+ * Google model with native reasoning would need an explicit per-model flag
+ * rather than this provider-derived heuristic).
+ */
+export const usesReasoningTagMiddleware = (modelId: string): boolean => {
+  const model = getModelById(modelId);
+  if (!model?.capabilities?.reasoning) {
+    return false;
+  }
+  return model.provider === "openai" || model.provider === "google";
+};
+
 const imageGenerationModelIds = new Set(
   chatModels
     .filter((model) => model.capabilities?.imageGeneration)

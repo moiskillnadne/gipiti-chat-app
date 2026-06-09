@@ -1,11 +1,17 @@
 import type { Geo } from "@vercel/functions";
 import type { ModelMessage } from "ai";
 
-import { isReasoningModelId } from "./models";
+import { isReasoningModelId, usesReasoningTagMiddleware } from "./models";
 
 export const regularPrompt =
   "You are a friendly assistant! Keep your responses concise and helpful.";
 
+/**
+ * For models wrapped with `extractReasoningMiddleware({tagName:"think"})` in
+ * providers.ts (currently OpenAI gpt-5.x and Google Gemini). Both layers must
+ * agree: the middleware strips `<think></think>` blocks into the reasoning
+ * channel, and this prompt tells the model to emit them.
+ */
 export const reasoningPrompt = `\
 You are a friendly assistant that uses explicit reasoning! When responding:
 
@@ -28,6 +34,19 @@ The user is asking about X. Let me break this down:
 Keep your responses concise and helpful.
 
 IMPORTANT: Every response must include both thinking AND a final answer. Never end with just </think>.`;
+
+/**
+ * For models that emit reasoning via a native channel rather than `<think>`
+ * tags (Anthropic extended thinking, grok-4.3). Preserves the universally-
+ * useful tool-usage and step-limit guidance from `reasoningPrompt` while
+ * omitting the tag-format instructions, which would otherwise leak literal
+ * `<think>` text into the visible message body.
+ */
+export const nativeReasoningPrompt = `\
+You are a friendly assistant. When responding:
+- Keep your responses concise and helpful
+- Use tools judiciously — aim to call only the most essential tools
+- If you approach your step limit, prioritize providing a final answer over calling more tools`;
 
 export type ProjectContextInput = {
   name: string;
@@ -60,7 +79,9 @@ export const systemPrompt = ({
   selectedChatModel: string;
 }): string => {
   if (isReasoningModelId(selectedChatModel)) {
-    return reasoningPrompt;
+    return usesReasoningTagMiddleware(selectedChatModel)
+      ? reasoningPrompt
+      : nativeReasoningPrompt;
   }
   return regularPrompt;
 };
