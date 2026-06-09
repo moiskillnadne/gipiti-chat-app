@@ -12,12 +12,12 @@ export function TrustRow() {
   const t = useTranslations("auth.subscription.plansPage.trust");
 
   return (
-    <div className="mx-auto grid w-full max-w-[880px] grid-cols-3 overflow-hidden rounded-[14px] border border-rule bg-card">
+    <div className="mx-auto grid w-full max-w-[880px] grid-cols-1 overflow-hidden rounded-[14px] border border-rule bg-card md:grid-cols-3">
       {TRUST_ITEMS.map(({ key, Icon }, index) => (
         <div
           className={cn(
             "flex items-center gap-[13px] px-6 py-5",
-            index > 0 && "border-rule border-l"
+            index > 0 && "border-rule border-t md:border-t-0 md:border-l"
           )}
           key={key}
         >
