@@ -1,10 +1,17 @@
 import type { Geo } from "@vercel/functions";
+import type { ModelMessage } from "ai";
 
-import { isReasoningModelId, supportsAttachments } from "./models";
+import { isReasoningModelId, usesReasoningTagMiddleware } from "./models";
 
 export const regularPrompt =
   "You are a friendly assistant! Keep your responses concise and helpful.";
 
+/**
+ * For models wrapped with `extractReasoningMiddleware({tagName:"think"})` in
+ * providers.ts (currently OpenAI gpt-5.x and Google Gemini). Both layers must
+ * agree: the middleware strips `<think></think>` blocks into the reasoning
+ * channel, and this prompt tells the model to emit them.
+ */
 export const reasoningPrompt = `\
 You are a friendly assistant that uses explicit reasoning! When responding:
 
@@ -28,94 +35,22 @@ Keep your responses concise and helpful.
 
 IMPORTANT: Every response must include both thinking AND a final answer. Never end with just </think>.`;
 
-export const webSearchPrompt = `
-You have access to a web search tool that lets you find current information from the internet. Use it judiciously:
-
-WHEN TO SEARCH:
-- Current events or news from the past few days/weeks
-- Real-time data: prices, stock values, weather, sports scores
-- Recent product releases, updates, or announcements
-- Verification of facts you're uncertain about
-- When the user explicitly asks you to search online
-- Questions about specific people, companies, or organizations that may have recent updates
-
-WHEN NOT TO SEARCH:
-- Questions you can answer from your training knowledge
-- Creative writing, brainstorming, or opinion tasks
-- Mathematical calculations or logical reasoning
-- Code generation or debugging
-- Historical facts that haven't changed
-
-SEARCH BEST PRACTICES:
-- Formulate clear, specific queries (not questions, but search terms)
-- Use basic search for quick lookups, advanced for research
-- Cite sources by including URLs in your response
-- If search results conflict, note the discrepancy
-- Synthesize information from multiple results when appropriate
-
-FORMATTING RESULTS:
-When you include information from web search:
-1. Integrate findings naturally into your response
-2. Cite sources with [Source](URL) markdown format
-3. Note if information might be time-sensitive
-4. Mention the search query if it helps provide context
-`;
-
-export const imageGenerationPrompt = `
-You have access to an image generation tool that creates images from text descriptions. Use it when appropriate:
-
-WHEN TO GENERATE IMAGES:
-- User explicitly asks to create, draw, generate, or visualize an image
-- User requests illustrations, artwork, or visual content
-- User asks for visual representations of concepts
-- User wants to see what something might look like
-
-WHEN NOT TO GENERATE IMAGES:
-- User is asking for information or explanations
-- User wants to analyze or discuss existing images
-- User is asking questions that don't require visual output
-- When the request is inappropriate or violates content policies
-
-IMAGE GENERATION BEST PRACTICES:
-- Create detailed, descriptive prompts that specify:
-  * Subject matter and composition
-  * Style (realistic, artistic, cartoon, etc.)
-  * Colors and lighting
-  * Mood and atmosphere
-  * Perspective and framing
-- Use "vivid" style for dramatic, hyper-real images
-- Use "natural" style for more realistic, subdued images
-- Choose appropriate dimensions:
-  * 1024x1024 for square images (default)
-  * 1792x1024 for landscape images
-  * 1024x1792 for portrait images
-
-EXAMPLE PROMPT TRANSFORMATION:
-User: "Draw a cat"
-Better prompt: "A fluffy orange tabby cat sitting on a windowsill, warm afternoon sunlight streaming through, photorealistic style with soft bokeh background"
-`;
+/**
+ * For models that emit reasoning via a native channel rather than `<think>`
+ * tags (Anthropic extended thinking, grok-4.3). Preserves the universally-
+ * useful tool-usage and step-limit guidance from `reasoningPrompt` while
+ * omitting the tag-format instructions, which would otherwise leak literal
+ * `<think>` text into the visible message body.
+ */
+export const nativeReasoningPrompt = `\
+You are a friendly assistant. When responding:
+- Keep your responses concise and helpful
+- Use tools judiciously — aim to call only the most essential tools
+- If you approach your step limit, prioritize providing a final answer over calling more tools`;
 
 export type ProjectContextInput = {
   name: string;
   contextEntries: string[];
-};
-
-export const projectContextPrompt = (project: ProjectContextInput): string => {
-  const numberedEntries = project.contextEntries
-    .map((entry, i) => `${i + 1}. "${entry}"`)
-    .join("\n");
-
-  return `\
-You are working within the context of a project called "${project.name}".
-
-Here is the project context information:
-${numberedEntries}
-
-Instructions:
-- Use this context to inform your responses
-- Reference project details when relevant
-- Keep responses aligned with the project scope
-- Do NOT repeat the context verbatim unless asked`;
 };
 
 export type RequestHints = {
@@ -125,36 +60,78 @@ export type RequestHints = {
   country: Geo["country"];
 };
 
-export const getRequestPromptFromHints = (requestHints: RequestHints) => `\
-About the origin of user's request:
-- lat: ${requestHints.latitude}
-- lon: ${requestHints.longitude}
-- city: ${requestHints.city}
-- country: ${requestHints.country}
-
-Respond in the same language as the user's message.`;
-
+/**
+ * Build the static system prompt for a chat model. Deterministic per model id —
+ * no per-user values, timestamps, or session state — so the byte sequence is
+ * identical across all requests for a given model. That stability is what lets
+ * the AI Gateway's `caching: "auto"` reuse this prefix across the whole
+ * userbase on Anthropic models. Anything per-user goes through
+ * `buildContextMessage` instead.
+ *
+ * Tool-specific guidance (when to call web search, image-prompt best practices,
+ * citation format) lives on each tool's `description` field, not here — that
+ * way the model sees it during tool selection and we don't pay tokens for it
+ * twice.
+ */
 export const systemPrompt = ({
   selectedChatModel,
-  requestHints,
-  projectContext,
 }: {
   selectedChatModel: string;
+}): string => {
+  if (isReasoningModelId(selectedChatModel)) {
+    return usesReasoningTagMiddleware(selectedChatModel)
+      ? reasoningPrompt
+      : nativeReasoningPrompt;
+  }
+  return regularPrompt;
+};
+
+type ContextMessageInput = {
   requestHints: RequestHints;
   projectContext?: ProjectContextInput | null;
-}) => {
-  const requestPrompt = getRequestPromptFromHints(requestHints);
-  const hasAttachments = supportsAttachments(selectedChatModel);
-  const projectBlock = projectContext?.contextEntries.length
-    ? `\n\n${projectContextPrompt(projectContext)}`
-    : "";
+};
 
-  if (isReasoningModelId(selectedChatModel)) {
-    if (hasAttachments) {
-      return `${reasoningPrompt}${projectBlock}\n\n${webSearchPrompt}\n\n${imageGenerationPrompt}\n\n${requestPrompt}`;
-    }
-    return `${reasoningPrompt}${projectBlock}\n\n${webSearchPrompt}\n\n${requestPrompt}`;
+/**
+ * Build a leading user-role context message carrying per-request data
+ * (geolocation, active project, future extensions). It lives in `messages`,
+ * BELOW the Gateway auto-cache breakpoint, so it never disturbs the cacheable
+ * system prefix shared across users.
+ *
+ * Returns `null` when there's nothing to send — caller skips the prepend.
+ *
+ * To add a new context field, push a string into `sections` here (e.g. user
+ * timezone, plan tier, A/B flag). The model sees them in the order pushed.
+ */
+export const buildContextMessage = ({
+  requestHints,
+  projectContext,
+}: ContextMessageInput): ModelMessage | null => {
+  const sections: string[] = [];
+
+  const locationParts = [requestHints.city, requestHints.country].filter(
+    (part): part is string => Boolean(part)
+  );
+  if (locationParts.length > 0) {
+    sections.push(`User location: ${locationParts.join(", ")}.`);
   }
 
-  return `${regularPrompt}${projectBlock}\n\n${webSearchPrompt}\n\n${imageGenerationPrompt}\n\n${requestPrompt}`;
+  if (projectContext?.contextEntries.length) {
+    const numberedEntries = projectContext.contextEntries
+      .map((entry, index) => `  ${index + 1}. "${entry}"`)
+      .join("\n");
+    sections.push(
+      `Active project: "${projectContext.name}".\n${numberedEntries}\n\nUse this project context to inform your responses; do not repeat it verbatim unless asked.`
+    );
+  }
+
+  if (sections.length === 0) {
+    return null;
+  }
+
+  const body = sections.join("\n\n");
+
+  return {
+    role: "user",
+    content: `[Session context — assistant metadata, not a user question]\n\n${body}\n\nRespond in the same language as the user's message.`,
+  };
 };

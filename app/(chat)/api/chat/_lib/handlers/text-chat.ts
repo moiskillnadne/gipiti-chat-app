@@ -5,7 +5,7 @@ import {
   isReasoningModelId,
   supportsThinkingConfig,
 } from "@/lib/ai/models";
-import { systemPrompt } from "@/lib/ai/prompts";
+import { buildContextMessage, systemPrompt } from "@/lib/ai/prompts";
 import { myProvider } from "@/lib/ai/providers";
 import { calculator } from "@/lib/ai/tools/calculator";
 import { extractUrl } from "@/lib/ai/tools/extract-url";
@@ -39,14 +39,22 @@ export async function runTextChat(
     !(thinkingSetting.type === "effort" && thinkingSetting.value === "none") &&
     !(thinkingSetting.type === "budget" && thinkingSetting.value === 0);
 
+  // Static system prompt + dynamic context as a leading message keeps the
+  // system block byte-identical across users so the Gateway cache prefix is
+  // shared. Per-user data (geolocation, project) lives below the cache line.
+  const baseMessages = await convertToModelMessages(ctx.uiMessages);
+  const contextMessage = buildContextMessage({
+    requestHints: ctx.requestHints,
+    projectContext: ctx.projectContext,
+  });
+  const chatMessages = contextMessage
+    ? [contextMessage, ...baseMessages]
+    : baseMessages;
+
   const result = streamText({
     model: myProvider.languageModel(model),
-    system: systemPrompt({
-      selectedChatModel: model,
-      requestHints: ctx.requestHints,
-      projectContext: ctx.projectContext,
-    }),
-    messages: await convertToModelMessages(ctx.uiMessages),
+    system: systemPrompt({ selectedChatModel: model }),
+    messages: chatMessages,
     stopWhen: stepCountIs(stepLimit),
     ...(isReasoningModelId(model) &&
       isThinkingEnabled &&
