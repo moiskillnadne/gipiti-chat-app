@@ -682,6 +682,7 @@
 
 .bannerBody {
   flex: 1;
+  min-width: 0;
 }
 
 .bannerBody b {
@@ -1406,8 +1407,12 @@
   border-bottom: 1px solid var(--rule);
   display: grid;
   gap: 16px;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   padding: 12px 0;
+}
+
+.histRow > div:first-child {
+  min-width: 0;
 }
 
 .histRow:last-child {
