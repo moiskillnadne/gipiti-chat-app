@@ -30,6 +30,12 @@ type ToolRunRendererProps = {
   group: RunGroupPart;
   isMessageLoading: boolean;
   isLastAssistantMessage: boolean;
+  /**
+   * Server-emitted stream start (ms). When provided, the elapsed timer anchors
+   * to this value instead of component mount time — so a page reload mid-stream
+   * resumes counting from the original start rather than jumping back to zero.
+   */
+  streamStartedAtMs?: number | null;
 };
 
 type StepDescriptor = {
@@ -132,18 +138,29 @@ const sourcesFromExtractUrl = (
 const TICK_MS = 1000;
 
 /**
- * Elapsed seconds since the tool run was first rendered. SSR-safe: the wall
- * clock is only read after mount (inside effects), so the server and the first
- * client render both produce `0` and hydration stays deterministic. The run is
- * measured from mount, matching the previous behaviour for historical messages.
+ * Elapsed seconds since the tool run started. SSR-safe: the wall clock is only
+ * read after mount (inside effects), so the server and the first client render
+ * both produce `0` and hydration stays deterministic.
+ *
+ * Anchors to `startedAtMs` when provided (server-emitted, survives reload) and
+ * otherwise falls back to mount-time wall clock, matching the previous
+ * behaviour for historical messages without a server timestamp.
  */
-const useElapsedSeconds = (isStreaming: boolean): number => {
+const useElapsedSeconds = (
+  isStreaming: boolean,
+  startedAtMs?: number | null
+): number => {
   const [elapsed, setElapsed] = useState(0);
   const startedAtRef = useRef<number | null>(null);
   const endedAtRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (startedAtRef.current === null) {
+    // Prefer the server-supplied timestamp; fall back to mount-time wall clock
+    // and keep the established ref value once set so the timer never jumps
+    // backward after a transient prop change.
+    if (startedAtMs != null) {
+      startedAtRef.current = startedAtMs;
+    } else if (startedAtRef.current === null) {
       startedAtRef.current = Date.now();
     }
     const startedAt = startedAtRef.current;
@@ -166,7 +183,7 @@ const useElapsedSeconds = (isStreaming: boolean): number => {
     setElapsed(
       Math.max(0, Math.round((endedAtRef.current - startedAt) / 1000))
     );
-  }, [isStreaming]);
+  }, [isStreaming, startedAtMs]);
 
   return elapsed;
 };
@@ -367,6 +384,7 @@ export const ToolRunRenderer = ({
   group,
   isMessageLoading,
   isLastAssistantMessage,
+  streamStartedAtMs,
 }: ToolRunRendererProps) => {
   const tVerb = useTranslations("chat.tools.run.verb");
   const tRun = useTranslations("chat.tools.run");
@@ -396,7 +414,7 @@ export const ToolRunRenderer = ({
     isLastAssistantMessage &&
     (lastIsToolStreaming || lastPart?.type === "reasoning");
 
-  const elapsed = useElapsedSeconds(isMessageStreaming);
+  const elapsed = useElapsedSeconds(isMessageStreaming, streamStartedAtMs);
 
   const steps = useMemo(() => {
     const result: StepDescriptor[] = [];

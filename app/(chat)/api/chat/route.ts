@@ -15,6 +15,7 @@ import { parseRequestBody } from "./_lib/parse-request";
 import { persistAssistantTurn } from "./_lib/persist-assistant-turn";
 import { prepareChatTurn } from "./_lib/prepare-chat-turn";
 import { type ChatMode, resolveChatMode } from "./_lib/resolve-mode";
+import { getStreamContext } from "./_lib/stream-context";
 
 export const maxDuration = 300;
 
@@ -48,19 +49,28 @@ export async function POST(request: Request) {
     const mode = resolveChatMode(ctx.model);
     const runHandler = STREAM_HANDLERS[mode];
 
-    const stream = createUIMessageStream({
-      execute: async ({ writer }) => {
-        // Send modelId immediately so the client shows the right provider icon.
-        writer.write({ type: "data-modelId", data: ctx.model });
-        await runHandler(ctx, writer);
-      },
-      generateId: generateUUID,
-      onFinish: ({ messages }) =>
-        persistAssistantTurn(ctx, messages as ChatMessage[], mode),
-      onError: () => "Oops, an error occurred!",
-    });
+    const buildSseStream = () =>
+      createUIMessageStream({
+        execute: async ({ writer }) => {
+          // Send modelId immediately so the client shows the right provider icon.
+          writer.write({ type: "data-modelId", data: ctx.model });
+          await runHandler(ctx, writer);
+        },
+        generateId: generateUUID,
+        onFinish: ({ messages }) =>
+          persistAssistantTurn(ctx, messages as ChatMessage[], mode),
+        onError: () => "Oops, an error occurred!",
+      }).pipeThrough(new JsonToSseTransformStream());
 
-    return new Response(stream.pipeThrough(new JsonToSseTransformStream()));
+    // Wrap with resumable-stream so the GET /stream endpoint can replay
+    // in-flight chunks via Redis pub/sub when the client reconnects. Falls back
+    // to a bare stream when REDIS_URL is missing (getStreamContext returns null).
+    const streamContext = getStreamContext();
+    const sseStream = streamContext
+      ? await streamContext.resumableStream(ctx.streamId, buildSseStream)
+      : buildSseStream();
+
+    return new Response(sseStream);
   } catch (error) {
     return handleChatError(error, request);
   }

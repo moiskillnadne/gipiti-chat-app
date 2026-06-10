@@ -141,6 +141,13 @@ export async function runTextChat(
     },
   });
 
-  result.consumeStream();
+  // Surface stream-level failures so they hit the logs (and Vercel error
+  // tracking) instead of being silently swallowed — without this the function
+  // can crash mid-generation with no trace.
+  result.consumeStream({
+    onError: (error) => {
+      console.error("[chat-stream] consumeStream error", error);
+    },
+  });
   writer.merge(result.toUIMessageStream({ sendReasoning: true }));
 }

@@ -69,6 +69,41 @@ export async function GET(
     emptyDataStream.pipeThrough(new JsonToSseTransformStream())
   );
 
+  // resumable-stream v2 has a race: when the publisher's pub/sub ack arrives
+  // around its 1s timeout, the lib resolves the stream AND also queues a
+  // `controller.error("Timeout waiting for ack")` on it. Wrap the returned
+  // stream so a mid-stream error becomes a graceful close — the client's
+  // useAutoResume just sees end-of-stream instead of a network crash.
+  const guardErrors = (source: ReadableStream<string>) =>
+    new ReadableStream<string>({
+      async start(controller) {
+        const reader = source.getReader();
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) {
+              controller.close();
+              return;
+            }
+            controller.enqueue(value);
+          }
+        } catch (error) {
+          console.warn(
+            "[chat-stream] resume stream errored:",
+            error instanceof Error ? error.message : error
+          );
+          controller.close();
+        } finally {
+          reader.releaseLock();
+        }
+      },
+      cancel(reason) {
+        source.cancel(reason).catch(() => {
+          // swallow — already cancelled
+        });
+      },
+    });
+
   /*
    * For when the generation is streaming during SSR
    * but the resumable stream has concluded at this point.
@@ -107,5 +142,5 @@ export async function GET(
     );
   }
 
-  return new Response(stream, { status: 200 });
+  return new Response(guardErrors(stream), { status: 200 });
 }

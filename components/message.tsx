@@ -49,6 +49,7 @@ const PurePreviewMessage = ({
   isReadonly,
   requiresScrollPadding,
   isLastAssistantMessage,
+  streamStartedAtMs,
 }: {
   chatId: string;
   message: ChatMessage;
@@ -59,6 +60,7 @@ const PurePreviewMessage = ({
   isReadonly: boolean;
   requiresScrollPadding: boolean;
   isLastAssistantMessage: boolean;
+  streamStartedAtMs: number | null;
 }) => {
   const t = useTranslations("chat.messages");
   const tModels = useTranslations("modelList");
@@ -168,6 +170,7 @@ const PurePreviewMessage = ({
                   isLastAssistantMessage={isLastAssistantMessage}
                   isMessageLoading={isLoading}
                   key={part.key}
+                  streamStartedAtMs={streamStartedAtMs}
                 />
               );
             }
