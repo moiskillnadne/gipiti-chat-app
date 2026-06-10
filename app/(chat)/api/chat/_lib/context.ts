@@ -22,6 +22,7 @@ export type ChatTurnContext = {
   session: Session;
   userId: string;
   chatId: string;
+  streamId: string;
   message: ChatMessage;
   uiMessages: ChatMessage[];
   model: string;

@@ -84,28 +84,43 @@ function PureMessages({
         >
           {messages.length === 0 && <Greeting />}
 
-          {messages.map((message, index) => (
-            <PreviewMessage
-              chatId={chatId}
-              isLastAssistantMessage={index === lastAssistantMessageIndex}
-              isLoading={
-                status === "streaming" && messages.length - 1 === index
-              }
-              isReadonly={isReadonly}
-              key={message.id}
-              message={message}
-              regenerate={regenerate}
-              requiresScrollPadding={
-                hasSentMessage && index === messages.length - 1
-              }
-              setMessages={setMessages}
-              vote={
-                votes
-                  ? votes.find((vote) => vote.messageId === message.id)
-                  : undefined
-              }
-            />
-          ))}
+          {messages.map((message, index) => {
+            const isLoading =
+              status === "streaming" && messages.length - 1 === index;
+            // Anchor the elapsed timer to the preceding user message's
+            // createdAt — set when the user submitted, persisted on the DB-
+            // backed message, so it survives a mid-stream reload. The hook
+            // falls back to mount-time Date.now() when this is null (live
+            // submit before the message metadata is hydrated).
+            const previousMessage =
+              index > 0 ? messages[index - 1] : undefined;
+            const previousCreatedAt = previousMessage?.metadata?.createdAt;
+            const streamStartedAtMs =
+              isLoading && previousCreatedAt
+                ? new Date(previousCreatedAt).getTime()
+                : null;
+            return (
+              <PreviewMessage
+                chatId={chatId}
+                isLastAssistantMessage={index === lastAssistantMessageIndex}
+                isLoading={isLoading}
+                isReadonly={isReadonly}
+                key={message.id}
+                message={message}
+                regenerate={regenerate}
+                requiresScrollPadding={
+                  hasSentMessage && index === messages.length - 1
+                }
+                setMessages={setMessages}
+                streamStartedAtMs={streamStartedAtMs}
+                vote={
+                  votes
+                    ? votes.find((vote) => vote.messageId === message.id)
+                    : undefined
+                }
+              />
+            );
+          })}
 
           <AnimatePresence mode="wait">
             {status === "submitted" && (

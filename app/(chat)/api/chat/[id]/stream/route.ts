@@ -65,9 +65,58 @@ export async function GET(
     execute: () => {},
   });
 
-  const stream = await streamContext.resumableStream(recentStreamId, () =>
-    emptyDataStream.pipeThrough(new JsonToSseTransformStream())
-  );
+  // 2.2.x `resumeExistingStream` returns:
+  //   - undefined: no stream key in Redis (POST never started / TTL expired)
+  //   - null: stream finished cleanly (sentinel set to DONE by publisher)
+  //   - ReadableStream<string>: in-progress stream to replay
+  // 2.2.x also rejects the underlying promise on ack timeout (publisher dead),
+  // so wrap the call in try/catch and treat any failure as "no resume" — the
+  // 15-second DB replay below handles the persisted-message fallback.
+  let stream: ReadableStream<string> | null | undefined;
+  try {
+    stream = await streamContext.resumeExistingStream(recentStreamId);
+  } catch (error) {
+    console.warn(
+      "[chat-stream] resumeExistingStream rejected:",
+      error instanceof Error ? error.message : error
+    );
+    stream = null;
+  }
+
+  // Even after a clean resolve, the stream itself can error mid-pipe (the lib
+  // queues `controller.error("Timeout waiting for ack")` from a racing
+  // setTimeout when the publisher acks near the 1s deadline). Wrap so a
+  // mid-stream error becomes a graceful close — the client's useAutoResume
+  // just sees end-of-stream instead of a network crash.
+  const guardErrors = (source: ReadableStream<string>) =>
+    new ReadableStream<string>({
+      async start(controller) {
+        const reader = source.getReader();
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) {
+              controller.close();
+              return;
+            }
+            controller.enqueue(value);
+          }
+        } catch (error) {
+          console.warn(
+            "[chat-stream] resume stream errored:",
+            error instanceof Error ? error.message : error
+          );
+          controller.close();
+        } finally {
+          reader.releaseLock();
+        }
+      },
+      cancel(reason) {
+        source.cancel(reason).catch(() => {
+          // swallow — already cancelled
+        });
+      },
+    });
 
   /*
    * For when the generation is streaming during SSR
@@ -107,5 +156,5 @@ export async function GET(
     );
   }
 
-  return new Response(stream, { status: 200 });
+  return new Response(guardErrors(stream), { status: 200 });
 }

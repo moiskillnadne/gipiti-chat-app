@@ -186,6 +186,7 @@ export async function prepareChatTurn(
     session,
     userId,
     chatId: id,
+    streamId,
     message,
     uiMessages,
     model,
