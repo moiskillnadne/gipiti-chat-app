@@ -65,9 +65,14 @@ export async function POST(request: Request) {
     // Wrap with resumable-stream so the GET /stream endpoint can replay
     // in-flight chunks via Redis pub/sub when the client reconnects. Falls back
     // to a bare stream when REDIS_URL is missing (getStreamContext returns null).
+    //
+    // `createNewResumableStream` (2.2.x API) sets the sentinel to "1" via SET,
+    // unlike the older `resumableStream` which uses INCR. INCR conflicts with
+    // the GET endpoint's `resumeExistingStream` that uses GET to check state,
+    // so the explicit new/resume split is more correct.
     const streamContext = getStreamContext();
     const sseStream = streamContext
-      ? await streamContext.resumableStream(ctx.streamId, buildSseStream)
+      ? await streamContext.createNewResumableStream(ctx.streamId, buildSseStream)
       : buildSseStream();
 
     return new Response(sseStream);
