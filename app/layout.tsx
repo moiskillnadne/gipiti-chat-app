@@ -1,5 +1,6 @@
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { VercelToolbar } from "@vercel/toolbar/next";
 import type { Metadata } from "next";
 import { Fraunces, Geist_Mono, Rubik } from "next/font/google";
 import { Toaster } from "sonner";
@@ -90,6 +91,10 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // On Vercel the toolbar is auto-injected in preview deployments;
+  // manual injection is only needed for local development.
+  const shouldInjectToolbar = process.env.NODE_ENV === "development";
+
   return (
     <html
       className={`${rubik.variable} ${geistMono.variable} ${fraunces.variable} scroll-smooth`}
@@ -108,6 +113,7 @@ export default function RootLayout({
         <SessionProvider>{children}</SessionProvider>
         <Analytics />
         <YandexMetrika />
+        {shouldInjectToolbar && <VercelToolbar />}
       </body>
     </html>
   );

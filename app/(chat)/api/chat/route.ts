@@ -72,7 +72,10 @@ export async function POST(request: Request) {
     // so the explicit new/resume split is more correct.
     const streamContext = getStreamContext();
     const sseStream = streamContext
-      ? await streamContext.createNewResumableStream(ctx.streamId, buildSseStream)
+      ? await streamContext.createNewResumableStream(
+          ctx.streamId,
+          buildSseStream
+        )
       : buildSseStream();
 
     return new Response(sseStream);

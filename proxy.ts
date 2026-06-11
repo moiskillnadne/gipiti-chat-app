@@ -2,17 +2,23 @@ import { type NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { getAuthSecret } from "./lib/auth/secret";
 import { isDevelopmentEnvironment } from "./lib/constants";
-
-const showSignup = process.env.SHOW_SIGNUP === "true";
+import { isSignupEnabled } from "./lib/flags";
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (pathname.startsWith("/register")) {
-    if (showSignup) {
+    if (await isSignupEnabled()) {
       return NextResponse.next();
     }
     return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  // Machine metadata endpoints (Flags Explorer discovery, Vercel Toolbar
+  // microfrontends config, etc.) expect JSON or 404 — never a login redirect.
+  // The flags endpoint authenticates itself via FLAGS_SECRET.
+  if (pathname.startsWith("/.well-known/")) {
+    return NextResponse.next();
   }
 
   /*
