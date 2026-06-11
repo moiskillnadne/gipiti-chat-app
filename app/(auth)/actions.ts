@@ -13,6 +13,7 @@ import { generateHashedPassword } from "@/lib/db/utils";
 import { sendPasswordChangedEmail } from "@/lib/email/send-password-changed";
 import { sendPasswordResetEmail } from "@/lib/email/send-password-reset";
 import { sendVerificationEmail } from "@/lib/email/send-verification-email";
+import { isSignupEnabled } from "@/lib/flags";
 import {
   checkPasswordResetRateLimit,
   checkVerificationResendRateLimit,
@@ -96,6 +97,11 @@ export const register = async (
   formData: FormData
 ): Promise<RegisterActionState> => {
   try {
+    // Signup can be disabled remotely via the isSignupEnabled Vercel flag
+    if (!(await isSignupEnabled())) {
+      return { status: "failed" };
+    }
+
     const validatedData = registerFormSchema.parse({
       email: formData.get("email"),
       password: formData.get("password"),

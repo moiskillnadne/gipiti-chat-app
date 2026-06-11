@@ -92,8 +92,7 @@ function PureMessages({
             // backed message, so it survives a mid-stream reload. The hook
             // falls back to mount-time Date.now() when this is null (live
             // submit before the message metadata is hydrated).
-            const previousMessage =
-              index > 0 ? messages[index - 1] : undefined;
+            const previousMessage = index > 0 ? messages[index - 1] : undefined;
             const previousCreatedAt = previousMessage?.metadata?.createdAt;
             const streamStartedAtMs =
               isLoading && previousCreatedAt
