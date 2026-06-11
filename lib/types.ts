@@ -127,5 +127,18 @@ export type PaymentStatusResponse = {
     planName: string;
     status: string;
   };
+  /** Present when a top-up intent succeeded — lets the success screen show the new balance without an extra fetch. */
+  topup?: {
+    amountMinor: number;
+    currencyCode: string;
+    balanceTotalMinor: number;
+    balanceTopupMinor: number;
+  };
   failureReason?: string;
+};
+
+export type TopupIntentResponse = {
+  sessionId: string;
+  expiresAt: string;
+  amountMajor: number;
 };

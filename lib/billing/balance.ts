@@ -1,6 +1,11 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, ne } from "drizzle-orm";
 import { db } from "@/lib/db/connection";
-import { balance, transaction } from "@/lib/db/schema";
+import {
+  balance,
+  type PaymentIntent,
+  paymentIntent,
+  transaction,
+} from "@/lib/db/schema";
 import {
   DEFAULT_CURRENCY_CODE,
   EMAIL_CONFIRM_BONUS_MAJOR_UNITS,
@@ -271,6 +276,95 @@ export async function creditBalance({
     return {
       amount,
       subscriptionBalanceAfter: newSubscription,
+      topupBalanceAfter: newTopup,
+      transactionId: credit.id,
+    };
+  });
+}
+
+/**
+ * Credit a paid top-up to the persistent top-up pool, atomically with marking
+ * its payment intent succeeded.
+ *
+ * Idempotent under webhook retries and concurrent deliveries: the intent is
+ * claimed with a conditional UPDATE (`status <> 'succeeded'`) inside the same
+ * transaction as the balance credit. A retry either blocks on the row lock
+ * until the first delivery commits and then matches zero rows, or sees the
+ * already-succeeded status — both return null without crediting twice.
+ */
+export async function creditTopupForIntent({
+  intent,
+  externalTransactionId,
+}: {
+  intent: PaymentIntent;
+  externalTransactionId: string | null;
+}): Promise<BalanceChangeResult | null> {
+  if (intent.amount <= 0) {
+    throw new Error("Top-up amount must be positive");
+  }
+
+  await ensureBalance(intent.userId, intent.currencyCode);
+
+  return await db.transaction(async (tx) => {
+    const claimed = await tx
+      .update(paymentIntent)
+      .set({
+        status: "succeeded",
+        externalTransactionId:
+          externalTransactionId ?? intent.externalTransactionId,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(paymentIntent.id, intent.id),
+          ne(paymentIntent.status, "succeeded")
+        )
+      )
+      .returning({ id: paymentIntent.id });
+
+    // Another delivery already claimed this intent — nothing more to do.
+    if (claimed.length === 0) {
+      return null;
+    }
+
+    const [row] = await tx
+      .select()
+      .from(balance)
+      .where(eq(balance.userId, intent.userId))
+      .for("update")
+      .limit(1);
+
+    if (!row) {
+      throw new Error(`Balance not found for user ${intent.userId}`);
+    }
+
+    const newTopup = row.topupAmount + intent.amount;
+
+    await tx
+      .update(balance)
+      .set({ topupAmount: newTopup, updatedAt: new Date() })
+      .where(eq(balance.userId, intent.userId));
+
+    const [credit] = await tx
+      .insert(transaction)
+      .values({
+        userId: intent.userId,
+        type: "topup_purchase",
+        currencyCode: row.currencyCode,
+        pool: "topup",
+        amount: intent.amount,
+        subscriptionBalanceAfter: row.subscriptionAmount,
+        topupBalanceAfter: newTopup,
+        referenceType: "payment_intent",
+        referenceId: intent.id,
+        description: "One-time balance top-up",
+        metadata: { paymentIntentId: intent.id },
+      })
+      .returning({ id: transaction.id });
+
+    return {
+      amount: intent.amount,
+      subscriptionBalanceAfter: row.subscriptionAmount,
       topupBalanceAfter: newTopup,
       transactionId: credit.id,
     };

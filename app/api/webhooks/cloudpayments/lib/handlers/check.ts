@@ -1,5 +1,9 @@
 import { and, eq, inArray } from "drizzle-orm";
-import { DEFAULT_CURRENCY_CODE } from "@/lib/billing/constants";
+import {
+  DEFAULT_CURRENCY_CODE,
+  TOPUP_MAX_MAJOR_UNITS,
+  TOPUP_MIN_MAJOR_UNITS,
+} from "@/lib/billing/constants";
 import { majorToMinorUnits } from "@/lib/billing/money";
 import {
   getSubscriptionByCode,
@@ -8,7 +12,11 @@ import {
 import { db } from "@/lib/db/connection";
 import { subscription, user, userSubscription } from "@/lib/db/schema";
 import type { CloudPaymentsCheckWebhook } from "@/lib/payments/cloudpayments-types";
-import { parseWebhookData } from "./utils";
+import {
+  findTopupIntent,
+  parseWebhookData,
+  type TopupWebhookData,
+} from "./utils";
 
 const RECOVERABLE_STATUSES = ["active", "past_due"] as const;
 const RUB_MINOR_UNITS = 2;
@@ -38,8 +46,20 @@ export async function handleCheckWebhook(
     return Response.json({ code: 10 });
   }
 
+  const data = parseWebhookData<TopupWebhookData>(Data);
+
+  // One-time top-up: validate against the pending intent instead of the plan
+  // catalog. Must run before plan resolution — the plan amount check below
+  // would reject any top-up.
+  const topupIntent = data?.sessionId
+    ? await findTopupIntent(data.sessionId, AccountId)
+    : null;
+
+  if (data?.kind === "topup" || topupIntent !== null) {
+    return checkTopup(payload, topupIntent);
+  }
+
   let planName: string | null = null;
-  const data = parseWebhookData<{ planName?: string }>(Data);
   if (data?.planName) {
     planName = data.planName;
   }
@@ -146,5 +166,66 @@ export async function handleCheckWebhook(
     return Response.json({ code: 12 });
   }
 
+  return Response.json({ code: 0 });
+}
+
+type TopupIntentRow = Awaited<ReturnType<typeof findTopupIntent>>;
+
+function checkTopup(
+  payload: CloudPaymentsCheckWebhook,
+  intent: TopupIntentRow
+): Response {
+  const { Amount, Currency } = payload;
+
+  if (!intent) {
+    console.error(
+      "[CloudPayments:Check][Topup] No pending top-up intent for session"
+    );
+    return Response.json({ code: 13 });
+  }
+
+  if (intent.status !== "pending") {
+    console.error(
+      `[CloudPayments:Check][Topup] Intent ${intent.sessionId} is not pending (status: ${intent.status})`
+    );
+    return Response.json({ code: 13 });
+  }
+
+  if (intent.expiresAt < new Date()) {
+    console.error(
+      `[CloudPayments:Check][Topup] Intent ${intent.sessionId} expired at ${intent.expiresAt.toISOString()}`
+    );
+    return Response.json({ code: 13 });
+  }
+
+  if ((Currency || "RUB").toUpperCase() !== "RUB") {
+    console.error(
+      `[CloudPayments:Check][Topup] Currency is not RUB: ${Currency}`
+    );
+    return Response.json({ code: 13 });
+  }
+
+  // Defense in depth: the create endpoint enforces these bounds, but never
+  // trust a stored amount outside product limits.
+  const minMinor = majorToMinorUnits(TOPUP_MIN_MAJOR_UNITS, RUB_MINOR_UNITS);
+  const maxMinor = majorToMinorUnits(TOPUP_MAX_MAJOR_UNITS, RUB_MINOR_UNITS);
+  if (intent.amount < minMinor || intent.amount > maxMinor) {
+    console.error(
+      `[CloudPayments:Check][Topup] Intent amount ${intent.amount} outside allowed bounds`
+    );
+    return Response.json({ code: 13 });
+  }
+
+  const receivedMinor = majorToMinorUnits(Number(Amount), RUB_MINOR_UNITS);
+  if (receivedMinor !== intent.amount) {
+    console.error(
+      `[CloudPayments:Check][Topup] Amount mismatch. Expected ${intent.amount}, got ${receivedMinor}`
+    );
+    return Response.json({ code: 12 });
+  }
+
+  console.info(
+    `[CloudPayments:Check][Topup] Approved top-up of ${intent.amount} (minor) for session ${intent.sessionId}`
+  );
   return Response.json({ code: 0 });
 }

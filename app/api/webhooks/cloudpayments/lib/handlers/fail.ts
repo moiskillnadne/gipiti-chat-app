@@ -1,8 +1,12 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { db } from "@/lib/db/connection";
 import { paymentIntent, userSubscription } from "@/lib/db/schema";
 import type { CloudPaymentsFailWebhook } from "@/lib/payments/cloudpayments-types";
-import { parseWebhookData } from "./utils";
+import {
+  findTopupIntent,
+  parseWebhookData,
+  type TopupWebhookData,
+} from "./utils";
 
 export async function handleFailWebhook(
   payload: CloudPaymentsFailWebhook
@@ -14,9 +18,43 @@ export async function handleFailWebhook(
   );
 
   let sessionId: string | null = null;
-  const data = parseWebhookData<{ sessionId?: string }>(Data);
+  const data = parseWebhookData<TopupWebhookData>(Data);
   if (data?.sessionId) {
     sessionId = data.sessionId;
+  }
+
+  // A failed one-time top-up must not affect the user's subscription — only
+  // mark the top-up intent failed (unless a concurrent pay webhook already
+  // succeeded it).
+  const topupIntent =
+    sessionId && AccountId ? await findTopupIntent(sessionId, AccountId) : null;
+
+  if (data?.kind === "topup" || topupIntent !== null) {
+    if (topupIntent) {
+      await db
+        .update(paymentIntent)
+        .set({
+          status: "failed",
+          failureReason: `${Reason} (code: ${ReasonCode})`,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(paymentIntent.id, topupIntent.id),
+            ne(paymentIntent.status, "succeeded")
+          )
+        );
+
+      console.log(
+        `[CloudPayments:Fail][Topup] Marked top-up intent ${topupIntent.sessionId} as failed`
+      );
+    } else {
+      console.error(
+        "[CloudPayments:Fail][Topup] Top-up fail webhook without resolvable intent"
+      );
+    }
+
+    return Response.json({ code: 0 });
   }
 
   if (AccountId) {

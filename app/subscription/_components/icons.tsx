@@ -303,6 +303,23 @@ export function InfoIcon(props: IconProps) {
   );
 }
 
+export function PlusIcon(props: IconProps) {
+  return (
+    <svg
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      viewBox="0 0 24 24"
+      {...props}
+    >
+      <title>{props["aria-label"] ?? "Plus"}</title>
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}
+
 export function XIcon(props: IconProps) {
   return (
     <svg

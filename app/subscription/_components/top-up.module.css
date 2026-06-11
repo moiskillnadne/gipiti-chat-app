@@ -1,0 +1,289 @@
+/* Top-up dialog — ported from the Claude Design handoff (Top-up.html, tu-*).
+   Container geometry (backdrop, centering, sheet position) comes from the
+   Radix Dialog wrapper; these classes style the dialog internals. */
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+}
+
+.bodySheet {
+  gap: 14px;
+  padding: 8px 18px 26px;
+}
+
+.grab {
+  width: 36px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--rule-strong);
+  margin: 4px auto 0;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.bodySheet .title {
+  font-size: 20px;
+}
+
+.close {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-3);
+  transition: all var(--d-fast) var(--ease-canon);
+}
+
+.close:hover {
+  background: var(--paper-2);
+  color: var(--ink);
+}
+
+/* amount chips */
+.chips {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.bodySheet .chips {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.chip {
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 12px 6px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 16px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  background: var(--paper);
+  font-feature-settings: "tnum";
+  transition: all var(--d-fast) var(--ease-canon);
+}
+
+.chip:hover {
+  border-color: var(--rule-strong);
+}
+
+.chipSelected,
+.chipSelected:hover {
+  border-color: var(--ink);
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+/* custom amount input */
+.lbl {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+  margin-bottom: 6px;
+}
+
+.inputWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 0 14px;
+  background: var(--paper);
+  transition: border-color var(--d-fast) var(--ease-canon);
+}
+
+.inputWrap:focus-within {
+  border-color: var(--ink);
+}
+
+.inputWrapErr,
+.inputWrapErr:focus-within {
+  border-color: var(--danger);
+}
+
+.inputWrap input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: var(--ink);
+  padding: 11px 0;
+  font-feature-settings: "tnum";
+}
+
+.cur {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-4);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.errMsg {
+  font-size: 12px;
+  color: var(--danger);
+  margin-top: 6px;
+}
+
+/* pool note */
+.note {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  background: var(--topup-soft);
+  border-radius: 10px;
+  font-size: 12px;
+  color: var(--ink-2);
+  line-height: 1.5;
+}
+
+.note svg {
+  width: 14px;
+  height: 14px;
+  color: var(--topup);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.ctaWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ctaBtn {
+  width: 100%;
+}
+
+.fine {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-4);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-align: center;
+}
+
+/* result states */
+.result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  padding: 12px 8px 4px;
+}
+
+.orb {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.orb svg {
+  width: 24px;
+  height: 24px;
+}
+
+.orbOk {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.orbBad {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.resultTitle {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.big {
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  font-feature-settings: "tnum";
+  margin: 2px 0;
+}
+
+.resultText {
+  font-size: 13px;
+  color: var(--ink-3);
+  max-width: 36ch;
+  line-height: 1.55;
+}
+
+.resultText b {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.resultActions {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  margin-top: 14px;
+}
+
+.resultActionPrimary {
+  flex: 1.4;
+}
+
+.spin {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 3px solid var(--paper-3);
+  border-top-color: var(--topup);
+  animation: rot 0.9s linear infinite;
+  margin-bottom: 10px;
+}
+
+@keyframes rot {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+  }
+}
