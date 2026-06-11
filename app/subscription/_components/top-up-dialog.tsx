@@ -278,8 +278,6 @@ export function TopUpDialog({
       <DialogContent aria-describedby={undefined} className={contentClass}>
         <DialogTitle className="sr-only">{stageTitle}</DialogTitle>
         <div className={`${styles.body} ${isMobile ? styles.bodySheet : ""}`}>
-          {isMobile && <div className={styles.grab} />}
-
           {stage.name === "amount" && (
             <TopupAmountStage
               amount={amount}
