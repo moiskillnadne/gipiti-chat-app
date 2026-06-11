@@ -1,4 +1,9 @@
 import Link from "next/link";
+import {
+  TOPUP_MIN_MAJOR_UNITS,
+  TOPUP_TESTER_MIN_MAJOR_UNITS,
+} from "@/lib/billing/constants";
+import { getUserById } from "@/lib/db/query/user/get-by-id";
 import { isTopupEnabled } from "@/lib/flags";
 import { getTranslations } from "@/lib/i18n/translate";
 import type { BalanceViewState } from "@/lib/subscription/subscription-state";
@@ -22,14 +27,27 @@ export type PlanCardData = {
 type PlanCardProps = {
   data: PlanCardData;
   state: BalanceViewState;
+  userId: string;
   dimmed?: boolean;
 };
 
-export async function PlanCard({ data, state, dimmed = false }: PlanCardProps) {
-  const [t, showTopup] = await Promise.all([
+export async function PlanCard({
+  data,
+  state,
+  userId,
+  dimmed = false,
+}: PlanCardProps) {
+  const [t, showTopup, userRecord] = await Promise.all([
     getTranslations("auth.subscription.balance.plan"),
     isTopupEnabled(),
+    getUserById(userId),
   ]);
+
+  // Fresh DB read — the session JWT copy of isTester is login-time and can
+  // be stale. Testers get a lowered top-up minimum (matches the server).
+  const minTopupAmountMajor = userRecord?.isTester
+    ? TOPUP_TESTER_MIN_MAJOR_UNITS
+    : TOPUP_MIN_MAJOR_UNITS;
   const cardClass = [styles.card, dimmed ? styles.cardDimmed : ""]
     .filter(Boolean)
     .join(" ");
@@ -81,7 +99,9 @@ export async function PlanCard({ data, state, dimmed = false }: PlanCardProps) {
       </div>
 
       <div className={styles.planActions}>
-        {showTopup && <TopUpButton state={state} />}
+        {showTopup && (
+          <TopUpButton minAmountMajor={minTopupAmountMajor} state={state} />
+        )}
         <Link
           className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm}`}
           href={MANAGE_HREF}

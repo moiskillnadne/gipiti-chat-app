@@ -221,7 +221,12 @@ export default async function SubscriptionPage() {
             {isFree || !planCardData ? (
               <FreeSideCard welcomeAmount={welcomeAmount} />
             ) : (
-              <PlanCard data={planCardData} dimmed={dimmed} state={state} />
+              <PlanCard
+                data={planCardData}
+                dimmed={dimmed}
+                state={state}
+                userId={session.user.id}
+              />
             )}
           </div>
 

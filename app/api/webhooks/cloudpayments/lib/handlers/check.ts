@@ -3,6 +3,7 @@ import {
   DEFAULT_CURRENCY_CODE,
   TOPUP_MAX_MAJOR_UNITS,
   TOPUP_MIN_MAJOR_UNITS,
+  TOPUP_TESTER_MIN_MAJOR_UNITS,
 } from "@/lib/billing/constants";
 import { majorToMinorUnits } from "@/lib/billing/money";
 import {
@@ -36,7 +37,7 @@ export async function handleCheckWebhook(
   }
 
   const users = await db
-    .select({ id: user.id })
+    .select({ id: user.id, isTester: user.isTester })
     .from(user)
     .where(eq(user.id, AccountId))
     .limit(1);
@@ -56,7 +57,7 @@ export async function handleCheckWebhook(
     : null;
 
   if (data?.kind === "topup" || topupIntent !== null) {
-    return checkTopup(payload, topupIntent);
+    return checkTopup(payload, topupIntent, users[0].isTester);
   }
 
   let planName: string | null = null;
@@ -173,7 +174,8 @@ type TopupIntentRow = Awaited<ReturnType<typeof findTopupIntent>>;
 
 function checkTopup(
   payload: CloudPaymentsCheckWebhook,
-  intent: TopupIntentRow
+  intent: TopupIntentRow,
+  isTesterUser: boolean
 ): Response {
   const { Amount, Currency } = payload;
 
@@ -206,8 +208,12 @@ function checkTopup(
   }
 
   // Defense in depth: the create endpoint enforces these bounds, but never
-  // trust a stored amount outside product limits.
-  const minMinor = majorToMinorUnits(TOPUP_MIN_MAJOR_UNITS, RUB_MINOR_UNITS);
+  // trust a stored amount outside product limits. Testers are allowed below
+  // the public minimum (matches the create endpoint).
+  const minMajor = isTesterUser
+    ? TOPUP_TESTER_MIN_MAJOR_UNITS
+    : TOPUP_MIN_MAJOR_UNITS;
+  const minMinor = majorToMinorUnits(minMajor, RUB_MINOR_UNITS);
   const maxMinor = majorToMinorUnits(TOPUP_MAX_MAJOR_UNITS, RUB_MINOR_UNITS);
   if (intent.amount < minMinor || intent.amount > maxMinor) {
     console.error(

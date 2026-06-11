@@ -32,6 +32,8 @@ type TopupStage =
 
 type TopUpDialogProps = {
   isOpen: boolean;
+  /** Lower bound in MAJOR units; lowered for testers (matches the server). */
+  minAmountMajor: number;
   onOpenChange: (open: boolean) => void;
 };
 
@@ -49,13 +51,17 @@ function delay(ms: number, signal: AbortSignal): Promise<void> {
   });
 }
 
-export function TopUpDialog({ isOpen, onOpenChange }: TopUpDialogProps) {
+export function TopUpDialog({
+  isOpen,
+  minAmountMajor,
+  onOpenChange,
+}: TopUpDialogProps) {
   const { data: session } = useSession();
   const router = useRouter();
   const isMobile = useIsMobile();
   const t = useTranslations("auth.subscription.balance.topup");
 
-  const amount = useTopupAmount(DEFAULT_AMOUNT_MAJOR);
+  const amount = useTopupAmount(DEFAULT_AMOUNT_MAJOR, minAmountMajor);
   const [stage, setStage] = useState<TopupStage>({
     name: "amount",
     isSubmitting: false,
@@ -278,6 +284,7 @@ export function TopUpDialog({ isOpen, onOpenChange }: TopUpDialogProps) {
             <TopupAmountStage
               amount={amount}
               isSubmitting={stage.isSubmitting}
+              minAmountMajor={minAmountMajor}
               onClose={closeDialog}
               onSubmit={handleSubmit}
               submitError={submitError}
