@@ -2,6 +2,7 @@ import Link from "next/link";
 import { isTopupEnabled } from "@/lib/flags";
 import { getTranslations } from "@/lib/i18n/translate";
 import type { BalanceViewState } from "@/lib/subscription/subscription-state";
+import { cn } from "../../../lib/utils";
 import styles from "./dashboard.module.css";
 import { CardIcon } from "./icons";
 import { TopUpButton } from "./top-up-button";
@@ -70,7 +71,7 @@ export async function PlanCard({ data, state, dimmed = false }: PlanCardProps) {
           </div>
         )}
         {data.cardMask && (
-          <div className={styles.planKv}>
+          <div className={cn(styles.planKv, styles.cardMask)}>
             <span className={styles.planKvK}>{t("paymentMethod")}</span>
             <span className={`${styles.planKvV} ${styles.planKvVMono}`}>
               <CardIcon height={12} width={12} /> {data.cardMask}
