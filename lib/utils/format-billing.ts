@@ -62,6 +62,15 @@ export function formatRuDayMonthShort(date: Date): string {
   return RU_DATE_DAY_MONTH_SHORT.format(date).replace(".", "").toUpperCase();
 }
 
+const RU_MONTH_STANDALONE = new Intl.DateTimeFormat("ru-RU", {
+  month: "long",
+});
+
+/** Standalone lowercase month name, e.g. "май". */
+export function formatRuMonth(date: Date): string {
+  return RU_MONTH_STANDALONE.format(date);
+}
+
 export type RuPluralForms = readonly [string, string, string];
 
 export function pluralRu(n: number, forms: RuPluralForms): string {

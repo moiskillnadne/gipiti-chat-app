@@ -12,7 +12,7 @@ import styles from "./dashboard.module.css";
 import { CardIcon } from "./icons";
 import { TopUpButton } from "./top-up-button";
 
-const MANAGE_HREF = "/manage-subscription";
+const MANAGE_HREF = "/subscription/manage";
 
 export type PlanCardData = {
   displayName: string;

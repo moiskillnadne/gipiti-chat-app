@@ -1,0 +1,361 @@
+/* Manage subscription — ported from the Claude Design handoff
+   (Manage subscription.html, ms-*). Page chrome (topnav, head, grid, cards,
+   buttons) comes from dashboard.module.css; modal chrome (head, fine, orb,
+   result) from top-up.module.css. */
+
+.cardsRow {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr 1.4fr;
+}
+
+/* tariff card */
+.planRowBare {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.tariffHint {
+  color: var(--ink-3);
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+/* payment method */
+.cardRow {
+  align-items: center;
+  border-bottom: 1px dashed var(--rule);
+  display: flex;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+}
+
+.cardChip {
+  align-items: center;
+  background: var(--ink);
+  border-radius: 6px;
+  color: var(--paper);
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 28px;
+  justify-content: center;
+  width: 40px;
+}
+
+.cardChip svg {
+  height: 16px;
+  width: 16px;
+}
+
+.cardTx {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.cardTx b {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.mutedV {
+  color: var(--ink-3);
+}
+
+/* payment history */
+.payList {
+  display: flex;
+  flex-direction: column;
+}
+
+.payRow {
+  align-items: center;
+  border-bottom: 1px solid var(--rule);
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 24px minmax(0, 1fr) auto auto;
+  padding: 10px 0;
+}
+
+.payRow:last-child {
+  border-bottom: none;
+}
+
+.payIcon {
+  align-items: center;
+  background: var(--paper-2);
+  border-radius: 50%;
+  color: var(--ink-2);
+  display: inline-flex;
+  height: 24px;
+  justify-content: center;
+  width: 24px;
+}
+
+.payIcon svg {
+  height: 12px;
+  width: 12px;
+}
+
+.payIconTopup {
+  background: var(--topup-soft);
+  color: var(--topup);
+}
+
+.payTx {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.payTtl {
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.paySub {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.paySubDate {
+  display: none;
+}
+
+.payAmt {
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum";
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.payDate {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  min-width: 86px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* footer strip — cancel (active) / resume (cancelled) */
+.strip {
+  align-items: center;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-md);
+  display: flex;
+  gap: 16px;
+  padding: 14px 22px;
+}
+
+.stripLhs {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stripLhs b {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.stripLhs span {
+  color: var(--ink-3);
+  font-size: 12px;
+}
+
+/* cancel modal: honest-consequences list */
+.conseq {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.conseqRow {
+  align-items: flex-start;
+  background: var(--paper);
+  border-bottom: 1px dashed var(--rule);
+  color: var(--ink-2);
+  display: flex;
+  font-size: 12.5px;
+  gap: 10px;
+  line-height: 1.5;
+  padding: 11px 14px;
+}
+
+.conseqRow:last-child {
+  border-bottom: none;
+}
+
+.conseqRow svg {
+  color: var(--ink-3);
+  flex-shrink: 0;
+  height: 14px;
+  margin-top: 2px;
+  width: 14px;
+}
+
+.conseqRow b {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.conseqWarn {
+  background: var(--warn-soft);
+  color: var(--ink);
+}
+
+.conseqWarn svg {
+  color: var(--warn);
+}
+
+/* cancel modal: reason survey */
+.surveyNote {
+  color: var(--ink-3);
+  font-size: 13px;
+  line-height: 1.5;
+  margin-top: -8px;
+}
+
+.opts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.opt {
+  align-items: center;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  font-size: 13px;
+  gap: 11px;
+  padding: 11px 14px;
+  text-align: left;
+  transition: all var(--d-fast) var(--ease-canon);
+}
+
+.opt:hover {
+  border-color: var(--rule-strong);
+}
+
+.optSelected,
+.optSelected:hover {
+  background: var(--card-bg);
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+.radio {
+  border: 1.5px solid var(--rule-strong);
+  border-radius: 50%;
+  flex-shrink: 0;
+  height: 15px;
+  position: relative;
+  transition: border-color var(--d-fast) var(--ease-canon);
+  width: 15px;
+}
+
+.optSelected .radio {
+  border-color: var(--ink);
+}
+
+.optSelected .radio::after {
+  background: var(--ink);
+  border-radius: 50%;
+  content: "";
+  inset: 3px;
+  position: absolute;
+}
+
+.textarea {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  min-height: 64px;
+  outline: none;
+  padding: 10px 12px;
+  resize: none;
+  width: 100%;
+}
+
+.textarea:focus {
+  border-color: var(--ink);
+}
+
+/* modal misc */
+.orbCalm {
+  background: var(--paper-2);
+  color: var(--ink-2);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.actionWide {
+  flex: 1.2;
+}
+
+.actionGrow {
+  flex: 1;
+}
+
+.errMsg {
+  color: var(--danger);
+  font-size: 12px;
+}
+
+.modalBody {
+  color: var(--ink-2);
+  font-size: 13px;
+  line-height: 1.55;
+  margin-top: -6px;
+}
+
+@media (max-width: 880px) {
+  .cardsRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .payRow {
+    grid-template-columns: 24px minmax(0, 1fr) auto;
+  }
+
+  .payDate {
+    display: none;
+  }
+
+  .paySubMask {
+    display: none;
+  }
+
+  .paySubDate {
+    display: block;
+  }
+
+  .strip {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

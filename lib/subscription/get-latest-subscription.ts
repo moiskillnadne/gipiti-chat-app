@@ -6,6 +6,7 @@ export type BillingPeriodKey = "daily" | "weekly" | "monthly" | "annual";
 
 export type LatestSubscription = {
   subscription: typeof userSubscription.$inferSelect;
+  code: string;
   displayName: string | null;
   billingPeriod: BillingPeriodKey;
 };
@@ -21,6 +22,7 @@ export async function getLatestSubscription(
   const [row] = await db
     .select({
       subscription: userSubscription,
+      code: subscription.code,
       displayName: subscription.displayName,
       billingPeriod: subscription.billingPeriod,
     })
@@ -39,6 +41,7 @@ export async function getLatestSubscription(
 
   return {
     subscription: row.subscription,
+    code: row.code,
     displayName: row.displayName,
     billingPeriod: row.billingPeriod as BillingPeriodKey,
   };
