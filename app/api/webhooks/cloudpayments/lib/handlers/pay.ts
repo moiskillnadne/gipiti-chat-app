@@ -1,5 +1,9 @@
 import { and, eq, ne } from "drizzle-orm";
-import { ensureBalance, resetSubscriptionPool } from "@/lib/billing/balance";
+import {
+  creditTopupForIntent,
+  ensureBalance,
+  resetSubscriptionPool,
+} from "@/lib/billing/balance";
 import { majorToMinorUnits } from "@/lib/billing/money";
 import {
   getSubscriptionByCode,
@@ -7,6 +11,7 @@ import {
 } from "@/lib/billing/subscriptions";
 import { db } from "@/lib/db/connection";
 import {
+  type PaymentIntent,
   paymentIntent,
   type Subscription,
   subscription,
@@ -18,7 +23,12 @@ import {
   calculateNextBillingDate,
   calculatePeriodEnd,
 } from "@/lib/subscription/billing-periods";
-import { parseWebhookData, toNumber } from "./utils";
+import {
+  findTopupIntent,
+  parseWebhookData,
+  type TopupWebhookData,
+  toNumber,
+} from "./utils";
 
 const RUB_MINOR_UNITS = 2;
 
@@ -55,10 +65,7 @@ export async function handlePayWebhook(
   let planName: string | null = null;
   let sessionId: string | null = null;
 
-  const data = parseWebhookData<{
-    planName?: string;
-    sessionId?: string;
-  }>(Data);
+  const data = parseWebhookData<TopupWebhookData>(Data);
 
   if (data?.planName) {
     planName = data.planName;
@@ -66,6 +73,21 @@ export async function handlePayWebhook(
 
   if (data?.sessionId) {
     sessionId = data.sessionId;
+  }
+
+  // One-time top-up: credit the persistent top-up pool and never touch the
+  // subscription. Must run before any plan/subscription resolution.
+  const topupIntent = sessionId
+    ? await findTopupIntent(sessionId, AccountId)
+    : null;
+
+  if (data?.kind === "topup" || topupIntent !== null) {
+    return handlePayTopup({
+      intent: topupIntent,
+      amountValue,
+      normalizedCurrency,
+      transactionId,
+    });
   }
 
   let existingSubscription: typeof userSubscription.$inferSelect | null = null;
@@ -380,6 +402,107 @@ export async function handlePayWebhook(
     return Response.json({ code: 0 });
   } catch (error) {
     console.error("[CloudPayments:Pay] Error processing pay webhook:", error);
+    return Response.json({ code: 13 });
+  }
+}
+
+async function handlePayTopup({
+  intent,
+  amountValue,
+  normalizedCurrency,
+  transactionId,
+}: {
+  intent: PaymentIntent | null;
+  amountValue: number | null;
+  normalizedCurrency: string;
+  transactionId: string | null;
+}): Promise<Response> {
+  if (!intent) {
+    // Code 13 makes CloudPayments retry the notification — recovers from
+    // transient DB lag; permanent mismatches surface in logs.
+    console.error(
+      "[CloudPayments:Pay][Topup] No top-up intent found for webhook session"
+    );
+    return Response.json({ code: 13 });
+  }
+
+  try {
+    // Cheap idempotency pre-checks; the real race-proof guarantee is the
+    // conditional claim inside creditTopupForIntent.
+    if (transactionId !== null) {
+      const [existing] = await db
+        .select({ status: paymentIntent.status })
+        .from(paymentIntent)
+        .where(eq(paymentIntent.externalTransactionId, transactionId))
+        .limit(1);
+
+      if (existing?.status === "succeeded") {
+        console.log(
+          `[CloudPayments:Pay][Topup] Transaction ${transactionId} already succeeded. Skipping.`
+        );
+        return Response.json({ code: 0 });
+      }
+    }
+
+    if (intent.status === "succeeded") {
+      console.log(
+        `[CloudPayments:Pay][Topup] Intent ${intent.sessionId} already succeeded. Skipping.`
+      );
+      return Response.json({ code: 0 });
+    }
+
+    if (normalizedCurrency !== "RUB") {
+      console.error(
+        `[CloudPayments:Pay][Topup] Currency is not RUB: ${normalizedCurrency}`
+      );
+      return Response.json({ code: 13 });
+    }
+
+    if (amountValue === null) {
+      console.error("[CloudPayments:Pay][Topup] Amount is not a number");
+      return Response.json({ code: 13 });
+    }
+
+    const amountMinor = majorToMinorUnits(amountValue, RUB_MINOR_UNITS);
+
+    if (amountMinor !== intent.amount) {
+      // Should be unreachable — the check webhook rejects mismatches before
+      // money moves. Never credit an unvalidated amount; acknowledge with
+      // code 0 to stop retry storms and reconcile manually from logs.
+      console.error(
+        `[CloudPayments:Pay][Topup] CRITICAL amount mismatch for intent ${intent.sessionId}. Expected ${intent.amount}, charged ${amountMinor}. Manual reconciliation required.`
+      );
+      await db
+        .update(paymentIntent)
+        .set({
+          failureReason: `Amount mismatch: charged ${amountMinor}, expected ${intent.amount}`,
+          updatedAt: new Date(),
+        })
+        .where(eq(paymentIntent.id, intent.id));
+      return Response.json({ code: 0 });
+    }
+
+    const result = await creditTopupForIntent({
+      intent,
+      externalTransactionId: transactionId,
+    });
+
+    if (result === null) {
+      console.log(
+        `[CloudPayments:Pay][Topup] Intent ${intent.sessionId} was credited by a concurrent delivery. Skipping.`
+      );
+      return Response.json({ code: 0 });
+    }
+
+    console.log(
+      `[CloudPayments:Pay][Topup] Credited ${result.amount} (minor) to user ${intent.userId}; top-up pool now ${result.topupBalanceAfter}`
+    );
+    return Response.json({ code: 0 });
+  } catch (error) {
+    console.error(
+      "[CloudPayments:Pay][Topup] Error processing top-up webhook:",
+      error
+    );
     return Response.json({ code: 13 });
   }
 }

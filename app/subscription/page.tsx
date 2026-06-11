@@ -1,4 +1,3 @@
-import { desc, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { auth } from "@/app/(auth)/auth";
 import { getBalance } from "@/lib/billing/balance";
@@ -11,11 +10,13 @@ import { getMinorUnits } from "@/lib/billing/currencies";
 import { formatCurrency, majorToMinorUnits } from "@/lib/billing/money";
 import { getChatSpendHistory, getRecentSpendMinor } from "@/lib/billing/spend";
 import { priceForCurrency } from "@/lib/billing/subscriptions";
-import { db } from "@/lib/db/connection";
 import { getQuizResponse } from "@/lib/db/query/quiz/get-quiz-response";
-import { subscription, userSubscription } from "@/lib/db/schema";
 import { getTranslations } from "@/lib/i18n/translate";
 import { ONBOARDING_QUIZ_KEY } from "@/lib/quiz/types";
+import {
+  type BillingPeriodKey,
+  getLatestSubscription,
+} from "@/lib/subscription/get-latest-subscription";
 import {
   type BalanceViewState,
   deriveBalanceViewState,
@@ -39,8 +40,6 @@ import { SubscriptionHeader } from "./_components/subscription-header";
 import { SubscriptionTopNav } from "./_components/subscription-top-nav";
 import { TransactionHistoryCard } from "./_components/transaction-history-card";
 
-type BillingPeriodKey = "daily" | "weekly" | "monthly" | "annual";
-
 const PRICE_SUFFIX_BY_PERIOD: Record<BillingPeriodKey, string> = {
   daily: "/день",
   weekly: "/нед",
@@ -54,41 +53,6 @@ const PAID_STATES = new Set<BalanceViewState>([
   "cancelled",
   "past_due",
 ]);
-
-type LatestSubscription = {
-  subscription: typeof userSubscription.$inferSelect;
-  displayName: string | null;
-  billingPeriod: BillingPeriodKey;
-};
-
-async function getLatestSubscription(
-  userId: string
-): Promise<LatestSubscription | null> {
-  const [row] = await db
-    .select({
-      subscription: userSubscription,
-      displayName: subscription.displayName,
-      billingPeriod: subscription.billingPeriod,
-    })
-    .from(userSubscription)
-    .innerJoin(
-      subscription,
-      eq(userSubscription.subscriptionId, subscription.id)
-    )
-    .where(eq(userSubscription.userId, userId))
-    .orderBy(desc(userSubscription.currentPeriodEnd))
-    .limit(1);
-
-  if (!row) {
-    return null;
-  }
-
-  return {
-    subscription: row.subscription,
-    displayName: row.displayName,
-    billingPeriod: row.billingPeriod as BillingPeriodKey,
-  };
-}
 
 export default async function SubscriptionPage() {
   const session = await auth();
@@ -257,7 +221,7 @@ export default async function SubscriptionPage() {
             {isFree || !planCardData ? (
               <FreeSideCard welcomeAmount={welcomeAmount} />
             ) : (
-              <PlanCard data={planCardData} dimmed={dimmed} />
+              <PlanCard data={planCardData} dimmed={dimmed} state={state} />
             )}
           </div>
 

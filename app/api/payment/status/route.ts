@@ -1,5 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { auth } from "@/app/(auth)/auth";
+import { getBalance } from "@/lib/billing/balance";
 import { db } from "@/lib/db/connection";
 import { paymentIntent, subscription, userSubscription } from "@/lib/db/schema";
 import { checkPaymentStatusRateLimit } from "@/lib/rate-limit";
@@ -97,6 +98,25 @@ export async function GET(request: Request) {
     // Activity means: status changed from pending OR a transaction ID was recorded
     const hasActivity =
       intent.status !== "pending" || !!intent.externalTransactionId;
+
+    // Succeeded top-up: include the fresh balance so the success screen can
+    // show the new total without an extra fetch.
+    if (intent.kind === "topup" && intent.status === "succeeded") {
+      const balanceSummary = await getBalance(session.user.id);
+
+      const response: PaymentStatusResponse = {
+        status: "succeeded",
+        hasActivity: true,
+        topup: {
+          amountMinor: intent.amount,
+          currencyCode: intent.currencyCode,
+          balanceTotalMinor: balanceSummary?.total ?? 0,
+          balanceTopupMinor: balanceSummary?.topupAmount ?? 0,
+        },
+      };
+
+      return Response.json(response);
+    }
 
     // If succeeded, fetch subscription details (join catalog for the plan code)
     if (intent.status === "succeeded" && intent.externalSubscriptionId) {

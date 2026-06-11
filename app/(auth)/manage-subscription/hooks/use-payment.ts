@@ -6,13 +6,15 @@ import { useCallback, useEffect, useReducer, useRef } from "react";
 import { clientLog } from "@/lib/client-logger";
 import { useTranslations } from "@/lib/i18n/translate";
 import type { CloudPaymentsWidget } from "@/lib/payments/cloudpayments-types";
+import {
+  buildReceipt,
+  createWidgetOptions,
+} from "@/lib/payments/cloudpayments-widget";
 import type { PaymentIntentResponse, PaymentStatusResponse } from "@/lib/types";
 import { toast } from "../../../../components/toast";
 import {
-  buildReceipt,
   buildReturnUrl,
   clearPaymentSession,
-  createWidgetOptions,
   getAmount,
   getCurrency,
   getPlanDisplayName,
