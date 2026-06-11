@@ -23,22 +23,25 @@ export type TopupAmount = {
 
 /**
  * Amount state for the top-up dialog: digits-only input bounded by the
- * product limits. Mirrors the server-side Zod validation.
+ * product limits. Mirrors the server-side Zod validation. The minimum is
+ * caller-supplied — testers are allowed below the public minimum.
  */
-export function useTopupAmount(initial = 1000): TopupAmount {
+export function useTopupAmount(
+  initial = 1000,
+  minMajorUnits: number = TOPUP_MIN_MAJOR_UNITS
+): TopupAmount {
   const [raw, setRaw] = useState<string>(String(initial));
 
   const value = Number.parseInt(raw.replace(/\D/g, ""), 10) || 0;
 
   let error: TopupAmountError = null;
-  if (value !== 0 && value < TOPUP_MIN_MAJOR_UNITS) {
+  if (value !== 0 && value < minMajorUnits) {
     error = "min";
   } else if (value > TOPUP_MAX_MAJOR_UNITS) {
     error = "max";
   }
 
-  const isValid =
-    value >= TOPUP_MIN_MAJOR_UNITS && value <= TOPUP_MAX_MAJOR_UNITS;
+  const isValid = value >= minMajorUnits && value <= TOPUP_MAX_MAJOR_UNITS;
 
   const set = useCallback((next: string | number) => {
     setRaw(String(next).replace(/\D/g, "").slice(0, MAX_INPUT_DIGITS));

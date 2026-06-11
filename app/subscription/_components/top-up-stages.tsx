@@ -2,7 +2,6 @@
 
 import {
   TOPUP_MAX_MAJOR_UNITS,
-  TOPUP_MIN_MAJOR_UNITS,
   TOPUP_PRESETS_MAJOR_UNITS,
 } from "@/lib/billing/constants";
 import { formatCurrency } from "@/lib/billing/money";
@@ -38,6 +37,7 @@ function TopupHead({ onClose }: TopupHeadProps) {
 
 export type TopupAmountStageProps = {
   amount: TopupAmount;
+  minAmountMajor: number;
   isSubmitting: boolean;
   submitError: string | null;
   onSubmit: () => void;
@@ -46,6 +46,7 @@ export type TopupAmountStageProps = {
 
 export function TopupAmountStage({
   amount,
+  minAmountMajor,
   isSubmitting,
   submitError,
   onSubmit,
@@ -55,7 +56,7 @@ export function TopupAmountStage({
 
   const errorMessage =
     amount.error === "min"
-      ? t("errorMin", { amount: formatRubMajor(TOPUP_MIN_MAJOR_UNITS) })
+      ? t("errorMin", { amount: formatRubMajor(minAmountMajor) })
       : amount.error === "max"
         ? t("errorMax", { amount: formatRubMajor(TOPUP_MAX_MAJOR_UNITS) })
         : null;
@@ -95,7 +96,7 @@ export function TopupAmountStage({
           />
           <span className={styles.cur}>
             {t("amountHint", {
-              min: TOPUP_MIN_MAJOR_UNITS.toLocaleString("ru-RU"),
+              min: minAmountMajor.toLocaleString("ru-RU"),
               max: formatRubMajor(TOPUP_MAX_MAJOR_UNITS),
             })}
           </span>

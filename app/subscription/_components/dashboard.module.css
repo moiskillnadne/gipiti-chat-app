@@ -1273,6 +1273,12 @@
   padding-bottom: 12px;
 }
 
+.cardMask {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .planKv:last-child {
   border-bottom: none;
   padding-bottom: 0;
@@ -1307,7 +1313,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 4px;
+  margin-top: 16px;
 }
 
 .freeFeatures {

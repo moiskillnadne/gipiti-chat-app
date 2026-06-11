@@ -1,15 +1,20 @@
 import crypto from "node:crypto";
 import { auth } from "@/app/(auth)/auth";
 import { ensureBalance } from "@/lib/billing/balance";
-import { DEFAULT_CURRENCY_CODE } from "@/lib/billing/constants";
+import {
+  DEFAULT_CURRENCY_CODE,
+  TOPUP_MIN_MAJOR_UNITS,
+  TOPUP_TESTER_MIN_MAJOR_UNITS,
+} from "@/lib/billing/constants";
 import { majorToMinorUnits } from "@/lib/billing/money";
 import { db } from "@/lib/db/connection";
+import { getUserById } from "@/lib/db/query/user/get-by-id";
 import { paymentIntent } from "@/lib/db/schema";
 import { isTopupEnabled } from "@/lib/flags";
 import { getLatestSubscription } from "@/lib/subscription/get-latest-subscription";
 import { deriveSubscriptionUiState } from "@/lib/subscription/subscription-state";
 import type { TopupIntentResponse } from "@/lib/types";
-import { topupIntentRequestSchema } from "@/lib/validation/topup";
+import { createTopupIntentRequestSchema } from "@/lib/validation/topup";
 
 const RUB_MINOR_UNITS = 2;
 const INTENT_TTL_MS = 30 * 60 * 1000;
@@ -38,7 +43,16 @@ export async function POST(request: Request) {
   }
 
   try {
-    const parsed = topupIntentRequestSchema.safeParse(await request.json());
+    // Fresh DB read — the session JWT copy of isTester is login-time and can
+    // be stale. Testers get a lowered minimum to verify the flow cheaply.
+    const userRecord = await getUserById(session.user.id);
+    const minAmountMajor = userRecord?.isTester
+      ? TOPUP_TESTER_MIN_MAJOR_UNITS
+      : TOPUP_MIN_MAJOR_UNITS;
+
+    const parsed = createTopupIntentRequestSchema(minAmountMajor).safeParse(
+      await request.json()
+    );
     if (!parsed.success) {
       return Response.json({ error: "Invalid top-up amount" }, { status: 400 });
     }

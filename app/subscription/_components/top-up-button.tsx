@@ -9,6 +9,8 @@ import { TopUpDialog } from "./top-up-dialog";
 
 type TopUpButtonProps = {
   state: BalanceViewState;
+  /** Lower bound in MAJOR units; lowered for testers (matches the server). */
+  minAmountMajor: number;
 };
 
 /**
@@ -16,7 +18,7 @@ type TopUpButtonProps = {
  * inherits the card's paid-state visibility (active/low/cancelled/past_due).
  * Outline style in past_due so it doesn't compete with "update card".
  */
-export function TopUpButton({ state }: TopUpButtonProps) {
+export function TopUpButton({ state, minAmountMajor }: TopUpButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const t = useTranslations("auth.subscription.balance.topup");
 
@@ -32,7 +34,11 @@ export function TopUpButton({ state }: TopUpButtonProps) {
         <PlusIcon />
         {t("button")}
       </button>
-      <TopUpDialog isOpen={isOpen} onOpenChange={setIsOpen} />
+      <TopUpDialog
+        isOpen={isOpen}
+        minAmountMajor={minAmountMajor}
+        onOpenChange={setIsOpen}
+      />
     </>
   );
 }

@@ -33,6 +33,10 @@ export const LOW_BALANCE_THRESHOLD_MINOR = 7500;
 export const TOPUP_MIN_MAJOR_UNITS = 500;
 export const TOPUP_MAX_MAJOR_UNITS = 50_000;
 
+// Internal testers can charge any amount ≥ 1 ₽ to verify the production
+// payment flow without paying the real minimum.
+export const TOPUP_TESTER_MIN_MAJOR_UNITS = 1;
+
 // Preset chip amounts offered in the top-up dialog (MAJOR units).
 export const TOPUP_PRESETS_MAJOR_UNITS = [500, 1000, 2000, 5000] as const;
 
