@@ -103,8 +103,6 @@ export function ResumeDialog({
           {stage.name === "done" ? t("doneTitle") : t("title")}
         </DialogTitle>
         <div className={`${tu.body} ${isMobile ? tu.bodySheet : ""}`}>
-          {isMobile && <div className={tu.grab} />}
-
           {stage.name === "confirm" && (
             <>
               <div className={tu.head}>

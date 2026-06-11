@@ -11,15 +11,7 @@
 
 .bodySheet {
   gap: 14px;
-  padding: 8px 18px 26px;
-}
-
-.grab {
-  width: 36px;
-  height: 4px;
-  border-radius: 999px;
-  background: var(--rule-strong);
-  margin: 4px auto 0;
+  padding: 18px 18px 26px;
 }
 
 .head {

@@ -89,9 +89,15 @@ export async function PlanCard({
           </div>
         )}
         {data.cardMask && (
-          <div className={cn(styles.planKv, styles.cardMask)}>
+          <div className={styles.planKv}>
             <span className={styles.planKvK}>{t("paymentMethod")}</span>
-            <span className={`${styles.planKvV} ${styles.planKvVMono}`}>
+            <span
+              className={cn(
+                styles.planKvV,
+                styles.planKvVMono,
+                styles.cardMask
+              )}
+            >
               <CardIcon height={12} width={12} /> {data.cardMask}
             </span>
           </div>

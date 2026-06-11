@@ -117,8 +117,6 @@ export function CancelFlowDialog({
       <DialogContent aria-describedby={undefined} className={contentClass}>
         <DialogTitle className="sr-only">{stageTitle}</DialogTitle>
         <div className={`${tu.body} ${isMobile ? tu.bodySheet : ""}`}>
-          {isMobile && <div className={tu.grab} />}
-
           {stage.name === "confirm" && (
             <CancelConfirmStage
               data={data}
