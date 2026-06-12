@@ -9,6 +9,7 @@ import type { CloudPaymentsWidget } from "@/lib/payments/cloudpayments-types";
 import {
   buildReceipt,
   createWidgetOptions,
+  loadCloudPaymentsScript,
 } from "@/lib/payments/cloudpayments-widget";
 import type { PaymentIntentResponse, PaymentStatusResponse } from "@/lib/types";
 import { toast } from "../../../../components/toast";
@@ -297,11 +298,6 @@ export function usePayment(options: UsePaymentOptions): UsePaymentReturn {
         return;
       }
 
-      if (typeof window === "undefined" || !window.cp) {
-        toast({ type: "error", description: t("error") });
-        return;
-      }
-
       const publicId = process.env.NEXT_PUBLIC_CLOUDPAYMENTS_PUBLIC_ID;
       if (!publicId) {
         toast({ type: "error", description: t("error") });
@@ -310,6 +306,8 @@ export function usePayment(options: UsePaymentOptions): UsePaymentReturn {
 
       try {
         dispatch({ type: "START_PAYMENT", plan });
+
+        await loadCloudPaymentsScript();
 
         // Create payment intent first
         const intentRes = await fetch("/api/payment/create-intent", {

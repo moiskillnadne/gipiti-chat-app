@@ -81,7 +81,7 @@ export const HeroSection = () => (
           <div className="-space-x-2 flex">
             {profilePhotos.map((src, index) => (
               <Image
-                alt={`User ${index + 1}`}
+                alt={`Пользователь GIPITI ${index + 1}`}
                 className="rounded-full border-2 border-zinc-950 object-cover"
                 height={32}
                 key={src}

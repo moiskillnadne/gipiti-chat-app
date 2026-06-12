@@ -16,7 +16,9 @@ import { PricingSection } from "@/components/landing/pricing-section";
 import { TrustBar } from "@/components/landing/trust-bar";
 
 export const metadata: Metadata = {
-  title: "GIPITI - AI-чат с ChatGPT, Gemini, Claude, Grok, Flux и Recraft",
+  title: {
+    absolute: "GIPITI - AI-чат с ChatGPT, Gemini, Claude, Grok, Flux и Recraft",
+  },
   description:
     "GIPITI — платформа с доступом к 18+ AI-моделям от 6 провайдеров. Генерация текста, изображений и видео, генерация кода, анализ документов.",
   alternates: {
@@ -32,10 +34,12 @@ const jsonLd = {
   operatingSystem: "Web",
   description: "AI-чат платформа с доступом к 18+ моделям от 6 провайдеров",
   url: "https://gipiti.ru",
+  inLanguage: "ru",
   offers: {
     "@type": "Offer",
     price: "999",
     priceCurrency: "RUB",
+    availability: "https://schema.org/InStock",
   },
   featureList: [
     "Доступ к GPT-5.5",

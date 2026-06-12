@@ -1,7 +1,5 @@
 import { ImageResponse } from "next/og";
 
-export const runtime = "edge";
-
 export const alt = "GIPITI - AI-чат с ChatGPT, Gemini, Claude и Grok";
 export const size = {
   width: 1200,
@@ -92,7 +90,7 @@ export default function Image() {
             marginTop: "24px",
           }}
         >
-          {["ChatGPT 5.2", "Gemini 3.1 Pro", "Opus 4.6", "Grok 4.1"].map(
+          {["GPT-5.5", "Gemini 3.1 Pro", "Opus 4.8", "Grok 4.3"].map(
             (model) => (
               <div
                 key={model}
