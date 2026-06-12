@@ -40,7 +40,7 @@ export const HeroSection = () => (
       <FadeIn delay={0.1}>
         <div className="mb-6 inline-flex animate-shimmer items-center gap-2 rounded-full border border-indigo-500/30 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/10 px-4 py-2 text-indigo-300 text-sm">
           <SparklesIcon className="size-4" />
-          <span>Все лучшие AI-модели в одном месте</span>
+          <span>Дарим 100 ₽ на баланс при регистрации</span>
         </div>
       </FadeIn>
 
@@ -81,7 +81,7 @@ export const HeroSection = () => (
           <div className="-space-x-2 flex">
             {profilePhotos.map((src, index) => (
               <Image
-                alt={`User ${index + 1}`}
+                alt={`Пользователь GIPITI ${index + 1}`}
                 className="rounded-full border-2 border-zinc-950 object-cover"
                 height={32}
                 key={src}

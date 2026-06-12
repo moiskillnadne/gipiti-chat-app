@@ -9,6 +9,7 @@ import { useTranslations } from "@/lib/i18n/translate";
 import {
   buildReceipt,
   createWidgetOptions,
+  loadCloudPaymentsScript,
 } from "@/lib/payments/cloudpayments-widget";
 import type { PaymentStatusResponse, TopupIntentResponse } from "@/lib/types";
 import styles from "./top-up.module.css";
@@ -176,7 +177,7 @@ export function TopUpDialog({
     const email = session?.user?.email;
     const publicId = process.env.NEXT_PUBLIC_CLOUDPAYMENTS_PUBLIC_ID;
 
-    if (!(userId && email && publicId) || typeof window.cp === "undefined") {
+    if (!(userId && email && publicId)) {
       setSubmitError(t("createError"));
       return;
     }
@@ -185,6 +186,8 @@ export function TopUpDialog({
     setStage({ name: "amount", isSubmitting: true });
 
     try {
+      await loadCloudPaymentsScript();
+
       const res = await fetch("/api/topup/create-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

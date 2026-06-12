@@ -16,7 +16,9 @@ import { PricingSection } from "@/components/landing/pricing-section";
 import { TrustBar } from "@/components/landing/trust-bar";
 
 export const metadata: Metadata = {
-  title: "GIPITI - AI-чат с ChatGPT, Gemini, Claude, Grok, Flux и Recraft",
+  title: {
+    absolute: "GIPITI - AI-чат с ChatGPT, Gemini, Claude, Grok, Flux и Recraft",
+  },
   description:
     "GIPITI — платформа с доступом к 18+ AI-моделям от 6 провайдеров. Генерация текста, изображений и видео, генерация кода, анализ документов.",
   alternates: {
@@ -32,22 +34,25 @@ const jsonLd = {
   operatingSystem: "Web",
   description: "AI-чат платформа с доступом к 18+ моделям от 6 провайдеров",
   url: "https://gipiti.ru",
+  inLanguage: "ru",
   offers: {
     "@type": "Offer",
     price: "999",
     priceCurrency: "RUB",
+    availability: "https://schema.org/InStock",
   },
   featureList: [
-    "Доступ к ChatGPT 5.2",
+    "Доступ к GPT-5.5",
     "Доступ к Gemini 3.1 Pro",
-    "Доступ к Claude Opus 4.6",
-    "Доступ к Grok 4.1",
+    "Доступ к Claude Opus 4.8",
+    "Доступ к Grok 4.3",
     "Доступ к Flux и Recraft",
     "Генерация изображений",
     "Генерация видео",
-    "Генерация и выполнение кода",
+    "Генерация кода",
     "Анализ документов",
     "Поиск в интернете",
+    "100 ₽ на баланс при регистрации",
   ],
 };
 
@@ -68,7 +73,7 @@ const faqJsonLd = {
       name: "Какие платежные средства вы принимаете?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Мы принимаем Visa, MasterCard, МИР и СБП.",
+        text: "Мы принимаем Visa, MasterCard и МИР.",
       },
     },
     {
@@ -84,7 +89,7 @@ const faqJsonLd = {
       name: "Что входит в подписку?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Доступ ко всем 18+ AI-моделям от 6 провайдеров, генерация изображений и видео, генерация кода, анализ документов, поиск и режим рассуждений.",
+        text: "Доступ ко всем 18+ AI-моделям от 6 провайдеров, генерация изображений и видео, генерация кода, анализ документов, поиск и режим рассуждений. Каждый месяц на баланс зачисляется 999 ₽.",
       },
     },
     {
@@ -92,7 +97,7 @@ const faqJsonLd = {
       name: "Как работают лимиты?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Подписка включает 3M токенов в месяц для всех функций.",
+        text: "Подписка зачисляет 999 ₽ на баланс каждый месяц. Баланс расходуется на запросы и ответы AI, его можно пополнить в любой момент.",
       },
     },
   ],

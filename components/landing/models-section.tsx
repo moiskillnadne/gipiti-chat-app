@@ -38,10 +38,10 @@ const providers: ProviderCard[] = [
     hoverShadow: "group-hover:shadow-emerald-500/10",
     gradientBg: "group-hover:opacity-5",
     models: [
-      { name: "GPT 5.2", badges: ["Рассуждения", "Вложения"] },
-      { name: "GPT 5.4 Mini", badges: ["Рассуждения", "Вложения"] },
-      { name: "GPT Codex 5.2", badges: ["Код", "Рассуждения"] },
-      { name: "GPT Image 1.5", badges: ["Изображения"] },
+      { name: "GPT-5.5", badges: ["Рассуждения", "Вложения"] },
+      { name: "GPT-5.4 Mini", badges: ["Рассуждения", "Вложения"] },
+      { name: "GPT-Codex 5.3", badges: ["Код", "Рассуждения"] },
+      { name: "GPT Image 2", badges: ["Изображения"] },
     ],
   },
   {
@@ -53,7 +53,8 @@ const providers: ProviderCard[] = [
     gradientBg: "group-hover:opacity-5",
     models: [
       { name: "Gemini 3.1 Pro", badges: ["Рассуждения", "Вложения"] },
-      { name: "Gemini 3 Pro Image", badges: ["Изображения"] },
+      { name: "Gemini 3.5 Flash", badges: ["Рассуждения", "Вложения"] },
+      { name: "Gemini Nano Banana Pro", badges: ["Изображения"] },
       { name: "Veo 3.1", badges: ["Видео"] },
     ],
   },
@@ -65,8 +66,9 @@ const providers: ProviderCard[] = [
     hoverShadow: "group-hover:shadow-orange-500/10",
     gradientBg: "group-hover:opacity-5",
     models: [
-      { name: "Claude Opus 4.6", badges: ["Рассуждения", "Вложения"] },
+      { name: "Claude Opus 4.8", badges: ["Рассуждения", "Вложения"] },
       { name: "Claude Sonnet 4.6", badges: ["Рассуждения", "Вложения"] },
+      { name: "Claude Haiku 4.5", badges: ["Рассуждения", "Вложения"] },
     ],
   },
   {
@@ -77,8 +79,7 @@ const providers: ProviderCard[] = [
     hoverShadow: "group-hover:shadow-violet-500/10",
     gradientBg: "group-hover:opacity-5",
     models: [
-      { name: "Grok 4.1", badges: ["Рассуждения", "Вложения"] },
-      { name: "Grok Code Fast", badges: ["Код"] },
+      { name: "Grok 4.3", badges: ["Рассуждения", "Вложения"] },
       { name: "Grok Imagine", badges: ["Изображения", "Видео"] },
     ],
   },
@@ -91,7 +92,7 @@ const providers: ProviderCard[] = [
     gradientBg: "group-hover:opacity-5",
     models: [
       { name: "Flux 2 Max", badges: ["Изображения"] },
-      { name: "Flux Kontext Pro", badges: ["Изображения"] },
+      { name: "Flux Kontext Max", badges: ["Изображения"] },
     ],
   },
   {
@@ -101,7 +102,7 @@ const providers: ProviderCard[] = [
     hoverBorder: "group-hover:border-rose-500/30",
     hoverShadow: "group-hover:shadow-rose-500/10",
     gradientBg: "group-hover:opacity-5",
-    models: [{ name: "Recraft V4 Pro", badges: ["Изображения"] }],
+    models: [{ name: "Recraft v4.1 Pro", badges: ["Изображения"] }],
   },
 ];
 

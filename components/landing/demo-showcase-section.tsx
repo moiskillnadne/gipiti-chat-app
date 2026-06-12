@@ -17,7 +17,7 @@ const demoTabs: DemoTab[] = [
   {
     id: "writing",
     label: "Написание текста",
-    modelBadge: "ChatGPT 5.2",
+    modelBadge: "GPT-5.5",
     messages: [
       {
         role: "user",
@@ -27,14 +27,14 @@ const demoTabs: DemoTab[] = [
         role: "assistant",
         content:
           "Откройте для себя мощь искусственного интеллекта нового поколения. Наша платформа объединяет лучшие языковые модели в едином интерфейсе, позволяя вам создавать контент, анализировать данные и решать сложные задачи за считанные секунды.",
-        model: "ChatGPT 5.2",
+        model: "GPT-5.5",
       },
     ],
   },
   {
     id: "analysis",
     label: "Анализ документов",
-    modelBadge: "Claude Opus 4.6",
+    modelBadge: "Claude Opus 4.8",
     messages: [
       {
         role: "user",
@@ -48,7 +48,7 @@ const demoTabs: DemoTab[] = [
         role: "assistant",
         content:
           "Я проанализировал документ. Ключевые условия: срок действия — 12 месяцев с автопродлением, неустойка 0.1% за день просрочки, юрисдикция — арбитражный суд г. Москвы. Рекомендую обратить внимание на пункт 5.3 об ответственности.",
-        model: "Claude Opus 4.6",
+        model: "Claude Opus 4.8",
       },
     ],
   },
@@ -74,7 +74,7 @@ const demoTabs: DemoTab[] = [
   {
     id: "search",
     label: "Поиск в интернете",
-    modelBadge: "Grok 4.1",
+    modelBadge: "Grok 4.3",
     messages: [
       {
         role: "user",
@@ -83,7 +83,7 @@ const demoTabs: DemoTab[] = [
       {
         role: "assistant",
         content:
-          "За последнюю неделю: OpenAI представила новую архитектуру GPT-5.2 с улучшенным рассуждением, Google выпустила Gemini 3.1 с нативной поддержкой мультимодальности, а Anthropic объявила о запуске Claude Opus 4.6 с расширенным контекстным окном.",
+          "За последнюю неделю: OpenAI представила новую архитектуру GPT-5.5 с улучшенным рассуждением, Google выпустила Gemini 3.5 с нативной поддержкой мультимодальности, а Anthropic объявила о запуске Claude Opus 4.8 с расширенным контекстным окном.",
         toolCalls: [
           {
             type: "webSearch",
@@ -96,14 +96,14 @@ const demoTabs: DemoTab[] = [
             ],
           },
         ],
-        model: "Grok 4.1",
+        model: "Grok 4.3",
       },
     ],
   },
   {
     id: "code",
     label: "Генерация кода",
-    modelBadge: "GPT Codex 5.2",
+    modelBadge: "GPT-Codex 5.3",
     messages: [
       {
         role: "user",
@@ -136,7 +136,7 @@ const demoTabs: DemoTab[] = [
             "    return distances",
           ].join("\n"),
         },
-        model: "GPT Codex 5.2",
+        model: "GPT-Codex 5.3",
       },
     ],
   },
