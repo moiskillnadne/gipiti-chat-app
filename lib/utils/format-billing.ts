@@ -48,6 +48,23 @@ export function formatRuDate(date: Date): string {
   return RU_DATE_FULL.format(date);
 }
 
+// Pinned to Moscow: the page renders on the server (UTC on Vercel), so an
+// unpinned formatter would show a time 3 hours off for the RU audience.
+const RU_DATE_TIME_FULL = new Intl.DateTimeFormat("ru-RU", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+  timeZone: "Europe/Moscow",
+});
+
+/** Full date with time in Moscow time, e.g. "12 июня 2026 г., 14:30 МСК". */
+export function formatRuDateTime(date: Date): string {
+  return `${RU_DATE_TIME_FULL.format(date)} МСК`;
+}
+
 export function formatRuDayMonth(date: Date): string {
   return RU_DATE_DAY_MONTH.format(date);
 }

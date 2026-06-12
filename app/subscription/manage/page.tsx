@@ -17,6 +17,7 @@ import {
 import {
   formatBillingCycle,
   formatRuDate,
+  formatRuDateTime,
   formatRuDayMonth,
 } from "@/lib/utils/format-billing";
 import dash from "../_components/dashboard.module.css";
@@ -59,14 +60,9 @@ export default async function ManageSubscriptionPage() {
     plan: null,
   });
 
-  // Nothing to manage: free users and rows the cleanup cron already flipped
-  // to a terminal status go back to the balance dashboard.
-  if (
-    !(latest && subscriptionRow) ||
-    uiState === "none" ||
-    subscriptionRow.status === "cancelled" ||
-    subscriptionRow.status === "expired"
-  ) {
+  // Nothing to manage: free users, terminal rows, and cancelled subscriptions
+  // whose access window already ended go back to the balance dashboard.
+  if (!(latest && subscriptionRow) || uiState === "none") {
     redirect("/subscription");
   }
 
@@ -96,8 +92,8 @@ export default async function ManageSubscriptionPage() {
   const cycleRange = formatBillingCycle(periodStart, periodEnd);
 
   const nextPaymentDate = subscriptionRow.nextBillingDate
-    ? formatRuDate(subscriptionRow.nextBillingDate)
-    : periodEndFull;
+    ? formatRuDateTime(subscriptionRow.nextBillingDate)
+    : formatRuDateTime(periodEnd);
 
   const subAmount = formatCurrency(
     balanceSummary?.subscriptionAmount ?? 0,
@@ -137,7 +133,7 @@ export default async function ManageSubscriptionPage() {
 
         {isCancelled && (
           <CancelledBanner
-            dateFull={periodEndFull}
+            dateFull={formatRuDateTime(periodEnd)}
             resumeData={resumeData}
             subAmount={subAmount}
             topupAmount={topupAmount}
