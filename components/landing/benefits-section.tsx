@@ -28,7 +28,7 @@ const benefits: Benefit[] = [
     icon: WalletIcon,
     title: "Оплата российскими картами",
     description:
-      "Платите в рублях картами Visa, MasterCard, МИР или через СБП. Никаких зарубежных карт и валютных конвертаций.",
+      "Платите в рублях картами Visa, MasterCard и МИР. Никаких зарубежных карт и валютных конвертаций.",
   },
   {
     icon: LanguagesIcon,

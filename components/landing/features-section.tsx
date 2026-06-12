@@ -43,7 +43,7 @@ const features: Feature[] = [
     icon: Code2Icon,
     title: "Генерация кода",
     description:
-      "Пишите и выполняйте код с GPT Codex и Grok Code Fast прямо в браузере",
+      "Пишите и улучшайте код с GPT-Codex и другими ведущими AI-моделями",
   },
   {
     icon: FileTextIcon,

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "GIPITI - AI-чат с ChatGPT, Gemini, Claude и Grok",
   description:
-    "GIPITI — платформа с доступом к лучшим AI-моделям: ChatGPT 5.2, Gemini 3.1 Pro, Claude Opus 4.6 и Grok 4.1. Генерация текста, изображений, анализ документов.",
+    "GIPITI — платформа с доступом к лучшим AI-моделям: GPT-5.5, Gemini 3.1 Pro, Claude Opus 4.8 и Grok 4.3. Генерация текста, изображений, анализ документов. 100 ₽ на баланс при регистрации.",
 };
 
 export default function MarketingLayout({

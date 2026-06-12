@@ -46,7 +46,7 @@ const defaultMessages: ChatMessage[] = [
     role: "assistant",
     content:
       "Квантовые компьютеры используют кубиты вместо классических битов. Благодаря суперпозиции и квантовой запутанности они способны решать задачи, недоступные обычным компьютерам: моделирование молекул, криптографию и оптимизацию.",
-    model: "ChatGPT 5.2",
+    model: "GPT-5.5",
   },
 ];
 
@@ -198,7 +198,7 @@ const easing = [0.21, 0.47, 0.32, 0.98];
 
 export const ChatMockup = ({
   messages = defaultMessages,
-  modelBadge = "ChatGPT 5.2",
+  modelBadge = "GPT-5.5",
 }: ChatMockupProps) => (
   <motion.div
     className="mx-auto w-full max-w-2xl"
