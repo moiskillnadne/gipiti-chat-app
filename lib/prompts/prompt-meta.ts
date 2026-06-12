@@ -7,7 +7,9 @@ export type PromptCategoryId =
   | "video"
   | "research"
   | "marketing"
-  | "learning";
+  | "learning"
+  | "productivity"
+  | "life";
 
 export type PromptCategory = {
   id: PromptCategoryId;
@@ -38,6 +40,12 @@ export const PROMPT_CATEGORIES: readonly PromptCategory[] = [
     labelKey: "categoryLearning",
     color: "oklch(0.62 0.12 195)",
   },
+  {
+    id: "productivity",
+    labelKey: "categoryProductivity",
+    color: "oklch(0.62 0.14 110)",
+  },
+  { id: "life", labelKey: "categoryLife", color: "oklch(0.66 0.13 350)" },
 ] as const;
 
 const CATEGORY_BY_ID: Record<string, PromptCategory> = Object.fromEntries(

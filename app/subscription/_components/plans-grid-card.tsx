@@ -33,7 +33,7 @@ const PLAN_ITEMS: readonly PlanItem[] = [
     key: "monthly",
     tierName: "basic_monthly",
     priceNumber: formatRubles(
-      getSubscriptionSeedByCode("basic_monthly")?.prices.RUB ?? 1999
+      getSubscriptionSeedByCode("basic_monthly")?.prices.RUB ?? 999
     ),
     priceSuffix: "₽ /мес",
     featureKeys: ["f1", "f2", "f3", "f4"],

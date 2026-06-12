@@ -34,7 +34,7 @@ const jsonLd = {
   url: "https://gipiti.ru",
   offers: {
     "@type": "Offer",
-    price: "1999",
+    price: "999",
     priceCurrency: "RUB",
   },
   featureList: [
