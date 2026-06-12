@@ -1657,6 +1657,8 @@
     "categoryResearch": "Анализ",
     "categoryMarketing": "Маркетинг",
     "categoryLearning": "Обучение",
+    "categoryProductivity": "Продуктивность",
+    "categoryLife": "Жизнь",
     "promptsNoun": "{count, plural, one {промпт} few {промпта} many {промптов} other {промптов}}",
     "inFavorites": "в избранном",
     "byQuery": "по запросу",

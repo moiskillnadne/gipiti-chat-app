@@ -62,6 +62,10 @@ const CATEGORY_ALIASES: Record<string, PromptCategoryId> = {
   маркетинг: "marketing",
   learning: "learning",
   обучение: "learning",
+  productivity: "productivity",
+  продуктивность: "productivity",
+  life: "life",
+  жизнь: "life",
 };
 
 // Recognized "off" values for the `active` column. Anything else (including an
