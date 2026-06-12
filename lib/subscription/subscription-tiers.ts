@@ -4,7 +4,7 @@
 // the catalog (scripts/seed-subscriptions.ts).
 //
 // `code` is the stable identifier sent by CloudPayments as `Data.planName`.
-// Prices are in MAJOR currency units (e.g. 1999 RUB); the seed converts them to
+// Prices are in MAJOR currency units (e.g. 999 RUB); the seed converts them to
 // minor units. The credited subscription-pool amount equals the price (1:1).
 //
 // NOTE: the legacy "unlim" plan is not a real subscription in the currency
@@ -34,11 +34,11 @@ export const SUBSCRIPTION_SEEDS: SubscriptionSeed[] = [
   },
   {
     code: "basic_monthly",
-    displayName: "Pro",
+    displayName: "Standard",
     billingPeriod: "monthly",
     billingPeriodCount: 1,
     isTester: false,
-    prices: { RUB: 1999, USD: 19.99 },
+    prices: { RUB: 999, USD: 9.99 },
   },
 ];
 

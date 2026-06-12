@@ -15,7 +15,7 @@ const pricingFeatures = [
   "Анализ документов до 10MB",
   "Поиск в интернете",
   "Режим рассуждений",
-  "3M токенов в месяц",
+  "999 ₽ на баланс каждый месяц",
 ];
 
 export const PricingSection = () => (
@@ -42,18 +42,20 @@ export const PricingSection = () => (
                   </span>
                 </p>
                 <p className="text-emerald-400 text-sm">
-                  Вы экономите более 16,000 ₽ ежемесячно
+                  Вы экономите более 17,000 ₽ ежемесячно
                 </p>
               </div>
 
               {/* Price */}
               <div className="mb-2">
                 <span className="font-bold text-5xl text-white md:text-6xl">
-                  1 999
+                  999
                 </span>
                 <span className="text-xl text-zinc-400"> ₽/месяц</span>
               </div>
-              <p className="mb-8 text-sm text-zinc-500">3M токенов в месяц</p>
+              <p className="mb-8 text-sm text-zinc-500">
+                999 ₽ на баланс каждый месяц
+              </p>
 
               {/* Feature checklist */}
               <div className="mx-auto mb-10 grid max-w-lg gap-3 text-left sm:grid-cols-2">
