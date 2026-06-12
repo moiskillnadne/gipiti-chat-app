@@ -24,7 +24,7 @@ import {
 } from "@/lib/subscription/subscription-state";
 import {
   formatRelativeRu,
-  formatRuDate,
+  formatRuDateTime,
   formatRuDayMonth,
   formatRuDayMonthShort,
   formatRuDayTime,
@@ -92,6 +92,7 @@ export default async function SubscriptionPage() {
   const uiState = deriveSubscriptionUiState({
     subscription: subscriptionRow,
     plan: null,
+    now,
   });
   const state = deriveBalanceViewState({ uiState, balanceTotal: total });
   const isFree = !PAID_STATES.has(state);
@@ -188,7 +189,7 @@ export default async function SubscriptionPage() {
         />
 
         <StatusBanner
-          cancelledDate={periodEnd ? formatRuDate(periodEnd) : null}
+          cancelledDate={periodEnd ? formatRuDateTime(periodEnd) : null}
           cancelledSubAmount={formatCurrency(
             subscriptionAmount,
             currencyCode,
@@ -269,7 +270,7 @@ function resolveNextPaymentDate(
       : null;
   }
   if (dates.nextBillingDate) {
-    return formatRuDate(dates.nextBillingDate);
+    return formatRuDateTime(dates.nextBillingDate);
   }
-  return dates.periodEnd ? formatRuDate(dates.periodEnd) : null;
+  return dates.periodEnd ? formatRuDateTime(dates.periodEnd) : null;
 }

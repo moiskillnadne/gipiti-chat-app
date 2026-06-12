@@ -1,7 +1,7 @@
 import { formatCurrency } from "@/lib/billing/money";
 import type { CardPayment } from "@/lib/billing/payment-history";
 import { getTranslations } from "@/lib/i18n/translate";
-import { formatRuDate, formatRuMonth } from "@/lib/utils/format-billing";
+import { formatRuDateTime, formatRuMonth } from "@/lib/utils/format-billing";
 import dash from "../../_components/dashboard.module.css";
 import { PlusIcon, RefreshIcon } from "../../_components/icons";
 import styles from "./manage.module.css";
@@ -36,7 +36,7 @@ export async function PaymentHistoryCard({
         <div className={styles.payList}>
           {payments.map((payment) => {
             const isTopup = payment.type === "topup_purchase";
-            const dateText = formatRuDate(payment.createdAt);
+            const dateText = formatRuDateTime(payment.createdAt);
             const title = isTopup
               ? t("rowTopup")
               : t("rowSubscription", {
