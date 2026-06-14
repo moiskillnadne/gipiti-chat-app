@@ -50,3 +50,17 @@ export async function uploadGeneratedVideo(
   });
   return url;
 }
+
+/**
+ * Upload a generated PDF Buffer to Vercel Blob and return its public URL.
+ * Shared by the generatePdf tool.
+ */
+export async function uploadGeneratedPdf(pdfData: Buffer): Promise<string> {
+  const filename = `generated-${generateUUID()}.pdf`;
+
+  const { url } = await put(filename, pdfData, {
+    access: "public",
+    contentType: "application/pdf",
+  });
+  return url;
+}

@@ -5,6 +5,16 @@ type ChatMessagePart = ChatMessage["parts"][number];
 const TOOL_PART_TYPE_PREFIX = "tool-";
 
 /**
+ * Media-producing tools whose result is rendered as a standalone card OUTSIDE
+ * the tool-run card (like direct image/video model output). They are kept out
+ * of the run-group so they pass through as top-level parts.
+ */
+const STANDALONE_MEDIA_TOOL_TYPES = new Set([
+  "tool-generateImage",
+  "tool-generatePdf",
+]);
+
+/**
  * A synthetic group emitted by `groupToolRuns` to bundle consecutive
  * reasoning + tool parts into a single render unit (the unified "tool run" card).
  */
@@ -18,11 +28,15 @@ export type GroupedMessagePart = ChatMessagePart | RunGroupPart;
 
 /**
  * Returns true for parts that should fold into a tool-run card:
- * any `tool-*` part, plus `reasoning` parts that have non-empty text.
+ * any `tool-*` part (except standalone media tools), plus `reasoning` parts
+ * that have non-empty text.
  */
 const isRunPart = (part: ChatMessagePart): boolean => {
   if (part.type === "reasoning") {
     return Boolean(part.text?.trim());
+  }
+  if (STANDALONE_MEDIA_TOOL_TYPES.has(part.type)) {
+    return false;
   }
   return part.type.startsWith(TOOL_PART_TYPE_PREFIX);
 };

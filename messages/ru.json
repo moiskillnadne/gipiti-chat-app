@@ -915,7 +915,8 @@
       "generatingVideo": "Генерация видео...",
       "download": "Скачать",
       "downloadVideo": "Скачать видео",
-      "downloadError": "Не удалось скачать изображение"
+      "downloadError": "Не удалось скачать изображение",
+      "downloadFileError": "Не удалось скачать файл"
     },
     "media": {
       "queued": "В очереди",
@@ -923,11 +924,14 @@
       "queuedVideo": "видео · ожидание",
       "generatingImage": "Генерация изображения…",
       "generatingVideo": "Генерация видео…",
+      "generatingPdf": "Генерация PDF…",
+      "pdfDocument": "PDF-документ",
       "videoMeta": "{seconds} сек · 720p",
       "open": "Открыть",
       "close": "Закрыть",
       "download": "Скачать",
       "downloadVideo": "Скачать видео",
+      "downloadPdf": "Скачать PDF",
       "regenerate": "Перегенерировать",
       "retry": "Повторить",
       "errorTitle": "Не удалось сгенерировать",

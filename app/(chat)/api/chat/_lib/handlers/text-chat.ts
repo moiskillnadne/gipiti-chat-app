@@ -18,6 +18,7 @@ import { resolveLatestImageUrl } from "@/lib/ai/resolve-latest-image";
 import { calculator } from "@/lib/ai/tools/calculator";
 import { extractUrl } from "@/lib/ai/tools/extract-url";
 import { generateImage } from "@/lib/ai/tools/generate-image";
+import { generatePdf } from "@/lib/ai/tools/generate-pdf";
 import { webSearch } from "@/lib/ai/tools/web-search";
 import {
   isGeminiSignatureDebugEnabled,
@@ -206,6 +207,10 @@ export async function runTextChat(
         chatId: ctx.chatId,
         usageAccumulator: ctx.imageUsageAccumulator,
         latestImageUrl,
+      }),
+      generatePdf: generatePdf({
+        userId: ctx.userId,
+        chatId: ctx.chatId,
       }),
     },
     experimental_telemetry: {
