@@ -320,6 +320,7 @@ export const chatModels: ChatModel[] = [
     description: "grokImagineImage.description",
     provider: "xai",
     capabilities: {
+      attachments: true,
       imageGeneration: true,
     },
     showInUI: true,
@@ -418,6 +419,7 @@ export const chatModels: ChatModel[] = [
     description: "flux2Max.description",
     provider: "bfl",
     capabilities: {
+      attachments: true,
       imageGeneration: true,
     },
     showInUI: true,
@@ -429,6 +431,7 @@ export const chatModels: ChatModel[] = [
     description: "fluxKontextMax.description",
     provider: "bfl",
     capabilities: {
+      attachments: true,
       imageGeneration: true,
     },
     showInUI: true,
@@ -440,6 +443,7 @@ export const chatModels: ChatModel[] = [
     description: "recraftV41Pro.description",
     provider: "recraft",
     capabilities: {
+      attachments: true,
       imageGeneration: true,
     },
     showInUI: true,
@@ -500,7 +504,10 @@ export const isDedicatedImageModel = (modelId: string): boolean => {
   if (!model?.capabilities?.imageGeneration) {
     return false;
   }
-  return !model.capabilities.reasoning && !model.capabilities.attachments;
+  // Dedicated = image-only model, not a multimodal LLM. Multimodal image models
+  // (Gemini, gpt-image-2) are distinguished by `reasoning`; keyed on that so
+  // enabling `attachments` on a dedicated model doesn't reclassify it.
+  return !model.capabilities.reasoning;
 };
 
 const videoGenerationModelIds = new Set(

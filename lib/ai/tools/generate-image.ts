@@ -32,6 +32,12 @@ type GenerateImageProps = {
   userId: string;
   chatId: string;
   usageAccumulator?: ImageGenerationUsageAccumulator;
+  /**
+   * URL of the most recent image in the conversation (attachment or previously
+   * generated). Forwarded to the model as the edit base when the model sets
+   * `editPreviousImage`. Resolved per-turn by the caller from chat history.
+   */
+  latestImageUrl?: string;
 };
 
 type GeneratedFileWithBase64 = {
@@ -44,17 +50,25 @@ const IMAGE_MODEL_ID = "google/gemini-3-pro-image";
 export const generateImageTool = ({
   userId,
   usageAccumulator,
+  latestImageUrl,
 }: GenerateImageProps) =>
   tool({
-    description: `Generate an image from a text description. Use this tool when:
+    description: `Generate a new image from a text description, OR edit/refine the most recent image already in the conversation.
+
+Creating vs editing:
+- Set "editPreviousImage": true when the user wants to modify, refine, adjust, or build on an image that already exists in the conversation — whether they attached it or you generated it earlier (e.g. "make the sky purple", "remove the background", "now make it brighter"). The current image is attached automatically; pass a concise edit instruction as "prompt".
+- Set "editPreviousImage": false (or omit) to create a brand-new image unrelated to any existing one (e.g. "draw a cat").
+
+Use this tool when:
 - User explicitly asks to create, draw, generate, or visualize an image
 - User requests illustrations, artwork, or visual content
 - User asks for visual representations of concepts
 - User wants to see what something might look like
+- User asks to edit, change, or refine an image already in the chat
 
 Do NOT use this tool when:
 - User is asking for information or explanations
-- User wants to analyze or discuss existing images
+- User wants to analyze or discuss existing images without producing a new one
 - The request doesn't require visual output
 - The request is inappropriate or violates content policies
 
@@ -74,17 +88,41 @@ Example prompt transformation:
     inputSchema: z.object({
       prompt: z.string(),
       modelId: z.string(),
+      editPreviousImage: z
+        .boolean()
+        .optional()
+        .describe(
+          "Set true to edit/refine the image already in the conversation (an attachment or one you previously generated). The current image is attached automatically; pass a concise edit instruction as `prompt`. Omit or set false to create a brand-new image."
+        ),
     }),
-    execute: async ({ prompt }) => {
+    execute: async ({ prompt, editPreviousImage }) => {
       const id = generateUUID();
       let imageUrl: string | undefined;
       let usageMetadata: ImageUsageMetadata | undefined;
       let totalCostUsd: string | undefined;
 
-      const result = streamText({
-        model: IMAGE_MODEL_ID,
-        prompt,
-      });
+      // Forward the existing image as an edit base only when the model asked to
+      // edit AND we actually resolved one from history; otherwise text-to-image.
+      const isEditing = Boolean(editPreviousImage && latestImageUrl);
+
+      const result =
+        isEditing && latestImageUrl
+          ? streamText({
+              model: IMAGE_MODEL_ID,
+              messages: [
+                {
+                  role: "user",
+                  content: [
+                    { type: "text", text: prompt },
+                    { type: "image", image: new URL(latestImageUrl) },
+                  ],
+                },
+              ],
+            })
+          : streamText({
+              model: IMAGE_MODEL_ID,
+              prompt,
+            });
 
       for await (const delta of result.fullStream) {
         const { type } = delta;

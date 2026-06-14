@@ -9,6 +9,9 @@ type RecraftImageOptions = {
   aspectRatio?: string;
 };
 
+/** Plain text-to-image, or image(s) + instruction for an edit. */
+type RecraftPrompt = string | { images: Uint8Array[]; text: string };
+
 type RecraftImageResult = {
   base64: string;
   mediaType: string;
@@ -21,7 +24,7 @@ type RecraftImageResult = {
 };
 
 export async function generateRecraftImage(
-  prompt: string,
+  prompt: RecraftPrompt,
   options: RecraftImageOptions = {}
 ): Promise<RecraftImageResult> {
   const result = await generateImage({

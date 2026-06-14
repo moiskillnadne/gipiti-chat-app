@@ -2,6 +2,7 @@ import { gateway } from "@ai-sdk/gateway";
 import { APICallError, type SharedV2ProviderOptions } from "@ai-sdk/provider";
 import {
   convertToModelMessages,
+  type ModelMessage,
   generateImage as sdkGenerateImage,
   streamText,
 } from "ai";
@@ -15,7 +16,8 @@ import {
 } from "@/lib/ai/models";
 import { myProvider } from "@/lib/ai/providers";
 import { generateRecraftImage, isRecraftModel } from "@/lib/ai/recraft-client";
-import { getDocumentById } from "@/lib/db/query/document/get-document-by-id";
+import { resolveLatestImageUrl } from "@/lib/ai/resolve-latest-image";
+import { getDocumentByGenerationId } from "@/lib/db/query/document/get-document-by-generation-id";
 import { ChatSDKError } from "@/lib/errors";
 import type { ImageGenResult, ImageProvider } from "./types";
 
@@ -34,6 +36,41 @@ async function fetchImageBytes(url: string): Promise<Uint8Array> {
   return new Uint8Array(arrayBuffer);
 }
 
+/** Prompt accepted by `generateImage`: plain text, or image(s) + instruction. */
+type ImageEditPrompt = string | { images: Uint8Array[]; text: string };
+
+/**
+ * Run an image generation, editing the most recent chat image when one exists.
+ * Not every dedicated gateway model accepts image input (e.g. Recraft returns
+ * 404 for the edit route), so a failed edit gracefully falls back to plain
+ * text-to-image instead of erroring. With no source image it's a direct
+ * text-to-image call. The `{ images, text }` form is the AI SDK v6 edit input.
+ */
+async function runImageEdit<TResult>(
+  text: string,
+  latestImageUrl: string | undefined,
+  run: (prompt: ImageEditPrompt) => Promise<TResult>
+): Promise<TResult> {
+  if (!latestImageUrl) {
+    return run(text);
+  }
+
+  const editPrompt: ImageEditPrompt = {
+    images: [await fetchImageBytes(latestImageUrl)],
+    text,
+  };
+
+  try {
+    return await run(editPrompt);
+  } catch (error) {
+    console.warn(
+      "Image edit failed (model likely lacks image-input support); falling back to text-to-image",
+      error
+    );
+    return run(text);
+  }
+}
+
 async function resolvePreviousImageUrl(
   previousGenerationId: string | undefined
 ): Promise<string | undefined> {
@@ -41,8 +78,10 @@ async function resolvePreviousImageUrl(
     return;
   }
   try {
-    const previousDoc = await getDocumentById({ id: previousGenerationId });
-    if (previousDoc.content) {
+    const previousDoc = await getDocumentByGenerationId({
+      generationId: previousGenerationId,
+    });
+    if (previousDoc?.content) {
       return previousDoc.content;
     }
     console.warn("Previous document not found, generating new image");
@@ -62,9 +101,15 @@ const openaiImageProvider: ImageProvider = async ({
   prompt,
   settings,
   previousGenerationId,
+  uiMessages,
   onReasoning,
 }): Promise<ImageGenResult> => {
-  const previousImageUrl = await resolvePreviousImageUrl(previousGenerationId);
+  // Prefer the most recent image in the conversation (a freshly attached image
+  // or the last generated one) so "edit this" targets what the user is looking
+  // at now; fall back to the generation-id chain only when history has none.
+  const previousImageUrl =
+    resolveLatestImageUrl(uiMessages) ??
+    (await resolvePreviousImageUrl(previousGenerationId));
   const isEdit = Boolean(previousImageUrl);
   onReasoning(
     isEdit ? "Editing image with OpenAI..." : "Generating image with OpenAI..."
@@ -132,13 +177,21 @@ const openaiImageProvider: ImageProvider = async ({
 const recraftImageProvider: ImageProvider = async ({
   prompt,
   settings,
+  uiMessages,
   onReasoning,
 }): Promise<ImageGenResult> => {
-  onReasoning("Generating image with Recraft...");
+  const latestImageUrl = resolveLatestImageUrl(uiMessages);
+  onReasoning(
+    latestImageUrl
+      ? "Editing image with Recraft..."
+      : "Generating image with Recraft..."
+  );
 
-  const recraft = await generateRecraftImage(prompt, {
-    aspectRatio: settings?.aspectRatio,
-  });
+  const recraft = await runImageEdit(prompt, latestImageUrl, (imagePrompt) =>
+    generateRecraftImage(imagePrompt, {
+      aspectRatio: settings?.aspectRatio,
+    })
+  );
 
   return {
     base64: recraft.base64,
@@ -154,23 +207,32 @@ const recraftImageProvider: ImageProvider = async ({
   };
 };
 
-/** Dedicated gateway image models (e.g. grok-imagine-image-pro). */
+/**
+ * Dedicated gateway image models (grok-imagine-image, flux-2-max,
+ * flux-kontext-max). Edits the latest chat image when one exists, else
+ * text-to-image. Editing relies on the model accepting image input through the
+ * gateway; unsupported models surface a gateway error (caught upstream).
+ */
 const dedicatedImageProvider: ImageProvider = async ({
   modelId,
   prompt,
   settings,
+  uiMessages,
   onReasoning,
 }): Promise<ImageGenResult> => {
   const gatewayModelId = getDedicatedImageGatewayModelId(modelId);
-  onReasoning("Generating image...");
+  const latestImageUrl = resolveLatestImageUrl(uiMessages);
+  onReasoning(latestImageUrl ? "Editing image..." : "Generating image...");
 
-  const result = await sdkGenerateImage({
-    model: gateway.imageModel(gatewayModelId),
-    prompt,
-    ...(settings?.aspectRatio && {
-      aspectRatio: settings.aspectRatio as `${number}:${number}`,
-    }),
-  });
+  const result = await runImageEdit(prompt, latestImageUrl, (imagePrompt) =>
+    sdkGenerateImage({
+      model: gateway.imageModel(gatewayModelId),
+      prompt: imagePrompt,
+      ...(settings?.aspectRatio && {
+        aspectRatio: settings.aspectRatio as `${number}:${number}`,
+      }),
+    })
+  );
 
   const gatewayCost = (
     result.providerMetadata?.gateway as Record<string, unknown> | undefined
@@ -193,11 +255,28 @@ const dedicatedImageProvider: ImageProvider = async ({
 /** Multimodal models that emit images via streamText (e.g. Gemini gateway). */
 const multimodalImageProvider: ImageProvider = async ({
   modelId,
+  prompt,
   settings,
   uiMessages,
   onReasoning,
 }): Promise<ImageGenResult> => {
-  const messages = await convertToModelMessages(uiMessages);
+  // Gemini ("Nano Banana") only treats an image as an edit base when it rides on
+  // the *current user turn*. Left as an assistant part buried in history, it
+  // regenerates from scratch. So when the chat already has an image, send a
+  // single user turn of [instruction + image] — same shape gpt-image-2 uses,
+  // which edits correctly. With no image, fall back to the full conversation.
+  const latestImageUrl = resolveLatestImageUrl(uiMessages);
+  const messages: ModelMessage[] = latestImageUrl
+    ? [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: prompt },
+            { type: "image", image: new URL(latestImageUrl) },
+          ],
+        },
+      ]
+    : await convertToModelMessages(uiMessages);
 
   const modelDef = getModelById(modelId);
   let mergedProviderOptions: SharedV2ProviderOptions =
