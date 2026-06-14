@@ -19,6 +19,11 @@ export const metadata: Metadata = {
   description:
     "GIPITI — платформа с доступом к лучшим AI-моделям: GPT-5.5, Gemini 3.1 Pro, Claude Opus 4.8 и Grok 4.3. Генерация текста, изображений, видео, кода, анализ документов.",
   keywords: [
+    "GIPITI",
+    "Гипити",
+    "гипити",
+    "гипити чат",
+    "gipiti",
     "AI чат",
     "ChatGPT",
     "Gemini",
@@ -59,6 +64,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  maximumScale: 1, // Disable auto-zoom on mobile Safari
   viewportFit: "cover",
 };
 

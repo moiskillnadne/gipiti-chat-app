@@ -24,8 +24,8 @@ export const LandingFooter = () => (
             GIPITI
           </Link>
           <p className="mt-3 max-w-xs text-sm text-zinc-500 leading-relaxed">
-            Единая платформа для общения с лучшими AI-моделями. Доступно из
-            России, оплата в рублях.
+            GIPITI (Гипити) — единая платформа для общения с лучшими
+            AI-моделями. Доступно из России, оплата в рублях.
           </p>
           <a
             className="mt-4 inline-flex items-center gap-2 text-indigo-400 text-sm transition-colors hover:text-indigo-300"

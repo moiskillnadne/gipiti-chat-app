@@ -458,6 +458,28 @@
   }
 }
 
+/* 404 · staggered entrance reveal (resting state stays visible via `backwards`) */
+@keyframes notfound-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-notfound-reveal {
+  animation: notfound-reveal 0.7s var(--ease-canon) backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-notfound-reveal {
+    animation: none;
+  }
+}
+
 /* Landing — shimmer for hero badge */
 @keyframes shimmer {
   0% {
