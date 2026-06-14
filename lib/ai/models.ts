@@ -469,20 +469,22 @@ export const isReasoningModelId = (modelId: string) =>
 /**
  * True when this model is wrapped with `extractReasoningMiddleware({tagName:"think"})`
  * in `lib/ai/providers.ts` and therefore needs the system prompt to instruct
- * `<think></think>` tag emission. Native-reasoning models (Anthropic extended
- * thinking, grok-4.3) must NOT receive that instruction — they'd echo literal
- * `<think>` tags into the visible message body since no middleware strips them.
+ * `<think></think>` tag emission. Only OpenAI gpt-5.x is wrapped today.
  *
- * Keep this in sync if the wrapping rule in providers.ts ever changes (e.g. a
- * Google model with native reasoning would need an explicit per-model flag
- * rather than this provider-derived heuristic).
+ * Native-reasoning models (Anthropic extended thinking, grok-4.3, and Gemini 3
+ * with `includeThoughts`) must NOT receive that instruction — they'd echo literal
+ * `<think>` tags into the visible body since no middleware strips them, and for
+ * Gemini the tag path also corrupts thought signatures across multi-turn tool
+ * calls (GIPITI-82).
+ *
+ * Keep this in sync if the wrapping rule in providers.ts ever changes.
  */
 export const usesReasoningTagMiddleware = (modelId: string): boolean => {
   const model = getModelById(modelId);
   if (!model?.capabilities?.reasoning) {
     return false;
   }
-  return model.provider === "openai" || model.provider === "google";
+  return model.provider === "openai";
 };
 
 const imageGenerationModelIds = new Set(
