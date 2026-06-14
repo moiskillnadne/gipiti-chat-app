@@ -3,15 +3,20 @@ import { auth } from "@/app/(auth)/auth";
 import { Chat } from "@/components/chat";
 import { getChatById } from "@/lib/db/query/chat/get-chat-by-id";
 import { getMessagesByChatId } from "@/lib/db/query/chat/get-messages-by-chat-id";
-import { convertToUIMessages } from "@/lib/utils";
+import { convertToUIMessages, isValidUUID } from "@/lib/utils";
 
 export default async function Page(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const { id } = params;
+
+  if (!isValidUUID(id)) {
+    return notFound();
+  }
+
   const chat = await getChatById({ id });
 
   if (!chat) {
-    notFound();
+    return notFound();
   }
 
   const session = await auth();
