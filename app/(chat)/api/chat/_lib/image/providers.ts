@@ -36,6 +36,41 @@ async function fetchImageBytes(url: string): Promise<Uint8Array> {
   return new Uint8Array(arrayBuffer);
 }
 
+/** Prompt accepted by `generateImage`: plain text, or image(s) + instruction. */
+type ImageEditPrompt = string | { images: Uint8Array[]; text: string };
+
+/**
+ * Run an image generation, editing the most recent chat image when one exists.
+ * Not every dedicated gateway model accepts image input (e.g. Recraft returns
+ * 404 for the edit route), so a failed edit gracefully falls back to plain
+ * text-to-image instead of erroring. With no source image it's a direct
+ * text-to-image call. The `{ images, text }` form is the AI SDK v6 edit input.
+ */
+async function runImageEdit<TResult>(
+  text: string,
+  latestImageUrl: string | undefined,
+  run: (prompt: ImageEditPrompt) => Promise<TResult>
+): Promise<TResult> {
+  if (!latestImageUrl) {
+    return run(text);
+  }
+
+  const editPrompt: ImageEditPrompt = {
+    images: [await fetchImageBytes(latestImageUrl)],
+    text,
+  };
+
+  try {
+    return await run(editPrompt);
+  } catch (error) {
+    console.warn(
+      "Image edit failed (model likely lacks image-input support); falling back to text-to-image",
+      error
+    );
+    return run(text);
+  }
+}
+
 async function resolvePreviousImageUrl(
   previousGenerationId: string | undefined
 ): Promise<string | undefined> {
@@ -142,13 +177,21 @@ const openaiImageProvider: ImageProvider = async ({
 const recraftImageProvider: ImageProvider = async ({
   prompt,
   settings,
+  uiMessages,
   onReasoning,
 }): Promise<ImageGenResult> => {
-  onReasoning("Generating image with Recraft...");
+  const latestImageUrl = resolveLatestImageUrl(uiMessages);
+  onReasoning(
+    latestImageUrl
+      ? "Editing image with Recraft..."
+      : "Generating image with Recraft..."
+  );
 
-  const recraft = await generateRecraftImage(prompt, {
-    aspectRatio: settings?.aspectRatio,
-  });
+  const recraft = await runImageEdit(prompt, latestImageUrl, (imagePrompt) =>
+    generateRecraftImage(imagePrompt, {
+      aspectRatio: settings?.aspectRatio,
+    })
+  );
 
   return {
     base64: recraft.base64,
@@ -164,23 +207,32 @@ const recraftImageProvider: ImageProvider = async ({
   };
 };
 
-/** Dedicated gateway image models (e.g. grok-imagine-image-pro). */
+/**
+ * Dedicated gateway image models (grok-imagine-image, flux-2-max,
+ * flux-kontext-max). Edits the latest chat image when one exists, else
+ * text-to-image. Editing relies on the model accepting image input through the
+ * gateway; unsupported models surface a gateway error (caught upstream).
+ */
 const dedicatedImageProvider: ImageProvider = async ({
   modelId,
   prompt,
   settings,
+  uiMessages,
   onReasoning,
 }): Promise<ImageGenResult> => {
   const gatewayModelId = getDedicatedImageGatewayModelId(modelId);
-  onReasoning("Generating image...");
+  const latestImageUrl = resolveLatestImageUrl(uiMessages);
+  onReasoning(latestImageUrl ? "Editing image..." : "Generating image...");
 
-  const result = await sdkGenerateImage({
-    model: gateway.imageModel(gatewayModelId),
-    prompt,
-    ...(settings?.aspectRatio && {
-      aspectRatio: settings.aspectRatio as `${number}:${number}`,
-    }),
-  });
+  const result = await runImageEdit(prompt, latestImageUrl, (imagePrompt) =>
+    sdkGenerateImage({
+      model: gateway.imageModel(gatewayModelId),
+      prompt: imagePrompt,
+      ...(settings?.aspectRatio && {
+        aspectRatio: settings.aspectRatio as `${number}:${number}`,
+      }),
+    })
+  );
 
   const gatewayCost = (
     result.providerMetadata?.gateway as Record<string, unknown> | undefined
