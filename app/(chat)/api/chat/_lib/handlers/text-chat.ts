@@ -7,6 +7,7 @@ import {
 } from "@/lib/ai/models";
 import { buildContextMessage, systemPrompt } from "@/lib/ai/prompts";
 import { myProvider } from "@/lib/ai/providers";
+import { resolveLatestImageUrl } from "@/lib/ai/resolve-latest-image";
 import { calculator } from "@/lib/ai/tools/calculator";
 import { extractUrl } from "@/lib/ai/tools/extract-url";
 import { generateImage } from "@/lib/ai/tools/generate-image";
@@ -51,6 +52,10 @@ export async function runTextChat(
     ? [contextMessage, ...baseMessages]
     : baseMessages;
 
+  // Resolve the most recent image in the conversation so the generateImage tool
+  // can use it as an edit base when the model chooses to edit rather than create.
+  const latestImageUrl = resolveLatestImageUrl(ctx.uiMessages);
+
   const result = streamText({
     model: myProvider.languageModel(model),
     system: systemPrompt({ selectedChatModel: model }),
@@ -90,6 +95,7 @@ export async function runTextChat(
         userId: ctx.userId,
         chatId: ctx.chatId,
         usageAccumulator: ctx.imageUsageAccumulator,
+        latestImageUrl,
       }),
     },
     experimental_telemetry: {

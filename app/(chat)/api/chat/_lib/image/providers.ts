@@ -2,6 +2,7 @@ import { gateway } from "@ai-sdk/gateway";
 import { APICallError, type SharedV2ProviderOptions } from "@ai-sdk/provider";
 import {
   convertToModelMessages,
+  type ModelMessage,
   generateImage as sdkGenerateImage,
   streamText,
 } from "ai";
@@ -15,7 +16,8 @@ import {
 } from "@/lib/ai/models";
 import { myProvider } from "@/lib/ai/providers";
 import { generateRecraftImage, isRecraftModel } from "@/lib/ai/recraft-client";
-import { getDocumentById } from "@/lib/db/query/document/get-document-by-id";
+import { resolveLatestImageUrl } from "@/lib/ai/resolve-latest-image";
+import { getDocumentByGenerationId } from "@/lib/db/query/document/get-document-by-generation-id";
 import { ChatSDKError } from "@/lib/errors";
 import type { ImageGenResult, ImageProvider } from "./types";
 
@@ -41,8 +43,10 @@ async function resolvePreviousImageUrl(
     return;
   }
   try {
-    const previousDoc = await getDocumentById({ id: previousGenerationId });
-    if (previousDoc.content) {
+    const previousDoc = await getDocumentByGenerationId({
+      generationId: previousGenerationId,
+    });
+    if (previousDoc?.content) {
       return previousDoc.content;
     }
     console.warn("Previous document not found, generating new image");
@@ -62,9 +66,15 @@ const openaiImageProvider: ImageProvider = async ({
   prompt,
   settings,
   previousGenerationId,
+  uiMessages,
   onReasoning,
 }): Promise<ImageGenResult> => {
-  const previousImageUrl = await resolvePreviousImageUrl(previousGenerationId);
+  // Prefer the most recent image in the conversation (a freshly attached image
+  // or the last generated one) so "edit this" targets what the user is looking
+  // at now; fall back to the generation-id chain only when history has none.
+  const previousImageUrl =
+    resolveLatestImageUrl(uiMessages) ??
+    (await resolvePreviousImageUrl(previousGenerationId));
   const isEdit = Boolean(previousImageUrl);
   onReasoning(
     isEdit ? "Editing image with OpenAI..." : "Generating image with OpenAI..."
@@ -193,11 +203,28 @@ const dedicatedImageProvider: ImageProvider = async ({
 /** Multimodal models that emit images via streamText (e.g. Gemini gateway). */
 const multimodalImageProvider: ImageProvider = async ({
   modelId,
+  prompt,
   settings,
   uiMessages,
   onReasoning,
 }): Promise<ImageGenResult> => {
-  const messages = await convertToModelMessages(uiMessages);
+  // Gemini ("Nano Banana") only treats an image as an edit base when it rides on
+  // the *current user turn*. Left as an assistant part buried in history, it
+  // regenerates from scratch. So when the chat already has an image, send a
+  // single user turn of [instruction + image] — same shape gpt-image-2 uses,
+  // which edits correctly. With no image, fall back to the full conversation.
+  const latestImageUrl = resolveLatestImageUrl(uiMessages);
+  const messages: ModelMessage[] = latestImageUrl
+    ? [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: prompt },
+            { type: "image", image: new URL(latestImageUrl) },
+          ],
+        },
+      ]
+    : await convertToModelMessages(uiMessages);
 
   const modelDef = getModelById(modelId);
   let mergedProviderOptions: SharedV2ProviderOptions =
