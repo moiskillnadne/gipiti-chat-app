@@ -8,9 +8,9 @@ export const regularPrompt =
 
 /**
  * For models wrapped with `extractReasoningMiddleware({tagName:"think"})` in
- * providers.ts (currently OpenAI gpt-5.x and Google Gemini). Both layers must
- * agree: the middleware strips `<think></think>` blocks into the reasoning
- * channel, and this prompt tells the model to emit them.
+ * providers.ts (currently OpenAI gpt-5.x only). Both layers must agree: the
+ * middleware strips `<think></think>` blocks into the reasoning channel, and
+ * this prompt tells the model to emit them.
  */
 export const reasoningPrompt = `\
 You are a friendly assistant that uses explicit reasoning! When responding:

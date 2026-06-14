@@ -30,31 +30,123 @@ import type { ChatTurnContext } from "./context";
 
 const PLACEHOLDER_TITLE_MAX_LENGTH = 80;
 
+type ChatPart = ChatMessage["parts"][number];
+type ProviderMetadataMap = Record<string, Record<string, unknown>>;
+
+/** Part types that `convertToModelMessages` turns into actual model content. */
+const MODEL_CONTENT_PART_TYPES = new Set(["text", "reasoning", "file"]);
+
+const isModelContentPart = (part: ChatPart): boolean =>
+  MODEL_CONTENT_PART_TYPES.has(part.type) ||
+  part.type === "dynamic-tool" ||
+  part.type.startsWith("tool-");
+
 /**
- * Strip reasoning parts from historical assistant messages to prevent
- * cross-provider incompatibilities (e.g. Anthropic reasoning sent to OpenAI).
- * Reasoning is ephemeral display content — not needed for inference context.
+ * Drop the `thoughtSignature` from a provider-metadata map (under any provider
+ * key — Gemini stores it under `vertex` or `google` depending on which backend
+ * the Gateway routed to). Returns the same reference when nothing changed.
+ */
+const stripSignatureFromMetadata = (
+  metadata: ProviderMetadataMap | undefined
+): ProviderMetadataMap | undefined => {
+  if (!metadata) {
+    return metadata;
+  }
+
+  let changed = false;
+  const cleaned: ProviderMetadataMap = {};
+  for (const [provider, values] of Object.entries(metadata)) {
+    if (values && typeof values === "object" && "thoughtSignature" in values) {
+      const withoutSignature: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(values)) {
+        if (key !== "thoughtSignature") {
+          withoutSignature[key] = value;
+        }
+      }
+      cleaned[provider] = withoutSignature;
+      changed = true;
+    } else {
+      cleaned[provider] = values;
+    }
+  }
+
+  return changed ? cleaned : metadata;
+};
+
+/**
+ * Remove any persisted Gemini `thoughtSignature` from a part's `providerMetadata`
+ * (text/reasoning/file) and `callProviderMetadata` (tool calls). Signatures are
+ * backend-specific and the Gateway routes vertex/google non-deterministically,
+ * so a replayed signature trips a 400 "Corrupted thought signature" when the
+ * replay backend differs from the minting one. Past-turn signatures aren't
+ * required by Gemini (only the in-flight turn, which streamText tracks in
+ * memory), so this is safe. (GIPITI-82)
+ */
+const stripThoughtSignature = (part: ChatPart): ChatPart => {
+  const carrier = part as {
+    providerMetadata?: ProviderMetadataMap;
+    callProviderMetadata?: ProviderMetadataMap;
+  };
+
+  if (!(carrier.providerMetadata || carrier.callProviderMetadata)) {
+    return part;
+  }
+
+  const providerMetadata = stripSignatureFromMetadata(carrier.providerMetadata);
+  const callProviderMetadata = stripSignatureFromMetadata(
+    carrier.callProviderMetadata
+  );
+
+  if (
+    providerMetadata === carrier.providerMetadata &&
+    callProviderMetadata === carrier.callProviderMetadata
+  ) {
+    return part;
+  }
+
+  return {
+    ...part,
+    ...(carrier.providerMetadata !== undefined && { providerMetadata }),
+    ...(carrier.callProviderMetadata !== undefined && { callProviderMetadata }),
+  } as ChatPart;
+};
+
+/**
+ * Normalize historical assistant messages before inference:
+ *  1. Strip persisted Gemini thought signatures (see `stripThoughtSignature`).
+ *  2. Drop reasoning parts to avoid cross-provider incompatibilities (e.g.
+ *     Anthropic reasoning replayed to OpenAI) — kept only when removing them
+ *     would leave no text part, to preserve the message shape.
+ *  3. Skip content-less assistant turns (e.g. a prior failed turn persisted as
+ *     data-only) — they convert to empty content and the Gateway rejects them
+ *     with "must include at least one parts field".
  */
 function sanitizeHistory(messages: ChatMessage[]): ChatMessage[] {
-  return messages.map((message) => {
+  const sanitized: ChatMessage[] = [];
+
+  for (const message of messages) {
     if (message.role !== "assistant" || !message.parts) {
-      return message;
+      sanitized.push(message);
+      continue;
     }
 
-    const filteredParts = message.parts.filter((p) => p.type !== "reasoning");
+    const strippedParts = message.parts.map(stripThoughtSignature);
 
-    // Keep the original message if filtering would remove all meaningful parts.
-    if (
-      filteredParts.length === 0 ||
-      !filteredParts.some((p) => p.type === "text")
-    ) {
-      return message;
+    const withoutReasoning = strippedParts.filter(
+      (p) => p.type !== "reasoning"
+    );
+    const parts = withoutReasoning.some((p) => p.type === "text")
+      ? withoutReasoning
+      : strippedParts;
+
+    if (!parts.some(isModelContentPart)) {
+      continue;
     }
 
-    return filteredParts.length === message.parts.length
-      ? message
-      : { ...message, parts: filteredParts };
-  });
+    sanitized.push({ ...message, parts });
+  }
+
+  return sanitized;
 }
 
 /**

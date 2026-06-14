@@ -27,14 +27,13 @@ export const myProvider = customProvider({
       model: gateway.languageModel("openai/gpt-5.3-codex"),
       middleware: extractReasoningMiddleware({ tagName: "think" }),
     }),
-    "gemini-3.1-pro": wrapLanguageModel({
-      model: gateway.languageModel("google/gemini-3.1-pro-preview"),
-      middleware: extractReasoningMiddleware({ tagName: "think" }),
-    }),
-    "gemini-3.5-flash": wrapLanguageModel({
-      model: gateway.languageModel("google/gemini-3.5-flash"),
-      middleware: extractReasoningMiddleware({ tagName: "think" }),
-    }),
+    // Gemini 3 streams reasoning natively (with thought signatures), not
+    // <think> tags, so no extractReasoningMiddleware wrapper — same as grok-4.3
+    // above. Wrapping it mangles the thoughtSignature on persisted assistant
+    // turns and breaks multi-turn tool-call continuations (400 "Corrupted
+    // thought signature").
+    "gemini-3.1-pro": gateway.languageModel("google/gemini-3.1-pro-preview"),
+    "gemini-3.5-flash": gateway.languageModel("google/gemini-3.5-flash"),
     "gemini-3-pro-image": gateway.languageModel("google/gemini-3-pro-image"),
     "gemini-3.1-flash-image": gateway.languageModel(
       "google/gemini-3.1-flash-image"
