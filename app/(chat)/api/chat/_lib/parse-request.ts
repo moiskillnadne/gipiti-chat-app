@@ -2,7 +2,7 @@ import { z } from "zod";
 import { ChatSDKError } from "@/lib/errors";
 import { type PostRequestBody, postRequestBodySchema } from "../schema";
 
-const MAX_MESSAGE_LENGTH = 10_000;
+const MAX_MESSAGE_LENGTH = 50_000;
 
 export type ParseRequestResult =
   | { ok: true; body: PostRequestBody }
