@@ -30,6 +30,7 @@ const jsonLd = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   name: "GIPITI",
+  alternateName: ["Гипити", "гипити"],
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",
   description: "AI-чат платформа с доступом к 18+ моделям от 6 провайдеров",
@@ -56,10 +57,45 @@ const jsonLd = {
   ],
 };
 
+// WebSite + Organization graph. The `alternateName` aliases tell search engines
+// that the Cyrillic spelling «Гипити» is the same brand as the Latin "GIPITI".
+// TODO: add real social profile URLs to Organization.sameAs (VK, Telegram, etc.)
+// once available — co-occurrence there reinforces the brand-alias association.
+const siteJsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://gipiti.ru/#website",
+      name: "GIPITI",
+      alternateName: ["Гипити", "гипити", "ГИПИТИ", "Gipiti", "GIPITI чат"],
+      url: "https://gipiti.ru",
+      inLanguage: "ru",
+      publisher: { "@id": "https://gipiti.ru/#organization" },
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://gipiti.ru/#organization",
+      name: "GIPITI",
+      alternateName: ["Гипити", "гипити"],
+      url: "https://gipiti.ru",
+      logo: "https://gipiti.ru/icon.png",
+    },
+  ],
+};
+
 const faqJsonLd = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
   mainEntity: [
+    {
+      "@type": "Question",
+      name: "Что такое Гипити?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Гипити (GIPITI) — это российская платформа-агрегатор нейросетей. В одном чате доступны лучшие AI-модели: ChatGPT, Gemini, Claude и Grok, а также генерация изображений, видео и кода. Доступно из России, оплата в рублях.",
+      },
+    },
     {
       "@type": "Question",
       name: "Нужно ли платить, чтобы начать?",
@@ -110,6 +146,12 @@ export default function LandingPage() {
         // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD for SEO
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         id="json-ld"
+        type="application/ld+json"
+      />
+      <Script
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD for SEO
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(siteJsonLd) }}
+        id="site-json-ld"
         type="application/ld+json"
       />
       <Script
