@@ -1,18 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { downloadFromUrl } from "@/lib/download";
 import { useTranslations } from "@/lib/i18n/translate";
 import type { RunGroupPart } from "@/lib/messages/group-tool-runs";
 import type { ChatMessage } from "@/lib/types";
 import { extractDomain, faviconUrl } from "@/lib/url";
-import { MediaPreview, type MediaPreviewState } from "./elements/media-preview";
 import { Response } from "./elements/response";
 import {
   EarlierStepsToggle,
   RECENT_STEPS_COUNT,
   type SourceChipData,
-  StepBody,
   type StepKind,
   StepQuery,
   StepSources,
@@ -21,7 +18,6 @@ import {
   ToolRunMetaSeparator,
   ToolRunStep,
 } from "./elements/tool-run";
-import { toast } from "./toast";
 
 type ChatMessagePart = ChatMessage["parts"][number];
 type AnyPart = ChatMessagePart;
@@ -54,8 +50,7 @@ type StepDescriptor = {
     | "weather"
     | "createdDocument"
     | "updatedDocument"
-    | "requestedSuggestions"
-    | "generatedImage";
+    | "requestedSuggestions";
   body: React.ReactNode;
   /**
    * For `thought` steps, the full reasoning text (rendered as markdown when
@@ -188,37 +183,6 @@ const useElapsedSeconds = (
   return elapsed;
 };
 
-type ToolImagePreviewProps = {
-  state: MediaPreviewState;
-  imageUrl?: string;
-};
-
-const ToolImagePreview = ({ state, imageUrl }: ToolImagePreviewProps) => {
-  const t = useTranslations("chat.messages");
-
-  const handleDownload = async () => {
-    if (!imageUrl) {
-      return;
-    }
-    try {
-      await downloadFromUrl(imageUrl, "generated-image.png");
-    } catch {
-      toast({ type: "error", description: t("downloadError") });
-    }
-  };
-
-  return (
-    <StepBody>
-      <MediaPreview
-        mediaType="image"
-        onDownload={imageUrl ? handleDownload : undefined}
-        state={state}
-        url={imageUrl}
-      />
-    </StepBody>
-  );
-};
-
 type BuildStepArgs = {
   part: AnyPart;
   index: number;
@@ -336,31 +300,6 @@ const buildStep = ({
             {error && (
               <span className="ml-2 text-destructive">{String(error)}</span>
             )}
-          </>
-        ),
-      };
-    }
-    case "tool-generateImage": {
-      const prompt: string = toolPart.input?.prompt ?? "";
-      const imageUrl: string | undefined =
-        state === "output-available" ? toolPart.output?.imageUrl : undefined;
-      const isError =
-        state === "output-error" || (state === "output-available" && !imageUrl);
-      const previewState: MediaPreviewState = isError
-        ? "error"
-        : imageUrl
-          ? "done"
-          : "generating";
-      return {
-        key,
-        kind: "generatedImage",
-        isActive,
-        hasSources: 0,
-        verbKey: "generatedImage",
-        body: (
-          <>
-            {prompt && <StepQuery>{prompt}</StepQuery>}
-            <ToolImagePreview imageUrl={imageUrl} state={previewState} />
           </>
         ),
       };

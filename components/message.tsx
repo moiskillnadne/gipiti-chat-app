@@ -11,8 +11,9 @@ import { groupToolRuns } from "@/lib/messages/group-tool-runs";
 import type { ChatMessage } from "@/lib/types";
 import { cn, sanitizeText } from "@/lib/utils";
 import { AssistantIcon } from "./assistant-icon";
-import { MediaPreview } from "./elements/media-preview";
+import { MediaPreview, type MediaPreviewState } from "./elements/media-preview";
 import { MessageContent } from "./elements/message";
+import { PdfPreview } from "./elements/pdf-preview";
 import { Response } from "./elements/response";
 import { MessageActions } from "./message-actions";
 import { MessageEditor } from "./message-editor";
@@ -37,6 +38,21 @@ const getModelIdFromMessage = (message: ChatMessage): string | undefined => {
     return modelIdPart.data as string;
   }
   return;
+};
+
+/**
+ * Map an AI SDK tool-part lifecycle state to a MediaPreview state. A media tool
+ * is "generating" until its output URL arrives, "done" once it does, and
+ * "error" on failure (or a finished call with no URL).
+ */
+const mediaStateFromToolPart = (
+  state: string,
+  hasUrl: boolean
+): MediaPreviewState => {
+  if (state === "output-error" || (state === "output-available" && !hasUrl)) {
+    return "error";
+  }
+  return hasUrl ? "done" : "generating";
 };
 
 const PurePreviewMessage = ({
@@ -92,6 +108,14 @@ const PurePreviewMessage = ({
     }
   };
 
+  const downloadPdf = async (pdfUrl: string, title?: string) => {
+    try {
+      await downloadFromUrl(pdfUrl, `${title?.trim() || "document"}.pdf`);
+    } catch {
+      toast({ type: "error", description: t("downloadFileError") });
+    }
+  };
+
   const attachmentsFromMessage = message.parts.filter(
     (part) => part.type === "file"
   );
@@ -135,7 +159,9 @@ const PurePreviewMessage = ({
                     (p.type === "text" && p.text?.trim()) ||
                     p.type === "data-mediaGeneration" ||
                     p.type === "data-imageGenerationFinish" ||
-                    p.type === "data-videoGenerationFinish"
+                    p.type === "data-videoGenerationFinish" ||
+                    p.type === "tool-generateImage" ||
+                    p.type === "tool-generatePdf"
                 )) ||
               mode === "edit",
             "max-w-[calc(100%-2.5rem)] sm:max-w-[min(fit-content,80%)]":
@@ -171,6 +197,50 @@ const PurePreviewMessage = ({
                   isMessageLoading={isLoading}
                   key={part.key}
                   streamStartedAtMs={streamStartedAtMs}
+                />
+              );
+            }
+
+            // Tool-generated media renders as a standalone card outside the
+            // tool-run box (kept out of the run-group by groupToolRuns).
+            if (part.type === "tool-generateImage") {
+              const imageUrl =
+                part.state === "output-available"
+                  ? part.output?.imageUrl
+                  : undefined;
+
+              return (
+                <MediaPreview
+                  key={key}
+                  mediaType="image"
+                  onDownload={
+                    imageUrl
+                      ? () => downloadMedia(imageUrl, "image")
+                      : undefined
+                  }
+                  prompt={part.input?.prompt}
+                  state={mediaStateFromToolPart(part.state, Boolean(imageUrl))}
+                  url={imageUrl}
+                />
+              );
+            }
+
+            if (part.type === "tool-generatePdf") {
+              const pdfUrl =
+                part.state === "output-available"
+                  ? part.output?.pdfUrl
+                  : undefined;
+              const pdfTitle = part.input?.title;
+
+              return (
+                <PdfPreview
+                  key={key}
+                  onDownload={
+                    pdfUrl ? () => downloadPdf(pdfUrl, pdfTitle) : undefined
+                  }
+                  state={mediaStateFromToolPart(part.state, Boolean(pdfUrl))}
+                  title={pdfTitle}
+                  url={pdfUrl}
                 />
               );
             }
