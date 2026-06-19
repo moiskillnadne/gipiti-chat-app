@@ -1,7 +1,7 @@
 import type { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google";
 import type { SharedV2ProviderOptions } from "@ai-sdk/provider";
 
-export const DEFAULT_CHAT_MODEL: string = "gpt-5.5";
+export const DEFAULT_CHAT_MODEL: string = "gpt-5.4-mini";
 
 export type ChatModelCapabilities = {
   reasoning?: boolean;
