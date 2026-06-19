@@ -40,6 +40,14 @@ function RegisterPage() {
 
   const [isSuccessful, setIsSuccessful] = useState(false);
 
+  // navigator is client-only; read it after mount and submit via a hidden field
+  // so the registration action can persist the user's preferred language.
+  const [browserLanguage, setBrowserLanguage] = useState("");
+
+  useEffect(() => {
+    setBrowserLanguage(navigator.language);
+  }, []);
+
   const [state, formAction] = useActionState<RegisterActionState, FormData>(
     register,
     {
@@ -94,6 +102,7 @@ function RegisterPage() {
     <AuthPageLayout>
       <AuthPageHeader subtitle={t("subtitle")} title={t("title")} />
       <AuthForm action={formAction} mode="register">
+        <input name="language" type="hidden" value={browserLanguage} />
         <SubmitButton isSuccessful={isSuccessful}>
           {t("signUpButton")}
         </SubmitButton>
