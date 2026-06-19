@@ -15,6 +15,10 @@ import { sendPasswordResetEmail } from "@/lib/email/send-password-reset";
 import { sendVerificationEmail } from "@/lib/email/send-verification-email";
 import { isSignupEnabled } from "@/lib/flags";
 import {
+  getRegistrationGeoFromHeaders,
+  sanitizeLanguage,
+} from "@/lib/geo/registration-geo";
+import {
   checkPasswordResetRateLimit,
   checkVerificationResendRateLimit,
   getRateLimitResetMinutes,
@@ -120,10 +124,16 @@ export const register = async (
       utmCookie ? decodeURIComponent(utmCookie) : undefined
     );
 
+    // Capture where the user signed up from: country/region/city from the
+    // Vercel edge IP headers, plus the browser language from a hidden field.
+    const geoHeaders = await getRegistrationGeoFromHeaders();
+    const language = sanitizeLanguage(formData.get("language"));
+
     await createUser(
       validatedData.email,
       validatedData.password,
-      utmData ?? undefined
+      utmData ?? undefined,
+      { ...geoHeaders, language }
     );
 
     // Clear UTM cookie after attribution
@@ -144,6 +154,9 @@ export const register = async (
       return { status: "invalid_data" };
     }
 
+    // Surface the real cause instead of swallowing it behind "failed" —
+    // a silent catch here is what hid the geo-headers crash (GIPITI-87).
+    console.error("Error in register:", error);
     return { status: "failed" };
   }
 };

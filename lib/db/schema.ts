@@ -44,6 +44,12 @@ export const user = pgTable(
     utmContent: varchar("utm_content", { length: 255 }),
     utmTerm: varchar("utm_term", { length: 255 }),
 
+    // Registration geolocation (captured once at signup)
+    registrationCountry: varchar("registration_country", { length: 2 }),
+    registrationRegion: varchar("registration_region", { length: 16 }),
+    registrationCity: varchar("registration_city", { length: 255 }),
+    registrationLanguage: varchar("registration_language", { length: 35 }),
+
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },

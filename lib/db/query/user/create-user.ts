@@ -5,6 +5,7 @@ import {
 } from "../../../billing/constants";
 import { majorToMinorUnits } from "../../../billing/money";
 import { ChatSDKError } from "../../../errors";
+import type { RegistrationGeo } from "../../../geo/registration-geo";
 import type { UtmData } from "../../../utm/constants";
 import { db } from "../../connection";
 import { user } from "../../schema";
@@ -13,7 +14,8 @@ import { generateHashedPassword } from "../../utils";
 export async function createUser(
   email: string,
   password: string,
-  utmData?: UtmData
+  utmData?: UtmData,
+  registrationGeo?: RegistrationGeo
 ) {
   const hashedPassword = generateHashedPassword(password);
 
@@ -31,6 +33,12 @@ export async function createUser(
           utmCampaign: utmData.utmCampaign,
           utmContent: utmData.utmContent,
           utmTerm: utmData.utmTerm,
+        }),
+        ...(registrationGeo && {
+          registrationCountry: registrationGeo.country,
+          registrationRegion: registrationGeo.region,
+          registrationCity: registrationGeo.city,
+          registrationLanguage: registrationGeo.language,
         }),
       })
       .returning();
