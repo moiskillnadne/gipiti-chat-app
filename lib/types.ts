@@ -2,6 +2,7 @@ import type { InferUITool, UIMessage } from "ai";
 import { z } from "zod";
 import type { calculator } from "./ai/tools/calculator";
 import type { extractUrl } from "./ai/tools/extract-url";
+import type { generateDocxTool } from "./ai/tools/generate-docx";
 import type { generateImageTool } from "./ai/tools/generate-image";
 import type { generatePdfTool } from "./ai/tools/generate-pdf";
 import type { webSearch } from "./ai/tools/web-search";
@@ -27,6 +28,7 @@ type webSearchTool = InferUITool<ReturnType<typeof webSearch>>;
 type extractUrlTool = InferUITool<ReturnType<typeof extractUrl>>;
 type generateImageToolType = InferUITool<ReturnType<typeof generateImageTool>>;
 type generatePdfToolType = InferUITool<ReturnType<typeof generatePdfTool>>;
+type generateDocxToolType = InferUITool<ReturnType<typeof generateDocxTool>>;
 
 export type ChatTools = {
   calculator: calculatorTool;
@@ -34,6 +36,7 @@ export type ChatTools = {
   extractUrl: extractUrlTool;
   generateImage: generateImageToolType;
   generatePdf: generatePdfToolType;
+  generateDocx: generateDocxToolType;
 };
 
 export type CustomUIDataTypes = {

@@ -64,3 +64,18 @@ export async function uploadGeneratedPdf(pdfData: Buffer): Promise<string> {
   });
   return url;
 }
+
+/**
+ * Upload a generated DOCX Buffer to Vercel Blob and return its public URL.
+ * Shared by the generateDocx tool.
+ */
+export async function uploadGeneratedDocx(docxData: Buffer): Promise<string> {
+  const filename = `generated-${generateUUID()}.docx`;
+
+  const { url } = await put(filename, docxData, {
+    access: "public",
+    contentType:
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  });
+  return url;
+}
