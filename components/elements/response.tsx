@@ -1,10 +1,76 @@
 "use client";
 
-import { type ComponentProps, memo } from "react";
+import { type ComponentProps, memo, type ReactNode } from "react";
 import { Streamdown } from "streamdown";
 import { cn } from "@/lib/utils";
 
 type ResponseProps = ComponentProps<typeof Streamdown>;
+
+/**
+ * Minimal shape of the hast node react-markdown passes to custom components.
+ * Only the fields the paragraph-unwrap logic reads are modeled.
+ */
+type MarkdownHastNode = {
+  type: string;
+  tagName?: string;
+  value?: string;
+  children?: MarkdownHastNode[];
+};
+
+type MarkdownParagraphProps = ComponentProps<"p"> & {
+  node?: MarkdownHastNode;
+};
+
+const isWhitespaceTextNode = (node: MarkdownHastNode): boolean =>
+  node.type === "text" && (node.value ?? "").trim().length === 0;
+
+/**
+ * True when a paragraph's only meaningful children are images (whitespace text
+ * nodes are ignored). Mirrors rehype-unwrap-images' unwrap condition.
+ */
+const containsOnlyImages = (node: MarkdownHastNode | undefined): boolean => {
+  const children = node?.children;
+
+  if (!children?.length) {
+    return false;
+  }
+
+  let hasImage = false;
+
+  for (const child of children) {
+    if (child.type === "element" && child.tagName === "img") {
+      hasImage = true;
+      continue;
+    }
+
+    if (isWhitespaceTextNode(child)) {
+      continue;
+    }
+
+    return false;
+  }
+
+  return hasImage;
+};
+
+/**
+ * Streamdown's image renderer wraps each `<img>` in a `<div>` (hover overlay +
+ * download button). Markdown parses a standalone image into a paragraph, which
+ * would nest that `<div>` inside a `<p>` — invalid HTML that triggers a React
+ * hydration error. Unwrap image-only paragraphs so the image renders at the
+ * block level instead; everything else stays a normal paragraph.
+ */
+const MarkdownParagraph = ({
+  node,
+  children,
+  ...props
+}: MarkdownParagraphProps): ReactNode => {
+  if (containsOnlyImages(node)) {
+    return <>{children}</>;
+  }
+
+  return <p {...props}>{children}</p>;
+};
 
 export const Response = memo(
   ({ className, components, ...props }: ResponseProps) => (
@@ -17,6 +83,7 @@ export const Response = memo(
         {
           ...(components as Record<string, unknown>),
           think: () => null,
+          p: MarkdownParagraph,
         } as ResponseProps["components"]
       }
       defaultOrigin="https://app"

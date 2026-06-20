@@ -71,10 +71,11 @@ type MergeUsageInput = {
  * Merge raw model usage with image-tool usage and (when both a resolved modelId
  * and a catalog are available) TokenLens cost enrichment.
  *
- * Mirrors the previous inline onFinish behavior exactly:
  * - missing modelId or catalog → token-count merge only (no cost fields)
- * - otherwise → spread the TokenLens summary and fold the image accumulator's
- *   tokens and cost into the totals.
+ * - otherwise → spread the TokenLens summary, merge the image accumulator's
+ *   tokens into the token totals, and fold its provider cost into
+ *   `costUSD.totalUSD` — the field both `usageChargeUsd` (billing) and the UI
+ *   read. Without this the in-chat `generateImage` tool cost is never charged.
  */
 export function mergeUsage({
   usage,
@@ -96,9 +97,7 @@ export function mergeUsage({
   }
 
   const summary = getUsage({ modelId, usage, providers: catalog });
-  const baseCost =
-    ((summary as AppUsage).inputCost ?? 0) +
-    ((summary as AppUsage).outputCost ?? 0);
+  const chatTotalUsd = summary.costUSD?.totalUSD ?? 0;
 
   return {
     ...usage,
@@ -106,7 +105,14 @@ export function mergeUsage({
     modelId,
     inputTokens: mergedInputTokens,
     outputTokens: mergedOutputTokens,
-    inputCost: baseCost + accumulator.totalCost,
+    // Fold the in-chat image-tool provider cost into the charged/displayed
+    // total. usageChargeUsd() and the UI both read costUSD.totalUSD, so the
+    // accumulated image cost must land here — the previous `inputCost` field
+    // was read by nothing, so that cost was silently dropped from billing.
+    costUSD: {
+      ...summary.costUSD,
+      totalUSD: chatTotalUsd + accumulator.totalCost,
+    },
   } as AppUsage;
 }
 
