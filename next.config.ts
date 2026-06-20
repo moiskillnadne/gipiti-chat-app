@@ -5,7 +5,9 @@ const nextConfig: NextConfig = {
   cacheComponents: false,
   // pdfmake is CJS and pulls in pdfkit's binary font/AFM assets that the bundler
   // mishandles — keep it external so it loads from node_modules at runtime.
-  serverExternalPackages: ["pdfmake"],
+  // exceljs is CJS too and pulls in archiver/fast-csv; externalizing avoids the
+  // same bundler issues (it needs no asset bundling, unlike pdfmake).
+  serverExternalPackages: ["pdfmake", "exceljs"],
   // Ship the watermark logo and the PDF (Roboto, Cyrillic-capable) fonts with the
   // chat function bundle so they can be read from the filesystem at runtime
   // (public/asset files are otherwise CDN-only).

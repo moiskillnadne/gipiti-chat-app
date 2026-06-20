@@ -10,6 +10,7 @@ const SUPPORTED_FILE_TYPES = [
   "image/png",
   "application/pdf",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 ];
 
 const FileSchema = z.object({
@@ -19,7 +20,7 @@ const FileSchema = z.object({
       message: "File size should be less than 10MB",
     })
     .refine((file) => SUPPORTED_FILE_TYPES.includes(file.type), {
-      message: "File type should be JPEG, PNG, PDF, or DOCX",
+      message: "File type should be JPEG, PNG, PDF, DOCX, or XLSX",
     }),
 });
 

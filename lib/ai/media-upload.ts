@@ -79,3 +79,18 @@ export async function uploadGeneratedDocx(docxData: Buffer): Promise<string> {
   });
   return url;
 }
+
+/**
+ * Upload a generated XLSX Buffer to Vercel Blob and return its public URL.
+ * Shared by the generateXlsx and updateXlsx tools.
+ */
+export async function uploadGeneratedXlsx(xlsxData: Buffer): Promise<string> {
+  const filename = `generated-${generateUUID()}.xlsx`;
+
+  const { url } = await put(filename, xlsxData, {
+    access: "public",
+    contentType:
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  return url;
+}
