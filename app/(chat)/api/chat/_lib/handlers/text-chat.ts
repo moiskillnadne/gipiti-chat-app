@@ -5,6 +5,7 @@ import {
   stepCountIs,
   streamText,
 } from "ai";
+import { attachDocxContentForModel } from "@/lib/ai/docx-extract";
 import {
   getProviderOptions,
   isAutoReasoning,
@@ -17,6 +18,7 @@ import { myProvider } from "@/lib/ai/providers";
 import { resolveLatestImageUrl } from "@/lib/ai/resolve-latest-image";
 import { calculator } from "@/lib/ai/tools/calculator";
 import { extractUrl } from "@/lib/ai/tools/extract-url";
+import { generateDocx } from "@/lib/ai/tools/generate-docx";
 import { generateImage } from "@/lib/ai/tools/generate-image";
 import { generatePdf } from "@/lib/ai/tools/generate-pdf";
 import { webSearch } from "@/lib/ai/tools/web-search";
@@ -141,7 +143,11 @@ export async function runTextChat(
   // Static system prompt + dynamic context as a leading message keeps the
   // system block byte-identical across users so the Gateway cache prefix is
   // shared. Per-user data (geolocation, project) lives below the cache line.
-  const baseMessages = (await convertToModelMessages(ctx.uiMessages)).filter(
+  // Replace any uploaded .docx attachments with their extracted text so the
+  // model can read Word files (providers can't read .docx natively). The stored
+  // user message keeps its file part, so the UI still shows the attachment chip.
+  const messagesForModel = await attachDocxContentForModel(ctx.uiMessages);
+  const baseMessages = (await convertToModelMessages(messagesForModel)).filter(
     (message) => !isEmptyAssistantMessage(message)
   );
   const contextMessage = buildContextMessage({
@@ -209,6 +215,10 @@ export async function runTextChat(
         latestImageUrl,
       }),
       generatePdf: generatePdf({
+        userId: ctx.userId,
+        chatId: ctx.chatId,
+      }),
+      generateDocx: generateDocx({
         userId: ctx.userId,
         chatId: ctx.chatId,
       }),

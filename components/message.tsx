@@ -11,6 +11,7 @@ import { groupToolRuns } from "@/lib/messages/group-tool-runs";
 import type { ChatMessage } from "@/lib/types";
 import { cn, sanitizeText } from "@/lib/utils";
 import { AssistantIcon } from "./assistant-icon";
+import { DocxPreview } from "./elements/docx-preview";
 import { MediaPreview, type MediaPreviewState } from "./elements/media-preview";
 import { MessageContent } from "./elements/message";
 import { PdfPreview } from "./elements/pdf-preview";
@@ -116,6 +117,14 @@ const PurePreviewMessage = ({
     }
   };
 
+  const downloadDocx = async (docxUrl: string, title?: string) => {
+    try {
+      await downloadFromUrl(docxUrl, `${title?.trim() || "document"}.docx`);
+    } catch {
+      toast({ type: "error", description: t("downloadFileError") });
+    }
+  };
+
   const attachmentsFromMessage = message.parts.filter(
     (part) => part.type === "file"
   );
@@ -161,7 +170,8 @@ const PurePreviewMessage = ({
                     p.type === "data-imageGenerationFinish" ||
                     p.type === "data-videoGenerationFinish" ||
                     p.type === "tool-generateImage" ||
-                    p.type === "tool-generatePdf"
+                    p.type === "tool-generatePdf" ||
+                    p.type === "tool-generateDocx"
                 )) ||
               mode === "edit",
             "max-w-[calc(100%-2.5rem)] sm:max-w-[min(fit-content,80%)]":
@@ -241,6 +251,26 @@ const PurePreviewMessage = ({
                   state={mediaStateFromToolPart(part.state, Boolean(pdfUrl))}
                   title={pdfTitle}
                   url={pdfUrl}
+                />
+              );
+            }
+
+            if (part.type === "tool-generateDocx") {
+              const docxUrl =
+                part.state === "output-available"
+                  ? part.output?.docxUrl
+                  : undefined;
+              const docxTitle = part.input?.title;
+
+              return (
+                <DocxPreview
+                  key={key}
+                  onDownload={
+                    docxUrl ? () => downloadDocx(docxUrl, docxTitle) : undefined
+                  }
+                  state={mediaStateFromToolPart(part.state, Boolean(docxUrl))}
+                  title={docxTitle}
+                  url={docxUrl}
                 />
               );
             }

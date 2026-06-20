@@ -5,7 +5,12 @@ import { z } from "zod";
 import { auth } from "@/app/(auth)/auth";
 
 // Use Blob instead of File since File is not available in Node.js environment
-const SUPPORTED_FILE_TYPES = ["image/jpeg", "image/png", "application/pdf"];
+const SUPPORTED_FILE_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "application/pdf",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+];
 
 const FileSchema = z.object({
   file: z
@@ -14,7 +19,7 @@ const FileSchema = z.object({
       message: "File size should be less than 10MB",
     })
     .refine((file) => SUPPORTED_FILE_TYPES.includes(file.type), {
-      message: "File type should be JPEG, PNG, or PDF",
+      message: "File type should be JPEG, PNG, PDF, or DOCX",
     }),
 });
 
