@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 
+// Root-relative so the anchors resolve to the landing-page sections from any
+// route (e.g. the blog), not only when already on "/".
 const productLinks = [
-  { label: "Возможности", href: "#features" },
-  { label: "Модели", href: "#models" },
-  { label: "Тарифы", href: "#pricing" },
+  { label: "Возможности", href: "/#features" },
+  { label: "Модели", href: "/#models" },
+  { label: "Тарифы", href: "/#pricing" },
 ];
 
 const companyLinks = [
@@ -27,13 +29,13 @@ export const LandingFooter = () => (
             GIPITI (Гипити) — единая платформа для общения с лучшими
             AI-моделями. Доступно из России, оплата в рублях.
           </p>
-          <a
+          <Link
             className="mt-4 inline-flex items-center gap-2 text-indigo-400 text-sm transition-colors hover:text-indigo-300"
-            href="#pricing"
+            href="/#pricing"
           >
             Попробовать бесплатно
             <span aria-hidden="true">&rarr;</span>
-          </a>
+          </Link>
         </div>
 
         {/* Product column */}
@@ -42,12 +44,12 @@ export const LandingFooter = () => (
           <ul className="space-y-2.5">
             {productLinks.map((link) => (
               <li key={link.href}>
-                <a
+                <Link
                   className="text-sm text-zinc-400 transition-colors hover:text-white"
                   href={link.href}
                 >
                   {link.label}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>

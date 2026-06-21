@@ -4,11 +4,13 @@ import { motion, useMotionValueEvent, useScroll } from "framer-motion";
 import Link from "next/link";
 import { useState } from "react";
 
+// Root-relative so the anchors resolve to the landing-page sections from any
+// route (e.g. the blog), not only when already on "/".
 const navLinks = [
-  { label: "Модели", href: "#models" },
-  { label: "Возможности", href: "#features" },
-  { label: "Тарифы", href: "#pricing" },
-  { label: "FAQ", href: "#faq" },
+  { label: "Модели", href: "/#models" },
+  { label: "Возможности", href: "/#features" },
+  { label: "Тарифы", href: "/#pricing" },
+  { label: "FAQ", href: "/#faq" },
 ];
 
 export const LandingNav = () => {
@@ -39,13 +41,13 @@ export const LandingNav = () => {
 
         <div className="hidden items-center gap-8 md:flex">
           {navLinks.map((link) => (
-            <a
+            <Link
               className="text-sm text-zinc-400 transition-colors hover:text-white"
               href={link.href}
               key={link.href}
             >
               {link.label}
-            </a>
+            </Link>
           ))}
         </div>
 
@@ -64,12 +66,12 @@ export const LandingNav = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.2 }}
           >
-            <a
+            <Link
               className="hidden rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-5 py-2 font-medium text-sm text-white transition-all hover:shadow-indigo-500/25 hover:shadow-lg sm:inline-flex"
-              href="#pricing"
+              href="/#pricing"
             >
               Тарифы
-            </a>
+            </Link>
           </motion.div>
         </div>
       </nav>

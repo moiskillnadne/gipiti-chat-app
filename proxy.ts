@@ -39,6 +39,19 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Author preview tool: no login (external author), never indexed, hidden behind
+  // a shared secret in production. Dev is open for convenience.
+  if (pathname === "/blog/preview") {
+    const expectedKey = process.env.BLOG_PREVIEW_KEY;
+    const providedKey = request.nextUrl.searchParams.get("key");
+    const isAllowed = isDevelopmentEnvironment
+      ? true
+      : Boolean(expectedKey) && providedKey === expectedKey;
+    return isAllowed
+      ? NextResponse.next()
+      : new NextResponse(null, { status: 404 });
+  }
+
   const response = NextResponse.next();
 
   const token = await getToken({
@@ -54,7 +67,11 @@ export async function proxy(request: NextRequest) {
     "/reset-password",
   ].includes(pathname);
 
-  const isPublicRoute = pathname.startsWith("/legal/") || pathname === "/";
+  // `/blog/preview` is handled above; everything else under `/blog` is public.
+  const isPublicRoute =
+    pathname.startsWith("/legal/") ||
+    pathname === "/" ||
+    pathname.startsWith("/blog");
 
   // Redirect authenticated from landing page to chat
   if (token && pathname === "/") {
