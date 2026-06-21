@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/api/", "/chat/", "/subscription"],
+        disallow: ["/api/", "/chat/", "/subscription", "/blog/preview"],
       },
     ],
     sitemap: "https://gipiti.ru/sitemap.xml",

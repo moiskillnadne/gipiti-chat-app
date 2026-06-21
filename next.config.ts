@@ -17,6 +17,11 @@ const nextConfig: NextConfig = {
       "./assets/fonts/Roboto-Italic.ttf",
       "./assets/fonts/Roboto-MediumItalic.ttf",
     ],
+    // The blog reads Markdown files from the repo at build and on ISR
+    // revalidation — ship them with the relevant functions.
+    "/sitemap.xml": ["./content/blog/**/*.md"],
+    "/blog": ["./content/blog/**/*.md"],
+    "/blog/[slug]": ["./content/blog/**/*.md"],
   },
   experimental: {
     serverActions: {
