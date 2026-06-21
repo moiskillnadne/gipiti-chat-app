@@ -5,6 +5,7 @@ import { ArticleView } from "@/components/blog/article-view";
 import { BlogCta } from "@/components/blog/blog-cta";
 import { LandingFooter } from "@/components/landing/landing-footer";
 import { LandingNav } from "@/components/landing/landing-nav";
+import { IS_BLOG_INDEX_ENABLED } from "@/lib/blog/config";
 import { getAllPublishedSlugs, getPostBySlug } from "@/lib/blog/posts";
 import { getTranslations } from "@/lib/i18n/translate";
 
@@ -66,6 +67,13 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   const t = await getTranslations("blog");
   const { frontmatter } = post;
 
+  // The article list is gated, so when it's hidden the "back" link returns to the
+  // home page rather than the 404'd `/blog`.
+  const backHref = IS_BLOG_INDEX_ENABLED ? "/blog" : "/";
+  const backLabel = IS_BLOG_INDEX_ENABLED
+    ? t("article.backToBlog")
+    : t("article.backToHome");
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -104,8 +112,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         />
         <BlogCta />
         <div className="back">
-          <Link href="/blog">
-            <span aria-hidden="true">←</span> {t("article.backToBlog")}
+          <Link href={backHref}>
+            <span aria-hidden="true">←</span> {backLabel}
           </Link>
         </div>
       </main>

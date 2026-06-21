@@ -13,6 +13,10 @@ import { PostCard } from "./post-card";
 
 type CategoryFilter = BlogCategory | "all";
 
+// The category filter only earns its place once there's enough to browse; with
+// fewer published articles it's noise, so the chips stay hidden.
+const MIN_POSTS_FOR_FILTERS = 6;
+
 type BlogIndexProps = {
   posts: BlogPostMeta[];
 };
@@ -77,6 +81,7 @@ export const BlogIndex = ({ posts }: BlogIndexProps) => {
 
   const featured = posts.at(0);
   const readingLabel = t("reading");
+  const areFiltersVisible = posts.length >= MIN_POSTS_FOR_FILTERS;
 
   const isFeaturedVisible =
     featured !== undefined &&
@@ -101,30 +106,37 @@ export const BlogIndex = ({ posts }: BlogIndexProps) => {
   }
 
   const totalVisible = visiblePosts.length + (isFeaturedVisible ? 1 : 0);
+  // The newest post is shown as the featured card, so the "all articles" grid
+  // only lists the remaining posts. Hide that section when there are none (e.g.
+  // a single article), and show a hint when a category filter matches nothing.
+  const hasMorePosts = visiblePosts.length > 0;
+  const hasNoVisiblePosts = !(isFeaturedVisible || hasMorePosts);
 
   return (
     <>
       <BlogHero t={t} />
 
-      <div className="blog-filters">
-        <button
-          className={`chip ${activeCategory === "all" ? "on" : ""}`}
-          onClick={() => setActiveCategory("all")}
-          type="button"
-        >
-          {t("filters.all")}
-        </button>
-        {BLOG_CATEGORIES.map((category) => (
+      {areFiltersVisible ? (
+        <div className="blog-filters">
           <button
-            className={`chip ${activeCategory === category ? "on" : ""}`}
-            key={category}
-            onClick={() => setActiveCategory(category)}
+            className={`chip ${activeCategory === "all" ? "on" : ""}`}
+            onClick={() => setActiveCategory("all")}
             type="button"
           >
-            {category}
+            {t("filters.all")}
           </button>
-        ))}
-      </div>
+          {BLOG_CATEGORIES.map((category) => (
+            <button
+              className={`chip ${activeCategory === category ? "on" : ""}`}
+              key={category}
+              onClick={() => setActiveCategory(category)}
+              type="button"
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+      ) : null}
 
       {isFeaturedVisible && featured ? (
         <FeaturedCard
@@ -134,18 +146,30 @@ export const BlogIndex = ({ posts }: BlogIndexProps) => {
         />
       ) : null}
 
-      <div className="section-head">
-        <h2>{t("sectionTitle")}</h2>
-        <span className="count">{t("count", { count: totalVisible })}</span>
-      </div>
+      {hasMorePosts ? (
+        <>
+          <div className="section-head">
+            <h2>{t("sectionTitle")}</h2>
+            <span className="count">{t("count", { count: totalVisible })}</span>
+          </div>
 
-      <div className="grid-wrap">
-        <div className="card-grid">
-          {visiblePosts.map((post) => (
-            <PostCard key={post.slug} post={post} readingLabel={readingLabel} />
-          ))}
-        </div>
-      </div>
+          <div className="grid-wrap">
+            <div className="card-grid">
+              {visiblePosts.map((post) => (
+                <PostCard
+                  key={post.slug}
+                  post={post}
+                  readingLabel={readingLabel}
+                />
+              ))}
+            </div>
+          </div>
+        </>
+      ) : null}
+
+      {hasNoVisiblePosts ? (
+        <p className="blog-empty">{t("categoryEmpty")}</p>
+      ) : null}
 
       <BlogCta />
     </>

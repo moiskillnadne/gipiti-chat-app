@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { BlogIndex } from "@/components/blog/blog-index";
 import { LandingFooter } from "@/components/landing/landing-footer";
 import { LandingNav } from "@/components/landing/landing-nav";
+import { IS_BLOG_INDEX_ENABLED } from "@/lib/blog/config";
 import { getAllPublishedPosts } from "@/lib/blog/posts";
 
 export const dynamic = "force-static";
@@ -24,6 +26,11 @@ export const metadata: Metadata = {
 };
 
 export default async function BlogIndexPage() {
+  // Manually gated until there are enough articles to launch the list page.
+  if (!IS_BLOG_INDEX_ENABLED) {
+    notFound();
+  }
+
   const posts = await getAllPublishedPosts();
 
   return (

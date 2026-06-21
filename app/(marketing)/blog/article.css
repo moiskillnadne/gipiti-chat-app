@@ -216,7 +216,7 @@
 }
 .featured .fmedia {
   aspect-ratio: 16 / 10;
-  height: 100%;
+  width: 100%;
   border-radius: 0;
   border: none;
 }
@@ -257,6 +257,15 @@
 @media (min-width: 900px) {
   .featured a {
     grid-template-columns: 1.05fr 1fr;
+  }
+  /* Fill the (grid-stretched) image column to the text column's height without
+     letting aspect-ratio inflate the track and squeeze the text to a sliver. */
+  .featured .fmedia {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    aspect-ratio: auto;
   }
 }
 
