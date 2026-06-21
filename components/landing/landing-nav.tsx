@@ -11,6 +11,7 @@ const navLinks = [
   { label: "Возможности", href: "/#features" },
   { label: "Тарифы", href: "/#pricing" },
   { label: "FAQ", href: "/#faq" },
+  { label: "Блог", href: "/blog" },
 ];
 
 export const LandingNav = () => {
