@@ -1,7 +1,8 @@
-import { and, desc, eq, gte, sql } from "drizzle-orm";
+import { and, desc, eq, gte, ne, sql } from "drizzle-orm";
 import { chatModels } from "@/lib/ai/models";
 import { db } from "@/lib/db/connection";
 import { chat, transaction } from "@/lib/db/schema";
+import { type BalanceSummary, getBalance } from "./balance";
 
 // usage_debit rows are tagged by chargeUsage: web search/extract use these
 // synthetic modelIds, image generation uses this description, everything else
@@ -142,4 +143,89 @@ export async function getRecentSpendMinor(
     );
 
   return Number(row?.total ?? 0);
+}
+
+export type SpendProgress = {
+  // Total balance right after the user's last credit (minor units).
+  referenceTotal: number;
+  // Current spendable balance (subscription + top-up pools).
+  currentTotal: number;
+  // Share of the epoch's reference balance already spent, 0..100 (rounded).
+  spentPercent: number;
+  // Identifies the current "balance epoch": the last-credit transaction id, or
+  // "none" when the user has no credits yet. Changes whenever a fresh credit
+  // lands, which the spend banner uses to re-arm its 50%/75% thresholds.
+  epochKey: string;
+};
+
+/**
+ * Progress of spend within the current "balance epoch" — the window since the
+ * user's most recent credit (top-up, subscription renewal, or bonus).
+ *
+ * The denominator is the total balance right after that credit, recovered from
+ * the transaction's `subscriptionBalanceAfter + topupBalanceAfter` snapshot:
+ * between two credits the balance only declines via usage debits, so that
+ * snapshot is exactly the epoch's starting total. A new credit starts a new
+ * epoch (new `epochKey`) with `spentPercent` back at 0.
+ *
+ * Pass `balanceSummary` to reuse a balance the caller already fetched.
+ */
+export async function getSpendProgress(
+  userId: string,
+  balanceSummary?: BalanceSummary | null
+): Promise<SpendProgress | null> {
+  const summary =
+    balanceSummary === undefined ? await getBalance(userId) : balanceSummary;
+  if (!summary) {
+    return null;
+  }
+
+  const currentTotal = summary.total;
+
+  const [lastCredit] = await db
+    .select({
+      id: transaction.id,
+      subscriptionBalanceAfter: transaction.subscriptionBalanceAfter,
+      topupBalanceAfter: transaction.topupBalanceAfter,
+    })
+    .from(transaction)
+    .where(
+      and(eq(transaction.userId, userId), ne(transaction.type, "usage_debit"))
+    )
+    .orderBy(desc(transaction.createdAt))
+    .limit(1);
+
+  if (!lastCredit) {
+    return {
+      referenceTotal: currentTotal,
+      currentTotal,
+      spentPercent: 0,
+      epochKey: "none",
+    };
+  }
+
+  const referenceTotal =
+    lastCredit.subscriptionBalanceAfter + lastCredit.topupBalanceAfter;
+
+  if (referenceTotal <= 0) {
+    return {
+      referenceTotal,
+      currentTotal,
+      spentPercent: 0,
+      epochKey: lastCredit.id,
+    };
+  }
+
+  const spent = Math.max(0, referenceTotal - currentTotal);
+  const spentPercent = Math.min(
+    100,
+    Math.round((spent / referenceTotal) * 100)
+  );
+
+  return {
+    referenceTotal,
+    currentTotal,
+    spentPercent,
+    epochKey: lastCredit.id,
+  };
 }

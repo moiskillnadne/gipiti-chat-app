@@ -133,6 +133,9 @@ export function Chat({
     },
     onFinish: () => {
       mutate(unstable_serialize(getChatHistoryPaginationKey));
+      // Refresh balance/spend so the composer spend banner re-evaluates its
+      // 50%/75% thresholds after this message's charge is recorded.
+      mutate("/api/usage");
       setIsEmptyChat(false);
       persistPendingModelChange();
     },

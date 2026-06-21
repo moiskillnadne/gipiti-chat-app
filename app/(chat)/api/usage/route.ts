@@ -2,6 +2,7 @@ import { auth } from "@/app/(auth)/auth";
 import { getBalance } from "@/lib/billing/balance";
 import { getMinorUnits } from "@/lib/billing/currencies";
 import { formatCurrency } from "@/lib/billing/money";
+import { getSpendProgress } from "@/lib/billing/spend";
 import { getActiveUserSubscription } from "@/lib/billing/subscriptions";
 
 export async function GET() {
@@ -18,10 +19,13 @@ export async function GET() {
   ]);
 
   if (!balanceSummary) {
-    return Response.json({ balance: null, subscription });
+    return Response.json({ balance: null, subscription, spend: null });
   }
 
-  const minorUnits = await getMinorUnits(balanceSummary.currencyCode);
+  const [minorUnits, spend] = await Promise.all([
+    getMinorUnits(balanceSummary.currencyCode),
+    getSpendProgress(userId, balanceSummary),
+  ]);
 
   return Response.json({
     balance: {
@@ -36,5 +40,6 @@ export async function GET() {
       ),
     },
     subscription,
+    spend,
   });
 }
