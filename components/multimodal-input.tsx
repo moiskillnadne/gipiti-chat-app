@@ -18,6 +18,7 @@ import { useSessionStorage, useWindowSize } from "usehooks-ts";
 import { useModel } from "@/contexts/model-context";
 import { useWebSearch } from "@/contexts/web-search-context";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useSpendBanner } from "@/hooks/use-spend-banner";
 import { supportsAttachments } from "@/lib/ai/models";
 import { useTranslations } from "@/lib/i18n/translate";
 import type { Attachment, ChatMessage } from "@/lib/types";
@@ -25,6 +26,7 @@ import type { AppUsage } from "@/lib/usage";
 import { cn } from "@/lib/utils";
 import { AttachMenu } from "./composer/attach-menu";
 import { AttachmentItem, UploadingItem } from "./composer/attachment-item";
+import { BalanceSpendBanner } from "./composer/balance-spend-banner";
 import { DragOverlay } from "./composer/drag-overlay";
 import { KeyboardHints } from "./composer/keyboard-hints";
 import { ProjectPickerPopover } from "./composer/project-picker-popover";
@@ -62,6 +64,7 @@ function PureMultimodalInput({
 }: MultimodalInputProps) {
   const tCommon = useTranslations("common.toasts");
   const tInput = useTranslations("chat.input");
+  const spendBanner = useSpendBanner();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLFormElement>(null);
@@ -291,11 +294,20 @@ function PureMultimodalInput({
         type="file"
       />
 
+      {spendBanner.isVisible && spendBanner.threshold !== null && (
+        <BalanceSpendBanner
+          onDismiss={spendBanner.dismiss}
+          percent={spendBanner.percent}
+          threshold={spendBanner.threshold}
+        />
+      )}
+
       {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: drag-and-drop file upload requires drop handlers on the composer surface */}
       <form
         className={cn(
           "relative w-full overflow-visible rounded-[20px] border border-rule bg-card shadow-md transition-[border-color,box-shadow,background-color] duration-fast ease-canon",
           "focus-within:border-ink-3 focus-within:shadow-lg",
+          spendBanner.isVisible && "rounded-t-none",
           isDragging &&
             "border-citrus-deep bg-citrus-soft shadow-[0_0_0_4px_var(--citrus-soft),var(--shadow-lg)]"
         )}
