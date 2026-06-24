@@ -16,6 +16,7 @@ import { MediaPreview, type MediaPreviewState } from "./elements/media-preview";
 import { MessageContent } from "./elements/message";
 import { PdfPreview } from "./elements/pdf-preview";
 import { Response } from "./elements/response";
+import { XlsxPreview } from "./elements/xlsx-preview";
 import { MessageActions } from "./message-actions";
 import { MessageEditor } from "./message-editor";
 import { PreviewAttachment } from "./preview-attachment";
@@ -125,6 +126,14 @@ const PurePreviewMessage = ({
     }
   };
 
+  const downloadXlsx = async (xlsxUrl: string, title?: string) => {
+    try {
+      await downloadFromUrl(xlsxUrl, `${title?.trim() || "document"}.xlsx`);
+    } catch {
+      toast({ type: "error", description: t("downloadFileError") });
+    }
+  };
+
   const attachmentsFromMessage = message.parts.filter(
     (part) => part.type === "file"
   );
@@ -171,7 +180,9 @@ const PurePreviewMessage = ({
                     p.type === "data-videoGenerationFinish" ||
                     p.type === "tool-generateImage" ||
                     p.type === "tool-generatePdf" ||
-                    p.type === "tool-generateDocx"
+                    p.type === "tool-generateDocx" ||
+                    p.type === "tool-generateXlsx" ||
+                    p.type === "tool-updateXlsx"
                 )) ||
               mode === "edit",
             "max-w-[calc(100%-2.5rem)] sm:max-w-[min(fit-content,80%)]":
@@ -271,6 +282,29 @@ const PurePreviewMessage = ({
                   state={mediaStateFromToolPart(part.state, Boolean(docxUrl))}
                   title={docxTitle}
                   url={docxUrl}
+                />
+              );
+            }
+
+            if (
+              part.type === "tool-generateXlsx" ||
+              part.type === "tool-updateXlsx"
+            ) {
+              const xlsxUrl =
+                part.state === "output-available"
+                  ? part.output?.xlsxUrl
+                  : undefined;
+              const xlsxTitle = part.input?.title;
+
+              return (
+                <XlsxPreview
+                  key={key}
+                  onDownload={
+                    xlsxUrl ? () => downloadXlsx(xlsxUrl, xlsxTitle) : undefined
+                  }
+                  state={mediaStateFromToolPart(part.state, Boolean(xlsxUrl))}
+                  title={xlsxTitle}
+                  url={xlsxUrl}
                 />
               );
             }

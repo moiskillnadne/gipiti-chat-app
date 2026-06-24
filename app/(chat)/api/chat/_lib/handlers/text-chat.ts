@@ -16,12 +16,16 @@ import {
 import { buildContextMessage, systemPrompt } from "@/lib/ai/prompts";
 import { myProvider } from "@/lib/ai/providers";
 import { resolveLatestImageUrl } from "@/lib/ai/resolve-latest-image";
+import { resolveLatestXlsxUrl } from "@/lib/ai/resolve-latest-xlsx";
 import { calculator } from "@/lib/ai/tools/calculator";
 import { extractUrl } from "@/lib/ai/tools/extract-url";
 import { generateDocx } from "@/lib/ai/tools/generate-docx";
 import { generateImage } from "@/lib/ai/tools/generate-image";
 import { generatePdf } from "@/lib/ai/tools/generate-pdf";
+import { generateXlsx } from "@/lib/ai/tools/generate-xlsx";
+import { updateXlsx } from "@/lib/ai/tools/update-xlsx";
 import { webSearch } from "@/lib/ai/tools/web-search";
+import { attachXlsxContentForModel } from "@/lib/ai/xlsx-extract";
 import {
   isGeminiSignatureDebugEnabled,
   isProductionEnvironment,
@@ -143,10 +147,13 @@ export async function runTextChat(
   // Static system prompt + dynamic context as a leading message keeps the
   // system block byte-identical across users so the Gateway cache prefix is
   // shared. Per-user data (geolocation, project) lives below the cache line.
-  // Replace any uploaded .docx attachments with their extracted text so the
-  // model can read Word files (providers can't read .docx natively). The stored
-  // user message keeps its file part, so the UI still shows the attachment chip.
-  const messagesForModel = await attachDocxContentForModel(ctx.uiMessages);
+  // Replace any uploaded .docx/.xlsx attachments with their extracted text so
+  // the model can read Word/Excel files (providers can't read these natively).
+  // The stored user message keeps its file part, so the UI still shows the
+  // attachment chip. Each extractor only touches its own MIME, so order is moot.
+  const messagesForModel = await attachXlsxContentForModel(
+    await attachDocxContentForModel(ctx.uiMessages)
+  );
   const baseMessages = (await convertToModelMessages(messagesForModel)).filter(
     (message) => !isEmptyAssistantMessage(message)
   );
@@ -161,6 +168,10 @@ export async function runTextChat(
   // Resolve the most recent image in the conversation so the generateImage tool
   // can use it as an edit base when the model chooses to edit rather than create.
   const latestImageUrl = resolveLatestImageUrl(ctx.uiMessages);
+
+  // Resolve the most recent spreadsheet so the updateXlsx tool can load and edit
+  // it round-trip (preserving untouched cells/formulas/formatting).
+  const latestXlsxUrl = resolveLatestXlsxUrl(ctx.uiMessages);
 
   if (isGeminiSignatureDebugEnabled && isGoogleModel(model)) {
     console.info(
@@ -221,6 +232,15 @@ export async function runTextChat(
       generateDocx: generateDocx({
         userId: ctx.userId,
         chatId: ctx.chatId,
+      }),
+      generateXlsx: generateXlsx({
+        userId: ctx.userId,
+        chatId: ctx.chatId,
+      }),
+      updateXlsx: updateXlsx({
+        userId: ctx.userId,
+        chatId: ctx.chatId,
+        latestXlsxUrl,
       }),
     },
     experimental_telemetry: {

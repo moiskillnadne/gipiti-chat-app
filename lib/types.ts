@@ -5,6 +5,8 @@ import type { extractUrl } from "./ai/tools/extract-url";
 import type { generateDocxTool } from "./ai/tools/generate-docx";
 import type { generateImageTool } from "./ai/tools/generate-image";
 import type { generatePdfTool } from "./ai/tools/generate-pdf";
+import type { generateXlsxTool } from "./ai/tools/generate-xlsx";
+import type { updateXlsxTool } from "./ai/tools/update-xlsx";
 import type { webSearch } from "./ai/tools/web-search";
 import type { Prompt } from "./db/schema";
 import type { AppUsage } from "./usage";
@@ -29,6 +31,8 @@ type extractUrlTool = InferUITool<ReturnType<typeof extractUrl>>;
 type generateImageToolType = InferUITool<ReturnType<typeof generateImageTool>>;
 type generatePdfToolType = InferUITool<ReturnType<typeof generatePdfTool>>;
 type generateDocxToolType = InferUITool<ReturnType<typeof generateDocxTool>>;
+type generateXlsxToolType = InferUITool<ReturnType<typeof generateXlsxTool>>;
+type updateXlsxToolType = InferUITool<ReturnType<typeof updateXlsxTool>>;
 
 export type ChatTools = {
   calculator: calculatorTool;
@@ -37,6 +41,8 @@ export type ChatTools = {
   generateImage: generateImageToolType;
   generatePdf: generatePdfToolType;
   generateDocx: generateDocxToolType;
+  generateXlsx: generateXlsxToolType;
+  updateXlsx: updateXlsxToolType;
 };
 
 export type CustomUIDataTypes = {
