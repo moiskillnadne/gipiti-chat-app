@@ -579,6 +579,13 @@
   border-radius: 16px;
   margin: 8px 0;
 }
+.article-body video {
+  width: 100%;
+  height: auto;
+  border-radius: 16px;
+  margin: 16px 0;
+  background: #000;
+}
 .article-body blockquote {
   margin: 36px 0;
   padding: 16px 22px;
