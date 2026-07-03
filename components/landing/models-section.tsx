@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Link from "next/link";
 import type { ElementType } from "react";
 
 import {
@@ -10,7 +11,7 @@ import {
   LogoOpenAI,
   LogoRecraft,
   LogoXai,
-} from "@/components/icons";
+} from "@/components/icons/logos";
 
 import { FadeIn, staggerContainer, staggerItem } from "./fade-in";
 
@@ -113,9 +114,18 @@ export const ModelsSection = () => (
         <h2 className="mb-4 text-center font-bold text-3xl text-white md:text-4xl">
           Доступные AI-модели
         </h2>
-        <p className="mx-auto mb-12 max-w-2xl text-center text-zinc-400">
+        <p className="mx-auto mb-4 max-w-2xl text-center text-zinc-400">
           18+ моделей от 6 провайдеров — текст, изображения, видео и код
         </p>
+        <div className="mb-12 text-center">
+          <Link
+            className="inline-flex items-center gap-2 text-indigo-400 text-sm transition-colors hover:text-indigo-300"
+            href="/models"
+          >
+            Посмотреть все модели
+            <span aria-hidden="true">&rarr;</span>
+          </Link>
+        </div>
       </FadeIn>
 
       <motion.div

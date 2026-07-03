@@ -1,13 +1,8 @@
 import type { FC } from "react";
 import { getModelById, type ModelProvider } from "@/lib/ai/models";
 import { cn } from "@/lib/utils";
-import {
-  LogoAnthropic,
-  LogoGoogle,
-  LogoOpenAI,
-  LogoXai,
-  SparklesIcon,
-} from "./icons";
+import { SparklesIcon } from "./icons";
+import { LogoAnthropic, LogoGoogle, LogoOpenAI, LogoXai } from "./icons/logos";
 
 type AssistantIconProps = {
   isLoading?: boolean;

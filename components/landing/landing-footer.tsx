@@ -6,11 +6,12 @@ import Link from "next/link";
 // route (e.g. the blog), not only when already on "/".
 const productLinks = [
   { label: "Возможности", href: "/#features" },
-  { label: "Модели", href: "/#models" },
+  { label: "Модели", href: "/models" },
   { label: "Тарифы", href: "/#pricing" },
 ];
 
 const companyLinks = [
+  { label: "Блог", href: "/blog" },
   { label: "Оферта", href: "/legal/offer" },
   { label: "Конфиденциальность", href: "/legal/privacy" },
   { label: "Поддержка", href: "/legal/support" },

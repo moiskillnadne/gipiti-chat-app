@@ -3,6 +3,15 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   cacheComponents: false,
+  // Import .svg files as React components (SVGR) — used for provider logos.
+  turbopack: {
+    rules: {
+      "*.svg": {
+        loaders: ["@svgr/webpack"],
+        as: "*.js",
+      },
+    },
+  },
   // pdfmake is CJS and pulls in pdfkit's binary font/AFM assets that the bundler
   // mishandles — keep it external so it loads from node_modules at runtime.
   serverExternalPackages: ["pdfmake"],
