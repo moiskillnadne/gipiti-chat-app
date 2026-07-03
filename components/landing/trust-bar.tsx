@@ -16,7 +16,7 @@ import {
   LogoOpenAI,
   LogoRecraft,
   LogoXai,
-} from "@/components/icons";
+} from "@/components/icons/logos";
 
 import { staggerContainer, staggerItem } from "./fade-in";
 

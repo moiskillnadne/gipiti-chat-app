@@ -7,7 +7,7 @@ import { useState } from "react";
 // Root-relative so the anchors resolve to the landing-page sections from any
 // route (e.g. the blog), not only when already on "/".
 const navLinks = [
-  { label: "Модели", href: "/#models" },
+  { label: "Модели", href: "/models" },
   { label: "Возможности", href: "/#features" },
   { label: "Тарифы", href: "/#pricing" },
   { label: "FAQ", href: "/#faq" },

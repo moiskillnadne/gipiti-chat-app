@@ -71,7 +71,9 @@ export async function proxy(request: NextRequest) {
   const isPublicRoute =
     pathname.startsWith("/legal/") ||
     pathname === "/" ||
-    pathname.startsWith("/blog");
+    pathname.startsWith("/blog") ||
+    pathname === "/models" ||
+    pathname.startsWith("/models/");
 
   // Redirect authenticated from landing page to chat
   if (token && pathname === "/") {
