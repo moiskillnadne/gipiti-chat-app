@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { IS_BLOG_INDEX_ENABLED } from "@/lib/blog/config";
 import { getSitemapEntries } from "@/lib/blog/posts";
+import { catalogSections } from "@/lib/marketing/models-catalog";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://gipiti.ru";
@@ -38,6 +39,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.9,
     },
+    ...catalogSections.map((section) => ({
+      url: `${baseUrl}/models/${section.slug}`,
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    })),
     {
       url: `${baseUrl}/login`,
       changeFrequency: "monthly",

@@ -6,6 +6,7 @@ import { ModelsAnchorNav } from "@/components/models/models-anchor-nav";
 import { ModelsCatalogSections } from "@/components/models/models-catalog-sections";
 import { ModelsCta } from "@/components/models/models-cta";
 import { ModelsHero } from "@/components/models/models-hero";
+import { toJsonLdString } from "@/lib/marketing/json-ld";
 import { catalogModels } from "@/lib/marketing/models-catalog";
 
 export const dynamic = "force-static";
@@ -58,14 +59,6 @@ const modelsJsonLd = {
     description: model.description,
   })),
 };
-
-/**
- * Escapes `<` so the JSON-LD payload cannot terminate the script tag early.
- * Native <script> (not next/script) so the markup is server-rendered into the
- * static HTML for SEO — same approach as the blog article page.
- */
-const toJsonLdString = (value: object): string =>
-  JSON.stringify(value).replace(/</g, "\\u003c");
 
 export default function ModelsCatalogPage() {
   return (

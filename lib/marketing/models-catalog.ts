@@ -22,37 +22,89 @@ export type CatalogModel = {
   hue: number;
 };
 
+export type CatalogTypePage = {
+  /** First (plain) line of the H1 */
+  h1Top: string;
+  /** Second (gradient) line of the H1 */
+  h1Gradient: string;
+  sub: string;
+  metaTitle: string;
+  metaDescription: string;
+};
+
 export type CatalogSection = {
   id: CatalogCategory;
+  /** Path segment of the type landing page: /models/{slug} */
+  slug: string;
   heading: string;
   intro: string;
   categoryLabel: string;
+  typePage: CatalogTypePage;
 };
 
 export const catalogSections: CatalogSection[] = [
   {
     id: "text",
+    slug: "text",
     heading: "Модели для работы с текстом",
     intro: "Чат, тексты, анализ документов и рассуждения.",
     categoryLabel: "Текст",
+    typePage: {
+      h1Top: "Нейросети для работы",
+      h1Gradient: "с текстом на русском",
+      sub: "GPT-5.5, Claude Opus 4.8, Gemini 3.1 Pro, Grok 4.3 и другие — пишите тексты, анализируйте документы и решайте рабочие задачи на русском языке. Без VPN, оплата российскими картами.",
+      metaTitle:
+        "Нейросети для работы с текстом — GPT-5.5, Claude, Gemini, Grok | GIPITI",
+      metaDescription:
+        "Лучшие текстовые AI-модели в одном чате: GPT-5.5, Claude Opus 4.8, Claude Sonnet 4.6, Gemini 3.1 Pro и Grok 4.3. Без VPN, на русском, оплата российскими картами.",
+    },
   },
   {
     id: "images",
+    slug: "image-generation",
     heading: "Модели для генерации изображений",
     intro: "Генерация и редактирование картинок по описанию.",
     categoryLabel: "Изображения",
+    typePage: {
+      h1Top: "Нейросети для генерации",
+      h1Gradient: "изображений на русском",
+      sub: "Nano Banana, GPT Image, Flux, Recraft и другие — создавайте и редактируйте изображения по описанию на русском языке. Без VPN, оплата российскими картами.",
+      metaTitle:
+        "Нейросети для генерации изображений — Nano Banana, GPT Image, Flux | GIPITI",
+      metaDescription:
+        "Генерация и редактирование изображений по описанию: Nano Banana, GPT Image 2, Flux 2 Max, Recraft и Grok Imagine в одной подписке. Без VPN, оплата российскими картами.",
+    },
   },
   {
     id: "video",
+    slug: "video-generation",
     heading: "Модели для генерации видео",
     intro: "Видеоролики по текстовому промпту или из изображения.",
     categoryLabel: "Видео",
+    typePage: {
+      h1Top: "Нейросети для генерации",
+      h1Gradient: "видео на русском",
+      sub: "Veo 3.1 и Grok Imagine Video — создавайте видеоролики по текстовому описанию или из готового изображения. Без VPN, оплата российскими картами.",
+      metaTitle:
+        "Нейросети для генерации видео — Veo 3.1, Grok Imagine | GIPITI",
+      metaDescription:
+        "Генерация видео по текстовому промпту или из изображения: Veo 3.1 со звуком до 60 секунд и Grok Imagine Video. Без VPN, на русском, оплата российскими картами.",
+    },
   },
   {
     id: "code",
+    slug: "code",
     heading: "Модели для генерации кода",
     intro: "Написание, отладка и объяснение кода.",
     categoryLabel: "Код",
+    typePage: {
+      h1Top: "Нейросети для генерации",
+      h1Gradient: "кода на русском",
+      sub: "GPT-Codex 5.3 и другие модели — пишите, отлаживайте и рефакторьте код, разбирайтесь в чужих проектах. Без VPN, оплата российскими картами.",
+      metaTitle: "Нейросети для генерации кода — GPT-Codex 5.3 | GIPITI",
+      metaDescription:
+        "Генерация, отладка и объяснение кода с GPT-Codex 5.3 и другими AI-моделями в одном чате. Без VPN, на русском, оплата российскими картами.",
+    },
   },
 ];
 
@@ -202,3 +254,22 @@ export const getModelsByCategory = (
   category: CatalogCategory
 ): CatalogModel[] =>
   catalogModels.filter((model) => model.category === category);
+
+export const getSectionBySlug = (slug: string): CatalogSection | undefined =>
+  catalogSections.find((section) => section.slug === slug);
+
+/** Russian pluralization: 1 модель, 2–4 модели, 5+ моделей */
+export const pluralizeModels = (count: number): string => {
+  const mod10 = count % 10;
+  const mod100 = count % 100;
+
+  if (mod10 === 1 && mod100 !== 11) {
+    return `${count} модель`;
+  }
+
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
+    return `${count} модели`;
+  }
+
+  return `${count} моделей`;
+};
