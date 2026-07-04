@@ -31,6 +31,8 @@ export const entitlementsByUserType: Record<UserType, Entitlements> = {
       "flux-2-max",
       "flux-kontext-max",
       "recraft-v4.1-pro",
+      "seedream-5.0-lite",
+      "seedream-4.5",
       "veo-3.1",
       "veo-3.1-fast",
       "grok-imagine-video",
@@ -38,6 +40,8 @@ export const entitlementsByUserType: Record<UserType, Entitlements> = {
       "kling-v3.0-i2v",
       "kling-v2.6-t2v",
       "kling-v2.5-turbo-t2v",
+      "seedance-2.0",
+      "seedance-2.0-fast",
     ],
   },
 };

@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { SparklesIcon } from "./icons";
 import {
   LogoAnthropic,
+  LogoBytedance,
   LogoGoogle,
   LogoKling,
   LogoOpenAI,
@@ -25,6 +26,7 @@ const providerIconMap: Partial<Record<ModelProvider, FC<IconComponentProps>>> =
     anthropic: LogoAnthropic,
     xai: LogoXai,
     klingai: LogoKling,
+    bytedance: LogoBytedance,
   };
 
 export const AssistantIcon = ({

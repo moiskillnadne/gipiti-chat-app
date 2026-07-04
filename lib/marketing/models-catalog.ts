@@ -68,11 +68,11 @@ export const catalogSections: CatalogSection[] = [
     typePage: {
       h1Top: "Нейросети для генерации",
       h1Gradient: "изображений на русском",
-      sub: "Nano Banana, GPT Image, Flux, Recraft и другие — создавайте и редактируйте изображения по описанию на русском языке. Без VPN, оплата российскими картами.",
+      sub: "Nano Banana, GPT Image, Flux, Seedream, Recraft и другие — создавайте и редактируйте изображения по описанию на русском языке. Без VPN, оплата российскими картами.",
       metaTitle:
-        "Нейросети для генерации изображений — Nano Banana, GPT Image, Flux | GIPITI",
+        "Нейросети для генерации изображений — Nano Banana, GPT Image, Flux, Seedream | GIPITI",
       metaDescription:
-        "Генерация и редактирование изображений по описанию: Nano Banana, GPT Image 2, Flux 2 Max, Recraft и Grok Imagine в одной подписке. Без VPN, оплата российскими картами.",
+        "Генерация и редактирование изображений по описанию: Nano Banana, GPT Image 2, Flux 2 Max, Seedream, Recraft и Grok Imagine в одной подписке. Без VPN, оплата российскими картами.",
     },
   },
   {
@@ -84,11 +84,11 @@ export const catalogSections: CatalogSection[] = [
     typePage: {
       h1Top: "Нейросети для генерации",
       h1Gradient: "видео на русском",
-      sub: "Veo 3.1, Kling 3.0 и Grok Imagine Video — создавайте видеоролики по текстовому описанию или из готового изображения. Без VPN, оплата российскими картами.",
+      sub: "Veo 3.1, Kling 3.0, Seedance 2.0 и Grok Imagine Video — создавайте видеоролики по текстовому описанию или из готового изображения. Без VPN, оплата российскими картами.",
       metaTitle:
-        "Нейросети для генерации видео — Veo 3.1, Kling 3.0, Grok Imagine | GIPITI",
+        "Нейросети для генерации видео — Veo 3.1, Kling 3.0, Seedance 2.0 | GIPITI",
       metaDescription:
-        "Генерация видео по текстовому промпту или из изображения: Veo 3.1 со звуком, Kling 3.0 и Grok Imagine Video. Без VPN, на русском, оплата российскими картами.",
+        "Генерация видео по текстовому промпту или из изображения: Veo 3.1 со звуком, Kling 3.0, Seedance 2.0 и Grok Imagine Video. Без VPN, на русском, оплата российскими картами.",
     },
   },
   {
@@ -219,6 +219,27 @@ export const catalogModels: CatalogModel[] = [
     hue: 0,
   },
   {
+    modelId: "seedream-5.0-lite",
+    name: "Seedream 5.0 Lite",
+    vendor: "ByteDance",
+    provider: "bytedance",
+    category: "images",
+    description:
+      "Новейшая модель ByteDance: понимает сложные промпты и учитывает актуальную информацию из сети.",
+    tag: "Новинка",
+    hue: 200,
+  },
+  {
+    modelId: "seedream-4.5",
+    name: "Seedream 4.5",
+    vendor: "ByteDance",
+    provider: "bytedance",
+    category: "images",
+    description:
+      "Точное редактирование с сохранением деталей, света и цвета; сильная работа с текстом на картинке.",
+    hue: 200,
+  },
+  {
     modelId: "veo-3.1",
     name: "Veo 3.1",
     vendor: "Google",
@@ -278,6 +299,27 @@ export const catalogModels: CatalogModel[] = [
     category: "video",
     description: "Быстрая и доступная генерация видео по текстовому описанию.",
     hue: 145,
+  },
+  {
+    modelId: "seedance-2.0",
+    name: "Seedance 2.0",
+    vendor: "ByteDance",
+    provider: "bytedance",
+    category: "video",
+    description:
+      "Мультимодальная генерация видео со звуком: по тексту или из изображения, реалистичная физика движения.",
+    tag: "Новинка",
+    hue: 200,
+  },
+  {
+    modelId: "seedance-2.0-fast",
+    name: "Seedance 2.0 Fast",
+    vendor: "ByteDance",
+    provider: "bytedance",
+    category: "video",
+    description:
+      "Быстрая версия Seedance 2.0: те же возможности, ниже цена и время ожидания.",
+    hue: 200,
   },
   {
     modelId: "gpt-codex-5.3",

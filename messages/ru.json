@@ -1423,7 +1423,8 @@
       "xai": "X.AI",
       "bfl": "Black Forest Labs",
       "recraft": "Recraft",
-      "klingai": "Kling AI"
+      "klingai": "Kling AI",
+      "bytedance": "ByteDance"
     },
     "search": {
       "placeholder": "Поиск моделей…",
@@ -1550,6 +1551,14 @@
       "name": "Kling 2.5 Turbo",
       "description": "Быстрая и доступная модель Kling AI. Создаёт 5-секундные видео по текстовому описанию."
     },
+    "seedance20": {
+      "name": "Seedance 2.0",
+      "description": "Мультимодальная модель ByteDance для генерации видео. Создаёт 5-секундные видео со звуком по текстовому описанию или из загруженного изображения."
+    },
+    "seedance20Fast": {
+      "name": "Seedance 2.0 Fast",
+      "description": "Быстрая версия Seedance 2.0. Создаёт 5-секундные видео по тексту или из изображения — дешевле и быстрее."
+    },
     "flux2Max": {
       "name": "Flux 2 Max",
       "description": "Высококачественная генерация изображений от Black Forest Labs."
@@ -1561,6 +1570,14 @@
     "recraftV41Pro": {
       "name": "Recraft v4.1 Pro",
       "description": "Генерация изображений с художественными стилями."
+    },
+    "seedream50Lite": {
+      "name": "Seedream 5.0 Lite",
+      "description": "Новейшая модель ByteDance для генерации изображений. Точно понимает сложные промпты и учитывает актуальную информацию из сети."
+    },
+    "seedream45": {
+      "name": "Seedream 4.5",
+      "description": "Модель ByteDance для генерации и редактирования изображений с сохранением деталей, света и цвета."
     }
   },
   "projects": {
