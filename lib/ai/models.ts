@@ -16,7 +16,8 @@ export type ModelProvider =
   | "anthropic"
   | "xai"
   | "bfl"
-  | "recraft";
+  | "recraft"
+  | "klingai";
 
 export type ThinkingEffortConfig = {
   type: "effort";
@@ -47,6 +48,7 @@ export type ChatModel = {
   thinkingConfig?: ThinkingConfig;
   providerOptions?: SharedV2ProviderOptions;
   imageGenConfig?: ImageGenConfig;
+  videoGenConfig?: VideoGenConfig;
 };
 
 export type ThinkingSettingEffort = {
@@ -92,6 +94,16 @@ export type ImageGenSetting = {
 export const IMAGE_QUALITY_COOKIE_PREFIX = "image-quality" as const;
 export const IMAGE_ASPECT_COOKIE_PREFIX = "image-aspect" as const;
 export const IMAGE_STYLE_COOKIE_PREFIX = "image-style" as const;
+
+// Video generation config — how a model accepts an image attachment:
+// "required" (image-to-video), "optional" (used when present), or
+// "unsupported" (text-to-video only; attachments must stay disabled).
+export type VideoImageInput = "optional" | "required" | "unsupported";
+export type VideoGenConfig = {
+  gatewayModelId: string;
+  durationSeconds: number;
+  imageInput: VideoImageInput;
+};
 
 const GOOGLE_IMAGE_GEN_CONFIG: ImageGenConfig = {
   quality: {
@@ -390,6 +402,11 @@ export const chatModels: ChatModel[] = [
       attachments: true,
     },
     showInUI: true,
+    videoGenConfig: {
+      gatewayModelId: "google/veo-3.1-generate-001",
+      durationSeconds: 8,
+      imageInput: "optional",
+    },
   },
   {
     id: "veo-3.1-fast",
@@ -401,6 +418,11 @@ export const chatModels: ChatModel[] = [
       attachments: true,
     },
     showInUI: true,
+    videoGenConfig: {
+      gatewayModelId: "google/veo-3.1-fast-generate-001",
+      durationSeconds: 8,
+      imageInput: "optional",
+    },
   },
   {
     id: "grok-imagine-video",
@@ -412,6 +434,72 @@ export const chatModels: ChatModel[] = [
       attachments: true,
     },
     showInUI: true,
+    videoGenConfig: {
+      gatewayModelId: "xai/grok-imagine-video-1.5-preview",
+      durationSeconds: 8,
+      imageInput: "optional",
+    },
+  },
+  {
+    id: "kling-v3.0-t2v",
+    name: "klingV30T2v.name",
+    description: "klingV30T2v.description",
+    provider: "klingai",
+    capabilities: {
+      videoGeneration: true,
+    },
+    showInUI: true,
+    videoGenConfig: {
+      gatewayModelId: "klingai/kling-v3.0-t2v",
+      durationSeconds: 5,
+      imageInput: "unsupported",
+    },
+  },
+  {
+    id: "kling-v3.0-i2v",
+    name: "klingV30I2v.name",
+    description: "klingV30I2v.description",
+    provider: "klingai",
+    capabilities: {
+      videoGeneration: true,
+      attachments: true,
+    },
+    showInUI: true,
+    videoGenConfig: {
+      gatewayModelId: "klingai/kling-v3.0-i2v",
+      durationSeconds: 5,
+      imageInput: "required",
+    },
+  },
+  {
+    id: "kling-v2.6-t2v",
+    name: "klingV26T2v.name",
+    description: "klingV26T2v.description",
+    provider: "klingai",
+    capabilities: {
+      videoGeneration: true,
+    },
+    showInUI: true,
+    videoGenConfig: {
+      gatewayModelId: "klingai/kling-v2.6-t2v",
+      durationSeconds: 5,
+      imageInput: "unsupported",
+    },
+  },
+  {
+    id: "kling-v2.5-turbo-t2v",
+    name: "klingV25TurboT2v.name",
+    description: "klingV25TurboT2v.description",
+    provider: "klingai",
+    capabilities: {
+      videoGeneration: true,
+    },
+    showInUI: true,
+    videoGenConfig: {
+      gatewayModelId: "klingai/kling-v2.5-turbo-t2v",
+      durationSeconds: 5,
+      imageInput: "unsupported",
+    },
   },
   {
     id: "flux-2-max",
@@ -556,20 +644,12 @@ export const OPENAI_IMAGE_GATEWAY_MODEL_ID = "openai/gpt-image-2";
 export const isOpenAIImageModel = (modelId: string): boolean =>
   modelId === "gpt-image-2";
 
-type VideoModelId = "veo-3.1" | "veo-3.1-fast" | "grok-imagine-video";
-
-const VIDEO_GATEWAY_MODEL_MAP: Record<VideoModelId, string> = {
-  "veo-3.1": "google/veo-3.1-generate-001",
-  "veo-3.1-fast": "google/veo-3.1-fast-generate-001",
-  "grok-imagine-video": "xai/grok-imagine-video-1.5-preview",
-};
-
-export const getVideoGatewayModelId = (modelId: string): string => {
-  const gatewayId = VIDEO_GATEWAY_MODEL_MAP[modelId as VideoModelId];
-  if (!gatewayId) {
-    throw new Error(`Unknown video model: ${modelId}`);
+export const getVideoGenConfig = (modelId: string): VideoGenConfig => {
+  const config = getModelById(modelId)?.videoGenConfig;
+  if (!config) {
+    throw new Error(`Missing video config for model: ${modelId}`);
   }
-  return gatewayId;
+  return config;
 };
 
 export const supportsAttachments = (modelId: string) => {

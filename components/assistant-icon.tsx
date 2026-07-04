@@ -2,7 +2,13 @@ import type { FC } from "react";
 import { getModelById, type ModelProvider } from "@/lib/ai/models";
 import { cn } from "@/lib/utils";
 import { SparklesIcon } from "./icons";
-import { LogoAnthropic, LogoGoogle, LogoOpenAI, LogoXai } from "./icons/logos";
+import {
+  LogoAnthropic,
+  LogoGoogle,
+  LogoKling,
+  LogoOpenAI,
+  LogoXai,
+} from "./icons/logos";
 
 type AssistantIconProps = {
   isLoading?: boolean;
@@ -18,6 +24,7 @@ const providerIconMap: Partial<Record<ModelProvider, FC<IconComponentProps>>> =
     google: LogoGoogle,
     anthropic: LogoAnthropic,
     xai: LogoXai,
+    klingai: LogoKling,
   };
 
 export const AssistantIcon = ({

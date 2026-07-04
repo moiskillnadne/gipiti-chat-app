@@ -5,6 +5,7 @@ import type { ModelProvider } from "@/lib/ai/models";
 import AnthropicSvg from "./logos/anthropic.svg";
 import BflSvg from "./logos/bfl.svg";
 import GoogleSvg from "./logos/google.svg";
+import KlingSvg from "./logos/klingai.svg";
 import OpenAiSvg from "./logos/openai.svg";
 import RecraftSvg from "./logos/recraft.svg";
 import XaiSvg from "./logos/xai.svg";
@@ -37,6 +38,10 @@ export const LogoRecraft: FC<LogoProps> = ({ size = 16 }) => (
   <RecraftSvg height={size} width={size} />
 );
 
+export const LogoKling: FC<LogoProps> = ({ size = 16 }) => (
+  <KlingSvg height={size} width={size} />
+);
+
 /** Provider id (lib/ai/models.ts) → brand logo component. */
 export const providerLogos: Record<ModelProvider, FC<LogoProps>> = {
   openai: LogoOpenAI,
@@ -45,4 +50,5 @@ export const providerLogos: Record<ModelProvider, FC<LogoProps>> = {
   xai: LogoXai,
   bfl: LogoBFL,
   recraft: LogoRecraft,
+  klingai: LogoKling,
 };

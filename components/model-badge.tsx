@@ -11,6 +11,7 @@ const providerStyles: Record<ModelProvider | "unknown", string> = {
   xai: "bg-purple-100 text-purple-800",
   bfl: "bg-pink-100 text-pink-800",
   recraft: "bg-rose-100 text-rose-800",
+  klingai: "bg-teal-100 text-teal-800",
   unknown: "bg-gray-100 text-gray-800",
 };
 
