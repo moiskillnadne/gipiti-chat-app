@@ -8,6 +8,12 @@ export type ChatModelCapabilities = {
   attachments?: boolean;
   imageGeneration?: boolean;
   videoGeneration?: boolean;
+  /**
+   * Whether the model supports function calling. Undefined = supported.
+   * Perplexity Sonar models have search built in and reject tool definitions,
+   * so they run without the app tool set.
+   */
+  toolCalling?: boolean;
 };
 
 export type ModelProvider =
@@ -18,7 +24,9 @@ export type ModelProvider =
   | "bfl"
   | "recraft"
   | "klingai"
-  | "bytedance";
+  | "bytedance"
+  | "deepseek"
+  | "perplexity";
 
 export type ThinkingEffortConfig = {
   type: "effort";
@@ -410,6 +418,59 @@ export const chatModels: ChatModel[] = [
     thinkingConfig: OPUS_THINKING_CONFIG,
   },
   {
+    id: "deepseek-v4-pro",
+    name: "deepseekV4Pro.name",
+    description: "deepseekV4Pro.description",
+    provider: "deepseek",
+    capabilities: {
+      reasoning: true,
+    },
+    showInUI: true,
+  },
+  {
+    id: "deepseek-v4-flash",
+    name: "deepseekV4Flash.name",
+    description: "deepseekV4Flash.description",
+    provider: "deepseek",
+    capabilities: {
+      reasoning: true,
+    },
+    showInUI: true,
+  },
+  {
+    id: "sonar",
+    name: "sonar.name",
+    description: "sonar.description",
+    provider: "perplexity",
+    capabilities: {
+      attachments: true,
+      toolCalling: false,
+    },
+    showInUI: true,
+  },
+  {
+    id: "sonar-pro",
+    name: "sonarPro.name",
+    description: "sonarPro.description",
+    provider: "perplexity",
+    capabilities: {
+      attachments: true,
+      toolCalling: false,
+    },
+    showInUI: true,
+  },
+  {
+    id: "sonar-reasoning-pro",
+    name: "sonarReasoningPro.name",
+    description: "sonarReasoningPro.description",
+    provider: "perplexity",
+    capabilities: {
+      reasoning: true,
+      toolCalling: false,
+    },
+    showInUI: true,
+  },
+  {
     id: "veo-3.1",
     name: "veo31.name",
     description: "veo31.description",
@@ -632,6 +693,11 @@ export const isReasoningModelId = (modelId: string) =>
  * in `lib/ai/providers.ts` and therefore needs the system prompt to instruct
  * `<think></think>` tag emission. Only OpenAI gpt-5.x is wrapped today.
  *
+ * Exception: sonar-reasoning-pro is also wrapped in providers.ts, but
+ * Perplexity emits `<think>` tags on its own — the middleware strips them
+ * without any prompt instruction, so it intentionally stays false here and
+ * receives `nativeReasoningPrompt`.
+ *
  * Native-reasoning models (Anthropic extended thinking, grok-4.3, and Gemini 3
  * with `includeThoughts`) must NOT receive that instruction — they'd echo literal
  * `<think>` tags into the visible body since no middleware strips them, and for
@@ -733,6 +799,9 @@ export const supportsAttachments = (modelId: string) => {
   const model = chatModels.find((m) => m.id === modelId);
   return model?.capabilities?.attachments ?? false;
 };
+
+export const supportsToolCalling = (modelId: string): boolean =>
+  getModelById(modelId)?.capabilities?.toolCalling !== false;
 
 export const isVisibleInUI = (modelId: string): boolean => {
   const model = chatModels.find((m) => m.id === modelId);

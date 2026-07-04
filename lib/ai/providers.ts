@@ -41,5 +41,20 @@ export const myProvider = customProvider({
     "opus-4.8": gateway.languageModel("anthropic/claude-opus-4.8"),
     "sonnet-4.6": gateway.languageModel("anthropic/claude-sonnet-4.6"),
     "haiku-4.5": gateway.languageModel("anthropic/claude-haiku-4.5"),
+    // DeepSeek streams reasoning natively (reasoning_content, normalized by
+    // the Gateway to reasoning parts) — no extractReasoningMiddleware wrapper,
+    // same as grok-4.3 above.
+    "deepseek-v4-pro": gateway.languageModel("deepseek/deepseek-v4-pro"),
+    "deepseek-v4-flash": gateway.languageModel("deepseek/deepseek-v4-flash"),
+    sonar: gateway.languageModel("perplexity/sonar"),
+    "sonar-pro": gateway.languageModel("perplexity/sonar-pro"),
+    // Perplexity puts CoT as literal <think> tags inside the text stream (no
+    // native reasoning parts), so strip them into reasoning parts here. The
+    // model emits the tags unprompted — usesReasoningTagMiddleware in models.ts
+    // stays false for it (no <think> instruction in the system prompt).
+    "sonar-reasoning-pro": wrapLanguageModel({
+      model: gateway.languageModel("perplexity/sonar-reasoning-pro"),
+      middleware: extractReasoningMiddleware({ tagName: "think" }),
+    }),
   },
 });

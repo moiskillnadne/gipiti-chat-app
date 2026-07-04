@@ -52,11 +52,11 @@ export const catalogSections: CatalogSection[] = [
     typePage: {
       h1Top: "Нейросети для работы",
       h1Gradient: "с текстом на русском",
-      sub: "GPT-5.5, Claude Opus 4.8, Gemini 3.1 Pro, Grok 4.3 и другие — пишите тексты, анализируйте документы и решайте рабочие задачи на русском языке. Без VPN, оплата российскими картами.",
+      sub: "GPT-5.5, Claude Opus 4.8, Gemini 3.1 Pro, DeepSeek V4, Perplexity Sonar и другие — пишите тексты, анализируйте документы и решайте рабочие задачи на русском языке. Без VPN, оплата российскими картами.",
       metaTitle:
-        "Нейросети для работы с текстом — GPT-5.5, Claude, Gemini, Grok | GIPITI",
+        "Нейросети для работы с текстом — GPT-5.5, Claude, Gemini, DeepSeek, Perplexity | GIPITI",
       metaDescription:
-        "Лучшие текстовые AI-модели в одном чате: GPT-5.5, Claude Opus 4.8, Claude Sonnet 4.6, Gemini 3.1 Pro и Grok 4.3. Без VPN, на русском, оплата российскими картами.",
+        "Лучшие текстовые AI-модели в одном чате: GPT-5.5, Claude Opus 4.8, Gemini 3.1 Pro, DeepSeek V4, Perplexity Sonar и Grok 4.3. Без VPN, на русском, оплата российскими картами.",
     },
   },
   {
@@ -158,6 +158,58 @@ export const catalogModels: CatalogModel[] = [
     category: "text",
     description: "Модель xAI с доступом к актуальным данным и свободным тоном.",
     hue: 0,
+  },
+  {
+    modelId: "deepseek-v4-pro",
+    name: "DeepSeek V4 Pro",
+    vendor: "DeepSeek",
+    provider: "deepseek",
+    category: "text",
+    description:
+      "Флагман DeepSeek: глубокие рассуждения и контекст до миллиона токенов.",
+    tag: "Новинка",
+    hue: 250,
+  },
+  {
+    modelId: "deepseek-v4-flash",
+    name: "DeepSeek V4 Flash",
+    vendor: "DeepSeek",
+    provider: "deepseek",
+    category: "text",
+    description:
+      "Быстрая и доступная версия DeepSeek V4 для повседневных задач.",
+    tag: "Новинка",
+    hue: 250,
+  },
+  {
+    modelId: "sonar",
+    name: "Sonar",
+    vendor: "Perplexity",
+    provider: "perplexity",
+    category: "text",
+    description:
+      "Быстрые ответы со встроенным поиском в интернете и ссылками на источники.",
+    hue: 185,
+  },
+  {
+    modelId: "sonar-pro",
+    name: "Sonar Pro",
+    vendor: "Perplexity",
+    provider: "perplexity",
+    category: "text",
+    description:
+      "Продвинутый поиск Perplexity: сложные запросы, подробные ответы с источниками.",
+    hue: 185,
+  },
+  {
+    modelId: "sonar-reasoning-pro",
+    name: "Sonar Reasoning Pro",
+    vendor: "Perplexity",
+    provider: "perplexity",
+    category: "text",
+    description:
+      "Рассуждающая модель с поиском: пошаговый анализ и ответы со ссылками на источники.",
+    hue: 185,
   },
   {
     modelId: "gemini-3.1-flash-image",

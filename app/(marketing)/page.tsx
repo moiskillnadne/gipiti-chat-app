@@ -10,7 +10,6 @@ import { HeroSection } from "@/components/landing/hero-section";
 import { HowItWorksSection } from "@/components/landing/how-it-works-section";
 import { LandingFooter } from "@/components/landing/landing-footer";
 import { LandingNav } from "@/components/landing/landing-nav";
-import { ModelsSection } from "@/components/landing/models-section";
 import { PainPointsSection } from "@/components/landing/pain-points-section";
 import { PricingSection } from "@/components/landing/pricing-section";
 import { TrustBar } from "@/components/landing/trust-bar";
@@ -167,7 +166,6 @@ export default function LandingPage() {
         <PainPointsSection />
         <BenefitsSection />
         <TrustBar />
-        <ModelsSection />
         <FeaturesSection />
         <DemoShowcaseSection />
         <HowItWorksSection />

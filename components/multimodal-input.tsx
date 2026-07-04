@@ -19,7 +19,7 @@ import { useModel } from "@/contexts/model-context";
 import { useWebSearch } from "@/contexts/web-search-context";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSpendBanner } from "@/hooks/use-spend-banner";
-import { supportsAttachments } from "@/lib/ai/models";
+import { supportsAttachments, supportsToolCalling } from "@/lib/ai/models";
 import { useTranslations } from "@/lib/i18n/translate";
 import type { Attachment, ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
@@ -74,6 +74,9 @@ function PureMultimodalInput({
   const { currentModelId } = useModel();
   const { isWebSearchEnabled, toggleWebSearch } = useWebSearch();
   const canAttachFiles = supportsAttachments(currentModelId);
+  // Tool-less models (Perplexity Sonar) have search built in — the Tavily
+  // web-search toggle would be dead UI for them.
+  const canUseTools = supportsToolCalling(currentModelId);
 
   const [uploadQueue, setUploadQueue] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -379,10 +382,12 @@ function PureMultimodalInput({
             disabled={status !== "ready" || !canAttachFiles}
             onPick={handleAttachPick}
           />
-          <WebSearchToggle
-            active={isWebSearchEnabled}
-            onToggle={toggleWebSearch}
-          />
+          {canUseTools && (
+            <WebSearchToggle
+              active={isWebSearchEnabled}
+              onToggle={toggleWebSearch}
+            />
+          )}
           <ThinkPopover />
           <div className="flex-1" />
 

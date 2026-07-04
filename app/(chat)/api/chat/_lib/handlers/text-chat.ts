@@ -12,6 +12,7 @@ import {
   isGoogleModel,
   isReasoningModelId,
   supportsThinkingConfig,
+  supportsToolCalling,
 } from "@/lib/ai/models";
 import { buildContextMessage, systemPrompt } from "@/lib/ai/prompts";
 import { myProvider } from "@/lib/ai/providers";
@@ -173,6 +174,30 @@ export async function runTextChat(
     );
   }
 
+  // Models without function calling (Perplexity Sonar — search is built into
+  // the model and tool definitions are rejected) run without the app tool set.
+  const chatTools = supportsToolCalling(model)
+    ? {
+        calculator,
+        webSearch: webSearch({ session: ctx.session, chatId: ctx.chatId }),
+        extractUrl: extractUrl({ session: ctx.session, chatId: ctx.chatId }),
+        generateImage: generateImage({
+          userId: ctx.userId,
+          chatId: ctx.chatId,
+          usageAccumulator: ctx.imageUsageAccumulator,
+          latestImageUrl,
+        }),
+        generatePdf: generatePdf({
+          userId: ctx.userId,
+          chatId: ctx.chatId,
+        }),
+        generateDocx: generateDocx({
+          userId: ctx.userId,
+          chatId: ctx.chatId,
+        }),
+      }
+    : undefined;
+
   const result = streamText({
     model: myProvider.languageModel(model),
     system: systemPrompt({ selectedChatModel: model }),
@@ -204,25 +229,7 @@ export async function runTextChat(
 
       return {};
     },
-    tools: {
-      calculator,
-      webSearch: webSearch({ session: ctx.session, chatId: ctx.chatId }),
-      extractUrl: extractUrl({ session: ctx.session, chatId: ctx.chatId }),
-      generateImage: generateImage({
-        userId: ctx.userId,
-        chatId: ctx.chatId,
-        usageAccumulator: ctx.imageUsageAccumulator,
-        latestImageUrl,
-      }),
-      generatePdf: generatePdf({
-        userId: ctx.userId,
-        chatId: ctx.chatId,
-      }),
-      generateDocx: generateDocx({
-        userId: ctx.userId,
-        chatId: ctx.chatId,
-      }),
-    },
+    tools: chatTools,
     experimental_telemetry: {
       isEnabled: isProductionEnvironment,
       functionId: "stream-text",
@@ -280,5 +287,7 @@ export async function runTextChat(
       console.error("[chat-stream] consumeStream error", error);
     },
   });
-  writer.merge(result.toUIMessageStream({ sendReasoning: true }));
+  writer.merge(
+    result.toUIMessageStream({ sendReasoning: true, sendSources: true })
+  );
 }

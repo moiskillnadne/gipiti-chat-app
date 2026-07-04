@@ -5,9 +5,11 @@ import { SparklesIcon } from "./icons";
 import {
   LogoAnthropic,
   LogoBytedance,
+  LogoDeepseek,
   LogoGoogle,
   LogoKling,
   LogoOpenAI,
+  LogoPerplexity,
   LogoXai,
 } from "./icons/logos";
 
@@ -27,6 +29,8 @@ const providerIconMap: Partial<Record<ModelProvider, FC<IconComponentProps>>> =
     xai: LogoXai,
     klingai: LogoKling,
     bytedance: LogoBytedance,
+    deepseek: LogoDeepseek,
+    perplexity: LogoPerplexity,
   };
 
 export const AssistantIcon = ({

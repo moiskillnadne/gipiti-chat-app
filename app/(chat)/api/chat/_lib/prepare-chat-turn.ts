@@ -6,6 +6,7 @@ import {
   isReasoningModelId,
   isVisibleInUI,
   supportsAttachments,
+  supportsToolCalling,
   validateImageGenSetting,
   validateThinkingSetting,
 } from "@/lib/ai/models";
@@ -184,10 +185,12 @@ export async function prepareChatTurn(
   const thinkingSetting = validateThinkingSetting(model, rawThinkingSetting);
   const imageGenSetting = validateImageGenSetting(model, rawImageGenSetting);
 
-  // Reasoning-only models without attachments run without tools, which lowers
-  // the step budget. These flags feed the step-limit calculation only.
+  // Models without function calling (Perplexity Sonar) and reasoning-only
+  // models without attachments run without tools, which lowers the step
+  // budget. These flags feed the step-limit calculation only.
   const toolsDisabled =
-    isReasoningModelId(model) && !supportsAttachments(model);
+    !supportsToolCalling(model) ||
+    (isReasoningModelId(model) && !supportsAttachments(model));
   const stepLimit = calculateOptimalStepLimit({
     modelId: model,
     thinkingSetting,

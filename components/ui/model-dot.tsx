@@ -8,6 +8,7 @@ export type ModelProvider =
   | "gemini"
   | "llama"
   | "deepseek"
+  | "perplexity"
   | "grok";
 
 const providerColor: Record<ModelProvider, string> = {
@@ -16,6 +17,7 @@ const providerColor: Record<ModelProvider, string> = {
   gemini: "bg-model-gemini",
   llama: "bg-model-llama",
   deepseek: "bg-model-deepseek",
+  perplexity: "bg-model-perplexity",
   grok: "bg-model-grok",
 };
 
@@ -56,6 +58,7 @@ const PROVIDER_ALIASES: Array<{ pattern: RegExp; provider: ModelProvider }> = [
   { pattern: /gemini|google/i, provider: "gemini" },
   { pattern: /llama|meta/i, provider: "llama" },
   { pattern: /deepseek/i, provider: "deepseek" },
+  { pattern: /perplexity|sonar/i, provider: "perplexity" },
   { pattern: /grok|xai/i, provider: "grok" },
 ];
 

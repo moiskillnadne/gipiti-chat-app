@@ -5,9 +5,11 @@ import type { ModelProvider } from "@/lib/ai/models";
 import AnthropicSvg from "./logos/anthropic.svg";
 import BflSvg from "./logos/bfl.svg";
 import BytedanceSvg from "./logos/bytedance.svg";
+import DeepseekSvg from "./logos/deepseek.svg";
 import GoogleSvg from "./logos/google.svg";
 import KlingSvg from "./logos/klingai.svg";
 import OpenAiSvg from "./logos/openai.svg";
+import PerplexitySvg from "./logos/perplexity.svg";
 import RecraftSvg from "./logos/recraft.svg";
 import XaiSvg from "./logos/xai.svg";
 
@@ -47,6 +49,14 @@ export const LogoBytedance: FC<LogoProps> = ({ size = 16 }) => (
   <BytedanceSvg height={size} width={size} />
 );
 
+export const LogoDeepseek: FC<LogoProps> = ({ size = 16 }) => (
+  <DeepseekSvg height={size} width={size} />
+);
+
+export const LogoPerplexity: FC<LogoProps> = ({ size = 16 }) => (
+  <PerplexitySvg height={size} width={size} />
+);
+
 /** Provider id (lib/ai/models.ts) → brand logo component. */
 export const providerLogos: Record<ModelProvider, FC<LogoProps>> = {
   openai: LogoOpenAI,
@@ -57,4 +67,6 @@ export const providerLogos: Record<ModelProvider, FC<LogoProps>> = {
   recraft: LogoRecraft,
   klingai: LogoKling,
   bytedance: LogoBytedance,
+  deepseek: LogoDeepseek,
+  perplexity: LogoPerplexity,
 };
