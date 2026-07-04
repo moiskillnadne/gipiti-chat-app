@@ -38,7 +38,11 @@ export const myProvider = customProvider({
     "gemini-3.1-flash-image": gateway.languageModel(
       "google/gemini-3.1-flash-image"
     ),
+    "gemini-3.1-flash-lite-image": gateway.languageModel(
+      "google/gemini-3.1-flash-lite-image"
+    ),
     "opus-4.8": gateway.languageModel("anthropic/claude-opus-4.8"),
+    "sonnet-5": gateway.languageModel("anthropic/claude-sonnet-5"),
     "sonnet-4.6": gateway.languageModel("anthropic/claude-sonnet-4.6"),
     "haiku-4.5": gateway.languageModel("anthropic/claude-haiku-4.5"),
     // DeepSeek streams reasoning natively (reasoning_content, normalized by

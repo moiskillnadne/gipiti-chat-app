@@ -140,6 +140,16 @@ const GOOGLE_IMAGE_GEN_CONFIG: ImageGenConfig = {
   },
 };
 
+// Nano Banana Lite only accepts 1K output — 2K/4K return a 400 from Google
+// ("Image size 2K is not supported for this model").
+const GOOGLE_LITE_IMAGE_GEN_CONFIG: ImageGenConfig = {
+  quality: {
+    options: [{ value: "1K", labelKey: "standard" }],
+    default: "1K",
+  },
+  aspectRatio: GOOGLE_IMAGE_GEN_CONFIG.aspectRatio,
+};
+
 const OPENAI_IMAGE_GEN_CONFIG: ImageGenConfig = {
   quality: {
     options: [
@@ -352,6 +362,28 @@ export const chatModels: ChatModel[] = [
     imageGenConfig: GOOGLE_IMAGE_GEN_CONFIG,
   },
   {
+    id: "gemini-3.1-flash-lite-image",
+    name: "gemini31FlashLiteImage.name",
+    description: "gemini31FlashLiteImage.description",
+    provider: "google",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+      imageGeneration: true,
+    },
+    showInUI: true,
+    providerOptions: {
+      google: {
+        mediaResolution: "MEDIA_RESOLUTION_HIGH",
+        imageConfig: {
+          imageSize: "1K",
+          aspectRatio: "16:9",
+        },
+      } satisfies GoogleGenerativeAIProviderOptions,
+    },
+    imageGenConfig: GOOGLE_LITE_IMAGE_GEN_CONFIG,
+  },
+  {
     id: "grok-imagine-image",
     name: "grokImagineImage.name",
     description: "grokImagineImage.description",
@@ -385,6 +417,18 @@ export const chatModels: ChatModel[] = [
     id: "opus-4.8",
     name: "opus48.name",
     description: "opus48.description",
+    provider: "anthropic",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+    thinkingConfig: OPUS_THINKING_CONFIG,
+  },
+  {
+    id: "sonnet-5",
+    name: "sonnet5.name",
+    description: "sonnet5.description",
     provider: "anthropic",
     capabilities: {
       reasoning: true,
@@ -889,6 +933,7 @@ export const getGoogleProviderOptions = (
 
 export const anthropicModelIds = [
   "opus-4.8",
+  "sonnet-5",
   "sonnet-4.6",
   "haiku-4.5",
 ] as const;

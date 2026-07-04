@@ -1502,6 +1502,10 @@
       "name": "Opus 4.8",
       "description": "Новейшая модель Anthropic Opus с расширенным контекстом и рассуждениями."
     },
+    "sonnet5": {
+      "name": "Sonnet 5",
+      "description": "Новое поколение сбалансированной модели Anthropic — быстрое рассуждение и сильная генерация кода."
+    },
     "sonnet46": {
       "name": "Sonnet 4.6",
       "description": "Сбалансированная модель Anthropic с быстрым рассуждением и отличной генерацией кода."
@@ -1537,6 +1541,10 @@
     "gemini31FlashImage": {
       "name": "Gemini Nano banana 2",
       "description": "Быстрая модель Google с возможностью генерации изображений."
+    },
+    "gemini31FlashLiteImage": {
+      "name": "Gemini Nano banana Lite",
+      "description": "Лёгкая и быстрая модель Google для недорогой генерации изображений."
     },
     "grokImagineImage": {
       "name": "Grok Imagine",
