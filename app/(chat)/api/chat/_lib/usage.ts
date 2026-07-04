@@ -68,6 +68,39 @@ type MergeUsageInput = {
 };
 
 /**
+ * Resolve the TokenLens usage summary for a gateway model id, working around a
+ * catalog collision: models.dev ships a "vercel" provider mirror whose model
+ * keys are literally "provider/model" (e.g. "perplexity/sonar") but carry no
+ * cost data. TokenLens matches gateway ids against that mirror first, yielding
+ * an empty costUSD — and a $0 charge. When that happens, retry with the
+ * canonical "provider:model" form, which resolves against the real provider
+ * entry and its pricing.
+ */
+function resolveUsageSummary({
+  modelId,
+  usage,
+  catalog,
+}: {
+  modelId: string;
+  usage: LanguageModelUsage;
+  catalog: ModelCatalog;
+}): ReturnType<typeof getUsage> {
+  const summary = getUsage({ modelId, usage, providers: catalog });
+
+  if (summary.costUSD?.totalUSD !== undefined || !modelId.includes("/")) {
+    return summary;
+  }
+
+  const canonical = getUsage({
+    modelId: modelId.replace("/", ":"),
+    usage,
+    providers: catalog,
+  });
+
+  return canonical.costUSD?.totalUSD === undefined ? summary : canonical;
+}
+
+/**
  * Merge raw model usage with image-tool usage and (when both a resolved modelId
  * and a catalog are available) TokenLens cost enrichment.
  *
@@ -96,7 +129,7 @@ export function mergeUsage({
     } as AppUsage;
   }
 
-  const summary = getUsage({ modelId, usage, providers: catalog });
+  const summary = resolveUsageSummary({ modelId, usage, catalog });
   const chatTotalUsd = summary.costUSD?.totalUSD ?? 0;
 
   return {

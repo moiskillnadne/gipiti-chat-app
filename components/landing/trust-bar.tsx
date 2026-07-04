@@ -7,6 +7,7 @@ import {
   useMotionValue,
   useTransform,
 } from "framer-motion";
+import Link from "next/link";
 import { useEffect, useRef } from "react";
 
 import {
@@ -27,8 +28,8 @@ type StatItem = {
 };
 
 const stats: StatItem[] = [
-  { value: 6, suffix: "+", label: "AI-провайдеров" },
-  { value: 18, suffix: "+", label: "AI-моделей" },
+  { value: 10, suffix: "", label: "AI-провайдеров" },
+  { value: 30, suffix: "+", label: "AI-моделей" },
   { value: 500, suffix: "+", label: "пользователей" },
 ];
 
@@ -107,6 +108,16 @@ export const TrustBar = () => (
           </motion.div>
         ))}
       </motion.div>
+
+      <div className="mt-10 text-center">
+        <Link
+          className="inline-flex items-center gap-2 text-indigo-400 text-sm transition-colors hover:text-indigo-300"
+          href="/models"
+        >
+          Посмотреть все модели
+          <span aria-hidden="true">&rarr;</span>
+        </Link>
+      </div>
     </div>
   </section>
 );

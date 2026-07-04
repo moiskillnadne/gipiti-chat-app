@@ -13,6 +13,8 @@ const providerStyles: Record<ModelProvider | "unknown", string> = {
   recraft: "bg-rose-100 text-rose-800",
   klingai: "bg-teal-100 text-teal-800",
   bytedance: "bg-sky-100 text-sky-800",
+  deepseek: "bg-indigo-100 text-indigo-800",
+  perplexity: "bg-cyan-100 text-cyan-800",
   unknown: "bg-gray-100 text-gray-800",
 };
 

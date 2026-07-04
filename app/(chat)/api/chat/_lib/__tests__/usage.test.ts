@@ -7,15 +7,33 @@ import type { ImageGenerationUsageAccumulator } from "@/lib/ai/tools/generate-im
 // getUsage() prices only the chat model's text tokens — it never knows about
 // the image-tool cost, which is exactly why mergeUsage must fold that in itself.
 const CHAT_TOTAL_USD = 0.02;
+const SONAR_TOTAL_USD = 0.11;
 
 vi.mock("tokenlens/helpers", () => ({
-  getUsage: () => ({
-    costUSD: {
-      totalUSD: CHAT_TOTAL_USD,
-      inputUSD: 0.012,
-      outputUSD: 0.008,
-    },
-  }),
+  getUsage: ({ modelId }: { modelId: string }) => {
+    // Reproduce the models.dev "vercel" mirror collision: the slash-form
+    // gateway id matches a mirror entry without cost data, while the
+    // canonical provider:model form resolves to the real pricing.
+    if (modelId === "perplexity/sonar") {
+      return { costUSD: {} };
+    }
+    if (modelId === "perplexity:sonar") {
+      return {
+        costUSD: {
+          totalUSD: SONAR_TOTAL_USD,
+          inputUSD: 0.1,
+          outputUSD: 0.01,
+        },
+      };
+    }
+    return {
+      costUSD: {
+        totalUSD: CHAT_TOTAL_USD,
+        inputUSD: 0.012,
+        outputUSD: 0.008,
+      },
+    };
+  },
 }));
 
 // Imported after the mock is registered so usage.ts picks up the mocked getUsage.
@@ -92,6 +110,18 @@ describe("mergeUsage", () => {
 
     expect(merged.inputTokens).toBe(110);
     expect(merged.outputTokens).toBe(70);
+  });
+
+  it("falls back to the canonical provider:model id when the gateway id resolves without cost", () => {
+    const merged = mergeUsage({
+      usage: buildUsage(),
+      accumulator: buildAccumulator(),
+      modelId: "perplexity/sonar",
+      catalog: FAKE_CATALOG,
+    });
+
+    expect(merged.costUSD?.totalUSD).toBeCloseTo(SONAR_TOTAL_USD);
+    expect(usageChargeUsd(merged)).toBeCloseTo(SONAR_TOTAL_USD);
   });
 
   it("returns a token-only merge with no cost when modelId/catalog are absent", () => {

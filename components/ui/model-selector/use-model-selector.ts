@@ -30,6 +30,8 @@ const PROVIDER_ORDER: ModelProvider[] = [
   "recraft",
   "klingai",
   "bytedance",
+  "deepseek",
+  "perplexity",
 ];
 
 const CAPABILITY_BUCKET_ORDER: ModelCapabilityKey[] = [

@@ -2,6 +2,7 @@
 import type { UseChatHelpers } from "@ai-sdk/react";
 import equal from "fast-deep-equal";
 import { motion } from "framer-motion";
+import { ChevronDownIcon } from "lucide-react";
 import { memo, useMemo, useState } from "react";
 import { getModelById } from "@/lib/ai/models";
 import type { Vote } from "@/lib/db/schema";
@@ -16,6 +17,12 @@ import { MediaPreview, type MediaPreviewState } from "./elements/media-preview";
 import { MessageContent } from "./elements/message";
 import { PdfPreview } from "./elements/pdf-preview";
 import { Response } from "./elements/response";
+import {
+  Source,
+  Sources,
+  SourcesContent,
+  SourcesTrigger,
+} from "./elements/source";
 import { MessageActions } from "./message-actions";
 import { MessageEditor } from "./message-editor";
 import { PreviewAttachment } from "./preview-attachment";
@@ -131,6 +138,13 @@ const PurePreviewMessage = ({
 
   const groupedParts = useMemo(
     () => groupToolRuns(message.parts ?? []),
+    [message.parts]
+  );
+
+  // Web citations from models with built-in search (Perplexity Sonar) arrive
+  // as source-url parts; rendered as a collapsible list under the response.
+  const sourceParts = useMemo(
+    () => (message.parts ?? []).filter((part) => part.type === "source-url"),
     [message.parts]
   );
 
@@ -391,6 +405,26 @@ const PurePreviewMessage = ({
 
             return null;
           })}
+
+          {message.role === "assistant" && sourceParts.length > 0 && (
+            <Sources className="mb-0">
+              <SourcesTrigger count={sourceParts.length}>
+                <p className="font-medium">
+                  {t("sourcesUsed", { count: sourceParts.length })}
+                </p>
+                <ChevronDownIcon className="size-4" />
+              </SourcesTrigger>
+              <SourcesContent>
+                {sourceParts.map((part) => (
+                  <Source
+                    href={part.url}
+                    key={part.sourceId}
+                    title={part.title ?? part.url}
+                  />
+                ))}
+              </SourcesContent>
+            </Sources>
+          )}
 
           {!isReadonly && (
             <MessageActions

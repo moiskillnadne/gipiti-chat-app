@@ -916,7 +916,8 @@
       "download": "Скачать",
       "downloadVideo": "Скачать видео",
       "downloadError": "Не удалось скачать изображение",
-      "downloadFileError": "Не удалось скачать файл"
+      "downloadFileError": "Не удалось скачать файл",
+      "sourcesUsed": "Источники: {count}"
     },
     "media": {
       "queued": "В очереди",
@@ -1424,7 +1425,9 @@
       "bfl": "Black Forest Labs",
       "recraft": "Recraft",
       "klingai": "Kling AI",
-      "bytedance": "ByteDance"
+      "bytedance": "ByteDance",
+      "deepseek": "DeepSeek",
+      "perplexity": "Perplexity"
     },
     "search": {
       "placeholder": "Поиск моделей…",
@@ -1506,6 +1509,26 @@
     "haiku45": {
       "name": "Haiku 4.5",
       "description": "Быстрая и компактная модель Anthropic для повседневных задач с рассуждениями."
+    },
+    "deepseekV4Pro": {
+      "name": "DeepSeek V4 Pro",
+      "description": "Флагманская модель DeepSeek с глубокими рассуждениями и контекстом до миллиона токенов."
+    },
+    "deepseekV4Flash": {
+      "name": "DeepSeek V4 Flash",
+      "description": "Быстрая и доступная версия DeepSeek V4 для повседневных задач с рассуждениями."
+    },
+    "sonar": {
+      "name": "Sonar",
+      "description": "Модель Perplexity со встроенным поиском в интернете. Быстрые ответы со ссылками на источники."
+    },
+    "sonarPro": {
+      "name": "Sonar Pro",
+      "description": "Продвинутая модель Perplexity со встроенным поиском: сложные запросы и подробные ответы с источниками."
+    },
+    "sonarReasoningPro": {
+      "name": "Sonar Reasoning Pro",
+      "description": "Рассуждающая модель Perplexity со встроенным поиском: пошаговый анализ со ссылками на источники."
     },
     "gemini3ProImage": {
       "name": "Gemini Nano banana Pro",

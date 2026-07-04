@@ -54,6 +54,7 @@
   --model-gemini: oklch(0.58 0.13 245);
   --model-llama: oklch(0.55 0.1 130);
   --model-deepseek: oklch(0.55 0.13 320);
+  --model-perplexity: oklch(0.6 0.11 200);
   --model-grok: oklch(0.45 0.04 280);
 
   /* Motion · canonical curve */
@@ -190,6 +191,7 @@
   --color-model-gemini: var(--model-gemini);
   --color-model-llama: var(--model-llama);
   --color-model-deepseek: var(--model-deepseek);
+  --color-model-perplexity: var(--model-perplexity);
   --color-model-grok: var(--model-grok);
 
   /* Shadows · kit scale (overrides Tailwind defaults) */
