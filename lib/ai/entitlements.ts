@@ -34,6 +34,10 @@ export const entitlementsByUserType: Record<UserType, Entitlements> = {
       "veo-3.1",
       "veo-3.1-fast",
       "grok-imagine-video",
+      "kling-v3.0-t2v",
+      "kling-v3.0-i2v",
+      "kling-v2.6-t2v",
+      "kling-v2.5-turbo-t2v",
     ],
   },
 };

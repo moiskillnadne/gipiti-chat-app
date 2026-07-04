@@ -64,6 +64,7 @@ const PROVIDER_COLORS: Record<ModelProvider, string> = {
   xai: "oklch(0.45 0.05 285)",
   bfl: "oklch(0.55 0.16 25)",
   recraft: "oklch(0.55 0.14 320)",
+  klingai: "oklch(0.6 0.12 180)",
 };
 
 const FALLBACK_PROVIDER_COLOR = "var(--ink-4)";

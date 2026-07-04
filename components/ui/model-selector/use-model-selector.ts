@@ -28,6 +28,7 @@ const PROVIDER_ORDER: ModelProvider[] = [
   "xai",
   "bfl",
   "recraft",
+  "klingai",
 ];
 
 const CAPABILITY_BUCKET_ORDER: ModelCapabilityKey[] = [

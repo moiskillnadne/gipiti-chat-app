@@ -84,11 +84,11 @@ export const catalogSections: CatalogSection[] = [
     typePage: {
       h1Top: "Нейросети для генерации",
       h1Gradient: "видео на русском",
-      sub: "Veo 3.1 и Grok Imagine Video — создавайте видеоролики по текстовому описанию или из готового изображения. Без VPN, оплата российскими картами.",
+      sub: "Veo 3.1, Kling 3.0 и Grok Imagine Video — создавайте видеоролики по текстовому описанию или из готового изображения. Без VPN, оплата российскими картами.",
       metaTitle:
-        "Нейросети для генерации видео — Veo 3.1, Grok Imagine | GIPITI",
+        "Нейросети для генерации видео — Veo 3.1, Kling 3.0, Grok Imagine | GIPITI",
       metaDescription:
-        "Генерация видео по текстовому промпту или из изображения: Veo 3.1 со звуком до 60 секунд и Grok Imagine Video. Без VPN, на русском, оплата российскими картами.",
+        "Генерация видео по текстовому промпту или из изображения: Veo 3.1 со звуком, Kling 3.0 и Grok Imagine Video. Без VPN, на русском, оплата российскими картами.",
     },
   },
   {
@@ -237,6 +237,47 @@ export const catalogModels: CatalogModel[] = [
     category: "video",
     description: "Короткие видеоролики по промпту или из готового изображения.",
     hue: 0,
+  },
+  {
+    modelId: "kling-v3.0-t2v",
+    name: "Kling 3.0",
+    vendor: "Kling AI",
+    provider: "klingai",
+    category: "video",
+    description:
+      "Флагманская модель Kling: кинематографичное видео с озвучкой по текстовому описанию.",
+    tag: "Новинка",
+    hue: 145,
+  },
+  {
+    modelId: "kling-v3.0-i2v",
+    name: "Kling 3.0 Image-to-Video",
+    vendor: "Kling AI",
+    provider: "klingai",
+    category: "video",
+    description:
+      "Оживляет ваше изображение: видео со звуком из готовой картинки и промпта.",
+    tag: "Новинка",
+    hue: 145,
+  },
+  {
+    modelId: "kling-v2.6-t2v",
+    name: "Kling 2.6",
+    vendor: "Kling AI",
+    provider: "klingai",
+    category: "video",
+    description:
+      "Видео с нативным звуком по текстовому промпту: речь, эффекты и эмбиент за один проход.",
+    hue: 145,
+  },
+  {
+    modelId: "kling-v2.5-turbo-t2v",
+    name: "Kling 2.5 Turbo",
+    vendor: "Kling AI",
+    provider: "klingai",
+    category: "video",
+    description: "Быстрая и доступная генерация видео по текстовому описанию.",
+    hue: 145,
   },
   {
     modelId: "gpt-codex-5.3",

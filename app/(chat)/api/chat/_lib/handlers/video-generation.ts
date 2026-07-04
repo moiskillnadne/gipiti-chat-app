@@ -1,7 +1,7 @@
 import { gateway } from "@ai-sdk/gateway";
 import { experimental_generateVideo as generateVideo } from "ai";
 import { uploadGeneratedVideo } from "@/lib/ai/media-upload";
-import { getVideoGatewayModelId } from "@/lib/ai/models";
+import { getVideoGenConfig } from "@/lib/ai/models";
 import { saveDocument } from "@/lib/db/query/document/save-document";
 import { ChatSDKError } from "@/lib/errors";
 import type { AppUsage } from "@/lib/usage";
@@ -9,7 +9,6 @@ import { generateUUID } from "@/lib/utils";
 import { chargeUsageSafe } from "../charge";
 import type { ChatTurnContext, StreamWriter } from "../context";
 
-const VIDEO_DURATION_SECONDS = 8;
 const VIDEO_ASPECT_RATIO = "16:9";
 // Re-emit the (reconciled) "generating" part on this cadence to keep the
 // connection alive through the long video generation.
@@ -32,16 +31,40 @@ export async function runVideoGeneration(
     throw new ChatSDKError("bad_request:api");
   }
 
+  const videoConfig = getVideoGenConfig(ctx.model);
+
   // Seed image-to-video generation from the first image attachment, if any.
-  const imageAttachment = ctx.message.parts.find(
-    (part) =>
-      part.type === "file" && IMAGE_TO_VIDEO_MEDIA_TYPES.has(part.mediaType)
-  );
+  // Text-to-video-only models never receive an image, even when one is attached.
+  const imageAttachment =
+    videoConfig.imageInput === "unsupported"
+      ? undefined
+      : ctx.message.parts.find(
+          (part) =>
+            part.type === "file" &&
+            IMAGE_TO_VIDEO_MEDIA_TYPES.has(part.mediaType)
+        );
   const referenceImageUrl =
     imageAttachment?.type === "file" ? imageAttachment.url : undefined;
 
   const documentId = generateUUID();
   const generationStartTime = Date.now();
+
+  // Image-to-video models cannot generate without a seed image; surface the
+  // error card instead of letting the gateway fail with a raw provider error.
+  if (videoConfig.imageInput === "required" && !referenceImageUrl) {
+    writer.write({
+      id: documentId,
+      type: "data-mediaGeneration",
+      data: {
+        documentId,
+        mediaType: "video",
+        status: "error",
+        prompt: userPrompt,
+        modelId: ctx.model,
+      },
+    });
+    return;
+  }
 
   const writeGenerating = () => {
     writer.write({
@@ -65,16 +88,15 @@ export async function runVideoGeneration(
   let videoUrl: string | undefined;
   let costUsd = 0;
   try {
-    const gatewayModelId = getVideoGatewayModelId(ctx.model);
     const videoPrompt = referenceImageUrl
       ? { image: referenceImageUrl, text: userPrompt }
       : userPrompt;
 
     const result = await generateVideo({
-      model: gateway.videoModel(gatewayModelId),
+      model: gateway.videoModel(videoConfig.gatewayModelId),
       prompt: videoPrompt,
       aspectRatio: VIDEO_ASPECT_RATIO,
-      duration: VIDEO_DURATION_SECONDS,
+      duration: videoConfig.durationSeconds,
     });
 
     clearInterval(keepAliveInterval);
@@ -125,7 +147,7 @@ export async function runVideoGeneration(
       prompt: userPrompt,
       modelId: ctx.model,
       url: videoUrl,
-      durationSeconds: VIDEO_DURATION_SECONDS,
+      durationSeconds: videoConfig.durationSeconds,
     },
   });
   writer.write({ type: "file", mediaType: "video/mp4", url: videoUrl });

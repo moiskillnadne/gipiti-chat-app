@@ -1422,7 +1422,8 @@
       "anthropic": "Anthropic",
       "xai": "X.AI",
       "bfl": "Black Forest Labs",
-      "recraft": "Recraft"
+      "recraft": "Recraft",
+      "klingai": "Kling AI"
     },
     "search": {
       "placeholder": "Поиск моделей…",
@@ -1532,6 +1533,22 @@
     "grokImagineVideo": {
       "name": "Grok Imagine Video",
       "description": "Модель XAI для генерации видео. Создаёт видео из текстовых описаний с помощью Grok Imagine."
+    },
+    "klingV30T2v": {
+      "name": "Kling 3.0",
+      "description": "Флагманская модель Kling AI для генерации видео. Создаёт 5-секундные кинематографичные видео с озвучкой по текстовому описанию."
+    },
+    "klingV30I2v": {
+      "name": "Kling 3.0 Image-to-Video",
+      "description": "Оживляет ваше изображение: создаёт 5-секундное видео со звуком из загруженной картинки и текстового промпта."
+    },
+    "klingV26T2v": {
+      "name": "Kling 2.6",
+      "description": "Модель Kling AI с нативным звуком: речь, звуковые эффекты и эмбиент в 5-секундных видео по текстовому описанию."
+    },
+    "klingV25TurboT2v": {
+      "name": "Kling 2.5 Turbo",
+      "description": "Быстрая и доступная модель Kling AI. Создаёт 5-секундные видео по текстовому описанию."
     },
     "flux2Max": {
       "name": "Flux 2 Max",
