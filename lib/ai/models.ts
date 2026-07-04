@@ -17,7 +17,8 @@ export type ModelProvider =
   | "xai"
   | "bfl"
   | "recraft"
-  | "klingai";
+  | "klingai"
+  | "bytedance";
 
 export type ThinkingEffortConfig = {
   type: "effort";
@@ -177,6 +178,22 @@ const RECRAFT_IMAGE_GEN_CONFIG: ImageGenConfig = {
       { value: "9:16", labelKey: "portrait916" },
       { value: "3:2", labelKey: "wide32" },
       { value: "2:3", labelKey: "tall23" },
+    ],
+    default: "1:1",
+  },
+};
+
+const BYTEDANCE_IMAGE_GEN_CONFIG: ImageGenConfig = {
+  aspectRatio: {
+    options: [
+      { value: "1:1", labelKey: "square" },
+      { value: "4:3", labelKey: "standard43" },
+      { value: "3:4", labelKey: "standard34" },
+      { value: "16:9", labelKey: "landscape169" },
+      { value: "9:16", labelKey: "portrait916" },
+      { value: "3:2", labelKey: "wide32" },
+      { value: "2:3", labelKey: "tall23" },
+      { value: "21:9", labelKey: "ultrawide" },
     ],
     default: "1:1",
   },
@@ -502,6 +519,38 @@ export const chatModels: ChatModel[] = [
     },
   },
   {
+    id: "seedance-2.0",
+    name: "seedance20.name",
+    description: "seedance20.description",
+    provider: "bytedance",
+    capabilities: {
+      videoGeneration: true,
+      attachments: true,
+    },
+    showInUI: true,
+    videoGenConfig: {
+      gatewayModelId: "bytedance/seedance-2.0",
+      durationSeconds: 5,
+      imageInput: "optional",
+    },
+  },
+  {
+    id: "seedance-2.0-fast",
+    name: "seedance20Fast.name",
+    description: "seedance20Fast.description",
+    provider: "bytedance",
+    capabilities: {
+      videoGeneration: true,
+      attachments: true,
+    },
+    showInUI: true,
+    videoGenConfig: {
+      gatewayModelId: "bytedance/seedance-2.0-fast",
+      durationSeconds: 5,
+      imageInput: "optional",
+    },
+  },
+  {
     id: "flux-2-max",
     name: "flux2Max.name",
     description: "flux2Max.description",
@@ -536,6 +585,30 @@ export const chatModels: ChatModel[] = [
     },
     showInUI: true,
     imageGenConfig: RECRAFT_IMAGE_GEN_CONFIG,
+  },
+  {
+    id: "seedream-5.0-lite",
+    name: "seedream50Lite.name",
+    description: "seedream50Lite.description",
+    provider: "bytedance",
+    capabilities: {
+      attachments: true,
+      imageGeneration: true,
+    },
+    showInUI: true,
+    imageGenConfig: BYTEDANCE_IMAGE_GEN_CONFIG,
+  },
+  {
+    id: "seedream-4.5",
+    name: "seedream45.name",
+    description: "seedream45.description",
+    provider: "bytedance",
+    capabilities: {
+      attachments: true,
+      imageGeneration: true,
+    },
+    showInUI: true,
+    imageGenConfig: BYTEDANCE_IMAGE_GEN_CONFIG,
   },
 ];
 
@@ -613,13 +686,17 @@ type DedicatedImageModelId =
   | "grok-imagine-image"
   | "flux-2-max"
   | "flux-kontext-max"
-  | "recraft-v4.1-pro";
+  | "recraft-v4.1-pro"
+  | "seedream-5.0-lite"
+  | "seedream-4.5";
 
 const DEDICATED_IMAGE_GATEWAY_MAP: Record<DedicatedImageModelId, string> = {
   "grok-imagine-image": "xai/grok-imagine-image",
   "flux-2-max": "bfl/flux-2-max",
   "flux-kontext-max": "bfl/flux-kontext-max",
   "recraft-v4.1-pro": "recraft/recraft-v4.1-pro",
+  "seedream-5.0-lite": "bytedance/seedream-5.0-lite",
+  "seedream-4.5": "bytedance/seedream-4.5",
 };
 
 export const getDedicatedImageGatewayModelId = (modelId: string): string => {
