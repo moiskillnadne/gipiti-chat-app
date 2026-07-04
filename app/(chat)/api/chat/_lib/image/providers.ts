@@ -311,10 +311,18 @@ const multimodalImageProvider: ImageProvider = async ({
   let usageMetadata: ImageGenResult["usageMetadata"];
   let costUsd = 0;
   let responseId: string | undefined;
+  let streamError: unknown;
 
   for await (const delta of result.fullStream) {
     if (delta.type === "reasoning-delta") {
       onReasoning(delta.text);
+    }
+
+    // streamText surfaces provider failures (e.g. a 400 for an unsupported
+    // image size) as error deltas instead of throwing — without this the
+    // stream ends with no file and the caller can't tell success from failure.
+    if (delta.type === "error") {
+      streamError = delta.error;
     }
 
     if (delta.type === "file") {
@@ -350,6 +358,12 @@ const multimodalImageProvider: ImageProvider = async ({
         }
       }
     }
+  }
+
+  if (streamError !== undefined) {
+    throw streamError instanceof Error
+      ? streamError
+      : new Error(`Image generation failed: ${JSON.stringify(streamError)}`);
   }
 
   return { base64, mediaType, usageMetadata, costUsd, responseId };

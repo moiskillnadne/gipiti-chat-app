@@ -131,6 +131,17 @@ export const catalogModels: CatalogModel[] = [
     hue: 30,
   },
   {
+    modelId: "sonnet-5",
+    name: "Claude Sonnet 5",
+    vendor: "Anthropic",
+    provider: "anthropic",
+    category: "text",
+    description:
+      "Новое поколение сбалансированной модели Anthropic — код, аналитика и повседневные задачи.",
+    tag: "Новинка",
+    hue: 30,
+  },
+  {
     modelId: "sonnet-4.6",
     name: "Claude Sonnet 4.6",
     vendor: "Anthropic",
@@ -220,6 +231,17 @@ export const catalogModels: CatalogModel[] = [
     description:
       "Генерация и редактирование изображений по-русски: фон, стиль, персонажи.",
     tag: "Популярная",
+    hue: 90,
+  },
+  {
+    modelId: "gemini-3.1-flash-lite-image",
+    name: "Nano Banana Lite",
+    vendor: "Google",
+    provider: "google",
+    category: "images",
+    description:
+      "Самая быстрая и недорогая генерация изображений от Google — для набросков и итераций.",
+    tag: "Новинка",
     hue: 90,
   },
   {

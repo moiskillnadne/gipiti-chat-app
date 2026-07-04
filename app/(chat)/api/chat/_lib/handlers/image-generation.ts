@@ -113,6 +113,20 @@ export async function runImageGeneration(
       userId: ctx.userId,
       generationId: result.responseId ?? generateImageGenerationId(),
     });
+  } else {
+    // The stream completed without producing an image (e.g. the model answered
+    // with text only). Resolve the card — otherwise it spins forever.
+    writer.write({
+      id: documentId,
+      type: "data-mediaGeneration",
+      data: {
+        documentId,
+        mediaType: "image",
+        status: "error",
+        prompt: userPrompt,
+        modelId: ctx.model,
+      },
+    });
   }
 
   // Fold image usage into the shared accumulator (mirrors prior behavior:
