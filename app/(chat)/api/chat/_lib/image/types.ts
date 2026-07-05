@@ -32,3 +32,18 @@ export type ImageGenResult = {
 
 /** Generate (or edit) an image and return its bytes + usage. No side effects. */
 export type ImageProvider = (input: ImageGenInput) => Promise<ImageGenResult>;
+
+/**
+ * Image generation failed with a message that is safe to show on the media
+ * card (e.g. the model's own textual reply when it refuses to draw). Internal
+ * provider errors stay generic on the card and only go to the server log.
+ */
+export class ImageGenerationError extends Error {
+  readonly userMessage?: string;
+
+  constructor(message: string, userMessage?: string) {
+    super(message);
+    this.name = "ImageGenerationError";
+    this.userMessage = userMessage;
+  }
+}

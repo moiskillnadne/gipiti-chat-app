@@ -9,6 +9,7 @@ import { generateUUID } from "@/lib/utils";
 import { chargeUsageSafe } from "../charge";
 import type { ChatTurnContext, StreamWriter } from "../context";
 import { resolveImageProvider } from "../image/providers";
+import { ImageGenerationError } from "../image/types";
 
 const DEFAULT_IMAGE_MEDIA_TYPE = "image/png";
 
@@ -70,7 +71,7 @@ export async function runImageGeneration(
       );
     }
   } catch (error) {
-    console.error("Image generation failed:", error);
+    console.error("Image generation failed:", { modelId: ctx.model, error });
     writer.write({
       id: documentId,
       type: "data-mediaGeneration",
@@ -80,6 +81,10 @@ export async function runImageGeneration(
         status: "error",
         prompt: userPrompt,
         modelId: ctx.model,
+        // Only ImageGenerationError carries a card-safe message (the model's
+        // own reply); internal errors stay generic on the card.
+        ...(error instanceof ImageGenerationError &&
+          error.userMessage && { errorMessage: error.userMessage }),
       },
     });
     return;
@@ -116,6 +121,10 @@ export async function runImageGeneration(
   } else {
     // The stream completed without producing an image (e.g. the model answered
     // with text only). Resolve the card — otherwise it spins forever.
+    console.error("Image generation returned no image url:", {
+      modelId: ctx.model,
+      hasBase64: Boolean(result.base64),
+    });
     writer.write({
       id: documentId,
       type: "data-mediaGeneration",
