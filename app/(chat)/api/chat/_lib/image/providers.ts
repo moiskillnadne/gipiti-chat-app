@@ -30,6 +30,20 @@ const DEFAULT_IMAGE_MEDIA_TYPE = "image/png";
 /** Cap on the model-text snippet kept for logging / the error card. */
 const TEXT_PREVIEW_MAX_LENGTH = 300;
 
+/**
+ * Without this, multimodal image models decide for themselves whether a prompt
+ * is an image task: stronger Gemini tiers (Pro / Flash) answer prompts like
+ * "создай карточку товара" with copywriting text and no image, which the user
+ * sees as a failed generation. Forcing the image modality via
+ * `responseModalities: ["IMAGE"]` returns an empty response instead, so a
+ * system instruction is the only lever that reliably works.
+ */
+const MULTIMODAL_IMAGE_SYSTEM_PROMPT =
+  "You are an image generation model. Every user message is a request to " +
+  "generate or edit an image. Always produce an image in your response — " +
+  "never answer with text only. If the request describes a design, card, " +
+  "document, banner, or layout, render it as an image.";
+
 /** The edit endpoint requires a concrete size; "auto" is not accepted. */
 const OPENAI_EDIT_DEFAULT_SIZE = "1024x1024";
 
@@ -309,6 +323,7 @@ const multimodalImageProvider: ImageProvider = async ({
 
   const result = streamText({
     model: myProvider.languageModel(modelId),
+    system: MULTIMODAL_IMAGE_SYSTEM_PROMPT,
     messages,
     providerOptions: mergedProviderOptions,
   });
