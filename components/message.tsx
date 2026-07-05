@@ -299,10 +299,12 @@ const PurePreviewMessage = ({
                 url,
                 durationSeconds,
                 errorMessage,
+                aspectRatio,
               } = part.data;
 
               return (
                 <MediaPreview
+                  aspectRatio={aspectRatio}
                   durationSeconds={durationSeconds}
                   errorMessage={errorMessage}
                   key={documentId}

@@ -9,7 +9,7 @@ import {
   VideoIcon,
   XIcon,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { type CSSProperties, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslations } from "@/lib/i18n/translate";
 import { cn } from "@/lib/utils";
@@ -27,12 +27,42 @@ type MediaPreviewProps = {
   dimensions?: string;
   elapsedLabel?: string;
   errorMessage?: string;
+  /** Chosen format as a "W:H" token — shapes the card; square when absent. */
+  aspectRatio?: string;
   onRegenerate?: () => void;
   onDownload?: () => void;
 };
 
+/** Card sizing derived from the chosen format (square fallback). */
+type CardShape = {
+  /** Inline style overriding the default aspect-square media area. */
+  mediaStyle?: CSSProperties;
+  /** True for portrait formats — the card narrows to limit its height. */
+  isPortrait: boolean;
+};
+
+const ASPECT_TOKEN_PATTERN = /^(\d+):(\d+)$/;
+
+const cardShapeFromAspect = (token?: string): CardShape => {
+  const match = token ? ASPECT_TOKEN_PATTERN.exec(token) : null;
+  if (!match) {
+    return { isPortrait: false };
+  }
+  const width = Number.parseInt(match[1], 10);
+  const height = Number.parseInt(match[2], 10);
+  if (!(width > 0 && height > 0)) {
+    return { isPortrait: false };
+  }
+  return {
+    mediaStyle: { aspectRatio: `${width} / ${height}` },
+    isPortrait: height > width,
+  };
+};
+
 const CARD_FRAME =
   "relative w-full max-w-[392px] overflow-hidden rounded-lg border border-rule bg-card shadow-md";
+// Portrait formats narrow the card so tall ratios don't dominate the thread.
+const CARD_FRAME_PORTRAIT = "max-w-[294px]";
 const MEDIA_AREA = "relative aspect-square w-full overflow-hidden bg-paper-2";
 const FROSTED =
   "bg-white/75 shadow-[inset_0_0_0_1px_rgba(255,255,255,.7),0_1px_4px_rgba(20,22,26,.12)] backdrop-blur-md backdrop-saturate-150";
@@ -304,16 +334,18 @@ const GeneratingCard = ({
   mediaType,
   modelLabel,
   elapsedLabel,
+  shape,
 }: {
   mediaType: MediaPreviewMediaType;
   modelLabel?: string;
   elapsedLabel?: string;
+  shape: CardShape;
 }) => {
   const t = useTranslations("chat.media");
   const elapsed = useElapsedLabel(elapsedLabel);
   return (
-    <div className={CARD_FRAME}>
-      <div className={MEDIA_AREA}>
+    <div className={cn(CARD_FRAME, shape.isPortrait && CARD_FRAME_PORTRAIT)}>
+      <div className={MEDIA_AREA} style={shape.mediaStyle}>
         <GeneratingSkeleton />
         <ModelChip mediaType={mediaType} modelLabel={modelLabel} />
         <div className="absolute top-3.5 right-3.5 font-mono text-[11px] text-ink-3 tracking-[0.04em]">
@@ -335,18 +367,21 @@ const GeneratingCard = ({
 const ErrorCard = ({
   errorMessage,
   onRegenerate,
+  shape,
 }: {
   errorMessage?: string;
   onRegenerate?: () => void;
+  shape: CardShape;
 }) => {
   const t = useTranslations("chat.media");
   return (
-    <div className={CARD_FRAME}>
+    <div className={cn(CARD_FRAME, shape.isPortrait && CARD_FRAME_PORTRAIT)}>
       <div
         className={cn(
           MEDIA_AREA,
           "flex flex-col items-center justify-center gap-1.5 bg-danger-soft px-8 text-center"
         )}
+        style={shape.mediaStyle}
       >
         <AlertCircleIcon className="mb-1.5 size-[30px] text-danger" />
         <div className="font-medium text-[14px] text-ink">
@@ -379,6 +414,7 @@ const DoneCard = ({
   onRegenerate,
   onDownload,
   onOpen,
+  shape,
 }: {
   mediaType: MediaPreviewMediaType;
   url?: string;
@@ -388,11 +424,12 @@ const DoneCard = ({
   onRegenerate?: () => void;
   onDownload?: () => void;
   onOpen: () => void;
+  shape: CardShape;
 }) => {
   const t = useTranslations("chat.media");
   return (
-    <div className={CARD_FRAME}>
-      <div className={MEDIA_AREA}>
+    <div className={cn(CARD_FRAME, shape.isPortrait && CARD_FRAME_PORTRAIT)}>
+      <div className={MEDIA_AREA} style={shape.mediaStyle}>
         {url ? (
           mediaType === "image" ? (
             // biome-ignore lint/performance/noImgElement: model-generated image, no Next loader
@@ -449,11 +486,13 @@ export const MediaPreview = ({
   dimensions,
   elapsedLabel,
   errorMessage,
+  aspectRatio,
   onRegenerate,
   onDownload,
 }: MediaPreviewProps) => {
   const t = useTranslations("chat.media");
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const shape = cardShapeFromAspect(aspectRatio);
 
   if (state === "queued") {
     return <QueuedCard mediaType={mediaType} />;
@@ -465,13 +504,18 @@ export const MediaPreview = ({
         elapsedLabel={elapsedLabel}
         mediaType={mediaType}
         modelLabel={modelLabel}
+        shape={shape}
       />
     );
   }
 
   if (state === "error") {
     return (
-      <ErrorCard errorMessage={errorMessage} onRegenerate={onRegenerate} />
+      <ErrorCard
+        errorMessage={errorMessage}
+        onRegenerate={onRegenerate}
+        shape={shape}
+      />
     );
   }
 
@@ -492,6 +536,7 @@ export const MediaPreview = ({
         onOpen={() => setIsLightboxOpen(true)}
         onRegenerate={onRegenerate}
         prompt={prompt}
+        shape={shape}
         url={url}
       />
       {isLightboxOpen && url && (

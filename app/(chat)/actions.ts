@@ -8,6 +8,10 @@ import {
   IMAGE_QUALITY_COOKIE_PREFIX,
   IMAGE_STYLE_COOKIE_PREFIX,
   THINKING_COOKIE_PREFIX,
+  VIDEO_ASPECT_COOKIE_PREFIX,
+  VIDEO_DURATION_COOKIE_PREFIX,
+  VIDEO_MODE_COOKIE_PREFIX,
+  VIDEO_RESOLUTION_COOKIE_PREFIX,
 } from "@/lib/ai/models";
 import { myProvider } from "@/lib/ai/providers";
 import { deleteMessagesByChatIdAfterTimestamp } from "@/lib/db/query/chat/delete-messages-by-chat-id-after-timestamp";
@@ -39,6 +43,32 @@ export async function saveImageAspectAsCookie(modelId: string, value: string) {
 export async function saveImageStyleAsCookie(modelId: string, value: string) {
   const cookieStore = await cookies();
   cookieStore.set(`${IMAGE_STYLE_COOKIE_PREFIX}-${modelId}`, value);
+}
+
+export async function saveVideoAspectAsCookie(modelId: string, value: string) {
+  const cookieStore = await cookies();
+  cookieStore.set(`${VIDEO_ASPECT_COOKIE_PREFIX}-${modelId}`, value);
+}
+
+export async function saveVideoDurationAsCookie(
+  modelId: string,
+  value: string
+) {
+  const cookieStore = await cookies();
+  cookieStore.set(`${VIDEO_DURATION_COOKIE_PREFIX}-${modelId}`, value);
+}
+
+export async function saveVideoResolutionAsCookie(
+  modelId: string,
+  value: string
+) {
+  const cookieStore = await cookies();
+  cookieStore.set(`${VIDEO_RESOLUTION_COOKIE_PREFIX}-${modelId}`, value);
+}
+
+export async function saveVideoModeAsCookie(modelId: string, value: string) {
+  const cookieStore = await cookies();
+  cookieStore.set(`${VIDEO_MODE_COOKIE_PREFIX}-${modelId}`, value);
 }
 
 export async function saveWebSearchEnabledAsCookie(enabled: boolean) {
