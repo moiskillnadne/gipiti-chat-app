@@ -2,6 +2,7 @@ import {
   generateImageGenerationId,
   uploadGeneratedImage,
 } from "@/lib/ai/media-upload";
+import { normalizeAspectRatio } from "@/lib/ai/models";
 import { saveDocument } from "@/lib/db/query/document/save-document";
 import { ChatSDKError } from "@/lib/errors";
 import { isFreeUserById } from "@/lib/subscription/is-free-user";
@@ -29,6 +30,8 @@ export async function runImageGeneration(
   }
 
   const documentId = generateUUID();
+  // Shape the preview card to the chosen format ("auto" → undefined → square).
+  const aspectRatio = normalizeAspectRatio(ctx.imageGenSetting?.aspectRatio);
 
   // Drive the media-preview card: emit the "generating" lifecycle part up front.
   // Reusing the same part `id` lets later writes (done/error) replace this one.
@@ -42,6 +45,7 @@ export async function runImageGeneration(
         status: "generating",
         prompt: userPrompt,
         modelId: ctx.model,
+        aspectRatio,
       },
     });
   };
@@ -81,6 +85,7 @@ export async function runImageGeneration(
         status: "error",
         prompt: userPrompt,
         modelId: ctx.model,
+        aspectRatio,
         // Only ImageGenerationError carries a card-safe message (the model's
         // own reply); internal errors stay generic on the card.
         ...(error instanceof ImageGenerationError &&
@@ -102,6 +107,7 @@ export async function runImageGeneration(
         modelId: ctx.model,
         url: imageUrl,
         generationId: result.responseId,
+        aspectRatio,
       },
     });
     writer.write({
@@ -134,6 +140,7 @@ export async function runImageGeneration(
         status: "error",
         prompt: userPrompt,
         modelId: ctx.model,
+        aspectRatio,
       },
     });
   }

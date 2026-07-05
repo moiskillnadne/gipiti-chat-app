@@ -71,6 +71,8 @@ export type CustomUIDataTypes = {
     errorMessage?: string;
     /** Provider generation id (image) — drives multi-turn image editing. */
     generationId?: string;
+    /** Chosen format as a "W:H" token — sizes the preview card shape. */
+    aspectRatio?: string;
   };
 };
 

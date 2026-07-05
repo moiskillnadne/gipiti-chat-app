@@ -18,6 +18,10 @@ import {
   saveImageQualityAsCookie,
   saveImageStyleAsCookie,
   saveThinkingSettingAsCookie,
+  saveVideoAspectAsCookie,
+  saveVideoDurationAsCookie,
+  saveVideoModeAsCookie,
+  saveVideoResolutionAsCookie,
 } from "@/app/(chat)/actions";
 import { entitlementsByUserType } from "@/lib/ai/entitlements";
 import {
@@ -25,10 +29,12 @@ import {
   chatModels,
   getDefaultImageGenSetting,
   getDefaultThinkingSetting,
+  getDefaultVideoGenSetting,
   type ImageGenSetting,
   serializeThinkingSetting,
   type ThinkingSetting,
   uiVisibleChatModels,
+  type VideoGenSetting,
 } from "@/lib/ai/models";
 
 type ModelContextValue = {
@@ -40,6 +46,8 @@ type ModelContextValue = {
   setCurrentThinkingSetting: (setting: ThinkingSetting | undefined) => void;
   currentImageGenSetting: ImageGenSetting | undefined;
   setCurrentImageGenSetting: (setting: ImageGenSetting | undefined) => void;
+  currentVideoGenSetting: VideoGenSetting | undefined;
+  setCurrentVideoGenSetting: (setting: VideoGenSetting | undefined) => void;
   isEmptyChat: boolean;
   setIsEmptyChat: (isEmpty: boolean) => void;
   persistPendingModelChange: () => void;
@@ -52,12 +60,14 @@ export function ModelProvider({
   initialModelId,
   initialThinkingSetting,
   initialImageGenSetting,
+  initialVideoGenSetting,
   userType,
 }: {
   children: ReactNode;
   initialModelId: string;
   initialThinkingSetting?: ThinkingSetting;
   initialImageGenSetting?: ImageGenSetting;
+  initialVideoGenSetting?: VideoGenSetting;
   userType: UserType;
 }) {
   const [currentModelId, setCurrentModelId] = useState(initialModelId);
@@ -68,12 +78,16 @@ export function ModelProvider({
   const [currentImageGenSetting, setCurrentImageGenSettingState] = useState<
     ImageGenSetting | undefined
   >(initialImageGenSetting);
+  const [currentVideoGenSetting, setCurrentVideoGenSettingState] = useState<
+    VideoGenSetting | undefined
+  >(initialVideoGenSetting);
   const [isEmptyChat, setIsEmptyChat] = useState(false);
 
   // Create refs for stable access in callbacks
   const currentModelIdRef = useRef(currentModelId);
   const currentThinkingSettingRef = useRef(currentThinkingSetting);
   const currentImageGenSettingRef = useRef(currentImageGenSetting);
+  const currentVideoGenSettingRef = useRef(currentVideoGenSetting);
   const pendingModelChangeRef = useRef<string | null>(null);
   const pendingThinkingSettingChangeRef = useRef<{
     modelId: string;
@@ -82,6 +96,10 @@ export function ModelProvider({
   const pendingImageGenSettingChangeRef = useRef<{
     modelId: string;
     setting: ImageGenSetting;
+  } | null>(null);
+  const pendingVideoGenSettingChangeRef = useRef<{
+    modelId: string;
+    setting: VideoGenSetting;
   } | null>(null);
 
   useEffect(() => {
@@ -95,6 +113,10 @@ export function ModelProvider({
   useEffect(() => {
     currentImageGenSettingRef.current = currentImageGenSetting;
   }, [currentImageGenSetting]);
+
+  useEffect(() => {
+    currentVideoGenSettingRef.current = currentVideoGenSetting;
+  }, [currentVideoGenSetting]);
 
   // Filter models based on user entitlements and UI visibility
   const availableModels = useMemo(() => {
@@ -124,6 +146,10 @@ export function ModelProvider({
       // Reset image gen setting to default for new model
       const defaultImageGenSetting = getDefaultImageGenSetting(newModelId);
       setCurrentImageGenSettingState(defaultImageGenSetting);
+
+      // Reset video gen setting to default for new model
+      const defaultVideoGenSetting = getDefaultVideoGenSetting(newModelId);
+      setCurrentVideoGenSettingState(defaultVideoGenSetting);
 
       // Conditionally persist to cookie based on chat state
       if (isEmptyChat) {
@@ -187,6 +213,36 @@ export function ModelProvider({
     [isEmptyChat, currentModelId]
   );
 
+  // Handle video gen setting change with conditional persistence
+  const setCurrentVideoGenSetting = useCallback(
+    (setting: VideoGenSetting | undefined) => {
+      setCurrentVideoGenSettingState(setting);
+
+      if (setting && !isEmptyChat) {
+        startTransition(() => {
+          if (setting.aspectRatio) {
+            saveVideoAspectAsCookie(currentModelId, setting.aspectRatio);
+          }
+          if (setting.duration) {
+            saveVideoDurationAsCookie(currentModelId, setting.duration);
+          }
+          if (setting.resolution) {
+            saveVideoResolutionAsCookie(currentModelId, setting.resolution);
+          }
+          if (setting.mode) {
+            saveVideoModeAsCookie(currentModelId, setting.mode);
+          }
+        });
+      } else if (setting && isEmptyChat) {
+        pendingVideoGenSettingChangeRef.current = {
+          modelId: currentModelId,
+          setting,
+        };
+      }
+    },
+    [isEmptyChat, currentModelId]
+  );
+
   // Sync optimistic state with actual state
   useEffect(() => {
     setOptimisticModelId(currentModelId);
@@ -225,6 +281,25 @@ export function ModelProvider({
         }
       });
     }
+
+    if (pendingVideoGenSettingChangeRef.current) {
+      const { modelId, setting } = pendingVideoGenSettingChangeRef.current;
+      pendingVideoGenSettingChangeRef.current = null;
+      startTransition(() => {
+        if (setting.aspectRatio) {
+          saveVideoAspectAsCookie(modelId, setting.aspectRatio);
+        }
+        if (setting.duration) {
+          saveVideoDurationAsCookie(modelId, setting.duration);
+        }
+        if (setting.resolution) {
+          saveVideoResolutionAsCookie(modelId, setting.resolution);
+        }
+        if (setting.mode) {
+          saveVideoModeAsCookie(modelId, setting.mode);
+        }
+      });
+    }
   }, []);
 
   const value = useMemo(
@@ -237,6 +312,8 @@ export function ModelProvider({
       setCurrentThinkingSetting,
       currentImageGenSetting,
       setCurrentImageGenSetting,
+      currentVideoGenSetting,
+      setCurrentVideoGenSetting,
       isEmptyChat,
       setIsEmptyChat,
       persistPendingModelChange,
@@ -250,6 +327,8 @@ export function ModelProvider({
       setCurrentThinkingSetting,
       currentImageGenSetting,
       setCurrentImageGenSetting,
+      currentVideoGenSetting,
+      setCurrentVideoGenSetting,
       isEmptyChat,
       persistPendingModelChange,
     ]
@@ -270,11 +349,16 @@ export function useModel() {
 
 // Export refs for cases where we need stable references
 export function useModelRefs() {
-  const { currentModelId, currentThinkingSetting, currentImageGenSetting } =
-    useModel();
+  const {
+    currentModelId,
+    currentThinkingSetting,
+    currentImageGenSetting,
+    currentVideoGenSetting,
+  } = useModel();
   const modelIdRef = useRef(currentModelId);
   const thinkingSettingRef = useRef(currentThinkingSetting);
   const imageGenSettingRef = useRef(currentImageGenSetting);
+  const videoGenSettingRef = useRef(currentVideoGenSetting);
 
   useEffect(() => {
     modelIdRef.current = currentModelId;
@@ -288,9 +372,14 @@ export function useModelRefs() {
     imageGenSettingRef.current = currentImageGenSetting;
   }, [currentImageGenSetting]);
 
+  useEffect(() => {
+    videoGenSettingRef.current = currentVideoGenSetting;
+  }, [currentVideoGenSetting]);
+
   return {
     modelIdRef,
     thinkingSettingRef,
     imageGenSettingRef,
+    videoGenSettingRef,
   };
 }

@@ -52,7 +52,12 @@ export function Chat({
   const tCommon = useTranslations("common");
 
   // Use model context for stable refs
-  const { modelIdRef, thinkingSettingRef, imageGenSettingRef } = useModelRefs();
+  const {
+    modelIdRef,
+    thinkingSettingRef,
+    imageGenSettingRef,
+    videoGenSettingRef,
+  } = useModelRefs();
   const { setIsEmptyChat, persistPendingModelChange } = useModel();
   const { projectIdRef } = useProjectRef();
   const { webSearchEnabledRef } = useWebSearchRef();
@@ -93,6 +98,9 @@ export function Chat({
           thinkingSetting: thinkingSettingRef.current,
           ...(imageGenSettingRef.current && {
             imageGenSetting: imageGenSettingRef.current,
+          }),
+          ...(videoGenSettingRef.current && {
+            videoGenSetting: videoGenSettingRef.current,
           }),
           ...(lastGenerationIdRef.current && {
             previousGenerationId: lastGenerationIdRef.current,

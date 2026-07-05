@@ -28,9 +28,11 @@ import { AttachMenu } from "./composer/attach-menu";
 import { AttachmentItem, UploadingItem } from "./composer/attachment-item";
 import { BalanceSpendBanner } from "./composer/balance-spend-banner";
 import { DragOverlay } from "./composer/drag-overlay";
+import { ImageSettingsPopover } from "./composer/image-settings-popover";
 import { KeyboardHints } from "./composer/keyboard-hints";
 import { ProjectPickerPopover } from "./composer/project-picker-popover";
 import { ThinkPopover } from "./composer/think-popover";
+import { VideoSettingsPopover } from "./composer/video-settings-popover";
 import { WebSearchToggle } from "./composer/web-search-toggle";
 import { PromptInputTextarea } from "./elements/prompt-input";
 import { ArrowUpIcon, StopIcon } from "./icons";
@@ -389,6 +391,8 @@ function PureMultimodalInput({
             />
           )}
           <ThinkPopover />
+          <ImageSettingsPopover />
+          <VideoSettingsPopover />
           <div className="flex-1" />
 
           {isStreaming ? (

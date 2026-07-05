@@ -1,6 +1,10 @@
 import type { UIMessageStreamWriter } from "ai";
 import type { Session } from "next-auth";
-import type { ImageGenSetting, ThinkingSetting } from "@/lib/ai/models";
+import type {
+  ImageGenSetting,
+  ThinkingSetting,
+  VideoGenSetting,
+} from "@/lib/ai/models";
 import type { ProjectContextInput, RequestHints } from "@/lib/ai/prompts";
 import type { ImageGenerationUsageAccumulator } from "@/lib/ai/tools/generate-image";
 import type { ChatMessage } from "@/lib/types";
@@ -28,6 +32,7 @@ export type ChatTurnContext = {
   model: string;
   thinkingSetting: ThinkingSetting | undefined;
   imageGenSetting: ImageGenSetting | undefined;
+  videoGenSetting: VideoGenSetting | undefined;
   previousGenerationId?: string;
   webSearchEnabled: boolean;
   /** Multi-step inference cap; drives stopWhen + the validator's log context. */
