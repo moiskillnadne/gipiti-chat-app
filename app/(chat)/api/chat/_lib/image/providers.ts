@@ -19,9 +19,16 @@ import { generateRecraftImage, isRecraftModel } from "@/lib/ai/recraft-client";
 import { resolveLatestImageUrl } from "@/lib/ai/resolve-latest-image";
 import { getDocumentByGenerationId } from "@/lib/db/query/document/get-document-by-generation-id";
 import { ChatSDKError } from "@/lib/errors";
-import type { ImageGenResult, ImageProvider } from "./types";
+import {
+  ImageGenerationError,
+  type ImageGenResult,
+  type ImageProvider,
+} from "./types";
 
 const DEFAULT_IMAGE_MEDIA_TYPE = "image/png";
+
+/** Cap on the model-text snippet kept for logging / the error card. */
+const TEXT_PREVIEW_MAX_LENGTH = 300;
 
 /** The edit endpoint requires a concrete size; "auto" is not accepted. */
 const OPENAI_EDIT_DEFAULT_SIZE = "1024x1024";
@@ -312,10 +319,22 @@ const multimodalImageProvider: ImageProvider = async ({
   let costUsd = 0;
   let responseId: string | undefined;
   let streamError: unknown;
+  let finishReason: string | undefined;
+  let textPreview = "";
+  const deltaCounts: Record<string, number> = {};
 
   for await (const delta of result.fullStream) {
+    deltaCounts[delta.type] = (deltaCounts[delta.type] ?? 0) + 1;
+
     if (delta.type === "reasoning-delta") {
       onReasoning(delta.text);
+    }
+
+    if (
+      delta.type === "text-delta" &&
+      textPreview.length < TEXT_PREVIEW_MAX_LENGTH
+    ) {
+      textPreview += delta.text;
     }
 
     // streamText surfaces provider failures (e.g. a 400 for an unsupported
@@ -333,10 +352,17 @@ const multimodalImageProvider: ImageProvider = async ({
       }
     }
 
+    if (delta.type === "finish") {
+      finishReason = delta.finishReason;
+    }
+
     if (delta.type === "finish-step") {
       const metadata = await result.providerMetadata;
       if (metadata) {
+        // The gateway namespaces Google usage under "vertex" (its serving
+        // provider), not "google" — check both, plus xai for grok.
         usageMetadata = (metadata.google?.usageMetadata ??
+          metadata.vertex?.usageMetadata ??
           metadata.xai?.usageMetadata) as ImageGenResult["usageMetadata"];
         const cost = metadata.gateway?.cost;
         costUsd = cost ? Number.parseFloat(String(cost)) : 0;
@@ -345,6 +371,9 @@ const multimodalImageProvider: ImageProvider = async ({
         const genId =
           (typeof metadata.google?.generationId === "string"
             ? metadata.google.generationId
+            : null) ??
+          (typeof metadata.vertex?.generationId === "string"
+            ? metadata.vertex.generationId
             : null) ??
           (typeof metadata.gateway?.generationId === "string"
             ? metadata.gateway.generationId
@@ -361,9 +390,28 @@ const multimodalImageProvider: ImageProvider = async ({
   }
 
   if (streamError !== undefined) {
+    console.error("Image generation stream error:", { modelId, streamError });
     throw streamError instanceof Error
       ? streamError
       : new Error(`Image generation failed: ${JSON.stringify(streamError)}`);
+  }
+
+  // A stream that finishes with neither a file nor an error delta is still a
+  // failure (e.g. the model replied with text or a safety refusal). Log the
+  // full shape of what arrived and surface the model's own words on the card —
+  // otherwise this ends as a blank "Не удалось сгенерировать" with no trace.
+  if (!base64) {
+    const preview = textPreview.trim().slice(0, TEXT_PREVIEW_MAX_LENGTH);
+    console.error("Image generation produced no file:", {
+      modelId,
+      finishReason,
+      textPreview: preview,
+      deltaCounts,
+    });
+    throw new ImageGenerationError(
+      `Image generation produced no file (model ${modelId}, finishReason ${finishReason ?? "unknown"})`,
+      preview || undefined
+    );
   }
 
   return { base64, mediaType, usageMetadata, costUsd, responseId };
