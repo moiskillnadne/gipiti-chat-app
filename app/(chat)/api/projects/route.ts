@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { auth } from "@/app/(auth)/auth";
+import { handleRouteError } from "@/lib/api/handle-route-error";
 import { createProject } from "@/lib/db/query/project/create-project";
 import { deleteProject } from "@/lib/db/query/project/delete-project";
 import { getProjectsByUserId } from "@/lib/db/query/project/get-projects-by-user-id";
@@ -33,8 +34,12 @@ export async function GET() {
     return new ChatSDKError("unauthorized:chat").toResponse();
   }
 
-  const projects = await getProjectsByUserId({ userId: session.user.id });
-  return Response.json(projects);
+  try {
+    const projects = await getProjectsByUserId({ userId: session.user.id });
+    return Response.json(projects);
+  } catch (error) {
+    return handleRouteError(error);
+  }
 }
 
 export async function POST(request: Request) {
@@ -66,7 +71,7 @@ export async function POST(request: Request) {
         "Invalid project data"
       ).toResponse();
     }
-    throw error;
+    return handleRouteError(error);
   }
 }
 
@@ -101,7 +106,7 @@ export async function PATCH(request: Request) {
         "Invalid project data"
       ).toResponse();
     }
-    throw error;
+    return handleRouteError(error);
   }
 }
 
@@ -122,6 +127,10 @@ export async function DELETE(request: Request) {
     ).toResponse();
   }
 
-  await deleteProject({ id, userId: session.user.id });
-  return Response.json({ success: true });
+  try {
+    await deleteProject({ id, userId: session.user.id });
+    return Response.json({ success: true });
+  } catch (error) {
+    return handleRouteError(error);
+  }
 }

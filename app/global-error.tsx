@@ -1,12 +1,29 @@
 "use client";
 
+import { useEffect } from "react";
+
+import { clientLog } from "@/lib/client-logger";
+import { useTranslations } from "@/lib/i18n/translate";
+
+// Renders when the root layout itself fails, so globals.css is unavailable —
+// styles must stay inline and the markup must provide its own <html>/<body>.
 export default function GlobalError({
-  error: _error,
+  error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useTranslations("errors");
+
+  useEffect(() => {
+    clientLog.error("Global error boundary triggered", {
+      digest: error.digest,
+      message: error.message,
+      pathname: window.location.pathname,
+    });
+  }, [error]);
+
   return (
     <html lang="ru">
       <body
@@ -23,7 +40,7 @@ export default function GlobalError({
       >
         <div style={{ textAlign: "center", padding: "2rem" }}>
           <h2 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
-            Something went wrong
+            {t("boundaryTitle")}
           </h2>
           <p
             style={{
@@ -32,7 +49,7 @@ export default function GlobalError({
               maxWidth: "400px",
             }}
           >
-            An unexpected error occurred. Please try again.
+            {t("boundaryDescription")}
           </p>
           <button
             onClick={reset}
@@ -48,7 +65,7 @@ export default function GlobalError({
             }}
             type="button"
           >
-            Try again
+            {t("tryAgain")}
           </button>
         </div>
       </body>
