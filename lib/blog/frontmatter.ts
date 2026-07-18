@@ -49,7 +49,6 @@ export function serializeFrontmatter(
   const yamlBlock = dump(defined, {
     lineWidth: -1,
     sortKeys: false,
-    quoteStyle: "auto",
   });
 
   return `---\n${yamlBlock}---\n\n${content.trim()}\n`;

@@ -8,34 +8,10 @@ A Next.js 15 AI chatbot with multi-provider LLM support (OpenAI, Google, Anthrop
 
 ## Development Commands
 
-### Running the Application
+Standard scripts (dev, build, db:*, lint, format, test) are in `package.json`. Non-obvious ones:
+
 ```bash
-pnpm install              # Install dependencies
-pnpm dev                  # Start dev server with Turbopack
-pnpm build                # Run migrations + production build
 pnpm build:debug          # Run simple build checks after any changes, it helps understand if app builds correctly
-pnpm start                # Start production server
-```
-
-### Database Operations
-```bash
-pnpm db:generate          # Generate Drizzle migrations from schema changes
-pnpm db:migrate           # Run pending migrations
-pnpm db:studio            # Open Drizzle Studio (database GUI)
-pnpm db:push              # Push schema changes without migration files
-pnpm db:pull              # Pull schema from database
-pnpm db:check             # Check for schema conflicts
-```
-
-### Code Quality
-```bash
-pnpm lint                 # Check code with ultracite (Biome-based)
-pnpm format               # Auto-fix issues with ultracite
-pnpm test                 # Run Playwright tests
-```
-
-### Utility Scripts
-```bash
 pnpm models:list          # List AI Gateway models
 tsx scripts/seed-plans.ts  # Initialize subscription plans in DB
 tsx scripts/add-tokens.ts  # Add tokens to a user
@@ -43,196 +19,12 @@ tsx scripts/add-tokens.ts  # Add tokens to a user
 
 ## Architecture Overview
 
-### Core Technologies
-- **Framework**: Next.js 15 App Router with React Server Components
-- **Database**: PostgreSQL with Drizzle ORM (30+ migrations)
-- **Authentication**: NextAuth v5 beta (Credentials provider, bcrypt-ts)
-- **AI**: Vercel AI SDK with multi-provider gateway (@ai-sdk/gateway, @ai-sdk/google); Xai/Anthropic models reached via the gateway (no direct SDK)
-- **Styling**: TailwindCSS 4 + Radix UI + shadcn/ui components
-- **State**: React Context + SWR for data fetching + Cookies for persistence
-- **Real-time**: Resumable streams backed by Redis (Upstash or standard)
-- **Payments**: CloudPayments (Russian payment gateway)
-- **Email**: Resend for transactional emails
-- **Search**: Tavily API for web search and URL extraction
-- **i18n**: next-intl v4 (English + Russian, cookie-based)
-- **Analytics**: Vercel Analytics + Yandex Metrika
-- **Monitoring**: OpenTelemetry via @vercel/otel
-
-### Directory Structure
-```
-app/
-  (auth)/                  # Login, register, forgot/reset password, verify email, subscribe
-    api/auth/[...nextauth]/ # NextAuth route handler
-    actions.ts             # Server actions: login, register, forgotPassword, resetPassword, verifyEmail
-  (chat)/                  # Chat interface + API routes
-    api/
-      chat/                # Main chat streaming (POST) + delete (DELETE)
-      chat/[id]/stream/    # Resumable stream recovery (GET)
-      files/upload/        # File upload to Vercel Blob
-      history/             # Chat history with pagination
-      usage/               # Token usage tracking
-      subscription/        # Subscription management
-      vote/                # Message voting
-      text-styles/         # Text style CRUD
-      projects/            # Project CRUD
-      transactions/        # Token transaction history
-    chat/[id]/             # Individual chat page
-    projects/, styles/     # Project & style management pages
-    actions.ts             # Server actions: saveChatModel, generateTitle, deleteTrailingMessages
-  (marketing)/             # Landing page
-  (legal)/legal/           # Privacy, terms, support, requisites pages
-  api/
-    health/                # Health check endpoint
-    log/                   # Client error logging
-    payment/               # Payment intent creation (regular + trial) and status
-    cron/                  # Scheduled tasks (reset-quotas, cleanup-expired-trials, etc.)
-    webhooks/
-      cloudpayments/       # Payment webhooks (HMAC-SHA256 signature validation)
-      resend/              # Email event webhooks
-  actions/locale.ts        # i18n server action: setUserLocale
-  subscription/            # Subscription dashboard + usage pages
-lib/
-  ai/
-    models.ts              # Model registry (20 models, 4 providers)
-    providers.ts           # AI SDK provider setup + reasoning middleware
-    prompts.ts             # System prompts (regular, reasoning, search, image, style, project)
-    token-quota.ts         # Quota checking & period-based enforcement
-    token-balance.ts       # Balance-based token system with transaction audit
-    entitlements.ts        # User type entitlements
-    message-validator.ts   # Ensures messages have text parts
-    step-calculator.ts     # Multi-step inference calculation
-    tools/                 # 8 AI tools (see AI Tools section)
-  db/
-    schema.ts              # Drizzle schema (24 tables, 785 lines)
-    queries.ts             # 50+ query functions (1479 lines)
-    queries-transactions.ts # Transaction utilities
-    migrations/            # 30+ migration files
-  subscription/
-    subscription-tiers.ts  # Tier definitions with pricing
-    billing-periods.ts     # Period calculation utilities
-    subscription-init.ts   # Subscription initialization
-    cancellation-reasons.ts
-  payments/
-    cloudpayments.ts       # CloudPayments API client
-    cloudpayments-config.ts
-    cloudpayments-types.ts
-  search/
-    tavily-client.ts       # Tavily web search + URL extraction
-    search-quota.ts        # Search quota tracking per billing period
-    search-types.ts
-  email/
-    client.ts              # Resend client
-    send-verification-email.ts
-    send-password-reset.ts
-    send-password-changed.ts
-    templates/             # Email HTML templates
-  auth/
-    secret.ts              # AUTH_SECRET resolution
-    reset-token.ts         # Password reset token utils
-  validation/              # Zod schemas for API validation
-  errors.ts                # ChatSDKError class with error codes
-  types.ts                 # Global types (ChatMessage, CustomUIDataTypes)
-  utils.ts                 # cn(), generateUUID(), convertToUIMessages()
-  constants.ts             # Environment checks, DUMMY_PASSWORD
-  redis.ts                 # Redis client (Upstash REST or standard)
-  format-tokens.ts         # Token number formatting
-  client-logger.ts         # Client-side error logging
-  usage.ts                 # AppUsage type definition
-components/                # 63+ React components
-  ui/                      # shadcn/ui base components
-  elements/                # Message rendering primitives (response, reasoning, tool, code-block, etc.)
-  landing/                 # Landing page components
-contexts/                  # React context providers
-  model-context.tsx        # Selected model + thinking settings
-  project-context.tsx      # Active project selection
-  style-context.tsx        # Active text style selection
-hooks/                     # Custom hooks (useMessages, useAutoResume, etc.)
-i18n/                      # next-intl configuration
-messages/                  # Translation files (en.json, ru.json)
-types/                     # Type augmentations (next-auth.d.ts, next-intl.d.ts)
-scripts/                   # Utility scripts (seed-plans, add-tokens, etc.)
-```
-
-### Database Schema (24 Tables)
-
-**User & Auth:**
-- `User`: id, email, password, currentPlan, tokenBalance (bigint), preferredLanguage, emailVerified, isTester, trialUsedAt, reset/verification tokens
-- `UserSubscription`: userId, planId, billing period config, status, CloudPayments external IDs, trial fields, cancellation
-
-**Chat & Messages:**
-- `Chat`: id, userId, title, lastContext (AppUsage JSON)
-- `Message_v2`: id, chatId, role, parts (JSON array), attachments, modelId, createdAt
-- `Vote_v2`: chatId + messageId (composite PK), isUpvoted
-- `Stream`: id, chatId (for resumable stream recovery)
-
-**Generated Media (image/video output storage):**
-- `Document`: id + createdAt (composite PK), title, content (image/video URL), kind ("image" | "video"), userId, generationId — used by image and video generation flows to persist results for later edit/replay
-
-**Subscription & Plans:**
-- `SubscriptionPlan`: name, displayName, billingPeriod, tokenQuota, modelLimits (JSONB), features (JSONB), price
-- `PaymentIntent`: sessionId, userId, planName, amount, status, isTrial, expiresAt (30 min)
-- `CancellationFeedback`: userId, reasons (JSONB), additionalFeedback, plan metadata
-
-**Token Tracking (Dual System):**
-- `TokenUsageLog`: per-message usage with input/output/cache tokens, costs, modelId
-- `UserTokenUsage`: aggregated usage per billing period, modelBreakdown (JSONB)
-- `TokenBalanceTransaction`: audit trail (credit/debit/reset/adjustment), amount, balanceAfter, metadata
-
-**Search & Image Generation:**
-- `SearchUsageLog`: userId, query, searchDepth, resultsCount, billing period
-- `ImageGenerationUsageLog`: userId, modelId, prompt, imageUrl, token counts, cost
-
-**Customization:**
-- `TextStyle`: userId, name, examples (JSONB string[]), isDefault
-- `Project`: userId, name, contextEntries (JSONB string[]), isDefault
-
-**Note**: `Message` (deprecated) exists for migration; always use `Message_v2`.
-
 ### AI Integration
 
-**Model Configuration** (`lib/ai/models.ts`):
-- **Default model**: `gpt-5.4` (OpenAI)
-- **20 models across 4 providers**: OpenAI (gpt-5, gpt-5.1-instant, gpt-5.1-thinking, gpt-5.2, gpt-5.2-pro, gpt-5.4, gpt-5-mini, gpt-codex-5.2, gpt-image-1.5), Google (gemini-2.5-pro, gemini-3.1-pro, gemini-3-pro-image), Anthropic (opus-4.1, opus-4.6, sonnet-4.5), Xai (grok-2-vision, grok-3-mini, grok-4.1-reasoning, grok-4.1-non-reasoning, grok-code-fast-1)
-- **Capabilities**: `reasoning`, `attachments`, `imageGeneration`, `thinkingConfig` (effort levels)
-- **Thinking configurations**: OpenAI (auto/none/medium/high), Google (auto/low/high), Anthropic (auto/low/medium/high)
-- Reasoning models use `extractReasoningMiddleware({ tagName: "think" })` to parse `<think>` blocks
-- Hidden vs visible models controlled by `isVisibleInUI` flag
-- Helper functions: `isReasoningModelId()`, `isImageGenerationModel()`, `supportsThinkingConfig()`, `getProviderOptions()`
-
-**System Prompts** (`lib/ai/prompts.ts`):
-- `regularPrompt` / `reasoningPrompt`: Base behavior (reasoning adds `<think>` block instructions)
-- `webSearchPrompt`: Web search best practices and citation format
-- `imageGenerationPrompt`: Image generation style guidance
-- `textStylePrompt(style)`: Custom writing style from user examples
-- `projectContextPrompt(project)`: Project context injection
-- `getRequestPromptFromHints()`: Geolocation data from Vercel Edge
-- `systemPrompt()` factory: Dynamically combines prompts based on model capabilities, user's style, and project
-
-**AI Tools** (`lib/ai/tools/` — 5 tools):
-1. `calculator`: Math expressions via mathjs
-2. `getWeather`: Open-Meteo weather API
-3. `webSearch`: Tavily search with quota checking per billing period
-4. `extractUrl`: Tavily URL content extraction (max 3 URLs)
-5. `generateImage`: DALL-E / Gemini image generation, uploads to Vercel Blob
-
-**Token System (Dual):**
-1. **Balance-based** (primary, `lib/ai/token-balance.ts`): User.tokenBalance field, deducts BEFORE inference, refunds on partial consumption, full audit trail via TokenBalanceTransaction
-2. **Period-based** (legacy, `lib/ai/token-quota.ts`): Per-subscription period aggregation in UserTokenUsage
-
-Flow: `checkTokenQuota()` → `checkBalance()` → inference → `recordTokenUsage()` + `deductBalance()`
-
-**Subscription Tiers** (`lib/subscription/subscription-tiers.ts`):
-| Tier | Period | Quota | Price |
-|------|--------|-------|-------|
-| tester | daily | 200K | Free |
-| tester_paid | daily | 200K | $0.05 / 5₽ |
-| basic_monthly | monthly | 3M | $19.99 / 1,999₽ |
-| basic_quarterly | 3 months | 9M | $49.99 / 4,999₽ |
-| basic_annual | annual | 36M | $149.99 / 14,999₽ |
-
-Users are capped by token balance, web-search count, image-generation count, and video-generation count — there is no per-period message-count cap.
-
-Each tier defines: tokenQuota, modelLimits, features (maxFileSize, maxConcurrentChats, searchQuota, searchDepthAllowed, hasReasoningModels, hasPrioritySupport).
+- Model registry: `lib/ai/models.ts` (capabilities, thinking configs, `isVisibleInUI` flag, helper functions); providers in `lib/ai/providers.ts`; system prompt factory in `lib/ai/prompts.ts`; tools in `lib/ai/tools/`.
+- **Token System (Dual):** balance-based (primary, `lib/ai/token-balance.ts`, deducts BEFORE inference, refunds on partial consumption, audit trail via TokenBalanceTransaction) + period-based (legacy, `lib/ai/token-quota.ts`, per-subscription period aggregation).
+- Flow: `checkTokenQuota()` → `checkBalance()` → inference → `recordTokenUsage()` + `deductBalance()`
+- Subscription tiers are defined in `lib/subscription/subscription-tiers.ts`. Users are capped by token balance, web-search count, image-generation count, and video-generation count — there is no per-period message-count cap.
 
 ### Chat Streaming
 
@@ -314,25 +106,7 @@ All require `Authorization: Bearer ${CRON_SECRET}` header:
 
 ## Important Patterns
 
-### Modifying Database Schema
-1. Update schema in `lib/db/schema.ts`
-2. Run `pnpm db:generate` to create migration
-3. Run `pnpm db:migrate` to apply changes
-4. Update types in `lib/types.ts` if needed
-
-### Adding a New AI Model
-1. Add provider import in `lib/ai/models.ts`
-2. Define model with capabilities in `chatModels` array
-3. Add provider mapping in `lib/ai/providers.ts`
-4. Update subscription tier `modelLimits` in `lib/subscription/subscription-tiers.ts`
-5. Test quota enforcement and cost tracking
-
-### Adding a New AI Tool
-1. Create tool file in `lib/ai/tools/`
-2. Define with Zod schema using AI SDK's `tool()` helper
-3. Register in the `tools` object in `/api/chat/route.ts`
-4. Add tool type to `ChatTools` in `lib/types.ts`
-5. Create result renderer component if needed (in `components/`)
+Step-by-step recipes for modifying the DB schema, adding an AI model, or adding an AI tool live in the `repo-recipes` skill (`.claude/skills/repo-recipes/SKILL.md`).
 
 ### Linting and Formatting
 - **ultracite** (Biome-based): `pnpm lint` to check, `pnpm format` to fix
@@ -398,6 +172,7 @@ PLAYWRIGHT                # Set to "True" for mock models in tests
 11. **Payment Intent Expiry**: 30-minute hardcoded expiry
 12. **Cookie Persistence**: Model, style, project selections stored in cookies — must use server actions to update
 13. **ChatSDKError**: Use `new ChatSDKError("type:surface")` for consistent error handling across API routes
+14. **Provider SDKs**: Xai/Anthropic models are reached via the Vercel AI Gateway (@ai-sdk/gateway) — there is no direct Xai/Anthropic SDK in this repo
 
 ## Internationalization (i18n)
 
