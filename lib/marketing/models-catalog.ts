@@ -195,6 +195,17 @@ export const catalogModels: CatalogModel[] = [
     hue: 210,
   },
   {
+    modelId: "gemini-3.5-flash",
+    name: "Gemini 3.5 Flash",
+    vendor: "Google",
+    provider: "google",
+    category: "text",
+    description:
+      "Быстрая модель Google для повседневных задач — мгновенные ответы с рассуждениями по низкой цене.",
+    tag: "Новинка",
+    hue: 210,
+  },
+  {
     modelId: "grok-4.5",
     name: "Grok 4.5",
     vendor: "xAI",

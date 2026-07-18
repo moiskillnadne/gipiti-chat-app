@@ -1,169 +1,22 @@
-/**
- * Curated marketing copy for per-model landing pages under /models/{slug}.
- *
- * Mirrors the "Model Landing - Text Model" Claude Design template: each landing
- * is keyed to a real model id from `lib/ai/models.ts` and rendered by
- * `components/models/landing/*`. Copy is hardcoded Russian, matching the rest
- * of the marketing surface (see `models-catalog.ts`).
- */
+/** Landings for the OpenAI GPT-5.6 series: Sol, Terra and Luna. */
 
-export type ModelLandingAccent = "indigo" | "emerald" | "warm";
+import {
+  buildSteps,
+  crossLandingChips,
+  documentsBenefit,
+  LUNA_SLUG,
+  lawyersAudience,
+  SOL_SLUG,
+  sharedFaq,
+  studentsAudience,
+  supportAudience,
+  TERRA_SLUG,
+  vpnBenefit,
+  writingBenefit,
+} from "./shared";
+import type { ModelLanding } from "./types";
 
-export type LandingBenefitIcon =
-  | "sparkles"
-  | "file-text"
-  | "code"
-  | "zap"
-  | "pen"
-  | "scale"
-  | "wallet"
-  | "shield";
-
-export type LandingBenefit = {
-  icon: LandingBenefitIcon;
-  title: string;
-  text: string;
-};
-
-export type LandingStep = {
-  title: string;
-  text: string;
-};
-
-/** Chat snippets support `**bold**` emphasis, parsed by `parseEmphasis`. */
-export type LandingAudienceCard = {
-  title: string;
-  text: string;
-  userMessage: string;
-  aiReply: string;
-};
-
-export type LandingFaqItem = {
-  question: string;
-  answer: string;
-};
-
-export type LandingModelChip = {
-  name: string;
-  tag: string;
-  href: string;
-};
-
-export type LandingHeroChat = {
-  userMessage: string;
-  aiIntro: string;
-  aiBullets: string[];
-};
-
-export type ModelLanding = {
-  /** Path segment of the landing page: /models/{slug} */
-  slug: string;
-  /** Model id from `lib/ai/models.ts` */
-  modelId: string;
-  name: string;
-  vendor: string;
-  accent: ModelLandingAccent;
-  badge: string;
-  h1Top: string;
-  h1Gradient: string;
-  sub: string;
-  ctaMain: string;
-  metaTitle: string;
-  metaDescription: string;
-  heroChat: LandingHeroChat;
-  benefits: LandingBenefit[];
-  steps: LandingStep[];
-  audience: LandingAudienceCard[];
-  faq: LandingFaqItem[];
-  otherModels: LandingModelChip[];
-};
-
-const SOL_SLUG = "gpt-5-6-sol";
-const TERRA_SLUG = "gpt-5-6-terra";
-const LUNA_SLUG = "gpt-5-6-luna";
-
-const buildSteps = (name: string): LandingStep[] => [
-  {
-    title: "Зарегистрируйтесь",
-    text: "Аккаунт за 30 секунд — нужен только email. Дарим 100 ₽ на баланс.",
-  },
-  {
-    title: `Выберите ${name}`,
-    text: "Переключитесь на модель в списке — в один клик, как и на любую из 30+.",
-  },
-  {
-    title: "Задайте вопрос",
-    text: "Текстом на русском — или прикрепите документ, ссылку или код.",
-  },
-  {
-    title: "Получите ответ",
-    text: "И продолжайте диалог в том же чате — модель помнит контекст разговора.",
-  },
-];
-
-const sharedFaq: LandingFaqItem[] = [
-  {
-    question: "Нужен ли VPN или зарубежная карта?",
-    answer:
-      "Нет. GIPITI работает из России без ограничений, оплата — картами МИР, Visa, MasterCard или через СБП.",
-  },
-  {
-    question: "Сколько это стоит?",
-    answer:
-      "Запросы оплачиваются с баланса. Подписка 999 ₽/мес включает 999 ₽ на баланс каждый месяц, а при регистрации мы дарим 100 ₽ — хватит, чтобы попробовать.",
-  },
-  {
-    question: "Можно ли загружать документы?",
-    answer:
-      "Да. Прикрепите PDF, Word или таблицу — модель прочитает документ целиком, ответит на вопросы и сделает выжимку.",
-  },
-];
-
-const vpnBenefit: LandingBenefit = {
-  icon: "shield",
-  title: "Без VPN и зарубежных карт",
-  text: "Работает из России без ограничений. Оплата картами МИР, Visa, MasterCard или через СБП — в рублях.",
-};
-
-const documentsBenefit: LandingBenefit = {
-  icon: "file-text",
-  title: "Понимает документы целиком",
-  text: "Загрузите договор, отчёт или статью на десятки страниц — модель найдёт главное, ответит на вопросы и объяснит сложное простыми словами.",
-};
-
-const writingBenefit: LandingBenefit = {
-  icon: "pen",
-  title: "Пишет как человек",
-  text: "Посты, статьи, письма и описания товаров на живом русском языке — в нужном тоне и формате, без «нейросетевых» оборотов.",
-};
-
-const lawyersAudience: LandingAudienceCard = {
-  title: "Юристы и аналитики",
-  text: "Анализ договоров, отчётов и таблиц: риски, выводы и краткое содержание — со ссылками на пункты.",
-  userMessage:
-    "Проверь договор аренды — какие пункты рискованные? 📄 dogovor.pdf",
-  aiReply:
-    "Нашёл **3 пункта**, на которые стоит обратить внимание. Самый важный — п. 4.2: арендодатель может…",
-};
-
-const studentsAudience: LandingAudienceCard = {
-  title: "Студенты и исследователи",
-  text: "Конспекты, разбор сложных тем и работа с источниками — объяснения на вашем уровне.",
-  userMessage: "Объясни трансформеры так, будто мне 15 лет",
-  aiReply:
-    "Представь очень внимательного читателя: он смотрит на **все слова сразу** и решает, какие важнее…",
-};
-
-const crossCatalogChips: LandingModelChip[] = [
-  { name: "Claude Opus 4.8", tag: "Текст", href: "/models/text" },
-  { name: "Gemini 3.1 Pro", tag: "Текст", href: "/models/text" },
-  { name: "Grok 4.5", tag: "Текст", href: "/models/text" },
-  { name: "GPT-Codex 5.3", tag: "Код", href: "/models/code" },
-  { name: "Nano Banana", tag: "Изображения", href: "/models/image-generation" },
-  { name: "Veo 3.1", tag: "Видео", href: "/models/video-generation" },
-];
-
-export const modelLandings: ModelLanding[] = [
+export const openaiLandings: ModelLanding[] = [
   {
     slug: SOL_SLUG,
     modelId: "gpt-5.6-sol",
@@ -244,7 +97,7 @@ export const modelLandings: ModelLanding[] = [
     otherModels: [
       { name: "GPT-5.6 Terra", tag: "Текст", href: `/models/${TERRA_SLUG}` },
       { name: "GPT-5.6 Luna", tag: "Текст", href: `/models/${LUNA_SLUG}` },
-      ...crossCatalogChips,
+      ...crossLandingChips,
     ],
   },
   {
@@ -315,7 +168,7 @@ export const modelLandings: ModelLanding[] = [
     otherModels: [
       { name: "GPT-5.6 Sol", tag: "Текст", href: `/models/${SOL_SLUG}` },
       { name: "GPT-5.6 Luna", tag: "Текст", href: `/models/${LUNA_SLUG}` },
-      ...crossCatalogChips,
+      ...crossLandingChips,
     ],
   },
   {
@@ -358,14 +211,7 @@ export const modelLandings: ModelLanding[] = [
     ],
     steps: buildSteps("GPT-5.6 Luna"),
     audience: [
-      {
-        title: "Поддержка и продажи",
-        text: "Быстрые ответы клиентам в нужном тоне — вежливо, по делу и без шаблонности.",
-        userMessage:
-          "Ответь клиенту вежливо, но твёрдо: возврат по этому заказу невозможен",
-        aiReply:
-          "Здравствуйте! Спасибо, что написали. К сожалению, **по условиям заказа** возврат оформить нельзя, но мы можем предложить…",
-      },
+      supportAudience,
       studentsAudience,
       {
         title: "Все, кто пишет каждый день",
@@ -396,44 +242,7 @@ export const modelLandings: ModelLanding[] = [
     otherModels: [
       { name: "GPT-5.6 Sol", tag: "Текст", href: `/models/${SOL_SLUG}` },
       { name: "GPT-5.6 Terra", tag: "Текст", href: `/models/${TERRA_SLUG}` },
-      ...crossCatalogChips,
+      ...crossLandingChips,
     ],
   },
 ];
-
-export const getModelLandingBySlug = (slug: string): ModelLanding | undefined =>
-  modelLandings.find((landing) => landing.slug === slug);
-
-export const getModelLandingByModelId = (
-  modelId: string
-): ModelLanding | undefined =>
-  modelLandings.find((landing) => landing.modelId === modelId);
-
-export type EmphasisSegment = {
-  id: string;
-  text: string;
-  isBold: boolean;
-};
-
-/**
- * Splits `**bold**` markers in landing copy into typed segments so components
- * can render emphasis without dangerouslySetInnerHTML. Odd split positions are
- * the bold runs; ids are stable per source string.
- */
-export const parseEmphasis = (text: string): EmphasisSegment[] => {
-  const segments: EmphasisSegment[] = [];
-  let offset = 0;
-
-  for (const [position, part] of text.split("**").entries()) {
-    if (part.length > 0) {
-      segments.push({
-        id: `${offset}-${part.slice(0, 12)}`,
-        text: part,
-        isBold: position % 2 === 1,
-      });
-    }
-    offset += part.length + 2;
-  }
-
-  return segments;
-};

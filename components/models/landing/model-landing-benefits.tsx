@@ -1,9 +1,11 @@
 import {
   Code,
   FileText,
+  Globe,
   type LucideIcon,
   PenLine,
   Scale,
+  Search,
   ShieldCheck,
   Sparkles,
   Wallet,
@@ -27,6 +29,8 @@ const benefitIcons: Record<LandingBenefitIcon, LucideIcon> = {
   scale: Scale,
   wallet: Wallet,
   shield: ShieldCheck,
+  search: Search,
+  globe: Globe,
 };
 
 export const ModelLandingBenefits = ({
@@ -40,7 +44,7 @@ export const ModelLandingBenefits = ({
     <section className="px-4 py-16">
       <div className="mx-auto max-w-6xl">
         <ModelLandingSectionHead
-          sub="Что улучшилось в новой версии и за что её выбирают для работы с текстом"
+          sub="Чем модель выделяется и за что её выбирают для работы с текстом"
           title={`Почему выбирают ${landing.name}`}
         />
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
