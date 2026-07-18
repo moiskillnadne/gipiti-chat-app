@@ -428,10 +428,56 @@ const OPUS_THINKING_CONFIG: ThinkingEffortConfig = {
 
 export const chatModels: ChatModel[] = [
   {
+    id: "grok-4.5",
+    name: "grok45.name",
+    description: "grok45.description",
+    provider: "xai",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+  },
+  {
     id: "grok-4.3",
     name: "grok43.name",
     description: "grok43.description",
     provider: "xai",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+  },
+  {
+    id: "gpt-5.6-sol",
+    name: "gpt56Sol.name",
+    description: "gpt56Sol.description",
+    provider: "openai",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+    thinkingConfig: GPT5_THINKING_CONFIG,
+  },
+  {
+    id: "gpt-5.6-terra",
+    name: "gpt56Terra.name",
+    description: "gpt56Terra.description",
+    provider: "openai",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+    thinkingConfig: GPT5_THINKING_CONFIG,
+  },
+  {
+    id: "gpt-5.6-luna",
+    name: "gpt56Luna.name",
+    description: "gpt56Luna.description",
+    provider: "openai",
     capabilities: {
       reasoning: true,
       attachments: true,
@@ -942,7 +988,7 @@ export const isReasoningModelId = (modelId: string) =>
  * without any prompt instruction, so it intentionally stays false here and
  * receives `nativeReasoningPrompt`.
  *
- * Native-reasoning models (Anthropic extended thinking, grok-4.3, and Gemini 3
+ * Native-reasoning models (Anthropic extended thinking, grok-4.x, and Gemini 3
  * with `includeThoughts`) must NOT receive that instruction — they'd echo literal
  * `<think>` tags into the visible body since no middleware strips them, and for
  * Gemini the tag path also corrupts thought signatures across multi-turn tool
@@ -1080,6 +1126,9 @@ export type ReasoningSummary = (typeof REASONING_SUMMARY)[number];
 export const DEFAULT_REASONING_SUMMARY: ReasoningSummary = "auto";
 
 export const openaiModelIds = [
+  "gpt-5.6-sol",
+  "gpt-5.6-terra",
+  "gpt-5.6-luna",
   "gpt-5.5",
   "gpt-5.4-mini",
   "gpt-5.4-nano",

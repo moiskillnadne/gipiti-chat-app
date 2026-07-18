@@ -9,8 +9,21 @@ export const myProvider = customProvider({
   languageModels: {
     // xAI grok-4.x streams reasoning natively (not <think> tags), so no
     // extractReasoningMiddleware wrapper here.
+    "grok-4.5": gateway.languageModel("xai/grok-4.5"),
     "grok-4.3": gateway.languageModel("xai/grok-4.3"),
     "title-model": gateway.languageModel("google/gemini-3.1-flash-lite"),
+    "gpt-5.6-sol": wrapLanguageModel({
+      model: gateway.languageModel("openai/gpt-5.6-sol"),
+      middleware: extractReasoningMiddleware({ tagName: "think" }),
+    }),
+    "gpt-5.6-terra": wrapLanguageModel({
+      model: gateway.languageModel("openai/gpt-5.6-terra"),
+      middleware: extractReasoningMiddleware({ tagName: "think" }),
+    }),
+    "gpt-5.6-luna": wrapLanguageModel({
+      model: gateway.languageModel("openai/gpt-5.6-luna"),
+      middleware: extractReasoningMiddleware({ tagName: "think" }),
+    }),
     "gpt-5.5": wrapLanguageModel({
       model: gateway.languageModel("openai/gpt-5.5"),
       middleware: extractReasoningMiddleware({ tagName: "think" }),

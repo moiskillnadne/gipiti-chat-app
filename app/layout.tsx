@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     template: "%s | GIPITI",
   },
   description:
-    "GIPITI — платформа с доступом к лучшим AI-моделям: GPT-5.5, Gemini 3.1 Pro, Claude Opus 4.8 и Grok 4.3. Генерация текста, изображений, видео, кода, анализ документов.",
+    "GIPITI — платформа с доступом к лучшим AI-моделям: GPT-5.6, Gemini 3.1 Pro, Claude Opus 4.8 и Grok 4.5. Генерация текста, изображений, видео, кода, анализ документов.",
   keywords: [
     "GIPITI",
     "Гипити",
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
     siteName: "GIPITI",
     title: "GIPITI - Агрегатор нейросетей. ChatGPT, Gemini, Claude и Grok",
     description:
-      "GIPITI — платформа с доступом к лучшим AI-моделям: GPT-5.5, Gemini 3.1 Pro, Claude Opus 4.8 и Grok 4.3. Генерация текста, изображений, видео, кода, анализ документов.",
+      "GIPITI — платформа с доступом к лучшим AI-моделям: GPT-5.6, Gemini 3.1 Pro, Claude Opus 4.8 и Grok 4.5. Генерация текста, изображений, видео, кода, анализ документов.",
   },
   twitter: {
     card: "summary_large_image",

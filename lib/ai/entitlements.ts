@@ -14,7 +14,11 @@ export const entitlementsByUserType: Record<UserType, Entitlements> = {
    */
   regular: {
     availableChatModelIds: [
+      "grok-4.5",
       "grok-4.3",
+      "gpt-5.6-sol",
+      "gpt-5.6-terra",
+      "gpt-5.6-luna",
       "gpt-5.5",
       "gpt-5.4-mini",
       "gpt-5.4-nano",

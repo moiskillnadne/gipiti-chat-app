@@ -17,7 +17,7 @@ const demoTabs: DemoTab[] = [
   {
     id: "writing",
     label: "Написание текста",
-    modelBadge: "GPT-5.5",
+    modelBadge: "GPT-5.6",
     messages: [
       {
         role: "user",
@@ -27,7 +27,7 @@ const demoTabs: DemoTab[] = [
         role: "assistant",
         content:
           "Откройте для себя мощь искусственного интеллекта нового поколения. Наша платформа объединяет лучшие языковые модели в едином интерфейсе, позволяя вам создавать контент, анализировать данные и решать сложные задачи за считанные секунды.",
-        model: "GPT-5.5",
+        model: "GPT-5.6",
       },
     ],
   },
@@ -74,7 +74,7 @@ const demoTabs: DemoTab[] = [
   {
     id: "search",
     label: "Поиск в интернете",
-    modelBadge: "Grok 4.3",
+    modelBadge: "Grok 4.5",
     messages: [
       {
         role: "user",
@@ -83,7 +83,7 @@ const demoTabs: DemoTab[] = [
       {
         role: "assistant",
         content:
-          "За последнюю неделю: OpenAI представила новую архитектуру GPT-5.5 с улучшенным рассуждением, Google выпустила Gemini 3.5 с нативной поддержкой мультимодальности, а Anthropic объявила о запуске Claude Opus 4.8 с расширенным контекстным окном.",
+          "За последнюю неделю: OpenAI представила новую архитектуру GPT-5.6 с улучшенным рассуждением, Google выпустила Gemini 3.5 с нативной поддержкой мультимодальности, а Anthropic объявила о запуске Claude Opus 4.8 с расширенным контекстным окном.",
         toolCalls: [
           {
             type: "webSearch",
@@ -96,7 +96,7 @@ const demoTabs: DemoTab[] = [
             ],
           },
         ],
-        model: "Grok 4.3",
+        model: "Grok 4.5",
       },
     ],
   },
