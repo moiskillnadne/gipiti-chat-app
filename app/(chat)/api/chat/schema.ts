@@ -43,6 +43,13 @@ const imageGenSettingSchema = z.object({
   aspectRatio: z.string().optional(),
 });
 
+const videoGenSettingSchema = z.object({
+  aspectRatio: z.string().optional(),
+  duration: z.string().optional(),
+  resolution: z.string().optional(),
+  mode: z.string().optional(),
+});
+
 export const postRequestBodySchema = z.object({
   id: z.string().uuid(),
   message: z.object({
@@ -53,6 +60,7 @@ export const postRequestBodySchema = z.object({
   selectedChatModel: chatModelIdSchema,
   thinkingSetting: thinkingSettingSchema.optional(),
   imageGenSetting: imageGenSettingSchema.optional(),
+  videoGenSetting: videoGenSettingSchema.optional(),
   previousGenerationId: z.string().optional(),
   selectedProjectId: z.string().uuid().optional(),
   webSearchEnabled: z.boolean().optional(),

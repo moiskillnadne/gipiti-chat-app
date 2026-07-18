@@ -1,7 +1,12 @@
 import { gateway } from "@ai-sdk/gateway";
 import { experimental_generateVideo as generateVideo } from "ai";
 import { uploadGeneratedVideo } from "@/lib/ai/media-upload";
-import { getVideoGenConfig } from "@/lib/ai/models";
+import {
+  getVideoGenConfig,
+  normalizeAspectRatio,
+  type VideoGenConfig,
+  type VideoGenSetting,
+} from "@/lib/ai/models";
 import { saveDocument } from "@/lib/db/query/document/save-document";
 import { ChatSDKError } from "@/lib/errors";
 import type { AppUsage } from "@/lib/usage";
@@ -9,11 +14,28 @@ import { generateUUID } from "@/lib/utils";
 import { chargeUsageSafe } from "../charge";
 import type { ChatTurnContext, StreamWriter } from "../context";
 
-const VIDEO_ASPECT_RATIO = "16:9";
+const DEFAULT_VIDEO_ASPECT_RATIO = "16:9";
 // Re-emit the (reconciled) "generating" part on this cadence to keep the
 // connection alive through the long video generation.
 const KEEPALIVE_INTERVAL_MS = 15_000;
 const IMAGE_TO_VIDEO_MEDIA_TYPES = new Set(["image/jpeg", "image/png"]);
+
+/**
+ * Provider-specific settings the gateway does not take as top-level params:
+ * Grok resolution and Kling render mode travel via providerOptions.
+ */
+const buildVideoProviderOptions = (
+  config: VideoGenConfig,
+  settings: VideoGenSetting | undefined
+): Record<string, Record<string, string>> | undefined => {
+  if (config.gatewayModelId.startsWith("xai/") && settings?.resolution) {
+    return { xai: { resolution: settings.resolution } };
+  }
+  if (config.gatewayModelId.startsWith("klingai/") && settings?.mode) {
+    return { klingai: { mode: settings.mode } };
+  }
+  return;
+};
 
 /**
  * Run a direct video-generation turn: optional image-to-video seeding, a
@@ -49,6 +71,26 @@ export async function runVideoGeneration(
   const documentId = generateUUID();
   const generationStartTime = Date.now();
 
+  const settings = ctx.videoGenSetting;
+  // With a seed image the output follows the image's own shape — an explicit
+  // ratio is ignored (Kling/Seedance) or stretches the image (Grok), so it is
+  // only sent for pure text-to-video.
+  const aspectRatio = referenceImageUrl
+    ? undefined
+    : (settings?.aspectRatio ??
+      videoConfig.aspectRatio?.default ??
+      DEFAULT_VIDEO_ASPECT_RATIO);
+  const durationSeconds = settings?.duration
+    ? Number.parseInt(settings.duration, 10)
+    : videoConfig.durationSeconds;
+  // Veo takes resolution as a top-level "720p"/"1080p" token; other providers
+  // either use providerOptions (Grok) or stay on their default.
+  const veoResolution = videoConfig.gatewayModelId.startsWith("google/veo")
+    ? settings?.resolution
+    : undefined;
+  const providerOptions = buildVideoProviderOptions(videoConfig, settings);
+  const cardAspectRatio = normalizeAspectRatio(aspectRatio);
+
   // Image-to-video models cannot generate without a seed image; surface the
   // error card instead of letting the gateway fail with a raw provider error.
   if (videoConfig.imageInput === "required" && !referenceImageUrl) {
@@ -61,6 +103,7 @@ export async function runVideoGeneration(
         status: "error",
         prompt: userPrompt,
         modelId: ctx.model,
+        aspectRatio: cardAspectRatio,
       },
     });
     return;
@@ -76,6 +119,7 @@ export async function runVideoGeneration(
         status: "generating",
         prompt: userPrompt,
         modelId: ctx.model,
+        aspectRatio: cardAspectRatio,
       },
     });
   };
@@ -95,8 +139,16 @@ export async function runVideoGeneration(
     const result = await generateVideo({
       model: gateway.videoModel(videoConfig.gatewayModelId),
       prompt: videoPrompt,
-      aspectRatio: VIDEO_ASPECT_RATIO,
-      duration: videoConfig.durationSeconds,
+      ...(aspectRatio && {
+        aspectRatio: aspectRatio as `${number}:${number}`,
+      }),
+      duration: durationSeconds,
+      // The gateway takes Veo resolution as a "720p"/"1080p" token even though
+      // the SDK types the param as pixel dims.
+      ...(veoResolution && {
+        resolution: veoResolution as `${number}x${number}`,
+      }),
+      ...(providerOptions && { providerOptions }),
     });
 
     clearInterval(keepAliveInterval);
@@ -113,7 +165,7 @@ export async function runVideoGeneration(
     }
   } catch (error) {
     clearInterval(keepAliveInterval);
-    console.error("Video generation failed:", error);
+    console.error("Video generation failed:", { modelId: ctx.model, error });
     writer.write({
       id: documentId,
       type: "data-mediaGeneration",
@@ -123,6 +175,7 @@ export async function runVideoGeneration(
         status: "error",
         prompt: userPrompt,
         modelId: ctx.model,
+        aspectRatio: cardAspectRatio,
       },
     });
     return;
@@ -147,7 +200,8 @@ export async function runVideoGeneration(
       prompt: userPrompt,
       modelId: ctx.model,
       url: videoUrl,
-      durationSeconds: videoConfig.durationSeconds,
+      durationSeconds,
+      aspectRatio: cardAspectRatio,
     },
   });
   writer.write({ type: "file", mediaType: "video/mp4", url: videoUrl });

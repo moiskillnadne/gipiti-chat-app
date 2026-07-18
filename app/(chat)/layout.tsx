@@ -10,13 +10,19 @@ import {
   DEFAULT_CHAT_MODEL,
   getDefaultImageGenSetting,
   getDefaultThinkingSetting,
+  getDefaultVideoGenSetting,
   IMAGE_ASPECT_COOKIE_PREFIX,
   IMAGE_QUALITY_COOKIE_PREFIX,
   IMAGE_STYLE_COOKIE_PREFIX,
   isVisibleInUI,
   parseImageGenSettingFromCookie,
   parseThinkingSettingFromCookie,
+  parseVideoGenSettingFromCookie,
   THINKING_COOKIE_PREFIX,
+  VIDEO_ASPECT_COOKIE_PREFIX,
+  VIDEO_DURATION_COOKIE_PREFIX,
+  VIDEO_MODE_COOKIE_PREFIX,
+  VIDEO_RESOLUTION_COOKIE_PREFIX,
 } from "@/lib/ai/models";
 import { auth } from "../(auth)/auth";
 
@@ -61,6 +67,16 @@ export default async function Layout({
       imageStyleCookie
     ) ?? getDefaultImageGenSetting(validatedModelId);
 
+  const videoCookie = (prefix: string) =>
+    cookieStore.get(`${prefix}-${validatedModelId}`)?.value;
+  const initialVideoGenSetting =
+    parseVideoGenSettingFromCookie(validatedModelId, {
+      aspectRatio: videoCookie(VIDEO_ASPECT_COOKIE_PREFIX),
+      duration: videoCookie(VIDEO_DURATION_COOKIE_PREFIX),
+      resolution: videoCookie(VIDEO_RESOLUTION_COOKIE_PREFIX),
+      mode: videoCookie(VIDEO_MODE_COOKIE_PREFIX),
+    }) ?? getDefaultVideoGenSetting(validatedModelId);
+
   const userType = session?.user?.type ?? "regular";
   const projectId = cookieStore.get("chat-project")?.value ?? null;
   const webSearchCookie = cookieStore.get("web-search-enabled")?.value;
@@ -73,6 +89,7 @@ export default async function Layout({
         initialImageGenSetting={initialImageGenSetting}
         initialModelId={validatedModelId}
         initialThinkingSetting={initialThinkingSetting}
+        initialVideoGenSetting={initialVideoGenSetting}
         userType={userType}
       >
         <ProjectProvider initialProjectId={projectId}>

@@ -9,6 +9,7 @@ import {
   supportsToolCalling,
   validateImageGenSetting,
   validateThinkingSetting,
+  validateVideoGenSetting,
 } from "@/lib/ai/models";
 import type { ProjectContextInput, RequestHints } from "@/lib/ai/prompts";
 import { calculateOptimalStepLimit } from "@/lib/ai/step-calculator";
@@ -171,6 +172,7 @@ export async function prepareChatTurn(
     selectedChatModel: requestedChatModel,
     thinkingSetting: rawThinkingSetting,
     imageGenSetting: rawImageGenSetting,
+    videoGenSetting: rawVideoGenSetting,
     selectedProjectId,
     webSearchEnabled = true,
   } = body;
@@ -184,6 +186,7 @@ export async function prepareChatTurn(
     : DEFAULT_CHAT_MODEL;
   const thinkingSetting = validateThinkingSetting(model, rawThinkingSetting);
   const imageGenSetting = validateImageGenSetting(model, rawImageGenSetting);
+  const videoGenSetting = validateVideoGenSetting(model, rawVideoGenSetting);
 
   // Models without function calling (Perplexity Sonar) and reasoning-only
   // models without attachments run without tools, which lowers the step
@@ -287,6 +290,7 @@ export async function prepareChatTurn(
     model,
     thinkingSetting,
     imageGenSetting,
+    videoGenSetting,
     previousGenerationId: body.previousGenerationId,
     webSearchEnabled,
     stepLimit,

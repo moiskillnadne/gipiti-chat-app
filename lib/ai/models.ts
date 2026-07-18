@@ -100,6 +100,26 @@ export type ImageGenSetting = {
   style?: string;
 };
 
+/** OpenAI image sizes are concrete pixel dims — map them to aspect tokens. */
+export const IMAGE_SIZE_TO_ASPECT: Record<string, string> = {
+  "1024x1024": "1:1",
+  "1536x1024": "3:2",
+  "1024x1536": "2:3",
+};
+
+/**
+ * Normalize an aspect setting value to a "W:H" token for display and preview
+ * sizing. "auto" (model decides) has no fixed shape and returns undefined.
+ */
+export const normalizeAspectRatio = (
+  value: string | undefined
+): string | undefined => {
+  if (!value || value === "auto") {
+    return;
+  }
+  return IMAGE_SIZE_TO_ASPECT[value] ?? value;
+};
+
 export const IMAGE_QUALITY_COOKIE_PREFIX = "image-quality" as const;
 export const IMAGE_ASPECT_COOKIE_PREFIX = "image-aspect" as const;
 export const IMAGE_STYLE_COOKIE_PREFIX = "image-style" as const;
@@ -108,11 +128,39 @@ export const IMAGE_STYLE_COOKIE_PREFIX = "image-style" as const;
 // "required" (image-to-video), "optional" (used when present), or
 // "unsupported" (text-to-video only; attachments must stay disabled).
 export type VideoImageInput = "optional" | "required" | "unsupported";
+
+/** One user-facing option group (same shape as image sections). */
+export type VideoGenOptionSection = {
+  options: readonly ImageGenOption[];
+  default: string;
+};
+
 export type VideoGenConfig = {
   gatewayModelId: string;
+  /** Fallback clip length when the model has no duration section/setting. */
   durationSeconds: number;
   imageInput: VideoImageInput;
+  aspectRatio?: VideoGenOptionSection;
+  /** Clip length choices; values are seconds as strings ("5", "10"). */
+  duration?: VideoGenOptionSection;
+  /** Output resolution tokens ("480p" | "720p" | "1080p"). */
+  resolution?: VideoGenOptionSection;
+  /** Kling render mode ("std" | "pro") — its quality knob. */
+  mode?: VideoGenOptionSection;
 };
+
+/** Per-request user choice, validated against the model's VideoGenConfig. */
+export type VideoGenSetting = {
+  aspectRatio?: string;
+  duration?: string;
+  resolution?: string;
+  mode?: string;
+};
+
+export const VIDEO_ASPECT_COOKIE_PREFIX = "video-aspect" as const;
+export const VIDEO_DURATION_COOKIE_PREFIX = "video-duration" as const;
+export const VIDEO_RESOLUTION_COOKIE_PREFIX = "video-resolution" as const;
+export const VIDEO_MODE_COOKIE_PREFIX = "video-mode" as const;
 
 const GOOGLE_IMAGE_GEN_CONFIG: ImageGenConfig = {
   quality: {
@@ -171,7 +219,29 @@ const OPENAI_IMAGE_GEN_CONFIG: ImageGenConfig = {
   },
 };
 
-const BFL_IMAGE_GEN_CONFIG: ImageGenConfig = {
+// Grok Imagine accepts aspect_ratio (xAI docs also list exotic 2:1/20:9
+// variants, kept out of the grid) with a 16:9 provider default.
+const XAI_IMAGE_GEN_CONFIG: ImageGenConfig = {
+  aspectRatio: {
+    options: [
+      { value: "16:9", labelKey: "landscape169" },
+      { value: "9:16", labelKey: "portrait916" },
+      { value: "1:1", labelKey: "square" },
+      { value: "4:3", labelKey: "standard43" },
+      { value: "3:4", labelKey: "standard34" },
+      { value: "3:2", labelKey: "wide32" },
+      { value: "2:3", labelKey: "tall23" },
+    ],
+    default: "16:9",
+  },
+};
+
+// Flux Kontext accepts any ratio between 21:9 and 9:21 (BFL API spec;
+// 16:9 verified through the gateway 2026-07). Flux 2 Max has NO settings:
+// its API takes only width/height, and both aspectRatio and
+// providerOptions.bfl dims are silently ignored by the gateway (verified) —
+// so it gets no imageGenConfig rather than placebo controls.
+const FLUX_KONTEXT_IMAGE_GEN_CONFIG: ImageGenConfig = {
   aspectRatio: {
     options: [
       { value: "1:1", labelKey: "square" },
@@ -181,6 +251,8 @@ const BFL_IMAGE_GEN_CONFIG: ImageGenConfig = {
       { value: "2:3", labelKey: "tall23" },
       { value: "4:3", labelKey: "standard43" },
       { value: "3:4", labelKey: "standard34" },
+      { value: "21:9", labelKey: "ultrawide" },
+      { value: "9:21", labelKey: "ultratall" },
     ],
     default: "1:1",
   },
@@ -216,6 +288,125 @@ const BYTEDANCE_IMAGE_GEN_CONFIG: ImageGenConfig = {
     default: "1:1",
   },
 };
+
+// User-facing video sections. Values verified against the Vercel AI Gateway
+// video docs + provider docs (2026-07); the gateway forwards params verbatim
+// and enforces support server-side, so only documented values are offered.
+
+const VIDEO_ASPECT_OPTIONS: Record<string, ImageGenOption> = {
+  "16:9": { value: "16:9", labelKey: "landscape169" },
+  "9:16": { value: "9:16", labelKey: "portrait916" },
+  "1:1": { value: "1:1", labelKey: "square" },
+  "4:3": { value: "4:3", labelKey: "standard43" },
+  "3:4": { value: "3:4", labelKey: "standard34" },
+  "3:2": { value: "3:2", labelKey: "wide32" },
+  "2:3": { value: "2:3", labelKey: "tall23" },
+  "21:9": { value: "21:9", labelKey: "ultrawide" },
+};
+
+const videoDurationOption = (seconds: number): ImageGenOption => ({
+  value: String(seconds),
+  labelKey: `duration${seconds}`,
+});
+
+// Veo 3.1: 16:9/9:16, 4/6/8s, 720p/1080p — 1080p requires an 8s clip
+// (validateVideoGenSetting coerces the duration).
+const VEO_VIDEO_GEN_SECTIONS = {
+  aspectRatio: {
+    options: [VIDEO_ASPECT_OPTIONS["16:9"], VIDEO_ASPECT_OPTIONS["9:16"]],
+    default: "16:9",
+  },
+  duration: {
+    options: [4, 6, 8].map(videoDurationOption),
+    default: "8",
+  },
+  resolution: {
+    options: [
+      { value: "720p", labelKey: "res720" },
+      { value: "1080p", labelKey: "res1080" },
+    ],
+    default: "720p",
+  },
+} satisfies Partial<VideoGenConfig>;
+
+// Grok Imagine 1.5: 7 ratios, 1-15s (subset offered), 480p/720p via
+// providerOptions.xai.resolution. For i2v the ratio must be omitted — the
+// model follows the input image and an explicit ratio stretches it.
+const GROK_VIDEO_GEN_SECTIONS = {
+  aspectRatio: {
+    options: [
+      VIDEO_ASPECT_OPTIONS["16:9"],
+      VIDEO_ASPECT_OPTIONS["9:16"],
+      VIDEO_ASPECT_OPTIONS["1:1"],
+      VIDEO_ASPECT_OPTIONS["4:3"],
+      VIDEO_ASPECT_OPTIONS["3:4"],
+      VIDEO_ASPECT_OPTIONS["3:2"],
+      VIDEO_ASPECT_OPTIONS["2:3"],
+    ],
+    default: "16:9",
+  },
+  duration: {
+    options: [4, 8, 12].map(videoDurationOption),
+    default: "8",
+  },
+  resolution: {
+    options: [
+      { value: "480p", labelKey: "res480" },
+      { value: "720p", labelKey: "res720" },
+    ],
+    default: "480p",
+  },
+} satisfies Partial<VideoGenConfig>;
+
+// Kling: 16:9/9:16/1:1 (t2v only — i2v follows the input image), 5s/10s,
+// std/pro mode via providerOptions.klingai.mode.
+const KLING_VIDEO_GEN_SECTIONS = {
+  aspectRatio: {
+    options: [
+      VIDEO_ASPECT_OPTIONS["16:9"],
+      VIDEO_ASPECT_OPTIONS["9:16"],
+      VIDEO_ASPECT_OPTIONS["1:1"],
+    ],
+    default: "16:9",
+  },
+  duration: {
+    options: [5, 10].map(videoDurationOption),
+    default: "5",
+  },
+  mode: {
+    options: [
+      { value: "std", labelKey: "modeStd" },
+      { value: "pro", labelKey: "modePro" },
+    ],
+    default: "std",
+  },
+} satisfies Partial<VideoGenConfig>;
+
+const KLING_I2V_VIDEO_GEN_SECTIONS = {
+  duration: KLING_VIDEO_GEN_SECTIONS.duration,
+  mode: KLING_VIDEO_GEN_SECTIONS.mode,
+} satisfies Partial<VideoGenConfig>;
+
+// Seedance 2.0: 6 ratios, 5s/10s. Resolution stays on the provider default
+// (720p) — the gateway documents pixel-dim values that clash with portrait
+// ratios, so it is not exposed until verified.
+const SEEDANCE_VIDEO_GEN_SECTIONS = {
+  aspectRatio: {
+    options: [
+      VIDEO_ASPECT_OPTIONS["16:9"],
+      VIDEO_ASPECT_OPTIONS["9:16"],
+      VIDEO_ASPECT_OPTIONS["1:1"],
+      VIDEO_ASPECT_OPTIONS["4:3"],
+      VIDEO_ASPECT_OPTIONS["3:4"],
+      VIDEO_ASPECT_OPTIONS["21:9"],
+    ],
+    default: "16:9",
+  },
+  duration: {
+    options: [5, 10].map(videoDurationOption),
+    default: "5",
+  },
+} satisfies Partial<VideoGenConfig>;
 
 const GPT5_THINKING_CONFIG: ThinkingEffortConfig = {
   type: "effort",
@@ -393,6 +584,7 @@ export const chatModels: ChatModel[] = [
       imageGeneration: true,
     },
     showInUI: true,
+    imageGenConfig: XAI_IMAGE_GEN_CONFIG,
   },
   {
     id: "gpt-image-2",
@@ -528,6 +720,7 @@ export const chatModels: ChatModel[] = [
       gatewayModelId: "google/veo-3.1-generate-001",
       durationSeconds: 8,
       imageInput: "optional",
+      ...VEO_VIDEO_GEN_SECTIONS,
     },
   },
   {
@@ -544,6 +737,7 @@ export const chatModels: ChatModel[] = [
       gatewayModelId: "google/veo-3.1-fast-generate-001",
       durationSeconds: 8,
       imageInput: "optional",
+      ...VEO_VIDEO_GEN_SECTIONS,
     },
   },
   {
@@ -560,6 +754,7 @@ export const chatModels: ChatModel[] = [
       gatewayModelId: "xai/grok-imagine-video-1.5-preview",
       durationSeconds: 8,
       imageInput: "optional",
+      ...GROK_VIDEO_GEN_SECTIONS,
     },
   },
   {
@@ -575,6 +770,7 @@ export const chatModels: ChatModel[] = [
       gatewayModelId: "klingai/kling-v3.0-t2v",
       durationSeconds: 5,
       imageInput: "unsupported",
+      ...KLING_VIDEO_GEN_SECTIONS,
     },
   },
   {
@@ -591,6 +787,7 @@ export const chatModels: ChatModel[] = [
       gatewayModelId: "klingai/kling-v3.0-i2v",
       durationSeconds: 5,
       imageInput: "required",
+      ...KLING_I2V_VIDEO_GEN_SECTIONS,
     },
   },
   {
@@ -606,6 +803,7 @@ export const chatModels: ChatModel[] = [
       gatewayModelId: "klingai/kling-v2.6-t2v",
       durationSeconds: 5,
       imageInput: "unsupported",
+      ...KLING_VIDEO_GEN_SECTIONS,
     },
   },
   {
@@ -621,6 +819,7 @@ export const chatModels: ChatModel[] = [
       gatewayModelId: "klingai/kling-v2.5-turbo-t2v",
       durationSeconds: 5,
       imageInput: "unsupported",
+      ...KLING_VIDEO_GEN_SECTIONS,
     },
   },
   {
@@ -637,6 +836,7 @@ export const chatModels: ChatModel[] = [
       gatewayModelId: "bytedance/seedance-2.0",
       durationSeconds: 5,
       imageInput: "optional",
+      ...SEEDANCE_VIDEO_GEN_SECTIONS,
     },
   },
   {
@@ -653,6 +853,7 @@ export const chatModels: ChatModel[] = [
       gatewayModelId: "bytedance/seedance-2.0-fast",
       durationSeconds: 5,
       imageInput: "optional",
+      ...SEEDANCE_VIDEO_GEN_SECTIONS,
     },
   },
   {
@@ -665,7 +866,6 @@ export const chatModels: ChatModel[] = [
       imageGeneration: true,
     },
     showInUI: true,
-    imageGenConfig: BFL_IMAGE_GEN_CONFIG,
   },
   {
     id: "flux-kontext-max",
@@ -677,7 +877,7 @@ export const chatModels: ChatModel[] = [
       imageGeneration: true,
     },
     showInUI: true,
-    imageGenConfig: BFL_IMAGE_GEN_CONFIG,
+    imageGenConfig: FLUX_KONTEXT_IMAGE_GEN_CONFIG,
   },
   {
     id: "recraft-v4.1-pro",
@@ -1194,4 +1394,94 @@ export const validateImageGenSetting = (
       : defaults?.style;
 
   return { quality, aspectRatio, style };
+};
+
+// Video generation setting helpers
+
+/** Keep `value` when the section offers it; otherwise fall back. */
+const pickVideoOption = (
+  section: VideoGenOptionSection | undefined,
+  value: string | undefined,
+  fallback: string | undefined
+): string | undefined => {
+  if (value && section?.options.some((option) => option.value === value)) {
+    return value;
+  }
+  return fallback;
+};
+
+/** True when the model exposes at least one user-facing video section. */
+export const supportsVideoGenConfig = (modelId: string): boolean => {
+  const config = getModelById(modelId)?.videoGenConfig;
+  return Boolean(
+    config &&
+      (config.aspectRatio ||
+        config.duration ||
+        config.resolution ||
+        config.mode)
+  );
+};
+
+export const getDefaultVideoGenSetting = (
+  modelId: string
+): VideoGenSetting | undefined => {
+  const config = getModelById(modelId)?.videoGenConfig;
+  if (!supportsVideoGenConfig(modelId) || !config) {
+    return;
+  }
+
+  return {
+    aspectRatio: config.aspectRatio?.default,
+    duration: config.duration?.default,
+    resolution: config.resolution?.default,
+    mode: config.mode?.default,
+  };
+};
+
+export const parseVideoGenSettingFromCookie = (
+  modelId: string,
+  cookieValues: VideoGenSetting
+): VideoGenSetting | undefined => {
+  return validateVideoGenSetting(modelId, cookieValues);
+};
+
+export const validateVideoGenSetting = (
+  modelId: string,
+  setting: VideoGenSetting | undefined
+): VideoGenSetting | undefined => {
+  const config = getModelById(modelId)?.videoGenConfig;
+  if (!supportsVideoGenConfig(modelId) || !config) {
+    return;
+  }
+
+  const defaults = getDefaultVideoGenSetting(modelId);
+  const validated: VideoGenSetting = {
+    aspectRatio: pickVideoOption(
+      config.aspectRatio,
+      setting?.aspectRatio,
+      defaults?.aspectRatio
+    ),
+    duration: pickVideoOption(
+      config.duration,
+      setting?.duration,
+      defaults?.duration
+    ),
+    resolution: pickVideoOption(
+      config.resolution,
+      setting?.resolution,
+      defaults?.resolution
+    ),
+    mode: pickVideoOption(config.mode, setting?.mode, defaults?.mode),
+  };
+
+  // Veo constraint: 1080p output requires an 8-second clip.
+  if (
+    validated.resolution === "1080p" &&
+    config.gatewayModelId.startsWith("google/veo") &&
+    config.duration
+  ) {
+    validated.duration = "8";
+  }
+
+  return validated;
 };
