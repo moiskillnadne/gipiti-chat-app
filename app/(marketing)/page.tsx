@@ -42,10 +42,10 @@ const jsonLd = {
     availability: "https://schema.org/InStock",
   },
   featureList: [
-    "Доступ к GPT-5.5",
+    "Доступ к GPT-5.6",
     "Доступ к Gemini 3.1 Pro",
     "Доступ к Claude Opus 4.8",
-    "Доступ к Grok 4.3",
+    "Доступ к Grok 4.5",
     "Доступ к Flux и Recraft",
     "Генерация изображений",
     "Генерация видео",

@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { IS_BLOG_INDEX_ENABLED } from "@/lib/blog/config";
 import { getSitemapEntries } from "@/lib/blog/posts";
+import { modelLandings } from "@/lib/marketing/model-landings";
 import { catalogSections } from "@/lib/marketing/models-catalog";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -41,6 +42,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     ...catalogSections.map((section) => ({
       url: `${baseUrl}/models/${section.slug}`,
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    })),
+    ...modelLandings.map((landing) => ({
+      url: `${baseUrl}/models/${landing.slug}`,
       changeFrequency: "weekly" as const,
       priority: 0.8,
     })),

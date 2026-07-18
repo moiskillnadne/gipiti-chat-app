@@ -52,11 +52,11 @@ export const catalogSections: CatalogSection[] = [
     typePage: {
       h1Top: "Нейросети для работы",
       h1Gradient: "с текстом на русском",
-      sub: "GPT-5.5, Claude Opus 4.8, Gemini 3.1 Pro, DeepSeek V4, Perplexity Sonar и другие — пишите тексты, анализируйте документы и решайте рабочие задачи на русском языке. Без VPN, оплата российскими картами.",
+      sub: "GPT-5.6, Claude Opus 4.8, Gemini 3.1 Pro, DeepSeek V4, Perplexity Sonar и другие — пишите тексты, анализируйте документы и решайте рабочие задачи на русском языке. Без VPN, оплата российскими картами.",
       metaTitle:
-        "Нейросети для работы с текстом — GPT-5.5, Claude, Gemini, DeepSeek, Perplexity | GIPITI",
+        "Нейросети для работы с текстом — GPT-5.6, Claude, Gemini, DeepSeek, Perplexity | GIPITI",
       metaDescription:
-        "Лучшие текстовые AI-модели в одном чате: GPT-5.5, Claude Opus 4.8, Gemini 3.1 Pro, DeepSeek V4, Perplexity Sonar и Grok 4.3. Без VPN, на русском, оплата российскими картами.",
+        "Лучшие текстовые AI-модели в одном чате: GPT-5.6, Claude Opus 4.8, Gemini 3.1 Pro, DeepSeek V4, Perplexity Sonar и Grok 4.5. Без VPN, на русском, оплата российскими картами.",
     },
   },
   {
@@ -110,13 +110,46 @@ export const catalogSections: CatalogSection[] = [
 
 export const catalogModels: CatalogModel[] = [
   {
+    modelId: "gpt-5.6-sol",
+    name: "GPT-5.6 Sol",
+    vendor: "OpenAI",
+    provider: "openai",
+    category: "text",
+    description:
+      "Флагман серии GPT-5.6: сложные агентные задачи, программирование и глубокие рассуждения.",
+    tag: "Новинка",
+    hue: 250,
+  },
+  {
+    modelId: "gpt-5.6-terra",
+    name: "GPT-5.6 Terra",
+    vendor: "OpenAI",
+    provider: "openai",
+    category: "text",
+    description:
+      "Сбалансированная модель GPT-5.6 для повседневной работы — уровень прошлого флагмана вдвое дешевле.",
+    tag: "Новинка",
+    hue: 250,
+  },
+  {
+    modelId: "gpt-5.6-luna",
+    name: "GPT-5.6 Luna",
+    vendor: "OpenAI",
+    provider: "openai",
+    category: "text",
+    description:
+      "Быстрая и доступная модель серии GPT-5.6 — сильные возможности по минимальной цене.",
+    tag: "Новинка",
+    hue: 250,
+  },
+  {
     modelId: "gpt-5.5",
     name: "GPT-5.5",
     vendor: "OpenAI",
     provider: "openai",
     category: "text",
     description:
-      "Флагман OpenAI: сложные рассуждения, длинные тексты, работа с документами.",
+      "Проверенный флагман OpenAI прошлого поколения: сложные рассуждения, длинные тексты, работа с документами.",
     tag: "Популярная",
     hue: 250,
   },
@@ -160,6 +193,28 @@ export const catalogModels: CatalogModel[] = [
     description:
       "Мультимодальная модель Google: текст, изображения и документы в одном чате.",
     hue: 210,
+  },
+  {
+    modelId: "gemini-3.5-flash",
+    name: "Gemini 3.5 Flash",
+    vendor: "Google",
+    provider: "google",
+    category: "text",
+    description:
+      "Быстрая модель Google для повседневных задач — мгновенные ответы с рассуждениями по низкой цене.",
+    tag: "Новинка",
+    hue: 210,
+  },
+  {
+    modelId: "grok-4.5",
+    name: "Grok 4.5",
+    vendor: "xAI",
+    provider: "xai",
+    category: "text",
+    description:
+      "Новейшая модель xAI: передовые результаты в программировании, аналитике и STEM-задачах.",
+    tag: "Новинка",
+    hue: 0,
   },
   {
     modelId: "grok-4.3",

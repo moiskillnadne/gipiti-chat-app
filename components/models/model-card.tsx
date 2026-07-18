@@ -1,4 +1,7 @@
+import Link from "next/link";
+
 import { providerLogos } from "@/components/icons/logos";
+import { getModelLandingByModelId } from "@/lib/marketing/model-landings";
 import type { CatalogModel } from "@/lib/marketing/models-catalog";
 import { catalogSections } from "@/lib/marketing/models-catalog";
 
@@ -8,9 +11,10 @@ const categoryLabel = (model: CatalogModel): string =>
 
 export const ModelCard = ({ model }: { model: CatalogModel }) => {
   const ProviderLogo = providerLogos[model.provider];
+  const landing = getModelLandingByModelId(model.modelId);
 
-  return (
-    <article className="hover:-translate-y-0.5 flex flex-col gap-3.5 rounded-[18px] border border-zinc-800 bg-zinc-900/55 p-6 transition-[border-color,transform] duration-150 hover:border-indigo-500/45">
+  const card = (
+    <article className="hover:-translate-y-0.5 flex h-full flex-col gap-3.5 rounded-[18px] border border-zinc-800 bg-zinc-900/55 p-6 transition-[border-color,transform] duration-150 hover:border-indigo-500/45">
       <div className="flex items-center gap-3.5">
         <div
           aria-hidden="true"
@@ -39,5 +43,15 @@ export const ModelCard = ({ model }: { model: CatalogModel }) => {
         {model.description}
       </p>
     </article>
+  );
+
+  if (!landing) {
+    return card;
+  }
+
+  return (
+    <Link className="block" href={`/models/${landing.slug}`}>
+      {card}
+    </Link>
   );
 };
