@@ -142,8 +142,11 @@ Example prompt transformation:
           const metadata = await result.providerMetadata;
 
           if (metadata) {
-            usageMetadata = metadata.google
-              ?.usageMetadata as ImageUsageMetadata;
+            // The gateway namespaces Google usage under "vertex" (its serving
+            // provider), not "google" — check both, plus xai for grok.
+            usageMetadata = (metadata.google?.usageMetadata ??
+              metadata.vertex?.usageMetadata ??
+              metadata.xai?.usageMetadata) as ImageUsageMetadata;
             totalCostUsd = metadata.gateway?.cost?.toString();
           }
         }
