@@ -5,9 +5,9 @@ import { CheckIcon } from "lucide-react";
 import Link from "next/link";
 
 import {
+  NEW_USER_BONUS_RUB,
   pricingFeatures,
   SUBSCRIPTION_PRICE_RUB,
-  WELCOME_BONUS_RUB,
 } from "@/lib/marketing/landing-content";
 
 import { FadeIn } from "./fade-in";
@@ -20,8 +20,8 @@ export const PricingSection = () => (
           Простой и понятный тариф
         </h2>
         <p className="mx-auto mb-12 max-w-xl text-center text-zinc-400">
-          Все AI-модели и функции в одной подписке. При регистрации дарим{" "}
-          {WELCOME_BONUS_RUB} ₽ на баланс.
+          Все AI-модели и функции в одной подписке. Дарим {NEW_USER_BONUS_RUB} ₽
+          каждому новому пользователю.
         </p>
 
         {/* Animated gradient border */}

@@ -11,6 +11,12 @@
  * handler.
  */
 
+import {
+  EMAIL_CONFIRM_BONUS_MAJOR_UNITS,
+  ONBOARDING_QUIZ_BONUS_MAJOR_UNITS,
+  WELCOME_GRANT_MAJOR_UNITS,
+} from "@/lib/billing/constants";
+
 export type HomeFeatureIcon =
   | "message-square"
   | "image"
@@ -43,8 +49,27 @@ export type HomeFaqItem = {
 /** Monthly subscription price, in roubles. */
 export const SUBSCRIPTION_PRICE_RUB = 999;
 
-/** Balance credited on registration, in roubles. */
-export const WELCOME_BONUS_RUB = 100;
+/**
+ * Everything a new user can earn, in roubles: the signup credit, confirming
+ * their email, and the onboarding quiz.
+ *
+ * Derived from the billing constants rather than hardcoded, so the public offer
+ * cannot drift from what is actually credited. Note this is NOT the amount
+ * granted at registration — most of it is earned after confirming the email,
+ * which is deliberate (see WELCOME_GRANT_MAJOR_UNITS).
+ */
+export const NEW_USER_BONUS_RUB =
+  WELCOME_GRANT_MAJOR_UNITS +
+  EMAIL_CONFIRM_BONUS_MAJOR_UNITS +
+  ONBOARDING_QUIZ_BONUS_MAJOR_UNITS;
+
+/**
+ * How {@link NEW_USER_BONUS_RUB} is earned, as a Russian fragment for prose
+ * that has room for the detail. Shared so the marketing pages and the
+ * agent-facing surfaces quote exactly the same split — an agent relaying "you
+ * get it all at signup" would be telling users something untrue.
+ */
+export const NEW_USER_BONUS_BREAKDOWN_RU = `${WELCOME_GRANT_MAJOR_UNITS} ₽ сразу после регистрации, ещё ${EMAIL_CONFIRM_BONUS_MAJOR_UNITS} ₽ за подтверждение email и ${ONBOARDING_QUIZ_BONUS_MAJOR_UNITS} ₽ за короткий опрос о ваших задачах`;
 
 export const homeFeatures: HomeFeature[] = [
   {
@@ -139,7 +164,7 @@ export const homeFaqItems: HomeFaqItem[] = [
   },
   {
     question: "Нужно ли платить, чтобы начать?",
-    answer: `Нет. После регистрации мы дарим ${WELCOME_BONUS_RUB} ₽ на баланс — этого достаточно, чтобы попробовать все функции платформы. Когда баланс закончится, вы можете пополнить его или оформить подписку.`,
+    answer: `Нет. Мы дарим ${NEW_USER_BONUS_RUB} ₽ на баланс каждому новому пользователю: ${NEW_USER_BONUS_BREAKDOWN_RU}. Этого достаточно, чтобы попробовать все функции платформы. Когда баланс закончится, вы можете пополнить его или оформить подписку.`,
   },
   {
     question: "Какие платежные средства вы принимаете?",

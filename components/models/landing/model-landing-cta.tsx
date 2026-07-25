@@ -22,8 +22,8 @@ export const ModelLandingCta = ({ landing }: { landing: ModelLanding }) => {
               Попробуйте {landing.name} бесплатно
             </h2>
             <p className="mx-auto mb-7 max-w-lg text-lg text-zinc-400 leading-relaxed">
-              Дарим 100 ₽ на баланс при регистрации — хватит на первые вопросы.
-              Карта не нужна.
+              Дарим 200 ₽ каждому новому пользователю — хватит на первые
+              вопросы. Карта не нужна.
             </p>
             <Link
               className={`inline-flex items-center justify-center rounded-full px-8 py-4 font-semibold text-lg text-white shadow-lg transition-shadow hover:shadow-xl ${accent.primaryButton}`}

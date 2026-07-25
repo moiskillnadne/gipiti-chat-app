@@ -1,4 +1,5 @@
-import { eq } from "drizzle-orm";
+import { sql } from "drizzle-orm";
+import { normalizeEmail } from "../../../auth/normalize-email";
 import { ChatSDKError } from "../../../errors";
 import { db } from "../../connection";
 import { type User, user } from "../../schema";
@@ -8,7 +9,7 @@ export async function getUserByEmail(email: string): Promise<User | null> {
     const [userRecord] = await db
       .select()
       .from(user)
-      .where(eq(user.email, email));
+      .where(sql`lower(${user.email}) = ${normalizeEmail(email)}`);
 
     return userRecord ?? null;
   } catch (_error) {

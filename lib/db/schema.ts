@@ -54,6 +54,14 @@ export const user = pgTable(
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (table) => ({
+    // One account per address, case-insensitively. Emails are normalised on
+    // write (see lib/auth/normalize-email.ts), but the index is functional so
+    // it also constrains legacy mixed-case rows without a data backfill, and
+    // closes the race where two concurrent registrations both pass the
+    // application-level "does this user exist?" check.
+    emailLowerIdx: uniqueIndex("user_email_lower_unique_idx").on(
+      sql`lower(${table.email})`
+    ),
     resetTokenIdx: index("user_reset_password_token_idx").on(
       table.resetPasswordToken
     ),
