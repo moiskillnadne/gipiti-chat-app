@@ -20,6 +20,7 @@ import type { ModelLanding } from "./types";
 
 export const googleLandings: ModelLanding[] = [
   {
+    kind: "text",
     slug: GEMINI_PRO_SLUG,
     modelId: "gemini-3.1-pro",
     name: "Gemini 3.1 Pro",
@@ -103,6 +104,7 @@ export const googleLandings: ModelLanding[] = [
     ],
   },
   {
+    kind: "text",
     slug: GEMINI_FLASH_SLUG,
     modelId: "gemini-3.5-flash",
     name: "Gemini 3.5 Flash",

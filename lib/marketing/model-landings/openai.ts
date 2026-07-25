@@ -1,11 +1,17 @@
-/** Landings for the OpenAI GPT-5.6 series: Sol, Terra and Luna. */
+/**
+ * Landings for the OpenAI chat line: the GPT-5.6 series (Sol, Terra, Luna)
+ * and the previous flagship GPT-5.5. The code model lives in `code.ts`.
+ */
 
 import {
   buildSteps,
+  CODEX_SLUG,
   crossLandingChips,
   documentsBenefit,
+  GPT55_SLUG,
   LUNA_SLUG,
   lawyersAudience,
+  OPUS_SLUG,
   SOL_SLUG,
   sharedFaq,
   studentsAudience,
@@ -18,6 +24,7 @@ import type { ModelLanding } from "./types";
 
 export const openaiLandings: ModelLanding[] = [
   {
+    kind: "text",
     slug: SOL_SLUG,
     modelId: "gpt-5.6-sol",
     name: "GPT-5.6 Sol",
@@ -101,6 +108,7 @@ export const openaiLandings: ModelLanding[] = [
     ],
   },
   {
+    kind: "text",
     slug: TERRA_SLUG,
     modelId: "gpt-5.6-terra",
     name: "GPT-5.6 Terra",
@@ -172,6 +180,7 @@ export const openaiLandings: ModelLanding[] = [
     ],
   },
   {
+    kind: "text",
     slug: LUNA_SLUG,
     modelId: "gpt-5.6-luna",
     name: "GPT-5.6 Luna",
@@ -243,6 +252,79 @@ export const openaiLandings: ModelLanding[] = [
       { name: "GPT-5.6 Sol", tag: "Текст", href: `/models/${SOL_SLUG}` },
       { name: "GPT-5.6 Terra", tag: "Текст", href: `/models/${TERRA_SLUG}` },
       ...crossLandingChips,
+    ],
+  },
+  {
+    kind: "text",
+    slug: GPT55_SLUG,
+    modelId: "gpt-5.5",
+    name: "GPT-5.5",
+    vendor: "OpenAI",
+    accent: "sky",
+    badge: "OpenAI · Проверенный флагман · Текст",
+    h1Top: "GPT-5.5 —",
+    h1Gradient: "нейросеть OpenAI на русском",
+    sub: "Флагман OpenAI прошлого поколения уже в GIPITI — сложные рассуждения, длинные тексты и работа с документами. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    ctaMain: "Попробовать GPT-5.5",
+    metaTitle: "GPT-5.5 — нейросеть OpenAI на русском без VPN | GIPITI",
+    metaDescription:
+      "GPT-5.5 в GIPITI — проверенный флагман OpenAI: сложные рассуждения, длинные тексты и анализ документов. Без VPN, на русском, оплата российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    heroChat: {
+      userMessage:
+        "Собери из этих трёх отчётов одну презентацию на 10 слайдов 📄 📄 📄",
+      aiIntro: "Свёл материалы в **10 слайдов**. Вот структура:",
+      aiBullets: [
+        "**Слайды 1–3** — итоги года: выручка, клиенты, маржа",
+        "**Слайды 4–7** — что сработало и что нет, с цифрами",
+        "**Слайды 8–10** — план на квартал и главные риски",
+      ],
+    },
+    benefits: [
+      {
+        icon: "sparkles",
+        title: "Проверенный флагман",
+        text: "GPT-5.5 долго держала статус лучшей модели OpenAI: сложные рассуждения, длинные тексты и внимание к деталям — предсказуемое качество на любой задаче.",
+      },
+      documentsBenefit,
+      writingBenefit,
+      vpnBenefit,
+    ],
+    steps: buildSteps("GPT-5.5"),
+    audience: [
+      lawyersAudience,
+      {
+        title: "Руководители и аналитики",
+        text: "Отчёты, презентации и решения на данных — из сырых материалов сразу в готовую структуру.",
+        userMessage:
+          "Сделай из этой таблицы выводы для совета директоров 📄 q2.xlsx",
+        aiReply:
+          "Главное за квартал — **3 тезиса**: выручка выросла на 18%, но маржа просела из-за скидок…",
+      },
+      studentsAudience,
+    ],
+    faq: [
+      {
+        question: "Что такое GPT-5.5?",
+        answer:
+          "GPT-5.5 — флагманская модель OpenAI прошлого поколения с продвинутыми возможностями рассуждения. В GIPITI она доступна без VPN, с интерфейсом на русском языке и оплатой российскими картами.",
+      },
+      {
+        question: "Чем GPT-5.5 отличается от GPT-5.6?",
+        answer:
+          "Серия GPT-5.6 новее: точнее рассуждает, лучше держит длинный контекст и пишет более естественные тексты. GPT-5.5 остаётся надёжным выбором с привычным поведением. Все модели доступны в GIPITI — переключайтесь в один клик.",
+      },
+      {
+        question: "Чем GIPITI отличается от ChatGPT?",
+        answer:
+          "GIPITI даёт доступ к моделям OpenAI из России — без VPN, с интерфейсом на русском и оплатой российскими картами. Плюс в том же чате доступны Claude, Gemini, Grok, DeepSeek и модели для картинок и видео — по одной подписке.",
+      },
+      ...sharedFaq,
+    ],
+    otherModels: [
+      { name: "GPT-5.6 Terra", tag: "Текст", href: `/models/${TERRA_SLUG}` },
+      { name: "GPT-5.6 Sol", tag: "Текст", href: `/models/${SOL_SLUG}` },
+      { name: "Claude Opus 4.8", tag: "Текст", href: `/models/${OPUS_SLUG}` },
+      { name: "GPT-Codex 5.3", tag: "Код", href: `/models/${CODEX_SLUG}` },
     ],
   },
 ];
