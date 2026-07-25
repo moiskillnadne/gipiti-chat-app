@@ -1,28 +1,50 @@
 /**
  * Curated marketing copy for per-model landing pages under /models/{slug}.
  *
- * Landings are grouped by vendor (one module each) and aggregated here; all
+ * Modules are grouped by vendor; image and video landings carry the modality
+ * as a filename prefix (`image-*`, `video-*`) because several vendors ship
+ * models in more than one category. Everything is aggregated here — all
  * consumers import from `@/lib/marketing/model-landings`.
+ *
+ * Every model in `models-catalog.ts` has a landing, so each catalog card links
+ * to one; keep the two files in sync when a model is added or removed.
  */
 
 import { anthropicLandings } from "./anthropic";
+import { codeLandings } from "./code";
 import { deepseekLandings } from "./deepseek";
 import { googleLandings } from "./google";
+import { bflImageLandings } from "./image-bfl";
+import { bytedanceImageLandings } from "./image-bytedance";
+import { googleImageLandings } from "./image-google";
+import { openaiImageLandings } from "./image-openai";
+import { recraftImageLandings } from "./image-recraft";
+import { xaiImageLandings } from "./image-xai";
 import { openaiLandings } from "./openai";
 import { perplexityLandings } from "./perplexity";
 import type { ModelLanding } from "./types";
+import { bytedanceVideoLandings } from "./video-bytedance";
+import { googleVideoLandings } from "./video-google";
+import { klingaiVideoLandings } from "./video-klingai";
+import { xaiVideoLandings } from "./video-xai";
 import { xaiLandings } from "./xai";
 
+export { sectionCopy } from "./shared";
 export type {
   LandingAudienceCard,
   LandingBenefit,
   LandingBenefitIcon,
   LandingFaqItem,
   LandingHeroChat,
+  LandingHeroMedia,
+  LandingKind,
+  LandingMediaAspect,
   LandingModelChip,
   LandingStep,
+  MediaModelLanding,
   ModelLanding,
   ModelLandingAccent,
+  TextModelLanding,
 } from "./types";
 
 export const modelLandings: ModelLanding[] = [
@@ -32,6 +54,17 @@ export const modelLandings: ModelLanding[] = [
   ...perplexityLandings,
   ...xaiLandings,
   ...deepseekLandings,
+  ...codeLandings,
+  ...googleImageLandings,
+  ...openaiImageLandings,
+  ...bflImageLandings,
+  ...recraftImageLandings,
+  ...xaiImageLandings,
+  ...bytedanceImageLandings,
+  ...googleVideoLandings,
+  ...klingaiVideoLandings,
+  ...bytedanceVideoLandings,
+  ...xaiVideoLandings,
 ];
 
 export const getModelLandingBySlug = (slug: string): ModelLanding | undefined =>

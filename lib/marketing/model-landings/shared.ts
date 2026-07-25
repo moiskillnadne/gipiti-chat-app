@@ -1,29 +1,98 @@
 /**
  * Copy blocks reused across model landings: slugs for cross-linking, shared
  * FAQ items, benefits, audience cards and the cross-catalog chip list.
+ *
+ * Image and video landings pull their own shared blocks from `media-shared.ts`
+ * but reuse the slugs and the section copy defined here.
  */
 
 import type {
   LandingAudienceCard,
   LandingBenefit,
   LandingFaqItem,
+  LandingKind,
   LandingModelChip,
   LandingStep,
 } from "./types";
 
+// Text landings
 export const SOL_SLUG = "gpt-5-6-sol";
 export const TERRA_SLUG = "gpt-5-6-terra";
 export const LUNA_SLUG = "gpt-5-6-luna";
+export const GPT55_SLUG = "gpt-5-5";
+export const CODEX_SLUG = "gpt-codex-5-3";
 export const OPUS_5_SLUG = "claude-opus-5";
 export const OPUS_48_SLUG = "claude-opus-4-8";
 export const SONNET_SLUG = "claude-sonnet-5";
+export const SONNET_46_SLUG = "claude-sonnet-4-6";
 export const GEMINI_PRO_SLUG = "gemini-3-1-pro";
 export const GEMINI_36_FLASH_SLUG = "gemini-3-6-flash";
 export const GEMINI_35_FLASH_SLUG = "gemini-3-5-flash";
 export const GEMINI_35_FLASH_LITE_SLUG = "gemini-3-5-flash-lite";
 export const SONAR_SLUG = "perplexity-sonar";
+export const SONAR_PRO_SLUG = "perplexity-sonar-pro";
+export const SONAR_REASONING_SLUG = "perplexity-sonar-reasoning-pro";
 export const GROK_SLUG = "grok-4-5";
+export const GROK_43_SLUG = "grok-4-3";
 export const DEEPSEEK_SLUG = "deepseek-v4-pro";
+export const DEEPSEEK_FLASH_SLUG = "deepseek-v4-flash";
+
+// Image landings
+export const NANO_BANANA_SLUG = "nano-banana";
+export const NANO_BANANA_LITE_SLUG = "nano-banana-lite";
+export const NANO_BANANA_PRO_SLUG = "nano-banana-pro";
+export const GPT_IMAGE_SLUG = "gpt-image-2";
+export const FLUX_SLUG = "flux-2-max";
+export const RECRAFT_SLUG = "recraft-v4-1-pro";
+export const GROK_IMAGINE_SLUG = "grok-imagine";
+export const SEEDREAM_LITE_SLUG = "seedream-5-0-lite";
+export const SEEDREAM_45_SLUG = "seedream-4-5";
+
+// Video landings
+export const VEO_SLUG = "veo-3-1";
+export const GROK_IMAGINE_VIDEO_SLUG = "grok-imagine-video";
+export const KLING_30_SLUG = "kling-3-0";
+export const KLING_30_I2V_SLUG = "kling-3-0-image-to-video";
+export const KLING_26_SLUG = "kling-2-6";
+export const KLING_25_TURBO_SLUG = "kling-2-5-turbo";
+export const SEEDANCE_SLUG = "seedance-2-0";
+export const SEEDANCE_FAST_SLUG = "seedance-2-0-fast";
+
+/** Section sub-headings and composer hints, chosen by what the model produces. */
+export const sectionCopy: Record<
+  LandingKind,
+  {
+    benefitsSub: string;
+    stepsSub: string;
+    audienceSub: string;
+    composerPlaceholder: (modelName: string) => string;
+  }
+> = {
+  text: {
+    benefitsSub:
+      "Чем модель выделяется и за что её выбирают для работы с текстом",
+    stepsSub: "Первый ответ — через минуту после регистрации",
+    audienceSub:
+      "Инструмент для всех, кто каждый день работает с текстом и документами",
+    composerPlaceholder: (modelName) => `Спросите ${modelName} о чём угодно…`,
+  },
+  image: {
+    benefitsSub:
+      "Чем модель выделяется и за что её выбирают для генерации изображений",
+    stepsSub: "Первое изображение — через минуту после регистрации",
+    audienceSub:
+      "Инструмент для всех, кому картинки нужны каждый день, а не раз в квартал",
+    composerPlaceholder: () => "Опишите изображение на русском…",
+  },
+  video: {
+    benefitsSub:
+      "Чем модель выделяется и за что её выбирают для генерации видео",
+    stepsSub: "Первый ролик — через несколько минут после регистрации",
+    audienceSub:
+      "Инструмент для всех, кому нужно видео без съёмочной группы и монтажа",
+    composerPlaceholder: () => "Опишите сцену на русском…",
+  },
+};
 
 const DEFAULT_ASK_STEP_TEXT =
   "Текстом на русском — или прикрепите документ, ссылку или код.";

@@ -1,14 +1,22 @@
 import {
   Code,
+  Download,
   FileText,
   Globe,
+  ImageIcon,
+  Layers,
   type LucideIcon,
+  Palette,
   PenLine,
+  Ratio,
   Scale,
   Search,
   ShieldCheck,
   Sparkles,
+  Video,
+  Volume2,
   Wallet,
+  Wand2,
   Zap,
 } from "lucide-react";
 
@@ -16,6 +24,7 @@ import type {
   LandingBenefitIcon,
   ModelLanding,
 } from "@/lib/marketing/model-landings";
+import { sectionCopy } from "@/lib/marketing/model-landings";
 
 import { accentClasses } from "./accent-styles";
 import { ModelLandingSectionHead } from "./model-landing-section-head";
@@ -31,6 +40,14 @@ const benefitIcons: Record<LandingBenefitIcon, LucideIcon> = {
   shield: ShieldCheck,
   search: Search,
   globe: Globe,
+  image: ImageIcon,
+  video: Video,
+  wand: Wand2,
+  layers: Layers,
+  ratio: Ratio,
+  volume: Volume2,
+  download: Download,
+  palette: Palette,
 };
 
 export const ModelLandingBenefits = ({
@@ -44,7 +61,7 @@ export const ModelLandingBenefits = ({
     <section className="px-4 py-16">
       <div className="mx-auto max-w-6xl">
         <ModelLandingSectionHead
-          sub="Чем модель выделяется и за что её выбирают для работы с текстом"
+          sub={sectionCopy[landing.kind].benefitsSub}
           title={`Почему выбирают ${landing.name}`}
         />
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">

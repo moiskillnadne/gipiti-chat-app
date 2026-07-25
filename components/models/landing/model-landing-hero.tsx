@@ -4,6 +4,7 @@ import type { ModelLanding } from "@/lib/marketing/model-landings";
 
 import { accentClasses } from "./accent-styles";
 import { ModelLandingChatMockup } from "./model-landing-chat-mockup";
+import { ModelLandingMediaMockup } from "./model-landing-media-mockup";
 
 /** oklch hues for the social-proof avatar stack (design: nb-avatars). */
 const PROOF_AVATAR_HUES = [275, 315, 235, 45];
@@ -84,7 +85,11 @@ export const ModelLandingHero = ({ landing }: { landing: ModelLanding }) => {
             </div>
           </div>
 
-          <ModelLandingChatMockup landing={landing} />
+          {landing.kind === "text" ? (
+            <ModelLandingChatMockup landing={landing} />
+          ) : (
+            <ModelLandingMediaMockup landing={landing} />
+          )}
         </div>
       </div>
     </section>

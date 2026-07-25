@@ -1,20 +1,26 @@
-/** Landing for xAI Grok 4.5. */
+/** Landings for the xAI Grok text models: 4.5 and 4.3. */
 
 import {
   buildSteps,
   DEEPSEEK_SLUG,
   documentsBenefit,
+  GEMINI_35_FLASH_SLUG,
   GEMINI_PRO_SLUG,
+  GROK_43_SLUG,
   GROK_SLUG,
   OPUS_5_SLUG,
   SOL_SLUG,
   sharedFaq,
+  studentsAudience,
+  supportAudience,
+  TERRA_SLUG,
   vpnBenefit,
 } from "./shared";
 import type { ModelLanding } from "./types";
 
 export const xaiLandings: ModelLanding[] = [
   {
+    kind: "text",
     slug: GROK_SLUG,
     modelId: "grok-4.5",
     name: "Grok 4.5",
@@ -102,6 +108,90 @@ export const xaiLandings: ModelLanding[] = [
         name: "Gemini 3.1 Pro",
         tag: "Текст",
         href: `/models/${GEMINI_PRO_SLUG}`,
+      },
+      {
+        name: "DeepSeek V4 Pro",
+        tag: "Текст",
+        href: `/models/${DEEPSEEK_SLUG}`,
+      },
+    ],
+  },
+  {
+    kind: "text",
+    slug: GROK_43_SLUG,
+    modelId: "grok-4.3",
+    name: "Grok 4.3",
+    vendor: "xAI",
+    accent: "rose",
+    badge: "xAI · Свободный тон · Текст",
+    h1Top: "Grok 4.3 —",
+    h1Gradient: "нейросеть xAI с прямыми ответами",
+    sub: "Модель xAI с продвинутыми рассуждениями и живым тоном уже в GIPITI — отвечает прямо, работает с изображениями и документами. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    ctaMain: "Попробовать Grok 4.3",
+    metaTitle: "Grok 4.3 — нейросеть xAI на русском без VPN | GIPITI",
+    metaDescription:
+      "Grok 4.3 в GIPITI — модель xAI с продвинутыми рассуждениями, поддержкой изображений и свободным тоном ответов. Без VPN, на русском, оплата российскими картами.",
+    heroChat: {
+      userMessage:
+        "Разнеси мою идею стартапа в пух и прах — без вежливых оговорок",
+      aiIntro: "Хорошо, честно. **Три слабых места**:",
+      aiBullets: [
+        "**Рынок** — вы описали всех, а значит никого: кто платит первым?",
+        "**Отличие** — «удобнее и дешевле» повторяют все конкуренты",
+        "**Экономика** — при таком чеке привлечение съест всю маржу",
+      ],
+    },
+    benefits: [
+      {
+        icon: "sparkles",
+        title: "Прямые ответы без воды",
+        text: "Grok отвечает по существу и не смягчает выводы там, где нужна честная оценка — удобно для критики идей и разбора решений.",
+      },
+      {
+        icon: "image",
+        title: "Понимает изображения",
+        text: "Прикрепите скриншот, схему или фото документа — модель разберёт, что на картинке, и ответит по содержимому.",
+      },
+      documentsBenefit,
+      vpnBenefit,
+    ],
+    steps: buildSteps("Grok 4.3"),
+    audience: [
+      {
+        title: "Предприниматели",
+        text: "Проверка идей и гипотез: честная критика вместо поддакивания.",
+        userMessage: "Найди дыры в этой юнит-экономике 📄 unit-economics.xlsx",
+        aiReply:
+          "Главная дыра — **стоимость привлечения**: она посчитана без учёта возвратов и скидок…",
+      },
+      supportAudience,
+      studentsAudience,
+    ],
+    faq: [
+      {
+        question: "Что такое Grok 4.3?",
+        answer:
+          "Grok 4.3 — модель xAI с продвинутыми рассуждениями, работой с инструментами и поддержкой изображений. В GIPITI она доступна без VPN, с интерфейсом на русском языке и оплатой российскими картами.",
+      },
+      {
+        question: "Чем Grok 4.3 отличается от Grok 4.5?",
+        answer:
+          "Grok 4.5 новее и точнее в коде, аналитике и STEM-задачах. Grok 4.3 — более доступный вариант с тем же характером ответов. Обе модели доступны в GIPITI — переключайтесь в один клик.",
+      },
+      {
+        question: "Правда ли, что Grok отвечает свободнее других моделей?",
+        answer:
+          "Grok действительно формулирует прямее и меньше смягчает выводы, чем большинство моделей. При этом ограничения провайдера остаются: на запрещённые темы модель отвечать не будет.",
+      },
+      ...sharedFaq,
+    ],
+    otherModels: [
+      { name: "Grok 4.5", tag: "Текст", href: `/models/${GROK_SLUG}` },
+      { name: "GPT-5.6 Terra", tag: "Текст", href: `/models/${TERRA_SLUG}` },
+      {
+        name: "Gemini 3.5 Flash",
+        tag: "Текст",
+        href: `/models/${GEMINI_35_FLASH_SLUG}`,
       },
       {
         name: "DeepSeek V4 Pro",

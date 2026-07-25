@@ -1,4 +1,7 @@
-/** Landings for the Anthropic Claude models: Opus 5, Opus 4.8 and Sonnet 5. */
+/**
+ * Landings for the Anthropic Claude models: Opus 5, Opus 4.8, Sonnet 5 and the
+ * previous-generation Sonnet 4.6.
+ */
 
 import {
   analystsAudience,
@@ -7,10 +10,12 @@ import {
   GEMINI_36_FLASH_SLUG,
   GEMINI_PRO_SLUG,
   GROK_SLUG,
+  LUNA_SLUG,
   lawyersAudience,
   OPUS_5_SLUG,
   OPUS_48_SLUG,
   SOL_SLUG,
+  SONNET_46_SLUG,
   SONNET_SLUG,
   sharedFaq,
   studentsAudience,
@@ -22,6 +27,7 @@ import type { ModelLanding } from "./types";
 
 export const anthropicLandings: ModelLanding[] = [
   {
+    kind: "text",
     slug: OPUS_5_SLUG,
     modelId: "opus-5",
     name: "Claude Opus 5",
@@ -111,6 +117,7 @@ export const anthropicLandings: ModelLanding[] = [
     ],
   },
   {
+    kind: "text",
     slug: OPUS_48_SLUG,
     modelId: "opus-4.8",
     name: "Claude Opus 4.8",
@@ -196,6 +203,7 @@ export const anthropicLandings: ModelLanding[] = [
     ],
   },
   {
+    kind: "text",
     slug: SONNET_SLUG,
     modelId: "sonnet-5",
     name: "Claude Sonnet 5",
@@ -278,6 +286,94 @@ export const anthropicLandings: ModelLanding[] = [
         tag: "Текст",
         href: `/models/${GEMINI_PRO_SLUG}`,
       },
+      { name: "Grok 4.5", tag: "Текст", href: `/models/${GROK_SLUG}` },
+    ],
+  },
+  {
+    kind: "text",
+    slug: SONNET_46_SLUG,
+    modelId: "sonnet-4.6",
+    name: "Claude Sonnet 4.6",
+    vendor: "Anthropic",
+    accent: "violet",
+    badge: "Anthropic · Быстрая и привычная · Текст",
+    h1Top: "Claude Sonnet 4.6 —",
+    h1Gradient: "быстрый чат с Claude на русском",
+    sub: "Сбалансированная модель Anthropic уже в GIPITI — быстрые ответы, аккуратный текст и сильный код для повседневных задач. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    ctaMain: "Попробовать Claude Sonnet 4.6",
+    metaTitle: "Claude Sonnet 4.6 — чат с нейросетью Claude без VPN | GIPITI",
+    metaDescription:
+      "Claude Sonnet 4.6 в GIPITI — сбалансированная модель Anthropic: быстрые рассуждения, текст и код для повседневных задач. Без VPN, на русском, оплата российскими картами.",
+    heroChat: {
+      userMessage:
+        "Напиши письмо клиенту: сроки сдвигаются на неделю, нужно сохранить доверие",
+      aiIntro: "Готово — письмо собрано по **трём правилам**:",
+      aiBullets: [
+        "**Сначала факт** — новая дата в первом абзаце, без долгих вступлений",
+        "**Причина без оправданий** — одно предложение по существу",
+        "**Что дальше** — конкретный план и компенсация за задержку",
+      ],
+    },
+    benefits: [
+      {
+        icon: "zap",
+        title: "Отвечает быстро",
+        text: "Sonnet 4.6 создавалась как рабочая лошадка: ответ начинается сразу, а качество остаётся близким к старшим моделям Claude.",
+      },
+      {
+        icon: "code",
+        title: "Уверенно пишет код",
+        text: "Функции, тесты и рефакторинг — Sonnet традиционно сильна в программировании и объясняет свои правки понятным языком.",
+      },
+      writingBenefit,
+      vpnBenefit,
+    ],
+    steps: buildSteps("Claude Sonnet 4.6"),
+    audience: [
+      {
+        title: "Разработчики",
+        text: "Повседневные задачи в коде: фиксы, тесты и ревью без ожидания ответа.",
+        userMessage:
+          "Добавь обработку ошибок в этот сервис и объясни изменения",
+        aiReply:
+          "Обернул сетевые вызовы в **try/catch** с типизированной ошибкой, добавил ретраи для 5xx…",
+      },
+      {
+        title: "Поддержка и продажи",
+        text: "Ответы клиентам в нужном тоне — быстро и без шаблонных формулировок.",
+        userMessage:
+          "Ответь клиенту: заказ задерживается, но мы уже отправили замену",
+        aiReply:
+          "Здравствуйте! Замена уже в пути — **трек-номер придёт сегодня**. Приносим извинения за задержку…",
+      },
+      studentsAudience,
+    ],
+    faq: [
+      {
+        question: "Что такое Claude Sonnet 4.6?",
+        answer:
+          "Claude Sonnet 4.6 — сбалансированная модель Anthropic с быстрым рассуждением и сильной генерацией кода. В GIPITI она доступна без VPN, с интерфейсом на русском языке и оплатой российскими картами.",
+      },
+      {
+        question: "Чем Sonnet 4.6 отличается от Sonnet 5?",
+        answer:
+          "Sonnet 5 — следующее поколение: точнее рассуждает и лучше пишет код. Sonnet 4.6 остаётся привычным и предсказуемым вариантом для ежедневных задач. Обе модели доступны в GIPITI — переключайтесь в один клик.",
+      },
+      {
+        question: "Когда стоит выбрать Opus 4.8 вместо Sonnet 4.6?",
+        answer:
+          "Когда нужна максимальная глубина: длинные документы, сложная аналитика и задачи, где важна каждая деталь. Для переписки, текстов и повседневного кода Sonnet 4.6 быстрее и дешевле.",
+      },
+      ...sharedFaq,
+    ],
+    otherModels: [
+      { name: "Claude Sonnet 5", tag: "Текст", href: `/models/${SONNET_SLUG}` },
+      {
+        name: "Claude Opus 4.8",
+        tag: "Текст",
+        href: `/models/${OPUS_48_SLUG}`,
+      },
+      { name: "GPT-5.6 Luna", tag: "Текст", href: `/models/${LUNA_SLUG}` },
       { name: "Grok 4.5", tag: "Текст", href: `/models/${GROK_SLUG}` },
     ],
   },

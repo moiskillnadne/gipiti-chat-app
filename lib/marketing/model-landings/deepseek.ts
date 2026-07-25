@@ -1,24 +1,34 @@
 /**
- * Landing for DeepSeek V4 Pro.
+ * Landings for DeepSeek V4 Pro and V4 Flash.
  *
- * Note: the model has no attachments capability in the registry, so the copy
- * deliberately avoids "upload a document" claims — users paste text instead.
- * The shared documents FAQ is replaced with a context-size one.
+ * Note: neither model has the attachments capability in the registry, so the
+ * copy deliberately avoids "upload a document" claims — users paste text
+ * instead. The shared documents FAQ is replaced with a context-size one.
  */
 
 import {
   buildSteps,
+  DEEPSEEK_FLASH_SLUG,
   DEEPSEEK_SLUG,
   GROK_SLUG,
+  LUNA_SLUG,
   priceFaq,
   SONAR_SLUG,
   SONNET_SLUG,
   studentsAudience,
+  supportAudience,
   TERRA_SLUG,
   vpnBenefit,
   vpnFaq,
 } from "./shared";
 import type { LandingFaqItem, ModelLanding } from "./types";
+
+/** DeepSeek models take no attachments — the FAQ says so and points elsewhere. */
+const attachmentsFaq: LandingFaqItem = {
+  question: "Можно ли загрузить документ в DeepSeek?",
+  answer:
+    "Модели DeepSeek работают без вложений — вставьте текст прямо в чат. Если нужно прочитать PDF, Word или таблицу целиком, выберите GPT-5.6, Claude или Gemini: они доступны в той же подписке.",
+};
 
 const contextFaq: LandingFaqItem = {
   question: "Какой размер контекста у DeepSeek V4 Pro?",
@@ -28,6 +38,7 @@ const contextFaq: LandingFaqItem = {
 
 export const deepseekLandings: ModelLanding[] = [
   {
+    kind: "text",
     slug: DEEPSEEK_SLUG,
     modelId: "deepseek-v4-pro",
     name: "DeepSeek V4 Pro",
@@ -118,6 +129,95 @@ export const deepseekLandings: ModelLanding[] = [
       { name: "Claude Sonnet 5", tag: "Текст", href: `/models/${SONNET_SLUG}` },
       { name: "Sonar", tag: "Текст", href: `/models/${SONAR_SLUG}` },
       { name: "Grok 4.5", tag: "Текст", href: `/models/${GROK_SLUG}` },
+    ],
+  },
+  {
+    kind: "text",
+    slug: DEEPSEEK_FLASH_SLUG,
+    modelId: "deepseek-v4-flash",
+    name: "DeepSeek V4 Flash",
+    vendor: "DeepSeek",
+    accent: "sky",
+    badge: "DeepSeek · Быстрая и недорогая · Текст",
+    h1Top: "DeepSeek V4 Flash —",
+    h1Gradient: "быстрая нейросеть на русском",
+    sub: "Быстрая версия DeepSeek V4 уже в GIPITI — рассуждения и повседневные задачи по минимальной цене запроса. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    ctaMain: "Попробовать DeepSeek V4 Flash",
+    metaTitle: "DeepSeek V4 Flash — быстрая нейросеть DeepSeek | GIPITI",
+    metaDescription:
+      "DeepSeek V4 Flash в GIPITI — быстрая и доступная версия DeepSeek V4 с рассуждениями для повседневных задач. Без VPN, на русском, оплата российскими картами.",
+    heroChat: {
+      userMessage:
+        "Вставил переписку с подрядчиком — о чём договорились и что я должен сделать?",
+      aiIntro: "Разобрал переписку. **Ваши задачи** — три:",
+      aiBullets: [
+        "**До пятницы** — прислать финальные макеты и брендбук",
+        "**Оплата** — 50% аванса после подписания, остальное по акту",
+        "**Спорный момент** — срок правок не зафиксирован, стоит уточнить",
+      ],
+    },
+    benefits: [
+      {
+        icon: "zap",
+        title: "Быстрые ответы с рассуждением",
+        text: "Flash отвечает почти сразу, но всё равно рассуждает над задачей — хороший баланс для переписки, выжимок и повседневных вопросов.",
+      },
+      {
+        icon: "wallet",
+        title: "Минимальная цена запроса",
+        text: "Одна из самых доступных моделей в GIPITI: стартовых 200 ₽ и месячного баланса подписки хватает надолго.",
+      },
+      {
+        icon: "file-text",
+        title: "Держит длинный контекст",
+        text: "Вставьте переписку, статью или большой фрагмент кода прямо в чат — модель удержит детали и не потеряет нить разговора.",
+      },
+      vpnBenefit,
+    ],
+    steps: buildSteps(
+      "DeepSeek V4 Flash",
+      "Текстом на русском — вставьте вопрос, код или фрагмент текста прямо в чат."
+    ),
+    audience: [
+      supportAudience,
+      {
+        title: "Разработчики",
+        text: "Быстрые вопросы по коду и разбор ошибок — без ожидания длинного ответа.",
+        userMessage: "Объясни, что делает эта регулярка, и упрости её",
+        aiReply:
+          "Она ищет дату в формате ДД.ММ.ГГГГ. Упростить можно так — **без лишних групп**…",
+      },
+      studentsAudience,
+    ],
+    faq: [
+      {
+        question: "Что такое DeepSeek V4 Flash?",
+        answer:
+          "DeepSeek V4 Flash — быстрая и доступная версия DeepSeek V4 с рассуждениями для повседневных задач. В GIPITI она доступна без VPN, с интерфейсом на русском языке и оплатой российскими картами.",
+      },
+      {
+        question: "Чем V4 Flash отличается от V4 Pro?",
+        answer:
+          "Flash — скорость и цена: мгновенные ответы на повседневные вопросы. Pro — глубина: максимальные рассуждения и контекст до миллиона токенов. Обе модели доступны в GIPITI — переключайтесь в один клик.",
+      },
+      {
+        question: "Подойдёт ли Flash для сложных задач?",
+        answer:
+          "Для сложной аналитики, больших кодовых баз и длинных документов лучше выбрать V4 Pro или другой флагман. Flash сильна там, где важны скорость и цена: переписка, выжимки, быстрые правки.",
+      },
+      vpnFaq,
+      priceFaq,
+      attachmentsFaq,
+    ],
+    otherModels: [
+      {
+        name: "DeepSeek V4 Pro",
+        tag: "Текст",
+        href: `/models/${DEEPSEEK_SLUG}`,
+      },
+      { name: "GPT-5.6 Luna", tag: "Текст", href: `/models/${LUNA_SLUG}` },
+      { name: "Claude Sonnet 5", tag: "Текст", href: `/models/${SONNET_SLUG}` },
+      { name: "Sonar", tag: "Текст", href: `/models/${SONAR_SLUG}` },
     ],
   },
 ];

@@ -1,4 +1,5 @@
 import type { ModelLanding } from "@/lib/marketing/model-landings";
+import { sectionCopy } from "@/lib/marketing/model-landings";
 
 import { accentClasses } from "./accent-styles";
 import { ModelLandingSectionHead } from "./model-landing-section-head";
@@ -11,7 +12,7 @@ export const ModelLandingSteps = ({ landing }: { landing: ModelLanding }) => {
     <section className="px-4 py-16">
       <div className="mx-auto max-w-6xl">
         <ModelLandingSectionHead
-          sub="Первый ответ — через минуту после регистрации"
+          sub={sectionCopy[landing.kind].stepsSub}
           title={`Как начать работу с ${landing.name}`}
         />
         <div className="grid gap-9 text-center md:grid-cols-4 md:gap-8">
