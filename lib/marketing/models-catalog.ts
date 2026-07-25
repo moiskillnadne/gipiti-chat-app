@@ -52,11 +52,11 @@ export const catalogSections: CatalogSection[] = [
     typePage: {
       h1Top: "Нейросети для работы",
       h1Gradient: "с текстом на русском",
-      sub: "GPT-5.6, Claude Opus 4.8, Gemini 3.1 Pro, DeepSeek V4, Perplexity Sonar и другие — пишите тексты, анализируйте документы и решайте рабочие задачи на русском языке. Без VPN, оплата российскими картами.",
+      sub: "GPT-5.6, Claude Opus 5, Gemini 3.6 Flash, DeepSeek V4, Perplexity Sonar и другие — пишите тексты, анализируйте документы и решайте рабочие задачи на русском языке. Без VPN, оплата российскими картами.",
       metaTitle:
         "Нейросети для работы с текстом — GPT-5.6, Claude, Gemini, DeepSeek, Perplexity | GIPITI",
       metaDescription:
-        "Лучшие текстовые AI-модели в одном чате: GPT-5.6, Claude Opus 4.8, Gemini 3.1 Pro, DeepSeek V4, Perplexity Sonar и Grok 4.5. Без VPN, на русском, оплата российскими картами.",
+        "Лучшие текстовые AI-модели в одном чате: GPT-5.6, Claude Opus 5, Gemini 3.6 Flash, DeepSeek V4, Perplexity Sonar и Grok 4.5. Без VPN, на русском, оплата российскими картами.",
     },
   },
   {
@@ -154,13 +154,24 @@ export const catalogModels: CatalogModel[] = [
     hue: 250,
   },
   {
+    modelId: "opus-5",
+    name: "Claude Opus 5",
+    vendor: "Anthropic",
+    provider: "anthropic",
+    category: "text",
+    description:
+      "Сильнейшая модель Anthropic: глубокая аналитика, эталонная редактура и большой контекст.",
+    tag: "Новинка",
+    hue: 30,
+  },
+  {
     modelId: "opus-4.8",
     name: "Claude Opus 4.8",
     vendor: "Anthropic",
     provider: "anthropic",
     category: "text",
     description:
-      "Сильнейшая модель для аналитики, редактуры и работы с большим контекстом.",
+      "Проверенный Opus прошлого поколения — аналитика, редактура и большой контекст.",
     hue: 30,
   },
   {
@@ -195,6 +206,17 @@ export const catalogModels: CatalogModel[] = [
     hue: 210,
   },
   {
+    modelId: "gemini-3.6-flash",
+    name: "Gemini 3.6 Flash",
+    vendor: "Google",
+    provider: "google",
+    category: "text",
+    description:
+      "Новейшая быстрая модель Google: выше качество в коде и агентных задачах при меньшем расходе токенов.",
+    tag: "Новинка",
+    hue: 210,
+  },
+  {
     modelId: "gemini-3.5-flash",
     name: "Gemini 3.5 Flash",
     vendor: "Google",
@@ -202,6 +224,16 @@ export const catalogModels: CatalogModel[] = [
     category: "text",
     description:
       "Быстрая модель Google для повседневных задач — мгновенные ответы с рассуждениями по низкой цене.",
+    hue: 210,
+  },
+  {
+    modelId: "gemini-3.5-flash-lite",
+    name: "Gemini 3.5 Flash Lite",
+    vendor: "Google",
+    provider: "google",
+    category: "text",
+    description:
+      "Самая экономичная модель Google с рассуждениями — для простых, частых и объёмных задач.",
     tag: "Новинка",
     hue: 210,
   },

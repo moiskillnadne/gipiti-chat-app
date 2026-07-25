@@ -14,10 +14,13 @@ import type {
 export const SOL_SLUG = "gpt-5-6-sol";
 export const TERRA_SLUG = "gpt-5-6-terra";
 export const LUNA_SLUG = "gpt-5-6-luna";
-export const OPUS_SLUG = "claude-opus-4-8";
+export const OPUS_5_SLUG = "claude-opus-5";
+export const OPUS_48_SLUG = "claude-opus-4-8";
 export const SONNET_SLUG = "claude-sonnet-5";
 export const GEMINI_PRO_SLUG = "gemini-3-1-pro";
-export const GEMINI_FLASH_SLUG = "gemini-3-5-flash";
+export const GEMINI_36_FLASH_SLUG = "gemini-3-6-flash";
+export const GEMINI_35_FLASH_SLUG = "gemini-3-5-flash";
+export const GEMINI_35_FLASH_LITE_SLUG = "gemini-3-5-flash-lite";
 export const SONAR_SLUG = "perplexity-sonar";
 export const GROK_SLUG = "grok-4-5";
 export const DEEPSEEK_SLUG = "deepseek-v4-pro";
@@ -102,6 +105,14 @@ export const studentsAudience: LandingAudienceCard = {
     "Представь очень внимательного читателя: он смотрит на **все слова сразу** и решает, какие важнее…",
 };
 
+export const analystsAudience: LandingAudienceCard = {
+  title: "Аналитики и консультанты",
+  text: "Выводы и рекомендации из отчётов, исследований и данных — как от сильного коллеги.",
+  userMessage: "Сравни три коммерческих предложения и порекомендуй лучшее 📄",
+  aiReply:
+    "По совокупности критериев выигрывает **вариант Б** — на 12% дешевле при том же SLA…",
+};
+
 export const supportAudience: LandingAudienceCard = {
   title: "Поддержка и продажи",
   text: "Быстрые ответы клиентам в нужном тоне — вежливо, по делу и без шаблонности.",
@@ -113,7 +124,7 @@ export const supportAudience: LandingAudienceCard = {
 
 /** Chips shared by the GPT-5.6 landings — only models with a live landing. */
 export const crossLandingChips: LandingModelChip[] = [
-  { name: "Claude Opus 4.8", tag: "Текст", href: `/models/${OPUS_SLUG}` },
+  { name: "Claude Opus 5", tag: "Текст", href: `/models/${OPUS_5_SLUG}` },
   { name: "Gemini 3.1 Pro", tag: "Текст", href: `/models/${GEMINI_PRO_SLUG}` },
   { name: "Grok 4.5", tag: "Текст", href: `/models/${GROK_SLUG}` },
 ];

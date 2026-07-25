@@ -90,23 +90,21 @@ export default function Image() {
             marginTop: "24px",
           }}
         >
-          {["GPT-5.6", "Gemini 3.1 Pro", "Opus 4.8", "Grok 4.5"].map(
-            (model) => (
-              <div
-                key={model}
-                style={{
-                  padding: "12px 24px",
-                  borderRadius: "9999px",
-                  background: "rgba(255, 255, 255, 0.1)",
-                  border: "1px solid rgba(255, 255, 255, 0.2)",
-                  color: "#e4e4e7",
-                  fontSize: "18px",
-                }}
-              >
-                {model}
-              </div>
-            )
-          )}
+          {["GPT-5.6", "Gemini 3.1 Pro", "Opus 5", "Grok 4.5"].map((model) => (
+            <div
+              key={model}
+              style={{
+                padding: "12px 24px",
+                borderRadius: "9999px",
+                background: "rgba(255, 255, 255, 0.1)",
+                border: "1px solid rgba(255, 255, 255, 0.2)",
+                color: "#e4e4e7",
+                fontSize: "18px",
+              }}
+            >
+              {model}
+            </div>
+          ))}
         </div>
       </div>
 
