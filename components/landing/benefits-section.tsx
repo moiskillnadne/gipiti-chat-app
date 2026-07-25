@@ -9,40 +9,17 @@ import {
 } from "lucide-react";
 import type { ElementType } from "react";
 
+import type { HomeBenefitIcon } from "@/lib/marketing/landing-content";
+import { homeBenefits } from "@/lib/marketing/landing-content";
+
 import { FadeIn, staggerContainer, staggerItem } from "./fade-in";
 
-type Benefit = {
-  icon: ElementType;
-  title: string;
-  description: string;
+const benefitIcons: Record<HomeBenefitIcon, ElementType> = {
+  globe: GlobeIcon,
+  wallet: WalletIcon,
+  languages: LanguagesIcon,
+  "piggy-bank": PiggyBankIcon,
 };
-
-const benefits: Benefit[] = [
-  {
-    icon: GlobeIcon,
-    title: "Без VPN и ограничений",
-    description:
-      "Пользуйтесь из любой точки мира без региональных блокировок. VPN не нужен — просто откройте сайт и начните работать.",
-  },
-  {
-    icon: WalletIcon,
-    title: "Оплата российскими картами",
-    description:
-      "Платите в рублях картами Visa, MasterCard и МИР. Никаких зарубежных карт и валютных конвертаций.",
-  },
-  {
-    icon: LanguagesIcon,
-    title: "Полная поддержка на русском",
-    description:
-      "Интерфейс, поддержка и документация полностью на русском языке.",
-  },
-  {
-    icon: PiggyBankIcon,
-    title: "Дешевле, чем 6 подписок",
-    description:
-      "Все ведущие AI-модели от 6 сервисов в одной подписке — значительно выгоднее, чем платить за каждый отдельно.",
-  },
-];
 
 export const BenefitsSection = () => (
   <section className="px-4 py-20">
@@ -66,24 +43,28 @@ export const BenefitsSection = () => (
         viewport={{ once: true, margin: "-100px" }}
         whileInView="visible"
       >
-        {benefits.map((benefit) => (
-          <motion.div
-            className="group rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 transition-[border-color,box-shadow] hover:border-emerald-500/30 hover:shadow-emerald-500/5 hover:shadow-lg"
-            key={benefit.title}
-            variants={staggerItem}
-            whileHover={{ scale: 1.02, y: -4 }}
-          >
-            <div className="mb-4 inline-flex rounded-xl bg-emerald-500/10 p-3">
-              <benefit.icon className="size-6 text-emerald-400" />
-            </div>
-            <h3 className="mb-2 font-semibold text-lg text-white">
-              {benefit.title}
-            </h3>
-            <p className="text-sm text-zinc-400 leading-relaxed">
-              {benefit.description}
-            </p>
-          </motion.div>
-        ))}
+        {homeBenefits.map((benefit) => {
+          const BenefitIcon = benefitIcons[benefit.icon];
+
+          return (
+            <motion.div
+              className="group rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 transition-[border-color,box-shadow] hover:border-emerald-500/30 hover:shadow-emerald-500/5 hover:shadow-lg"
+              key={benefit.title}
+              variants={staggerItem}
+              whileHover={{ scale: 1.02, y: -4 }}
+            >
+              <div className="mb-4 inline-flex rounded-xl bg-emerald-500/10 p-3">
+                <BenefitIcon className="size-6 text-emerald-400" />
+              </div>
+              <h3 className="mb-2 font-semibold text-lg text-white">
+                {benefit.title}
+              </h3>
+              <p className="text-sm text-zinc-400 leading-relaxed">
+                {benefit.description}
+              </p>
+            </motion.div>
+          );
+        })}
       </motion.div>
 
       {/* Inline CTA */}
