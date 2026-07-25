@@ -3,6 +3,20 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   cacheComponents: false,
+  // `www.gipiti.ru` used to serve a full 200 mirror of the site, so every page
+  // existed on two hostnames and only the ones with a hardcoded canonical were
+  // protected from being treated as duplicates. Collapse the apex host at the
+  // edge so `www` is never a crawlable surface.
+  redirects() {
+    return Promise.resolve([
+      {
+        source: "/:path*",
+        has: [{ type: "host" as const, value: "www.gipiti.ru" }],
+        destination: "https://gipiti.ru/:path*",
+        permanent: true,
+      },
+    ]);
+  },
   // Import .svg files as React components (SVGR) — used for provider logos.
   turbopack: {
     rules: {

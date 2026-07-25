@@ -4,6 +4,35 @@ import { getAuthSecret } from "./lib/auth/secret";
 import { isDevelopmentEnvironment } from "./lib/constants";
 import { isSignupEnabled } from "./lib/flags";
 
+const AUTH_ROUTES = [
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+];
+
+/**
+ * Routes that exist and require a session. Anything not listed here is either
+ * public or does not exist, and in both cases must fall through to Next so an
+ * unknown path renders `not-found.tsx` with a 404.
+ *
+ * Sending unknown paths to `/login?callbackUrl=…` instead turns every stray URL
+ * a crawler stumbles on into its own indexable copy of the login page — Search
+ * Console reported exactly that as "Duplicate without user-selected canonical".
+ * Each protected page also enforces its own `auth()` guard, so this list is
+ * defence in depth rather than the only gate.
+ */
+const PROTECTED_ROUTE_PATTERNS = [
+  /^\/chat(?:\/[^/]+)?$/,
+  /^\/projects(?:\/[^/]+)?$/,
+  /^\/prompts$/,
+  /^\/subscription(?:\/(?:manage|usage|verify-email))?$/,
+  /^\/manage-subscription$/,
+];
+
+const isProtectedRoute = (pathname: string): boolean =>
+  PROTECTED_ROUTE_PATTERNS.some((pattern) => pattern.test(pathname));
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -60,28 +89,17 @@ export async function proxy(request: NextRequest) {
     secureCookie: !isDevelopmentEnvironment,
   });
 
-  const isAuthRoute = [
-    "/login",
-    "/register",
-    "/forgot-password",
-    "/reset-password",
-  ].includes(pathname);
-
-  // `/blog/preview` is handled above; everything else under `/blog` is public.
-  const isPublicRoute =
-    pathname.startsWith("/legal/") ||
-    pathname === "/" ||
-    pathname.startsWith("/blog") ||
-    pathname === "/models" ||
-    pathname.startsWith("/models/");
+  const isAuthRoute = AUTH_ROUTES.includes(pathname);
 
   // Redirect authenticated from landing page to chat
   if (token && pathname === "/") {
     return NextResponse.redirect(new URL("/chat", request.url));
   }
 
-  // Unauthenticated users can only access auth routes and public routes
-  if (!token && !isAuthRoute && !isPublicRoute) {
+  // Only real, session-gated routes bounce anonymous visitors to `/login`.
+  // Public pages and unknown paths alike fall through to Next, which renders
+  // them or returns a 404 — see PROTECTED_ROUTE_PATTERNS.
+  if (!token && isProtectedRoute(pathname)) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("callbackUrl", request.url);
     return NextResponse.redirect(loginUrl);
