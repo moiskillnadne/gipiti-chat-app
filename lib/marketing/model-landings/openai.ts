@@ -11,7 +11,7 @@ import {
   GPT55_SLUG,
   LUNA_SLUG,
   lawyersAudience,
-  OPUS_SLUG,
+  OPUS_48_SLUG,
   SOL_SLUG,
   sharedFaq,
   studentsAudience,
@@ -323,7 +323,11 @@ export const openaiLandings: ModelLanding[] = [
     otherModels: [
       { name: "GPT-5.6 Terra", tag: "Текст", href: `/models/${TERRA_SLUG}` },
       { name: "GPT-5.6 Sol", tag: "Текст", href: `/models/${SOL_SLUG}` },
-      { name: "Claude Opus 4.8", tag: "Текст", href: `/models/${OPUS_SLUG}` },
+      {
+        name: "Claude Opus 4.8",
+        tag: "Текст",
+        href: `/models/${OPUS_48_SLUG}`,
+      },
       { name: "GPT-Codex 5.3", tag: "Код", href: `/models/${CODEX_SLUG}` },
     ],
   },

@@ -13,7 +13,7 @@ import {
   DEEPSEEK_SLUG,
   GEMINI_PRO_SLUG,
   GROK_SLUG,
-  OPUS_SLUG,
+  OPUS_5_SLUG,
   priceFaq,
   SOL_SLUG,
   SONAR_PRO_SLUG,
@@ -311,7 +311,7 @@ export const perplexityLandings: ModelLanding[] = [
     otherModels: [
       { name: "Sonar Pro", tag: "Текст", href: `/models/${SONAR_PRO_SLUG}` },
       { name: "Sonar", tag: "Текст", href: `/models/${SONAR_SLUG}` },
-      { name: "Claude Opus 4.8", tag: "Текст", href: `/models/${OPUS_SLUG}` },
+      { name: "Claude Opus 5", tag: "Текст", href: `/models/${OPUS_5_SLUG}` },
       { name: "GPT-5.6 Terra", tag: "Текст", href: `/models/${TERRA_SLUG}` },
     ],
   },

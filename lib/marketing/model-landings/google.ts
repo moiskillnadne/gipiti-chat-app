@@ -1,19 +1,25 @@
-/** Landings for the Google Gemini text models: 3.1 Pro and 3.5 Flash. */
+/**
+ * Landings for the Google Gemini text models: 3.1 Pro, 3.6 Flash, 3.5 Flash
+ * and 3.5 Flash Lite.
+ */
 
 import {
   buildSteps,
-  GEMINI_FLASH_SLUG,
+  GEMINI_35_FLASH_LITE_SLUG,
+  GEMINI_35_FLASH_SLUG,
+  GEMINI_36_FLASH_SLUG,
   GEMINI_PRO_SLUG,
   GROK_SLUG,
   LUNA_SLUG,
   lawyersAudience,
-  OPUS_SLUG,
+  OPUS_5_SLUG,
   SOL_SLUG,
   SONAR_SLUG,
   SONNET_SLUG,
   sharedFaq,
   studentsAudience,
   supportAudience,
+  TERRA_SLUG,
   vpnBenefit,
 } from "./shared";
 import type { ModelLanding } from "./types";
@@ -86,7 +92,7 @@ export const googleLandings: ModelLanding[] = [
           "Gemini — модель Google, особенно сильная в мультимодальных задачах: фотографии, скриншоты и документы она разбирает в одном чате с текстом. В GIPITI доступны и Gemini, и GPT-5.6 — сравните их на своей задаче.",
       },
       {
-        question: "Чем Gemini 3.1 Pro отличается от Gemini 3.5 Flash?",
+        question: "Чем Gemini 3.1 Pro отличается от Gemini 3.6 Flash?",
         answer:
           "Pro — глубина: сложные рассуждения, большие документы и точный анализ. Flash — скорость и низкая цена для повседневных задач. Обе модели доступны в GIPITI — переключайтесь в один клик.",
       },
@@ -94,18 +100,107 @@ export const googleLandings: ModelLanding[] = [
     ],
     otherModels: [
       {
-        name: "Gemini 3.5 Flash",
+        name: "Gemini 3.6 Flash",
         tag: "Текст",
-        href: `/models/${GEMINI_FLASH_SLUG}`,
+        href: `/models/${GEMINI_36_FLASH_SLUG}`,
       },
       { name: "GPT-5.6 Sol", tag: "Текст", href: `/models/${SOL_SLUG}` },
-      { name: "Claude Opus 4.8", tag: "Текст", href: `/models/${OPUS_SLUG}` },
+      { name: "Claude Opus 5", tag: "Текст", href: `/models/${OPUS_5_SLUG}` },
       { name: "Grok 4.5", tag: "Текст", href: `/models/${GROK_SLUG}` },
     ],
   },
   {
     kind: "text",
-    slug: GEMINI_FLASH_SLUG,
+    slug: GEMINI_36_FLASH_SLUG,
+    modelId: "gemini-3.6-flash",
+    name: "Gemini 3.6 Flash",
+    vendor: "Google",
+    accent: "sky",
+    badge: "Google · Новейшая быстрая модель · Текст",
+    h1Top: "Gemini 3.6 Flash —",
+    h1Gradient: "новая быстрая нейросеть Google",
+    sub: "Новейшая быстрая модель Google уже в GIPITI — качество старших моделей на скорости Flash: код, рабочие задачи и мультимодальность. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    ctaMain: "Попробовать Gemini 3.6 Flash",
+    metaTitle:
+      "Gemini 3.6 Flash — новая нейросеть Google на русском без VPN | GIPITI",
+    metaDescription:
+      "Gemini 3.6 Flash — новейшая быстрая модель Google в GIPITI: код, рабочие задачи, фото и документы в одном чате. Без VPN, на русском, оплата российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    heroChat: {
+      userMessage:
+        "Собери из этой таблицы отчёт для руководителя: главное, тренды и что делать 📄 sales.xlsx",
+      aiIntro: "Готово. Вот **выжимка** по вашим данным:",
+      aiBullets: [
+        "**Выручка** выросла на 14% к прошлому кварталу — тянет один канал",
+        "**Провал** в регионе Юг: −22%, причина в двух крупных отказах",
+        "**Что делать** — перераспределить бюджет в канал, который окупается",
+      ],
+    },
+    benefits: [
+      {
+        icon: "zap",
+        title: "Быстро и без потери качества",
+        text: "Новое поколение Flash отвечает почти мгновенно, но заметно точнее предыдущего: меньше уточняющих итераций, меньше правок за вами.",
+      },
+      {
+        icon: "code",
+        title: "Сильнее в коде и рабочих задачах",
+        text: "Заметный шаг вперёд в программировании и многошаговых задачах — на уровне, который раньше требовал более дорогих моделей.",
+      },
+      {
+        icon: "file-text",
+        title: "Текст, фото и документы",
+        text: "Мультимодальность в одном чате: загрузите фотографию, скриншот, PDF или таблицу — модель разберёт содержимое и ответит по существу.",
+      },
+      vpnBenefit,
+    ],
+    steps: buildSteps("Gemini 3.6 Flash"),
+    audience: [
+      {
+        title: "Разработчики",
+        text: "Ежедневный код: фиксы, ревью и объяснение чужих проектов — без ожидания.",
+        userMessage: "Почему этот useEffect зацикливается? Вот компонент",
+        aiReply:
+          "Причина в **зависимости-объекте**: он создаётся заново на каждый рендер, поэтому эффект срабатывает бесконечно…",
+      },
+      lawyersAudience,
+      supportAudience,
+    ],
+    faq: [
+      {
+        question: "Что такое Gemini 3.6 Flash?",
+        answer:
+          "Gemini 3.6 Flash — новейшая быстрая модель Google: выше качество в коде, рабочих и агентных задачах при меньшем расходе токенов, чем у предыдущих версий. В GIPITI она доступна без VPN, с интерфейсом на русском языке и оплатой российскими картами.",
+      },
+      {
+        question: "Чем Gemini 3.6 Flash отличается от Gemini 3.5 Flash?",
+        answer:
+          "3.6 Flash — следующее поколение: точнее в программировании и многошаговых задачах, при этом расходует меньше токенов на ответ. Gemini 3.5 Flash остаётся доступна в GIPITI — можно сравнить обе модели на своей задаче.",
+      },
+      {
+        question: "Чем Gemini отличается от ChatGPT?",
+        answer:
+          "Gemini — модель Google, особенно сильная в мультимодальных задачах: фотографии, скриншоты и документы она разбирает в одном чате с текстом. В GIPITI доступны и Gemini, и GPT-5.6 — сравните их на своей задаче.",
+      },
+      ...sharedFaq,
+    ],
+    otherModels: [
+      {
+        name: "Gemini 3.1 Pro",
+        tag: "Текст",
+        href: `/models/${GEMINI_PRO_SLUG}`,
+      },
+      {
+        name: "Gemini 3.5 Flash Lite",
+        tag: "Текст",
+        href: `/models/${GEMINI_35_FLASH_LITE_SLUG}`,
+      },
+      { name: "GPT-5.6 Terra", tag: "Текст", href: `/models/${TERRA_SLUG}` },
+      { name: "Claude Sonnet 5", tag: "Текст", href: `/models/${SONNET_SLUG}` },
+    ],
+  },
+  {
+    kind: "text",
+    slug: GEMINI_35_FLASH_SLUG,
     modelId: "gemini-3.5-flash",
     name: "Gemini 3.5 Flash",
     vendor: "Google",
@@ -178,13 +273,109 @@ export const googleLandings: ModelLanding[] = [
     ],
     otherModels: [
       {
+        name: "Gemini 3.6 Flash",
+        tag: "Текст",
+        href: `/models/${GEMINI_36_FLASH_SLUG}`,
+      },
+      {
         name: "Gemini 3.1 Pro",
         tag: "Текст",
         href: `/models/${GEMINI_PRO_SLUG}`,
       },
       { name: "GPT-5.6 Luna", tag: "Текст", href: `/models/${LUNA_SLUG}` },
-      { name: "Claude Sonnet 5", tag: "Текст", href: `/models/${SONNET_SLUG}` },
       { name: "Sonar", tag: "Текст", href: `/models/${SONAR_SLUG}` },
+    ],
+  },
+  {
+    kind: "text",
+    slug: GEMINI_35_FLASH_LITE_SLUG,
+    modelId: "gemini-3.5-flash-lite",
+    name: "Gemini 3.5 Flash Lite",
+    vendor: "Google",
+    accent: "emerald",
+    badge: "Google · Самая экономичная · Текст",
+    // NBSP keeps the em-dash attached to "Lite": the name is long enough that a
+    // plain space leaves the dash orphaned on its own line in the hero H1.
+    h1Top: "Gemini 3.5 Flash Lite\u00A0—",
+    h1Gradient: "самая экономичная нейросеть Google",
+    sub: "Самая доступная модель Google уже в GIPITI — мгновенные ответы для простых и объёмных задач за копейки. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    // Short label on purpose: the full name wraps the hero CTA onto two lines.
+    ctaMain: "Попробовать Flash Lite",
+    metaTitle:
+      "Gemini 3.5 Flash Lite — дешёвая нейросеть Google на русском | GIPITI",
+    metaDescription:
+      "Gemini 3.5 Flash Lite — самая экономичная модель Google в GIPITI: мгновенные ответы для простых и объёмных задач. Без VPN, на русском, оплата российскими картами.",
+    heroChat: {
+      userMessage:
+        "Разбери эти 40 отзывов на плюсы и минусы и посчитай, что повторяется чаще",
+      aiIntro: "Разобрал все отзывы. **Коротко** по итогам:",
+      aiBullets: [
+        "**Плюсы** — быстрая доставка (18 упоминаний), удобный сайт (11)",
+        "**Минусы** — упаковка (9), долгий ответ поддержки (7)",
+        "**Вывод** — доставка вас хвалит, поддержка тянет оценку вниз",
+      ],
+    },
+    benefits: [
+      {
+        icon: "wallet",
+        title: "Самая низкая цена запроса",
+        text: "Самые дешёвые запросы среди текстовых моделей GIPITI — стартовых 200 ₽ хватит на очень долгую работу.",
+      },
+      {
+        icon: "zap",
+        title: "Отвечает мгновенно",
+        text: "Идеальна там, где важна скорость и объём: перевод, выжимки, сортировка заметок, короткие ответы и рутинные правки.",
+      },
+      {
+        icon: "sparkles",
+        title: "Рассуждает, когда нужно",
+        text: "Несмотря на «лёгкость», модель умеет включать рассуждения — а значит справляется и с задачами посложнее обычной болтовни.",
+      },
+      vpnBenefit,
+    ],
+    steps: buildSteps("Gemini 3.5 Flash Lite"),
+    audience: [
+      supportAudience,
+      {
+        title: "Небольшой бизнес",
+        text: "Рутина без лишних трат: описания товаров, письма, ответы на отзывы и типовые документы.",
+        userMessage: "Напиши 10 коротких описаний товаров по этому списку",
+        aiReply:
+          "Готово — по **2 предложения** на товар, с выгодой в первом и деталями во втором…",
+      },
+      studentsAudience,
+    ],
+    faq: [
+      {
+        question: "Что такое Gemini 3.5 Flash Lite?",
+        answer:
+          "Gemini 3.5 Flash Lite — самая лёгкая и экономичная модель Google: мгновенные ответы по минимальной цене, с возможностью рассуждать над задачами посложнее. В GIPITI она доступна без VPN, с интерфейсом на русском языке и оплатой российскими картами.",
+      },
+      {
+        question: "Чем Flash Lite отличается от Gemini 3.6 Flash?",
+        answer:
+          "Flash Lite — максимальная экономия для простых и объёмных задач. Gemini 3.6 Flash — заметно сильнее в коде и рабочих задачах при по-прежнему высокой скорости. Обе модели доступны в GIPITI — переключайтесь в один клик.",
+      },
+      {
+        question: "Для каких задач лучше выбрать другую модель?",
+        answer:
+          "Для сложной аналитики, больших документов и ответственных текстов возьмите Gemini 3.1 Pro, GPT-5.6 Sol или Claude Opus 5. Flash Lite создана для потока простых задач, где важнее скорость и цена.",
+      },
+      ...sharedFaq,
+    ],
+    otherModels: [
+      {
+        name: "Gemini 3.6 Flash",
+        tag: "Текст",
+        href: `/models/${GEMINI_36_FLASH_SLUG}`,
+      },
+      {
+        name: "Gemini 3.5 Flash",
+        tag: "Текст",
+        href: `/models/${GEMINI_35_FLASH_SLUG}`,
+      },
+      { name: "GPT-5.6 Luna", tag: "Текст", href: `/models/${LUNA_SLUG}` },
+      { name: "Claude Opus 5", tag: "Текст", href: `/models/${OPUS_5_SLUG}` },
     ],
   },
 ];

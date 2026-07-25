@@ -4,11 +4,11 @@ import {
   buildSteps,
   DEEPSEEK_SLUG,
   documentsBenefit,
-  GEMINI_FLASH_SLUG,
+  GEMINI_35_FLASH_SLUG,
   GEMINI_PRO_SLUG,
   GROK_43_SLUG,
   GROK_SLUG,
-  OPUS_SLUG,
+  OPUS_5_SLUG,
   SOL_SLUG,
   sharedFaq,
   studentsAudience,
@@ -103,7 +103,7 @@ export const xaiLandings: ModelLanding[] = [
     ],
     otherModels: [
       { name: "GPT-5.6 Sol", tag: "Текст", href: `/models/${SOL_SLUG}` },
-      { name: "Claude Opus 4.8", tag: "Текст", href: `/models/${OPUS_SLUG}` },
+      { name: "Claude Opus 5", tag: "Текст", href: `/models/${OPUS_5_SLUG}` },
       {
         name: "Gemini 3.1 Pro",
         tag: "Текст",
@@ -191,7 +191,7 @@ export const xaiLandings: ModelLanding[] = [
       {
         name: "Gemini 3.5 Flash",
         tag: "Текст",
-        href: `/models/${GEMINI_FLASH_SLUG}`,
+        href: `/models/${GEMINI_35_FLASH_SLUG}`,
       },
       {
         name: "DeepSeek V4 Pro",

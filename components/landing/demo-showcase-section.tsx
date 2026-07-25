@@ -34,7 +34,7 @@ const demoTabs: DemoTab[] = [
   {
     id: "analysis",
     label: "Анализ документов",
-    modelBadge: "Claude Opus 4.8",
+    modelBadge: "Claude Opus 5",
     messages: [
       {
         role: "user",
@@ -48,7 +48,7 @@ const demoTabs: DemoTab[] = [
         role: "assistant",
         content:
           "Я проанализировал документ. Ключевые условия: срок действия — 12 месяцев с автопродлением, неустойка 0.1% за день просрочки, юрисдикция — арбитражный суд г. Москвы. Рекомендую обратить внимание на пункт 5.3 об ответственности.",
-        model: "Claude Opus 4.8",
+        model: "Claude Opus 5",
       },
     ],
   },
@@ -83,7 +83,7 @@ const demoTabs: DemoTab[] = [
       {
         role: "assistant",
         content:
-          "За последнюю неделю: OpenAI представила новую архитектуру GPT-5.6 с улучшенным рассуждением, Google выпустила Gemini 3.5 с нативной поддержкой мультимодальности, а Anthropic объявила о запуске Claude Opus 4.8 с расширенным контекстным окном.",
+          "За последнюю неделю: OpenAI представила новую архитектуру GPT-5.6 с улучшенным рассуждением, Google выпустила Gemini 3.6 Flash с нативной поддержкой мультимодальности, а Anthropic объявила о запуске Claude Opus 5 с расширенным контекстным окном.",
         toolCalls: [
           {
             type: "webSearch",

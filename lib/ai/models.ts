@@ -543,9 +543,33 @@ export const chatModels: ChatModel[] = [
     thinkingConfig: GEMINI31_THINKING_CONFIG,
   },
   {
+    id: "gemini-3.6-flash",
+    name: "gemini36Flash.name",
+    description: "gemini36Flash.description",
+    provider: "google",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+    thinkingConfig: GEMINI31_THINKING_CONFIG,
+  },
+  {
     id: "gemini-3.5-flash",
     name: "gemini35Flash.name",
     description: "gemini35Flash.description",
+    provider: "google",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+    thinkingConfig: GEMINI31_THINKING_CONFIG,
+  },
+  {
+    id: "gemini-3.5-flash-lite",
+    name: "gemini35FlashLite.name",
+    description: "gemini35FlashLite.description",
     provider: "google",
     capabilities: {
       reasoning: true,
@@ -653,6 +677,18 @@ export const chatModels: ChatModel[] = [
       },
     },
     imageGenConfig: OPENAI_IMAGE_GEN_CONFIG,
+  },
+  {
+    id: "opus-5",
+    name: "opus5.name",
+    description: "opus5.description",
+    provider: "anthropic",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+    thinkingConfig: OPUS_THINKING_CONFIG,
   },
   {
     id: "opus-4.8",
@@ -1159,7 +1195,12 @@ export const getOpenAIProviderOptions = (
   };
 };
 
-export const googleModelIds = ["gemini-3.1-pro", "gemini-3.5-flash"] as const;
+export const googleModelIds = [
+  "gemini-3.1-pro",
+  "gemini-3.6-flash",
+  "gemini-3.5-flash",
+  "gemini-3.5-flash-lite",
+] as const;
 export type GoogleModelId = (typeof googleModelIds)[number];
 
 export const isGoogleModel = (modelId: string) => {
@@ -1184,6 +1225,7 @@ export const getGoogleProviderOptions = (
 };
 
 export const anthropicModelIds = [
+  "opus-5",
   "opus-4.8",
   "sonnet-5",
   "sonnet-4.6",
