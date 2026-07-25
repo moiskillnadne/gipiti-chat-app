@@ -1,6 +1,25 @@
 import createWithVercelToolbar from "@vercel/toolbar/plugins/next";
 import type { NextConfig } from "next";
 
+/**
+ * Machine-readable discovery links (RFC 8288). An agent that fetches any page
+ * gets the entrypoints in the response headers instead of having to probe
+ * well-known paths one by one.
+ *
+ * Emitted as a single comma-separated value on purpose: Next.js lets the last
+ * entry win when the same header key is set more than once, so separate `Link`
+ * entries would drop all but one relation.
+ */
+const AGENT_DISCOVERY_LINK_HEADER = [
+  '</.well-known/api-catalog>; rel="api-catalog"; type="application/linkset+json"',
+  '</openapi.json>; rel="service-desc"; type="application/json"',
+  '</models>; rel="service-doc"; type="text/html"',
+  '</sitemap.xml>; rel="sitemap"; type="application/xml"',
+].join(", ");
+
+/** Everything except API routes, build output and static media. */
+const HTML_PAGE_SOURCE = "/((?!api/|_next/|images/|videos/).*)";
+
 const nextConfig: NextConfig = {
   cacheComponents: false,
   // `www.gipiti.ru` used to serve a full 200 mirror of the site, so every page
@@ -14,6 +33,14 @@ const nextConfig: NextConfig = {
         has: [{ type: "host" as const, value: "www.gipiti.ru" }],
         destination: "https://gipiti.ru/:path*",
         permanent: true,
+      },
+    ]);
+  },
+  headers() {
+    return Promise.resolve([
+      {
+        source: HTML_PAGE_SOURCE,
+        headers: [{ key: "Link", value: AGENT_DISCOVERY_LINK_HEADER }],
       },
     ]);
   },

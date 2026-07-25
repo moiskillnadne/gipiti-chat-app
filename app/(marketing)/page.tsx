@@ -13,6 +13,7 @@ import { LandingNav } from "@/components/landing/landing-nav";
 import { PainPointsSection } from "@/components/landing/pain-points-section";
 import { PricingSection } from "@/components/landing/pricing-section";
 import { TrustBar } from "@/components/landing/trust-bar";
+import { homeFaqItems } from "@/lib/marketing/landing-content";
 
 export const metadata: Metadata = {
   title: {
@@ -83,59 +84,21 @@ const siteJsonLd = {
   ],
 };
 
+// Built from the same source as the rendered accordion (`FaqSection`). Google
+// requires FAQPage structured data to match the visible answers, so this must
+// never be a hand-maintained paraphrase — it drifted before, and the grant
+// amounts inside the answers now come from the billing constants.
 const faqJsonLd = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  mainEntity: [
-    {
-      "@type": "Question",
-      name: "Что такое Гипити?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Гипити (GIPITI) — это российская платформа-агрегатор нейросетей. В одном чате доступны лучшие AI-модели: ChatGPT, Gemini, Claude и Grok, а также генерация изображений, видео и кода. Доступно из России, оплата в рублях.",
-      },
+  mainEntity: homeFaqItems.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: item.answer,
     },
-    {
-      "@type": "Question",
-      name: "Нужно ли платить, чтобы начать?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Нет. Мы дарим 200 ₽ на баланс каждому новому пользователю: 50 ₽ сразу после регистрации, ещё 100 ₽ за подтверждение email и 50 ₽ за короткий опрос о ваших задачах. Этого достаточно, чтобы попробовать все функции платформы. Когда баланс закончится, вы можете пополнить его или оформить подписку.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "Какие платежные средства вы принимаете?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Мы принимаем Visa, MasterCard и МИР.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "Могу ли я отменить подписку?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Да, вы можете отменить подписку в любой момент в настройках аккаунта.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "Что входит в подписку?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Доступ ко всем 18+ AI-моделям от 6 провайдеров, генерация изображений и видео, генерация кода, анализ документов, поиск и режим рассуждений. Каждый месяц на баланс зачисляется 999 ₽.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "Как работают лимиты?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Подписка зачисляет 999 ₽ на баланс каждый месяц. Баланс расходуется на запросы и ответы AI, его можно пополнить в любой момент.",
-      },
-    },
-  ],
+  })),
 };
 
 export default function LandingPage() {

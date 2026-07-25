@@ -28,10 +28,12 @@ export const EMAIL_CONFIRM_BONUS_MAJOR_UNITS = 100;
 export const ONBOARDING_QUIZ_BONUS_MAJOR_UNITS = 50;
 
 // The three grants above sum to what a new user can earn in total: 200 RUB.
-// Public marketing copy ("Дарим 200 ₽ каждому новому пользователю") hardcodes
-// that figure in Russian prose across the landing pages, the model landings and
-// messages/ru.json — it cannot interpolate a constant. If you change any grant
-// above, grep the repo for "200 ₽" and update every copy site to match.
+//
+// The home page and the agent-facing surfaces derive that figure from these
+// constants via NEW_USER_BONUS_RUB in lib/marketing/landing-content.ts, so they
+// follow automatically. The model landings and messages/ru.json still hardcode
+// "200 ₽" in Russian prose that cannot interpolate — if you change any grant
+// above, grep the repo for "200 ₽" and update those copy sites by hand.
 
 // Below this balance (minor units of the user's currency) an active
 // subscriber is shown the "low balance" warning state on the dashboard.

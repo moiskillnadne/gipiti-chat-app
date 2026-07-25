@@ -4,19 +4,13 @@ import { motion } from "framer-motion";
 import { CheckIcon } from "lucide-react";
 import Link from "next/link";
 
-import { FadeIn } from "./fade-in";
+import {
+  NEW_USER_BONUS_RUB,
+  pricingFeatures,
+  SUBSCRIPTION_PRICE_RUB,
+} from "@/lib/marketing/landing-content";
 
-const pricingFeatures = [
-  "Доступ ко всем AI-моделям",
-  "ChatGPT, Gemini, Claude, Grok",
-  "Flux, Recraft и другие",
-  "Генерация изображений и видео",
-  "Генерация кода",
-  "Анализ документов до 10MB",
-  "Поиск в интернете",
-  "Режим рассуждений",
-  "999 ₽ на баланс каждый месяц",
-];
+import { FadeIn } from "./fade-in";
 
 export const PricingSection = () => (
   <section className="px-4 py-20" id="pricing">
@@ -26,8 +20,8 @@ export const PricingSection = () => (
           Простой и понятный тариф
         </h2>
         <p className="mx-auto mb-12 max-w-xl text-center text-zinc-400">
-          Все AI-модели и функции в одной подписке. Дарим 200 ₽ каждому новому
-          пользователю.
+          Все AI-модели и функции в одной подписке. Дарим {NEW_USER_BONUS_RUB} ₽
+          каждому новому пользователю.
         </p>
 
         {/* Animated gradient border */}
@@ -49,12 +43,12 @@ export const PricingSection = () => (
               {/* Price */}
               <div className="mb-2">
                 <span className="font-bold text-5xl text-white md:text-6xl">
-                  999
+                  {SUBSCRIPTION_PRICE_RUB}
                 </span>
                 <span className="text-xl text-zinc-400"> ₽/месяц</span>
               </div>
               <p className="mb-8 text-sm text-zinc-500">
-                999 ₽ на баланс каждый месяц
+                {SUBSCRIPTION_PRICE_RUB} ₽ на баланс каждый месяц
               </p>
 
               {/* Feature checklist */}

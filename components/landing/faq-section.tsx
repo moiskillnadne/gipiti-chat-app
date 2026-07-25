@@ -4,57 +4,17 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
 
+import type { HomeFaqItem } from "@/lib/marketing/landing-content";
+import { homeFaqItems } from "@/lib/marketing/landing-content";
+
 import { FadeIn, staggerContainer, staggerItem } from "./fade-in";
-
-type FaqItem = {
-  question: string;
-  answer: string;
-};
-
-const faqItems: FaqItem[] = [
-  {
-    question: "Что такое Гипити?",
-    answer:
-      "Гипити (GIPITI) — это российская платформа-агрегатор нейросетей. В одном чате доступны лучшие AI-модели: ChatGPT, Gemini, Claude и Grok, а также генерация изображений, видео и кода. Доступно из России, оплата в рублях.",
-  },
-  {
-    question: "Нужно ли платить, чтобы начать?",
-    answer:
-      "Нет. Мы дарим 200 ₽ на баланс каждому новому пользователю: 50 ₽ сразу после регистрации, ещё 100 ₽ за подтверждение email и 50 ₽ за короткий опрос о ваших задачах. Этого достаточно, чтобы попробовать все функции платформы. Когда баланс закончится, вы можете пополнить его или оформить подписку.",
-  },
-  {
-    question: "Какие платежные средства вы принимаете?",
-    answer:
-      "Мы принимаем оплату банковскими картами Visa, MasterCard и МИР. Все платежи обрабатываются через безопасный шлюз.",
-  },
-  {
-    question: "Могу ли я отменить подписку?",
-    answer:
-      "Да, вы можете отменить подписку в любой момент в настройках аккаунта. Отмена вступает в силу по окончании текущего оплаченного периода.",
-  },
-  {
-    question: "Что будет если я отменю подписку?",
-    answer:
-      "После отмены подписка продолжает действовать до конца оплаченного периода — вы пользуетесь сервисом без ограничений. Когда период закончится, аккаунт и история чатов сохранятся, но для новых запросов потребуется активная подписка.",
-  },
-  {
-    question: "Что входит в подписку?",
-    answer:
-      "Подписка включает доступ ко всем 30+ AI-моделям от 10 провайдеров (OpenAI, Google, Anthropic, xAI, DeepSeek, Perplexity, Kling AI, ByteDance, BFL, Recraft), генерацию изображений и видео, генерацию кода, анализ документов, поиск в интернете и режим рассуждений. Каждый месяц на ваш баланс зачисляется 999 ₽ для всех функций.",
-  },
-  {
-    question: "Как работают лимиты?",
-    answer:
-      "Подписка зачисляет 999 ₽ на баланс каждый месяц. Баланс расходуется на ваши запросы и ответы AI, а при необходимости его можно пополнить в любой момент. В личном кабинете вы всегда можете отслеживать текущий расход.",
-  },
-];
 
 const FaqAccordionItem = ({
   item,
   isOpen,
   onToggle,
 }: {
-  item: FaqItem;
+  item: HomeFaqItem;
   isOpen: boolean;
   onToggle: () => void;
 }) => (
@@ -117,7 +77,7 @@ export const FaqSection = () => {
           viewport={{ once: true, margin: "-100px" }}
           whileInView="visible"
         >
-          {faqItems.map((item, index) => (
+          {homeFaqItems.map((item, index) => (
             <FaqAccordionItem
               isOpen={openIndex === index}
               item={item}
