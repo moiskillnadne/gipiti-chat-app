@@ -26,7 +26,10 @@ import {
 } from "@/lib/rate-limit";
 import { UTM_COOKIE_NAME } from "@/lib/utm/constants";
 import { parseUtmCookie } from "@/lib/utm/parse-utm-cookie";
-import { createUser } from "../../lib/db/query/user/create-user";
+import {
+  createUser,
+  DuplicateEmailError,
+} from "../../lib/db/query/user/create-user";
 import { setPasswordResetToken } from "../../lib/db/query/user/set-password-reset-token";
 import { signIn } from "./auth";
 
@@ -152,6 +155,12 @@ export const register = async (
   } catch (error) {
     if (error instanceof z.ZodError) {
       return { status: "invalid_data" };
+    }
+
+    // Lost the race against a concurrent signup with the same address — the
+    // unique index rejected the insert. Same outcome as the pre-check above.
+    if (error instanceof DuplicateEmailError) {
+      return { status: "user_exists" };
     }
 
     // Surface the real cause instead of swallowing it behind "failed" —

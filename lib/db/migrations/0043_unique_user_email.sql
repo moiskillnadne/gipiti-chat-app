@@ -1,0 +1,20 @@
+-- One account per email address, case-insensitively.
+--
+-- Emails are normalised to lowercase on write (lib/auth/normalize-email.ts),
+-- but the index is functional so it also constrains rows written before this
+-- migration without needing a data backfill.
+--
+-- PRE-FLIGHT: this statement FAILS if the table already holds case-insensitive
+-- duplicates. That is deliberate — merging two funded accounts is a decision
+-- for a human, not a migration. Find them first with:
+--
+--   SELECT lower(email) AS normalized, count(*), array_agg(id ORDER BY created_at)
+--   FROM "User" GROUP BY 1 HAVING count(*) > 1;
+--
+-- Resolve each group (keep the account with real activity, reassign or delete
+-- the rest) before running this migration.
+--
+-- Built without CONCURRENTLY because the Drizzle migrator wraps every migration
+-- in a transaction. This takes a brief ACCESS EXCLUSIVE lock on "User"; on a
+-- table of this size that is milliseconds.
+CREATE UNIQUE INDEX IF NOT EXISTS "user_email_lower_unique_idx" ON "User" USING btree (lower("email"));

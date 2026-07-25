@@ -1,3 +1,4 @@
+import { normalizeEmail } from "../../../auth/normalize-email";
 import { creditBalance, ensureBalance } from "../../../billing/balance";
 import {
   DEFAULT_CURRENCY_CODE,
@@ -9,7 +10,22 @@ import type { RegistrationGeo } from "../../../geo/registration-geo";
 import type { UtmData } from "../../../utm/constants";
 import { db } from "../../connection";
 import { user } from "../../schema";
+import { isUniqueViolation } from "../../unique-violation";
 import { generateHashedPassword } from "../../utils";
+
+/**
+ * Raised when an address is already registered. The register action pre-checks
+ * with `getUserByEmail`, but that check and the insert are not atomic — two
+ * concurrent submissions of the same address both pass it. The unique index is
+ * what actually decides, so the race loser surfaces here instead of as an
+ * opaque database failure.
+ */
+export class DuplicateEmailError extends Error {
+  constructor(email: string) {
+    super(`Email already registered: ${email}`);
+    this.name = "DuplicateEmailError";
+  }
+}
 
 export async function createUser(
   email: string,
@@ -18,6 +34,7 @@ export async function createUser(
   registrationGeo?: RegistrationGeo
 ) {
   const hashedPassword = generateHashedPassword(password);
+  const normalizedEmail = normalizeEmail(email);
 
   let newUser: typeof user.$inferSelect;
 
@@ -25,7 +42,7 @@ export async function createUser(
     const [created] = await db
       .insert(user)
       .values({
-        email,
+        email: normalizedEmail,
         password: hashedPassword,
         ...(utmData && {
           utmSource: utmData.utmSource,
@@ -44,7 +61,13 @@ export async function createUser(
       .returning();
 
     newUser = created;
-  } catch (_error) {
+  } catch (error) {
+    // Never fall through to the generic failure: the grant below must not run
+    // for an address that already has an account.
+    if (isUniqueViolation(error)) {
+      throw new DuplicateEmailError(normalizedEmail);
+    }
+
     throw new ChatSDKError("bad_request:database", "Failed to create user");
   }
 
