@@ -1,10 +1,15 @@
+import type { Metadata } from "next";
 import { getTranslations } from "@/lib/i18n/translate";
+import { canonicalUrl } from "@/lib/seo/site";
 
-export async function generateMetadata() {
+export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("legal.requisites");
   return {
-    title: t("pageTitle"),
+    // `pageTitle` already carries the brand, so opt out of the root
+    // "%s | GIPITI" template instead of rendering "… - GIPITI | GIPITI".
+    title: { absolute: t("pageTitle") },
     description: t("pageDescription"),
+    alternates: { canonical: canonicalUrl("/legal/requisites") },
   };
 }
 
