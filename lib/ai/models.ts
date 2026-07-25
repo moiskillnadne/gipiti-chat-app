@@ -567,7 +567,10 @@ export const chatModels: ChatModel[] = [
     showInUI: true,
     providerOptions: {
       google: {
-        mediaResolution: "MEDIA_RESOLUTION_HIGH",
+        // No mediaResolution here: Google rejects it on gemini-3-pro-image
+        // with 400 "Request contains an invalid argument." (both vertex and
+        // google gateway backends, probed 2026-07-25), which failed every
+        // direct-path generation. Flash/Lite still accept it.
         imageConfig: {
           imageSize: "2K",
           aspectRatio: "16:9",
