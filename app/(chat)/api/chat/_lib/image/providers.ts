@@ -47,6 +47,48 @@ const MULTIMODAL_IMAGE_SYSTEM_PROMPT =
 /** The edit endpoint requires a concrete size; "auto" is not accepted. */
 const OPENAI_EDIT_DEFAULT_SIZE = "1024x1024";
 
+// Card-safe texts for provider request rejections (app locale is ru-only).
+const INVALID_ARGUMENT_USER_MESSAGE =
+  "Модель отклонила параметры запроса. Попробуйте другие настройки " +
+  "изображения или другую модель.";
+const SOURCE_IMAGE_FETCH_USER_MESSAGE =
+  "Не удалось загрузить исходное изображение для редактирования. " +
+  "Прикрепите изображение заново и повторите попытку.";
+
+/**
+ * Provider 400s are permanent request rejections (an option the model no
+ * longer accepts, or Vertex failing to fetch the edit-base URL) — retrying the
+ * same request can never succeed, so the card must say what went wrong instead
+ * of showing the blank generic failure users respond to by retrying.
+ */
+const toImageGenerationError = (
+  streamError: unknown,
+  modelId: string
+): Error => {
+  const { statusCode, message } = streamError as {
+    statusCode?: unknown;
+    message?: unknown;
+  };
+  const errorMessage =
+    typeof message === "string" ? message : JSON.stringify(streamError);
+
+  if (statusCode === 400) {
+    const userMessage = errorMessage.includes(
+      "fetch content from the provided URL"
+    )
+      ? SOURCE_IMAGE_FETCH_USER_MESSAGE
+      : INVALID_ARGUMENT_USER_MESSAGE;
+    return new ImageGenerationError(
+      `Image generation rejected (model ${modelId}): ${errorMessage}`,
+      userMessage
+    );
+  }
+
+  return streamError instanceof Error
+    ? streamError
+    : new Error(`Image generation failed: ${errorMessage}`);
+};
+
 /** Download a previously generated image as raw bytes for edit input. */
 async function fetchImageBytes(url: string): Promise<Uint8Array> {
   const response = await fetch(url);
@@ -406,9 +448,7 @@ const multimodalImageProvider: ImageProvider = async ({
 
   if (streamError !== undefined) {
     console.error("Image generation stream error:", { modelId, streamError });
-    throw streamError instanceof Error
-      ? streamError
-      : new Error(`Image generation failed: ${JSON.stringify(streamError)}`);
+    throw toImageGenerationError(streamError, modelId);
   }
 
   // A stream that finishes with neither a file nor an error delta is still a

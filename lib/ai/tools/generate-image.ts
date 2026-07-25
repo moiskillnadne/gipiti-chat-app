@@ -100,6 +100,7 @@ Example prompt transformation:
       let imageUrl: string | undefined;
       let usageMetadata: ImageUsageMetadata | undefined;
       let totalCostUsd: string | undefined;
+      let streamError: unknown;
 
       // Forward the existing image as an edit base only when the model asked to
       // edit AND we actually resolved one from history; otherwise text-to-image.
@@ -126,6 +127,13 @@ Example prompt transformation:
 
       for await (const delta of result.fullStream) {
         const { type } = delta;
+
+        // streamText surfaces provider failures as error deltas, not throws —
+        // without this the tool reports a bare "Failed to generate image" and
+        // the model can't tell the user why.
+        if (type === "error") {
+          streamError = (delta as { error?: unknown }).error;
+        }
 
         if (type === "file") {
           const file = delta.file as GeneratedFileWithBase64;
@@ -175,12 +183,25 @@ Example prompt transformation:
 
       // Provider cost flows to the chat onFinish charge via usageAccumulator.
 
+      if (streamError !== undefined) {
+        console.error("Image generation tool stream error:", {
+          modelId: IMAGE_MODEL_ID,
+          streamError,
+        });
+      }
+
+      const failureReason =
+        typeof (streamError as { message?: unknown } | undefined)?.message ===
+        "string"
+          ? ` Reason: ${(streamError as { message: string }).message}`
+          : "";
+
       return {
         id,
         imageUrl,
         content: imageUrl
           ? "Image was generated and uploaded successfully."
-          : "Failed to generate image.",
+          : `Failed to generate image.${failureReason}`,
       };
     },
   });
