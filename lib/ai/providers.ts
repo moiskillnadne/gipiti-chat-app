@@ -46,7 +46,11 @@ export const myProvider = customProvider({
     // turns and breaks multi-turn tool-call continuations (400 "Corrupted
     // thought signature").
     "gemini-3.1-pro": gateway.languageModel("google/gemini-3.1-pro-preview"),
+    "gemini-3.6-flash": gateway.languageModel("google/gemini-3.6-flash"),
     "gemini-3.5-flash": gateway.languageModel("google/gemini-3.5-flash"),
+    "gemini-3.5-flash-lite": gateway.languageModel(
+      "google/gemini-3.5-flash-lite"
+    ),
     "gemini-3-pro-image": gateway.languageModel("google/gemini-3-pro-image"),
     "gemini-3.1-flash-image": gateway.languageModel(
       "google/gemini-3.1-flash-image"
@@ -54,6 +58,7 @@ export const myProvider = customProvider({
     "gemini-3.1-flash-lite-image": gateway.languageModel(
       "google/gemini-3.1-flash-lite-image"
     ),
+    "opus-5": gateway.languageModel("anthropic/claude-opus-5"),
     "opus-4.8": gateway.languageModel("anthropic/claude-opus-4.8"),
     "sonnet-5": gateway.languageModel("anthropic/claude-sonnet-5"),
     "sonnet-4.6": gateway.languageModel("anthropic/claude-sonnet-4.6"),

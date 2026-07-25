@@ -1,12 +1,15 @@
-/** Landings for the Anthropic Claude models: Opus 4.8 and Sonnet 5. */
+/** Landings for the Anthropic Claude models: Opus 5, Opus 4.8 and Sonnet 5. */
 
 import {
+  analystsAudience,
   buildSteps,
   documentsBenefit,
+  GEMINI_36_FLASH_SLUG,
   GEMINI_PRO_SLUG,
   GROK_SLUG,
   lawyersAudience,
-  OPUS_SLUG,
+  OPUS_5_SLUG,
+  OPUS_48_SLUG,
   SOL_SLUG,
   SONNET_SLUG,
   sharedFaq,
@@ -19,19 +22,108 @@ import type { ModelLanding } from "./types";
 
 export const anthropicLandings: ModelLanding[] = [
   {
-    slug: OPUS_SLUG,
+    slug: OPUS_5_SLUG,
+    modelId: "opus-5",
+    name: "Claude Opus 5",
+    vendor: "Anthropic",
+    accent: "warm",
+    badge: "Anthropic · Новейшая модель Claude · Текст",
+    h1Top: "Claude Opus 5 —",
+    h1Gradient: "новейшая нейросеть Anthropic",
+    sub: "Самая мощная модель Anthropic уже в GIPITI — глубокие рассуждения над длинными задачами, эталонная редактура и сильный код. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    ctaMain: "Попробовать Claude Opus 5",
+    metaTitle: "Claude Opus 5 — нейросеть Claude на русском без VPN | GIPITI",
+    metaDescription:
+      "Claude Opus 5 — новейшая и самая мощная модель Anthropic в GIPITI: глубокие рассуждения, редактура и работа с большими документами. Без VPN, на русском, оплата российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    heroChat: {
+      userMessage:
+        "Прочитай отчёт и подготовь план выхода на новый рынок — с рисками и порядком шагов 📄 report.pdf",
+      aiIntro: "Разобрал отчёт и собрал план. Ключевое — **3 вывода**:",
+      aiBullets: [
+        "**Спрос есть**, но 60% рынка держат два игрока — нужна нишевая позиция",
+        "**Юнит-экономика** сходится только при среднем чеке выше 4 800 ₽",
+        "**Первый шаг** — пилот в одном регионе на 3 месяца, а не полный запуск",
+      ],
+    },
+    benefits: [
+      {
+        icon: "sparkles",
+        title: "Самая мощная модель Anthropic",
+        text: "Opus 5 — новое поколение вершины линейки Claude: заметно глубже рассуждает над длинными задачами и доводит их до конца, а не теряет нить на середине.",
+      },
+      documentsBenefit,
+      {
+        icon: "pen",
+        title: "Эталонная работа с текстом",
+        text: "Claude славится качеством языка: аккуратная редактура, выверенная структура и стиль, который не приходится переписывать.",
+      },
+      vpnBenefit,
+    ],
+    steps: buildSteps("Claude Opus 5"),
+    audience: [
+      lawyersAudience,
+      analystsAudience,
+      {
+        title: "Разработчики",
+        text: "Большие задачи по коду: архитектура, миграции и разбор незнакомых проектов целиком.",
+        userMessage:
+          "Разберись, почему падает этот сервис, и предложи исправление 📄 logs.txt",
+        aiReply:
+          "Причина — **дедлок в пуле соединений**: транзакция держит блокировку, пока ждёт внешний запрос…",
+      },
+    ],
+    faq: [
+      {
+        question: "Что такое Claude Opus 5?",
+        answer:
+          "Claude Opus 5 — новейшая и самая мощная модель Anthropic: глубокие рассуждения над сложными задачами, работа с большим контекстом и эталонное качество текста. В GIPITI она доступна без VPN, с интерфейсом на русском языке и оплатой российскими картами.",
+      },
+      {
+        question: "Чем Opus 5 отличается от Opus 4.8?",
+        answer:
+          "Opus 5 — следующее поколение: сильнее в программировании, профессиональных задачах и длинных рассуждениях, при этом эффективнее расходует токены на каждом уровне «глубины мышления». Opus 4.8 остаётся доступен в GIPITI — можно сравнить обе модели на своей задаче.",
+      },
+      {
+        question: "Чем Claude отличается от ChatGPT?",
+        answer:
+          "Claude особенно силён в аккуратной работе с текстом, редактуре и анализе длинных документов. В GIPITI доступны и Claude, и GPT-5.6 — сравните их на своей задаче в одном интерфейсе.",
+      },
+      {
+        question: "Чем Opus 5 отличается от Sonnet 5?",
+        answer:
+          "Opus — максимум качества для сложной аналитики и больших текстов. Sonnet 5 — быстрее и дешевле для повседневной работы и кода. Обе модели доступны в GIPITI — переключайтесь в один клик.",
+      },
+      ...sharedFaq,
+    ],
+    otherModels: [
+      {
+        name: "Claude Opus 4.8",
+        tag: "Текст",
+        href: `/models/${OPUS_48_SLUG}`,
+      },
+      { name: "Claude Sonnet 5", tag: "Текст", href: `/models/${SONNET_SLUG}` },
+      { name: "GPT-5.6 Sol", tag: "Текст", href: `/models/${SOL_SLUG}` },
+      {
+        name: "Gemini 3.6 Flash",
+        tag: "Текст",
+        href: `/models/${GEMINI_36_FLASH_SLUG}`,
+      },
+    ],
+  },
+  {
+    slug: OPUS_48_SLUG,
     modelId: "opus-4.8",
     name: "Claude Opus 4.8",
     vendor: "Anthropic",
     accent: "warm",
-    badge: "Anthropic · Сильнейшая модель Claude · Текст",
+    badge: "Anthropic · Мощная модель Claude · Текст",
     h1Top: "Claude Opus 4.8 —",
-    h1Gradient: "сильнейшая нейросеть Anthropic",
-    sub: "Сильнейшая модель Anthropic уже в GIPITI — глубокая аналитика, эталонная редактура и работа с большим контекстом. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    h1Gradient: "мощная нейросеть Anthropic",
+    sub: "Проверенный Opus от Anthropic уже в GIPITI — глубокая аналитика, эталонная редактура и работа с большим контекстом. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
     ctaMain: "Попробовать Claude Opus 4.8",
     metaTitle: "Claude Opus 4.8 — нейросеть Claude на русском без VPN | GIPITI",
     metaDescription:
-      "Claude Opus 4.8 — сильнейшая модель Anthropic в GIPITI: глубокая аналитика, редактура и большой контекст. Без VPN, на русском, оплата российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+      "Claude Opus 4.8 — мощная модель Anthropic в GIPITI: глубокая аналитика, редактура и большой контекст. Без VPN, на русском, оплата российскими картами. Дарим 200 ₽ каждому новому пользователю.",
     heroChat: {
       userMessage:
         "Вот старая и новая редакции контракта — что изменилось и где подвох? 📄 v1.pdf 📄 v2.pdf",
@@ -45,8 +137,8 @@ export const anthropicLandings: ModelLanding[] = [
     benefits: [
       {
         icon: "sparkles",
-        title: "Сильнейшая модель Anthropic",
-        text: "Opus 4.8 — вершина линейки Claude: глубокий анализ, сложные рассуждения и расширенный контекст для по-настоящему больших задач.",
+        title: "Мощная модель линейки Opus",
+        text: "Opus 4.8 — проверенный старший Claude: глубокий анализ, сложные рассуждения и расширенный контекст для по-настоящему больших задач.",
       },
       documentsBenefit,
       {
@@ -67,20 +159,18 @@ export const anthropicLandings: ModelLanding[] = [
         aiReply:
           "Готово. Текст стал короче на **18%**: заменил пассивные обороты, разбил длинные абзацы…",
       },
-      {
-        title: "Аналитики и консультанты",
-        text: "Выводы и рекомендации из отчётов, исследований и данных — как от сильного коллеги.",
-        userMessage:
-          "Сравни три коммерческих предложения и порекомендуй лучшее 📄",
-        aiReply:
-          "По совокупности критериев выигрывает **вариант Б** — на 12% дешевле при том же SLA…",
-      },
+      analystsAudience,
     ],
     faq: [
       {
         question: "Что такое Claude Opus 4.8?",
         answer:
-          "Claude Opus 4.8 — сильнейшая модель Anthropic: глубокая аналитика, работа с большим контекстом и эталонное качество текста. В GIPITI она доступна без VPN, с интерфейсом на русском языке и оплатой российскими картами.",
+          "Claude Opus 4.8 — мощная модель Anthropic: глубокая аналитика, работа с большим контекстом и эталонное качество текста. В GIPITI она доступна без VPN, с интерфейсом на русском языке и оплатой российскими картами.",
+      },
+      {
+        question: "Чем Opus 4.8 отличается от Opus 5?",
+        answer:
+          "Opus 5 — новейшее поколение: сильнее в коде, профессиональных задачах и длинных рассуждениях. Opus 4.8 — проверенный предшественник с тем же качеством языка. Обе модели доступны в GIPITI — переключайтесь в один клик.",
       },
       {
         question: "Чем Claude отличается от ChatGPT?",
@@ -95,6 +185,7 @@ export const anthropicLandings: ModelLanding[] = [
       ...sharedFaq,
     ],
     otherModels: [
+      { name: "Claude Opus 5", tag: "Текст", href: `/models/${OPUS_5_SLUG}` },
       { name: "Claude Sonnet 5", tag: "Текст", href: `/models/${SONNET_SLUG}` },
       { name: "GPT-5.6 Sol", tag: "Текст", href: `/models/${SOL_SLUG}` },
       {
@@ -102,7 +193,6 @@ export const anthropicLandings: ModelLanding[] = [
         tag: "Текст",
         href: `/models/${GEMINI_PRO_SLUG}`,
       },
-      { name: "Grok 4.5", tag: "Текст", href: `/models/${GROK_SLUG}` },
     ],
   },
   {
@@ -169,9 +259,9 @@ export const anthropicLandings: ModelLanding[] = [
           "Claude Sonnet 5 — новое поколение сбалансированной модели Anthropic: быстрые рассуждения, сильная генерация кода и уверенная работа с текстом. В GIPITI она доступна без VPN, с интерфейсом на русском языке и оплатой российскими картами.",
       },
       {
-        question: "Чем Sonnet 5 отличается от Opus 4.8?",
+        question: "Чем Sonnet 5 отличается от Opus 5?",
         answer:
-          "Sonnet 5 — баланс скорости, качества и цены для ежедневной работы. Opus 4.8 — максимум глубины для сложной аналитики и больших документов. Обе модели доступны в GIPITI — переключайтесь в один клик.",
+          "Sonnet 5 — баланс скорости, качества и цены для ежедневной работы. Opus 5 — максимум глубины для сложной аналитики и больших документов. Обе модели доступны в GIPITI — переключайтесь в один клик.",
       },
       {
         question: "Чем Sonnet 5 отличается от Sonnet 4.6?",
@@ -181,7 +271,7 @@ export const anthropicLandings: ModelLanding[] = [
       ...sharedFaq,
     ],
     otherModels: [
-      { name: "Claude Opus 4.8", tag: "Текст", href: `/models/${OPUS_SLUG}` },
+      { name: "Claude Opus 5", tag: "Текст", href: `/models/${OPUS_5_SLUG}` },
       { name: "GPT-5.6 Terra", tag: "Текст", href: `/models/${TERRA_SLUG}` },
       {
         name: "Gemini 3.1 Pro",

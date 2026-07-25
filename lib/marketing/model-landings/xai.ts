@@ -6,7 +6,7 @@ import {
   documentsBenefit,
   GEMINI_PRO_SLUG,
   GROK_SLUG,
-  OPUS_SLUG,
+  OPUS_5_SLUG,
   SOL_SLUG,
   sharedFaq,
   vpnBenefit,
@@ -97,7 +97,7 @@ export const xaiLandings: ModelLanding[] = [
     ],
     otherModels: [
       { name: "GPT-5.6 Sol", tag: "Текст", href: `/models/${SOL_SLUG}` },
-      { name: "Claude Opus 4.8", tag: "Текст", href: `/models/${OPUS_SLUG}` },
+      { name: "Claude Opus 5", tag: "Текст", href: `/models/${OPUS_5_SLUG}` },
       {
         name: "Gemini 3.1 Pro",
         tag: "Текст",
