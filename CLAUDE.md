@@ -96,6 +96,17 @@ Surfaces: chat | auth | api | stream | database | history | vote
 - **Quota**: Per-user per-billing-period, defined in subscription tier features
 - **Tracking**: SearchUsageLog table, `checkSearchQuota()` before each search
 
+### Agent Discovery
+
+Machine-readable surface for AI agents, all under `lib/agent-discovery/` — see `docs/agent-discovery.md` for the full map and for what is deliberately *not* published.
+
+- `Link` headers (RFC 8288) on every HTML page, configured in `next.config.ts`
+- `/.well-known/api-catalog` (RFC 9727) + `/openapi.json` — the public API surface only (`/api/health`); the session-authenticated chat APIs are intentionally undocumented
+- `/.well-known/agent-skills/index.json` + `SKILL.md` documents, digests computed from the served bytes
+- `/robots.txt` is a route handler (not `app/robots.ts`) so it can carry `Content-Signal` directives
+- **Markdown negotiation**: `Accept: text/markdown` on a public page is rewritten by `proxy.ts` to `/api/agent-markdown/*`. Markdown is generated from the same modules the React pages render, so the two views cannot drift
+- **WebMCP**: read-only catalog/pricing tools registered from the marketing layout, feature-detected
+
 ### Cron Jobs
 
 All require `Authorization: Bearer ${CRON_SECRET}` header:

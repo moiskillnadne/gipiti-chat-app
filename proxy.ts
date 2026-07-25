@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { isMarkdownNegotiablePath } from "./lib/agent-discovery/markdown/paths";
 import { getAuthSecret } from "./lib/auth/secret";
 import { isDevelopmentEnvironment } from "./lib/constants";
 import { isSignupEnabled } from "./lib/flags";
@@ -33,8 +34,32 @@ const PROTECTED_ROUTE_PATTERNS = [
 const isProtectedRoute = (pathname: string): boolean =>
   PROTECTED_ROUTE_PATTERNS.some((pattern) => pattern.test(pathname));
 
+/**
+ * Content negotiation for agents: `Accept: text/markdown` on a public page is
+ * served the Markdown view of that page. HTML stays the default for browsers,
+ * which ask for `text/html` and never list `text/markdown`.
+ */
+const wantsMarkdown = (request: NextRequest): boolean =>
+  // HEAD is included so it reports the same headers its GET would.
+  (request.method === "GET" || request.method === "HEAD") &&
+  (request.headers.get("accept")?.includes("text/markdown") ?? false);
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Checked before the auth branches below: every Markdown-negotiable path is
+  // public, and a rewrite keeps the agent on the page's own URL.
+  if (wantsMarkdown(request) && isMarkdownNegotiablePath(pathname)) {
+    // The page path rides along as URL segments: a rewritten route handler
+    // still sees the original request's query string, so a parameter would be
+    // lost, while the path it is routed on is not.
+    // `/` maps to the bare route — appending it would leave a trailing slash
+    // that Next redirects away, breaking the rewrite.
+    const suffix = pathname === "/" ? "" : pathname;
+    return NextResponse.rewrite(
+      new URL(`/api/agent-markdown${suffix}`, request.url)
+    );
+  }
 
   if (pathname.startsWith("/register")) {
     if (await isSignupEnabled()) {

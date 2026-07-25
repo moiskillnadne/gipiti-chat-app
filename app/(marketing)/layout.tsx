@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+import { WebMcpTools } from "@/components/landing/webmcp-tools";
+
 export const metadata: Metadata = {
   title: {
     absolute: "GIPITI - AI-чат с ChatGPT, Gemini, Claude и Grok",
@@ -16,6 +18,7 @@ export default function MarketingLayout({
   return (
     <>
       <style>{"html, body { background-color: #09090b; }"}</style>
+      <WebMcpTools />
       {children}
     </>
   );
