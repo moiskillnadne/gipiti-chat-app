@@ -40,6 +40,12 @@ export const recraftImageLandings: ModelLanding[] = [
       aspect: "1:1",
       resultCaption: "Логотип · тюльпан в круге, две линии",
       resultMeta: "Графический стиль · формат 1:1",
+      sample: {
+        src: "/images/model-landings/recraft-v4-1-pro/flower-delivery-logo.webp",
+        alt: "Минималистичный логотип доставки цветов: тюльпан в круге, тонкие линии — изображение, созданное Recraft v4.1 Pro в GIPITI",
+        width: 1280,
+        height: 1280,
+      },
     },
     benefits: [
       {
@@ -70,6 +76,12 @@ export const recraftImageLandings: ModelLanding[] = [
         userMessage:
           "Знак для пекарни: колосок и полумесяц, две линии, один цвет",
         aiReply: "**Знак** · колосок и полумесяц, одна линия",
+        sample: {
+          src: "/images/model-landings/recraft-v4-1-pro/bakery-logo.webp",
+          alt: "Логотип пекарни: колосок и полумесяц одной линией",
+          width: 900,
+          height: 900,
+        },
       },
       {
         title: "Продуктовые команды",
@@ -77,12 +89,24 @@ export const recraftImageLandings: ModelLanding[] = [
         userMessage:
           "Шесть иконок для раздела настроек, тонкие линии, один стиль",
         aiReply: "**Иконка 1 из 6** · тонкие линии, единая сетка",
+        sample: {
+          src: "/images/model-landings/recraft-v4-1-pro/settings-icons.webp",
+          alt: "Набор из шести иконок для раздела настроек: звук, яркость, уведомления, шестерёнка, цвет и клавиатура",
+          width: 900,
+          height: 900,
+        },
       },
       {
         title: "Дизайнеры и агентства",
         text: "Быстрые концепты айдентики: десяток направлений до отрисовки в редакторе.",
         userMessage: "Три направления знака для IT-компании: сеть, куб, волна",
         aiReply: "**Направление 1** · сеть из точек и линий",
+        sample: {
+          src: "/images/model-landings/recraft-v4-1-pro/it-company-logo.webp",
+          alt: "Три направления знака для IT-компании: сеть из точек, объёмный куб и волна",
+          width: 900,
+          height: 900,
+        },
       },
     ],
     faq: [

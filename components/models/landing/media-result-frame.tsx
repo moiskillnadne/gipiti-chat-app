@@ -1,7 +1,10 @@
 import { PlayIcon } from "lucide-react";
+import Image from "next/image";
+import type { CSSProperties } from "react";
 
 import type {
   LandingMediaAspect,
+  LandingMediaSample,
   ModelLandingAccent,
 } from "@/lib/marketing/model-landings";
 
@@ -14,6 +17,7 @@ import { EmphasizedText } from "./emphasized-text";
  */
 export const mediaAspectClasses: Record<LandingMediaAspect, string> = {
   "16:9": "aspect-video",
+  "3:2": "aspect-[3/2]",
   "1:1": "aspect-square",
   "9:16": "mx-auto aspect-[9/16] max-w-[58%]",
 };
@@ -23,14 +27,22 @@ type MediaResultFrameProps = {
   isVideo: boolean;
   /** Scene description laid over the frame; supports `**bold**`. */
   caption: string;
-  /** Sizing classes: an aspect ratio in the hero, `flex-1` inside a card. */
+  /** Sizing classes: an aspect ratio in the hero, height-bound inside a card. */
   sizeClassName: string;
   captionClassName?: string;
+  /** Real render to show in the frame; without it the frame stays abstract. */
+  sample?: LandingMediaSample;
+  /** Layout width of the frame, for picking a responsive source. */
+  imageSizes?: string;
+  /** Set on the hero frame only — its render is the page's LCP candidate. */
+  isPriority?: boolean;
+  frameStyle?: CSSProperties;
 };
 
 /**
- * Stand-in for a generated image or video frame. Deliberately an abstract
- * gradient rather than a sample output — the page ships no generated assets.
+ * Frame holding a generated image or video result. Image landings ship real
+ * renders from the model they describe; video landings and any frame without a
+ * sample fall back to an abstract accent gradient.
  */
 export const MediaResultFrame = ({
   accent,
@@ -38,21 +50,41 @@ export const MediaResultFrame = ({
   caption,
   sizeClassName,
   captionClassName = "text-[12.5px]",
+  sample,
+  imageSizes,
+  isPriority = false,
+  frameStyle,
 }: MediaResultFrameProps) => (
   <div
     className={`relative overflow-hidden rounded-xl border border-white/10 ${accentClasses[accent].mediaCanvas} ${sizeClassName}`}
+    style={frameStyle}
   >
+    {sample ? (
+      <Image
+        alt={sample.alt}
+        className="object-cover"
+        fill
+        priority={isPriority}
+        sizes={imageSizes}
+        src={sample.src}
+      />
+    ) : (
+      <>
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-[radial-gradient(circle_at_28%_22%,rgba(255,255,255,0.35),transparent_58%)]"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-[radial-gradient(circle_at_80%_78%,rgba(9,9,11,0.5),transparent_62%)]"
+        />
+      </>
+    )}
     <div
       aria-hidden="true"
-      className="absolute inset-0 bg-[radial-gradient(circle_at_28%_22%,rgba(255,255,255,0.35),transparent_58%)]"
-    />
-    <div
-      aria-hidden="true"
-      className="absolute inset-0 bg-[radial-gradient(circle_at_80%_78%,rgba(9,9,11,0.5),transparent_62%)]"
-    />
-    <div
-      aria-hidden="true"
-      className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-zinc-950/85 to-transparent"
+      className={`absolute inset-x-0 bottom-0 bg-gradient-to-t from-zinc-950/90 to-transparent ${
+        sample ? "h-2/5 via-zinc-950/45" : "h-3/5"
+      }`}
     />
 
     {isVideo ? (

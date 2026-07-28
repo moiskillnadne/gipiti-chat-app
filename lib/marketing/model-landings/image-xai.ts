@@ -39,6 +39,12 @@ export const xaiImageLandings: ModelLanding[] = [
       aspect: "16:9",
       resultCaption: "Скейтбордист на крыше · закат, длинные тени",
       resultMeta: "Формат 16:9",
+      sample: {
+        src: "/images/model-landings/grok-imagine/skateboard.webp",
+        alt: "Скейтбордист в прыжке на городской крыше на фоне заката — изображение, созданное Grok Imagine в GIPITI",
+        width: 1280,
+        height: 720,
+      },
     },
     benefits: [
       {
@@ -61,18 +67,36 @@ export const xaiImageLandings: ModelLanding[] = [
         text: "Быстрые картинки к постам, когда идея нужна прямо сейчас.",
         userMessage: "Кот-программист в наушниках за тремя мониторами, ночь",
         aiReply: "**Готово** · кот за тремя мониторами, ночная подсветка",
+        sample: {
+          src: "/images/model-landings/grok-imagine/cat-programmer.webp",
+          alt: "Кот в наушниках за тремя мониторами с кодом в ночной комнате",
+          width: 900,
+          height: 506,
+        },
       },
       {
         title: "Авторы каналов",
         text: "Обложки постов и превью в нужном формате — без стоков и подписок на фотобанки.",
         userMessage: "Обложка выпуска про космос: спутник над Землёй, 16:9",
         aiReply: "**Обложка 16:9** · спутник над Землёй",
+        sample: {
+          src: "/images/model-landings/grok-imagine/sputnik.webp",
+          alt: "Обложка выпуска про космос: спутник над Землёй и заголовок «Космический вестник»",
+          width: 900,
+          height: 506,
+        },
       },
       {
         title: "Все, кто хочет попробовать",
         text: "Первое знакомство с генерацией картинок — быстро и без сложных настроек.",
         userMessage: "Нарисуй открытку ко дню рождения с воздушными шарами",
         aiReply: "**Открытка** · воздушные шары, пастельные тона",
+        sample: {
+          src: "/images/model-landings/grok-imagine/birthday-card.webp",
+          alt: "Открытка ко дню рождения с воздушными шарами в пастельных тонах",
+          width: 900,
+          height: 506,
+        },
       },
     ],
     faq: [

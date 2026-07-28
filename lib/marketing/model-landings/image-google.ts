@@ -42,7 +42,13 @@ export const googleImageLandings: ModelLanding[] = [
       aiIntro: "Готово. Скажите, что поправить — сделаю новую версию:",
       aspect: "16:9",
       resultCaption: "Рыжий кот в очках с газетой · кофейня, тёплый свет",
-      resultMeta: "Качество 2K · формат 16:9",
+      resultMeta: "Формат 16:9",
+      sample: {
+        src: "/images/model-landings/nano-banana/cat-in-a-cafe.webp",
+        alt: "Рыжий кот в очках читает газету за столиком кофейни — изображение, созданное Nano Banana в GIPITI",
+        width: 1280,
+        height: 714,
+      },
     },
     benefits: [
       {
@@ -70,6 +76,12 @@ export const googleImageLandings: ModelLanding[] = [
         userMessage:
           "Обложка для поста о распродаже: неоновые цифры −50% на тёмном фоне, 16:9",
         aiReply: "**Обложка 16:9** · неоновые цифры на тёмном фоне",
+        sample: {
+          src: "/images/model-landings/nano-banana/discount.webp",
+          alt: "Обложка поста о распродаже: неоновая надпись −50% на фоне ночного города",
+          width: 900,
+          height: 502,
+        },
       },
       {
         title: "Владельцы магазинов",
@@ -77,6 +89,12 @@ export const googleImageLandings: ModelLanding[] = [
         userMessage:
           "Убери фон у фото товара и поставь его на светлую студийную поверхность 📎",
         aiReply: "**Фон заменён** · товар на светлой студийной подложке",
+        sample: {
+          src: "/images/model-landings/nano-banana/removed-background.webp",
+          alt: "Флакон парфюма на светлой студийной поверхности после замены фона",
+          width: 900,
+          height: 502,
+        },
       },
       {
         title: "Блогеры и авторы",
@@ -84,6 +102,12 @@ export const googleImageLandings: ModelLanding[] = [
         userMessage:
           "Иллюстрация к статье про удалённую работу, плоский стиль, три цвета",
         aiReply: "**Плоская иллюстрация** · три цвета, под стиль блога",
+        sample: {
+          src: "/images/model-landings/nano-banana/remote-work.webp",
+          alt: "Плоская иллюстрация про удалённую работу: девушка с ноутбуком за домашним столом",
+          width: 900,
+          height: 502,
+        },
       },
     ],
     faq: [
@@ -140,7 +164,13 @@ export const googleImageLandings: ModelLanding[] = [
       aiIntro: "Собрал постер с надписью. Проверьте текст на макете:",
       aspect: "1:1",
       resultCaption: "Постер кофейни · надпись «Утро начинается здесь»",
-      resultMeta: "Качество 4K · формат 1:1",
+      resultMeta: "Формат 1:1",
+      sample: {
+        src: "/images/model-landings/nano-banana-pro/coffee-poster.webp",
+        alt: "Постер кофейни с крупной надписью «Утро начинается здесь» и чашкой капучино — изображение, созданное Nano Banana Pro в GIPITI",
+        width: 1024,
+        height: 1024,
+      },
     },
     benefits: [
       {
@@ -171,6 +201,12 @@ export const googleImageLandings: ModelLanding[] = [
         userMessage:
           "Афиша концерта: силуэт гитариста, неон, надпись «Live · 12 октября»",
         aiReply: "**Афиша 1:1** · неон, надпись «Live · 12 октября»",
+        sample: {
+          src: "/images/model-landings/nano-banana-pro/neon-poster.webp",
+          alt: "Афиша концерта: гитарист в неоновых лучах и надпись «Live · 12 октября»",
+          width: 900,
+          height: 900,
+        },
       },
       {
         title: "Бренды и e-commerce",
@@ -178,6 +214,12 @@ export const googleImageLandings: ModelLanding[] = [
         userMessage:
           "Этикетка для кофе: минимализм, крафтовая бумага, надпись «Эспрессо 250 г»",
         aiReply: "**Этикетка** · крафт, минимализм, надпись «Эспрессо 250 г»",
+        sample: {
+          src: "/images/model-landings/nano-banana-pro/espresso-label.webp",
+          alt: "Этикетка кофе на крафтовой бумаге с надписью «Эспрессо 250 г»",
+          width: 900,
+          height: 900,
+        },
       },
       {
         title: "Иллюстраторы",
@@ -186,6 +228,12 @@ export const googleImageLandings: ModelLanding[] = [
           "Сцена: библиотека ночью, свет от лампы, пыль в воздухе, вид сверху",
         aiReply:
           "**Ночная библиотека** · свет лампы, пыль в воздухе, вид сверху",
+        sample: {
+          src: "/images/model-landings/nano-banana-pro/library.webp",
+          alt: "Ночная библиотека: стол под настольной лампой между книжных стеллажей, вид сверху",
+          width: 900,
+          height: 900,
+        },
       },
     ],
     faq: [
@@ -235,6 +283,12 @@ export const googleImageLandings: ModelLanding[] = [
       aspect: "1:1",
       resultCaption: "Иконка заметок · минимализм, мягкие тени",
       resultMeta: "Качество 1K · формат 1:1",
+      sample: {
+        src: "/images/model-landings/nano-banana-lite/notes-icons.webp",
+        alt: "Минималистичные иконки приложения для заметок на экране смартфона — изображение, созданное Nano Banana Lite в GIPITI",
+        width: 1024,
+        height: 1024,
+      },
     },
     benefits: [
       {
@@ -261,6 +315,12 @@ export const googleImageLandings: ModelLanding[] = [
         text: "Картинки к постам каждый день — быстро, много и без лишних затрат.",
         userMessage: "Пять фонов для сторис в пастельных тонах, 9:16",
         aiReply: "**Фон 1 из 5** · пастельный градиент, 9:16",
+        sample: {
+          src: "/images/model-landings/nano-banana-lite/pastel-gradient.webp",
+          alt: "Вертикальный фон для сторис: плавный пастельный градиент",
+          width: 502,
+          height: 900,
+        },
       },
       {
         title: "Продакт-менеджеры",
@@ -268,6 +328,12 @@ export const googleImageLandings: ModelLanding[] = [
         userMessage:
           "Простая иллюстрация для слайда: команда за столом, флэт-стиль",
         aiReply: "**Флэт-иллюстрация** · команда за столом, три цвета",
+        sample: {
+          src: "/images/model-landings/nano-banana-lite/team-flat-style.webp",
+          alt: "Флэт-иллюстрация для слайда: команда за столом переговоров",
+          width: 900,
+          height: 502,
+        },
       },
       {
         title: "Все, кто перебирает идеи",
@@ -275,6 +341,12 @@ export const googleImageLandings: ModelLanding[] = [
         userMessage:
           "Покажи три варианта логотипа кофейни: чашка, зерно, улыбка",
         aiReply: "**Вариант 1** · чашка в круге, тонкие линии",
+        sample: {
+          src: "/images/model-landings/nano-banana-lite/coffee-logo.webp",
+          alt: "Три варианта логотипа кофейни: чашка, кофейное зерно и улыбка",
+          width: 900,
+          height: 502,
+        },
       },
     ],
     faq: [

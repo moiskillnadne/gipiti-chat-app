@@ -37,9 +37,15 @@ export const openaiImageLandings: ModelLanding[] = [
       userMessage:
         "Фото рабочего стола сверху: ноутбук, блокнот и кофе, мягкий утренний свет, альбомная ориентация",
       aiIntro: "Готово. Могу поменять свет, ракурс или добавить деталей:",
-      aspect: "16:9",
+      aspect: "3:2",
       resultCaption: "Рабочий стол сверху · ноутбук, блокнот, кофе",
       resultMeta: "Качество high · альбомный формат",
+      sample: {
+        src: "/images/model-landings/gpt-image-2/desk.webp",
+        alt: "Вид сверху на рабочий стол: ноутбук, блокнот и чашка кофе в утреннем свете — изображение, созданное GPT Image 2 в GIPITI",
+        width: 1280,
+        height: 853,
+      },
     },
     benefits: [
       {
@@ -67,6 +73,12 @@ export const openaiImageLandings: ModelLanding[] = [
         userMessage:
           "Покажи эти часы на мраморной поверхности с мягкой тенью 📎 watch.jpg",
         aiReply: "**Готово** · часы на мраморе, мягкая тень",
+        sample: {
+          src: "/images/model-landings/gpt-image-2/watch.webp",
+          alt: "Золотые наручные часы на мраморной поверхности с мягкой тенью",
+          width: 900,
+          height: 600,
+        },
       },
       {
         title: "Маркетологи",
@@ -74,6 +86,12 @@ export const openaiImageLandings: ModelLanding[] = [
         userMessage:
           "Баннер для рассылки: летняя веранда кафе, тёплые тона, альбомный формат",
         aiReply: "**Баннер** · летняя веранда, тёплые тона",
+        sample: {
+          src: "/images/model-landings/gpt-image-2/terrace-banner.webp",
+          alt: "Баннер для рассылки «Лето вкуснее на веранде»: летняя терраса кафе в тёплых тонах",
+          width: 900,
+          height: 600,
+        },
       },
       {
         title: "Дизайнеры интерьеров",
@@ -81,6 +99,12 @@ export const openaiImageLandings: ModelLanding[] = [
         userMessage:
           "Кухня 12 м² в скандинавском стиле, дневной свет, вид от двери",
         aiReply: "**Кухня 12 м²** · скандинавский стиль, дневной свет",
+        sample: {
+          src: "/images/model-landings/gpt-image-2/scandic-kitchen.webp",
+          alt: "Кухня в скандинавском стиле при дневном свете, вид от двери",
+          width: 900,
+          height: 600,
+        },
       },
     ],
     faq: [

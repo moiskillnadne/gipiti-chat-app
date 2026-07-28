@@ -39,6 +39,7 @@ export type {
   LandingHeroMedia,
   LandingKind,
   LandingMediaAspect,
+  LandingMediaSample,
   LandingModelChip,
   LandingStep,
   MediaModelLanding,

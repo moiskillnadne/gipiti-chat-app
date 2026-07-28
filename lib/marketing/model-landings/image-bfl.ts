@@ -42,9 +42,15 @@ export const bflImageLandings: ModelLanding[] = [
       userMessage:
         "Старый маяк в шторм, масляная живопись, густые мазки, драматичный свет",
       aiIntro: "Готово. Могу усилить стиль или сменить время суток:",
-      aspect: "16:9",
+      aspect: "1:1",
       resultCaption: "Маяк в шторм · масляная живопись, густые мазки",
       resultMeta: "Художественный стиль · высокая детализация",
+      sample: {
+        src: "/images/model-landings/flux-2-max/lighthouse.webp",
+        alt: "Старый маяк в шторм, написанный маслом густыми мазками — изображение, созданное Flux 2 Max в GIPITI",
+        width: 1024,
+        height: 1024,
+      },
     },
     benefits: [
       {
@@ -70,12 +76,24 @@ export const bflImageLandings: ModelLanding[] = [
         text: "Референсы, концепты и наброски в выбранной технике — быстрее, чем искать на стоках.",
         userMessage: "Концепт персонажа: странник в плаще, тушь и акварель",
         aiReply: "**Концепт** · странник в плаще, тушь и акварель",
+        sample: {
+          src: "/images/model-landings/flux-2-max/wanderer.webp",
+          alt: "Концепт персонажа: странник в плаще с посохом, тушь и акварель",
+          width: 900,
+          height: 900,
+        },
       },
       {
         title: "Издатели и авторы",
         text: "Обложки книг и иллюстрации к главам — в единой художественной манере.",
         userMessage: "Обложка для детектива: ночной город, дождь, стиль нуар",
         aiReply: "**Обложка** · ночной город под дождём, нуар",
+        sample: {
+          src: "/images/model-landings/flux-2-max/book-cover.webp",
+          alt: "Обложка детектива в стиле нуар: фигура в плаще на ночной улице под дождём",
+          width: 900,
+          height: 900,
+        },
       },
       {
         title: "Бренды и агентства",
@@ -83,6 +101,12 @@ export const bflImageLandings: ModelLanding[] = [
         userMessage:
           "Постер для кофейни в стиле винтажного плаката 1950-х, тёплая гамма",
         aiReply: "**Постер** · винтаж 1950-х, тёплая гамма",
+        sample: {
+          src: "/images/model-landings/flux-2-max/coffee-1950s.webp",
+          alt: "Постер кофейни в стиле винтажного плаката 1950-х годов в тёплой гамме",
+          width: 669,
+          height: 900,
+        },
       },
     ],
     faq: [
