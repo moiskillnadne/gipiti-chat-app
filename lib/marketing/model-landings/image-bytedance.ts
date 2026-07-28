@@ -36,11 +36,17 @@ export const bytedanceImageLandings: ModelLanding[] = [
       "Seedream 5.0 Lite в GIPITI — новейшая модель ByteDance для генерации изображений по описанию на русском. Без VPN, оплата российскими картами. Дарим 200 ₽ новым пользователям.",
     heroMedia: {
       userMessage:
-        "Витрина пекарни утром: круассаны на подносе, пар от кофе, солнце сбоку, 16:9",
+        "Витрина пекарни утром: круассаны на подносе, пар от кофе, солнце сбоку, квадратный кадр",
       aiIntro: "Готово. Могу поменять свет, ракурс или состав кадра:",
-      aspect: "16:9",
+      aspect: "1:1",
       resultCaption: "Витрина пекарни · круассаны, пар от кофе, боковой свет",
-      resultMeta: "Формат 16:9",
+      resultMeta: "Формат 1:1",
+      sample: {
+        src: "/images/model-landings/seedream-5-0-lite/bakery.webp",
+        alt: "Витрина пекарни утром: круассаны на подносе и чашка кофе с паром в боковом свете — изображение, созданное Seedream 5.0 Lite в GIPITI",
+        width: 1280,
+        height: 1280,
+      },
     },
     benefits: [
       {
@@ -62,8 +68,14 @@ export const bytedanceImageLandings: ModelLanding[] = [
         title: "E-commerce и реклама",
         text: "Карточки товара и баннеры в нужном формате — быстро и в едином стиле.",
         userMessage:
-          "Баннер для акции: корзина овощей на деревянном столе, 21:9",
-        aiReply: "**Баннер 21:9** · корзина овощей на деревянном столе",
+          "Баннер для акции: корзина овощей на деревянном столе, светлая кухня",
+        aiReply: "**Баннер** · корзина овощей на деревянном столе",
+        sample: {
+          src: "/images/model-landings/seedream-5-0-lite/vegetables.webp",
+          alt: "Корзина свежих овощей на деревянном столе в светлой кухне",
+          width: 900,
+          height: 900,
+        },
       },
       {
         title: "Контент-команды",
@@ -71,13 +83,24 @@ export const bytedanceImageLandings: ModelLanding[] = [
         userMessage:
           "Кадр: девушка у окна поезда с книгой, вечерний свет, вид сбоку",
         aiReply: "**Кадр** · девушка у окна поезда, вечерний свет",
+        sample: {
+          src: "/images/model-landings/seedream-5-0-lite/girl-with-a-book.webp",
+          alt: "Девушка читает книгу у окна поезда на фоне закатного неба",
+          width: 900,
+          height: 900,
+        },
       },
       {
         title: "Дизайнеры",
         text: "Референсы и фоны под макет — с точной композицией и пропорциями.",
-        userMessage:
-          "Абстрактный фон: волны в синих тонах, мягкое размытие, 16:9",
-        aiReply: "**Фон 16:9** · синие волны, мягкое размытие",
+        userMessage: "Абстрактный фон: волны в синих тонах, мягкое размытие",
+        aiReply: "**Фон** · синие волны, мягкое размытие",
+        sample: {
+          src: "/images/model-landings/seedream-5-0-lite/waves.webp",
+          alt: "Абстрактный фон: плавные синие волны с мягким размытием",
+          width: 900,
+          height: 900,
+        },
       },
     ],
     faq: [
@@ -127,6 +150,12 @@ export const bytedanceImageLandings: ModelLanding[] = [
       aspect: "1:1",
       resultCaption: "Фон заменён · светлая студия, исходный свет",
       resultMeta: "Формат 1:1 · исходные детали сохранены",
+      sample: {
+        src: "/images/model-landings/seedream-4-5/white-studio-portrait.webp",
+        alt: "Портрет мужчины в свитере на светлом студийном фоне после замены фона — изображение, созданное Seedream 4.5 в GIPITI",
+        width: 1280,
+        height: 1280,
+      },
     },
     benefits: [
       {
@@ -152,6 +181,12 @@ export const bytedanceImageLandings: ModelLanding[] = [
         text: "Единый фон и свет для всех карточек товара — из разнородных фото.",
         userMessage: "Поставь все эти товары на одинаковый белый фон 📎 📎 📎",
         aiReply: "**Фон унифицирован** · белая подложка, мягкая тень",
+        sample: {
+          src: "/images/model-landings/seedream-4-5/white-background.webp",
+          alt: "Набор разноцветных кружек на общем белом фоне с мягкой тенью",
+          width: 900,
+          height: 900,
+        },
       },
       {
         title: "Бренды и упаковка",
@@ -159,13 +194,25 @@ export const bytedanceImageLandings: ModelLanding[] = [
         userMessage:
           "Замени надпись на упаковке на «Новый вкус» и оставь дизайн 📎",
         aiReply: "**Надпись заменена** · дизайн упаковки сохранён",
+        sample: {
+          src: "/images/model-landings/seedream-4-5/new-flavour.webp",
+          alt: "Упаковка чая с растительным узором и заменённой надписью «Новый вкус»",
+          width: 900,
+          height: 900,
+        },
       },
       {
         title: "Фотографы и ретушёры",
         text: "Быстрая ретушь по словам: убрать лишнее, поправить фон, сменить сезон.",
         userMessage:
           "Убери провода из кадра и оставь всё остальное как есть 📎",
-        aiReply: "**Провода убраны** · небо и здание не тронуты",
+        aiReply: "**Провода убраны** · стол и свет не тронуты",
+        sample: {
+          src: "/images/model-landings/seedream-4-5/cables.webp",
+          alt: "Рабочий стол с монитором и лампой у окна после удаления проводов из кадра",
+          width: 900,
+          height: 900,
+        },
       },
     ],
     faq: [

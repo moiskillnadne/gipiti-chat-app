@@ -55,16 +55,34 @@ export type LandingStep = {
 };
 
 /**
+ * A real render shipped with an image landing, shown inside the result frame.
+ *
+ * Assets live in `public/images/model-landings/{slug}/` and are produced by the
+ * model the landing is about — the caption next to them describes what was
+ * asked, so a sample must not be reused across models. The intrinsic size is
+ * stored because audience tiles keep the render's own proportions.
+ */
+export type LandingMediaSample = {
+  src: string;
+  /** Describes the render itself — the page has no other text for it. */
+  alt: string;
+  width: number;
+  height: number;
+};
+
+/**
  * Chat snippets support `**bold**` emphasis, parsed by `parseEmphasis`.
  *
  * On image and video landings `aiReply` is the caption laid over the mock
- * result tile instead of a reply bubble.
+ * result tile instead of a reply bubble, and `sample` fills the tile with a
+ * real render where one exists.
  */
 export type LandingAudienceCard = {
   title: string;
   text: string;
   userMessage: string;
   aiReply: string;
+  sample?: LandingMediaSample;
 };
 
 export type LandingFaqItem = {
@@ -84,10 +102,15 @@ export type LandingHeroChat = {
   aiBullets: string[];
 };
 
-/** Shape of the mock result frame; wider ratios are rendered as 16:9. */
-export type LandingMediaAspect = "16:9" | "1:1" | "9:16";
+/** Shape of the hero result frame; wider ratios are rendered as 16:9. */
+export type LandingMediaAspect = "16:9" | "3:2" | "1:1" | "9:16";
 
-/** Hero mockup for image and video landings: a prompt plus a result frame. */
+/**
+ * Hero mockup for image and video landings: a prompt plus a result frame.
+ *
+ * When `sample` is set, `aspect` must match the render's proportions — the
+ * frame is what crops it.
+ */
 export type LandingHeroMedia = {
   userMessage: string;
   /** Model's line above the frame; supports `**bold**`. */
@@ -97,6 +120,7 @@ export type LandingHeroMedia = {
   resultCaption: string;
   /** Meta line under the frame, e.g. "2K · 16:9 · 12 сек". */
   resultMeta: string;
+  sample?: LandingMediaSample;
 };
 
 type ModelLandingBase = {

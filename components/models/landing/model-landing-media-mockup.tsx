@@ -7,6 +7,9 @@ import { accentClasses } from "./accent-styles";
 import { EmphasizedText } from "./emphasized-text";
 import { MediaResultFrame, mediaAspectClasses } from "./media-result-frame";
 
+/** The hero frame is ~385px wide beside the copy, full width once stacked. */
+const HERO_IMAGE_SIZES = "(min-width: 1024px) 400px, 90vw";
+
 /** Hero mockup for image and video landings — the counterpart of the chat one. */
 export const ModelLandingMediaMockup = ({
   landing,
@@ -55,7 +58,10 @@ export const ModelLandingMediaMockup = ({
               <MediaResultFrame
                 accent={landing.accent}
                 caption={heroMedia.resultCaption}
+                imageSizes={HERO_IMAGE_SIZES}
+                isPriority
                 isVideo={landing.kind === "video"}
+                sample={heroMedia.sample}
                 sizeClassName={mediaAspectClasses[heroMedia.aspect]}
               />
               <div className="flex items-center gap-3 px-1 pt-2.5 text-[12px] text-zinc-500">
