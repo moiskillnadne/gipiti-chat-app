@@ -26,16 +26,21 @@ export const OPUS_48_SLUG = "claude-opus-4-8";
 export const SONNET_SLUG = "claude-sonnet-5";
 export const SONNET_46_SLUG = "claude-sonnet-4-6";
 export const GEMINI_PRO_SLUG = "gemini-3-1-pro";
+export const GEMINI_37_FLASH_SLUG = "gemini-3-7-flash";
 export const GEMINI_36_FLASH_SLUG = "gemini-3-6-flash";
 export const GEMINI_35_FLASH_SLUG = "gemini-3-5-flash";
 export const GEMINI_35_FLASH_LITE_SLUG = "gemini-3-5-flash-lite";
 export const SONAR_SLUG = "perplexity-sonar";
 export const SONAR_PRO_SLUG = "perplexity-sonar-pro";
 export const SONAR_REASONING_SLUG = "perplexity-sonar-reasoning-pro";
+export const GROK_46_SLUG = "grok-4-6";
 export const GROK_SLUG = "grok-4-5";
 export const GROK_43_SLUG = "grok-4-3";
 export const DEEPSEEK_SLUG = "deepseek-v4-pro";
 export const DEEPSEEK_FLASH_SLUG = "deepseek-v4-flash";
+export const KIMI_K3_FAST_SLUG = "kimi-k3-fast";
+export const QWEN_38_MAX_SLUG = "qwen-3-8-max";
+export const QWEN_37_FLASH_SLUG = "qwen-3-7-flash";
 
 // Image landings
 export const NANO_BANANA_SLUG = "nano-banana";
@@ -44,7 +49,9 @@ export const NANO_BANANA_PRO_SLUG = "nano-banana-pro";
 export const GPT_IMAGE_SLUG = "gpt-image-2";
 export const FLUX_SLUG = "flux-2-max";
 export const RECRAFT_SLUG = "recraft-v4-1-pro";
+export const GROK_IMAGINE_20_SLUG = "grok-imagine-2-0";
 export const GROK_IMAGINE_SLUG = "grok-imagine";
+export const SEEDREAM_PRO_SLUG = "seedream-5-0-pro";
 export const SEEDREAM_LITE_SLUG = "seedream-5-0-lite";
 export const SEEDREAM_45_SLUG = "seedream-4-5";
 
@@ -55,6 +62,8 @@ export const KLING_30_SLUG = "kling-3-0";
 export const KLING_30_I2V_SLUG = "kling-3-0-image-to-video";
 export const KLING_26_SLUG = "kling-2-6";
 export const KLING_25_TURBO_SLUG = "kling-2-5-turbo";
+export const FLUX_VIDEO_SLUG = "flux-3-video";
+export const SEEDANCE_25_SLUG = "seedance-2-5";
 export const SEEDANCE_SLUG = "seedance-2-0";
 export const SEEDANCE_FAST_SLUG = "seedance-2-0-fast";
 

@@ -1453,7 +1453,9 @@
       "klingai": "Kling AI",
       "bytedance": "ByteDance",
       "deepseek": "DeepSeek",
-      "perplexity": "Perplexity"
+      "perplexity": "Perplexity",
+      "moonshotai": "Moonshot AI",
+      "alibaba": "Alibaba"
     },
     "search": {
       "placeholder": "Поиск моделей…",
@@ -1496,6 +1498,10 @@
     "trigger": {
       "open": "Выбрать модель"
     },
+    "grok46": {
+      "name": "Grok 4.6",
+      "description": "Новейшая модель xAI: длинные агентные задачи, программирование и работа с большим контекстом."
+    },
     "grok45": {
       "name": "Grok 4.5",
       "description": "Новейшая модель xAI с передовыми результатами в программировании, аналитике и STEM-задачах."
@@ -1535,6 +1541,10 @@
     "gemini31Pro": {
       "name": "Gemini 3.1 Pro",
       "description": "Отличная модель для сложных задач."
+    },
+    "gemini37Flash": {
+      "name": "Gemini 3.7 Flash",
+      "description": "Новейшая быстрая модель Google: уровень Pro в агентных задачах и генерации кода при высокой скорости."
     },
     "gemini36Flash": {
       "name": "Gemini 3.6 Flash",
@@ -1576,6 +1586,18 @@
       "name": "DeepSeek V4 Flash",
       "description": "Быстрая и доступная версия DeepSeek V4 для повседневных задач с рассуждениями."
     },
+    "kimiK3Fast": {
+      "name": "Kimi K3 Fast",
+      "description": "Быстрая версия флагмана Moonshot AI: длинные задачи по программированию и контекст до миллиона токенов."
+    },
+    "qwen38Max": {
+      "name": "Qwen 3.8 Max",
+      "description": "Флагман Alibaba: программирование, длинные документы и профессиональные задачи от начала до конца."
+    },
+    "qwen37Flash": {
+      "name": "Qwen 3.7 Flash",
+      "description": "Быстрая мультимодальная модель Alibaba: текст, изображения и агентные сценарии по низкой цене."
+    },
     "sonar": {
       "name": "Sonar",
       "description": "Модель Perplexity со встроенным поиском в интернете. Быстрые ответы со ссылками на источники."
@@ -1599,6 +1621,10 @@
     "gemini31FlashLiteImage": {
       "name": "Gemini Nano banana Lite",
       "description": "Лёгкая и быстрая модель Google для недорогой генерации изображений."
+    },
+    "grokImagineImage20": {
+      "name": "Grok Imagine 2.0",
+      "description": "Новое поколение генератора изображений xAI: выше детализация и точнее следование описанию."
     },
     "grokImagineImage": {
       "name": "Grok Imagine",
@@ -1636,6 +1662,10 @@
       "name": "Kling 2.5 Turbo",
       "description": "Быстрая и доступная модель Kling AI. Создаёт 5-секундные видео по текстовому описанию."
     },
+    "seedance25": {
+      "name": "Seedance 2.5",
+      "description": "Новое поколение видеомодели ByteDance. Создаёт видео со звуком по описанию или из загруженного изображения."
+    },
     "seedance20": {
       "name": "Seedance 2.0",
       "description": "Мультимодальная модель ByteDance для генерации видео. Создаёт 5-секундные видео со звуком по текстовому описанию или из загруженного изображения."
@@ -1643,6 +1673,10 @@
     "seedance20Fast": {
       "name": "Seedance 2.0 Fast",
       "description": "Быстрая версия Seedance 2.0. Создаёт 5-секундные видео по тексту или из изображения — дешевле и быстрее."
+    },
+    "flux3Video": {
+      "name": "Flux 3 Video",
+      "description": "Видеомодель Black Forest Labs. Создаёт ролики со звуком по текстовому описанию или из загруженной картинки."
     },
     "flux2Max": {
       "name": "Flux 2 Max",
@@ -1655,6 +1689,10 @@
     "recraftV41Pro": {
       "name": "Recraft v4.1 Pro",
       "description": "Генерация изображений с художественными стилями."
+    },
+    "seedream50Pro": {
+      "name": "Seedream 5.0 Pro",
+      "description": "Старшая модель ByteDance для изображений: сложные реалистичные сцены и точное редактирование."
     },
     "seedream50Lite": {
       "name": "Seedream 5.0 Lite",

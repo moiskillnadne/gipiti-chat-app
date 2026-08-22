@@ -9,6 +9,7 @@ export const myProvider = customProvider({
   languageModels: {
     // xAI grok-4.x streams reasoning natively (not <think> tags), so no
     // extractReasoningMiddleware wrapper here.
+    "grok-4.6": gateway.languageModel("xai/grok-4.6"),
     "grok-4.5": gateway.languageModel("xai/grok-4.5"),
     "grok-4.3": gateway.languageModel("xai/grok-4.3"),
     "title-model": gateway.languageModel("google/gemini-3.1-flash-lite"),
@@ -46,6 +47,7 @@ export const myProvider = customProvider({
     // turns and breaks multi-turn tool-call continuations (400 "Corrupted
     // thought signature").
     "gemini-3.1-pro": gateway.languageModel("google/gemini-3.1-pro-preview"),
+    "gemini-3.7-flash": gateway.languageModel("google/gemini-3.7-flash"),
     "gemini-3.6-flash": gateway.languageModel("google/gemini-3.6-flash"),
     "gemini-3.5-flash": gateway.languageModel("google/gemini-3.5-flash"),
     "gemini-3.5-flash-lite": gateway.languageModel(
@@ -68,6 +70,12 @@ export const myProvider = customProvider({
     // same as grok-4.3 above.
     "deepseek-v4-pro": gateway.languageModel("deepseek/deepseek-v4-pro"),
     "deepseek-v4-flash": gateway.languageModel("deepseek/deepseek-v4-flash"),
+    // Moonshot and Alibaba stream reasoning natively too (reasoning_content,
+    // normalized by the Gateway) — verified against the live gateway, no
+    // <think> tags in the text stream, so no middleware wrapper.
+    "kimi-k3-fast": gateway.languageModel("moonshotai/kimi-k3-fast"),
+    "qwen3.8-max": gateway.languageModel("alibaba/qwen3.8-max"),
+    "qwen3.7-flash": gateway.languageModel("alibaba/qwen3.7-flash"),
     sonar: gateway.languageModel("perplexity/sonar"),
     "sonar-pro": gateway.languageModel("perplexity/sonar-pro"),
     // Perplexity puts CoT as literal <think> tags inside the text stream (no

@@ -1,5 +1,5 @@
 /**
- * Landings for the ByteDance video models: Seedance 2.0 and 2.0 Fast.
+ * Landings for the ByteDance video models: Seedance 2.5, 2.0 and 2.0 Fast.
  *
  * Registry facts the copy follows: 5- or 10-second clips, six aspect ratios
  * and an optional image input (text-to-video or image-to-video).
@@ -14,6 +14,7 @@ import {
 import {
   KLING_25_TURBO_SLUG,
   KLING_30_SLUG,
+  SEEDANCE_25_SLUG,
   SEEDANCE_FAST_SLUG,
   SEEDANCE_SLUG,
   SEEDREAM_45_SLUG,
@@ -35,6 +36,85 @@ const aspectBenefit: LandingBenefit = {
 };
 
 export const bytedanceVideoLandings: ModelLanding[] = [
+  {
+    kind: "video",
+    slug: SEEDANCE_25_SLUG,
+    modelId: "seedance-2.5",
+    name: "Seedance 2.5",
+    vendor: "ByteDance",
+    accent: "violet",
+    badge: "ByteDance · Новое поколение · Видео",
+    h1Top: "Seedance 2.5 —",
+    h1Gradient: "новое поколение видео со звуком",
+    sub: "Новейшая видеомодель ByteDance уже в GIPITI — ролики со звуком по описанию или из вашего изображения, с точным контролем сцены и связным повествованием. Без VPN, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    ctaMain: "Попробовать Seedance 2.5",
+    metaTitle: "Seedance 2.5 — нейросеть для генерации видео | GIPITI",
+    metaDescription:
+      "Seedance 2.5 в GIPITI — новое поколение генерации видео со звуком по тексту или из изображения, точный контроль сцены. Без VPN, на русском, оплата российскими картами.",
+    heroMedia: {
+      userMessage:
+        "Ролик: бариста готовит кофе, пар над чашкой, тёплый свет, 16:9",
+      aiIntro: "Готово — **тёплый свет** и пар над чашкой:",
+      aspect: "16:9",
+      resultCaption: "Бариста готовит кофе · пар, тёплый свет",
+      resultMeta: "5 секунд · 16:9 · со звуком",
+    },
+    benefits: [
+      {
+        icon: "sparkles",
+        title: "Связная сцена, а не набор кадров",
+        text: "Seedance 2.5 создавалась под повествование: движение камеры, действия в кадре и звук складываются в одну историю, а не распадаются на куски.",
+      },
+      imageInputBenefit,
+      aspectBenefit,
+      vpnBenefit,
+    ],
+    steps: buildVideoSteps("Seedance 2.5"),
+    audience: [
+      {
+        title: "Реклама и товары",
+        text: "Продуктовые ролики с понятным сюжетом: распаковка, демонстрация, финальный кадр.",
+        userMessage: "Часы на столе, камера медленно приближается, мягкий свет",
+        aiReply: "**Ролик** · наезд камеры на часы, мягкий свет",
+      },
+      {
+        title: "Соцсети и блоги",
+        text: "Вертикальные ролики под сторис и клипы — сразу в нужном формате.",
+        userMessage: "Городская улица под дождём, неон, вертикальный кадр 9:16",
+        aiReply: "**Вертикальный ролик** · дождь и неон, 9:16",
+      },
+      {
+        title: "Авторы контента",
+        text: "Оживить готовый кадр: добавить движение, атмосферу и звук.",
+        userMessage: "Оживи это фото: пусть волны набегают на берег 📎 sea.jpg",
+        aiReply: "**Кадр ожил** · волны набегают на берег",
+      },
+    ],
+    faq: [
+      {
+        question: "Что такое Seedance 2.5?",
+        answer:
+          "Seedance 2.5 — новое поколение видеомодели ByteDance: генерирует видео со звуком по текстовому описанию или из загруженного изображения, точнее держит сцену и связнее выстраивает действие. В GIPITI доступна без VPN и с оплатой российскими картами.",
+      },
+      {
+        question: "Чем Seedance 2.5 отличается от 2.0?",
+        answer:
+          "2.5 лучше держит замысел сцены и связность действия, аккуратнее работает с референсами. Seedance 2.0 и её версия Fast остаются доступнее по цене — все три модели есть в GIPITI.",
+      },
+      {
+        question: "Можно ли сделать ролик из своей картинки?",
+        answer:
+          "Да. Прикрепите изображение и опишите движение — модель оживит кадр. Без вложения она сгенерирует видео по одному текстовому описанию.",
+      },
+      ...sharedMediaFaq,
+    ],
+    otherModels: buildChips([
+      { name: "Seedance 2.0", tag: "Видео", slug: SEEDANCE_SLUG },
+      { name: "Veo 3.1", tag: "Видео", slug: VEO_SLUG },
+      { name: "Kling 3.0", tag: "Видео", slug: KLING_30_SLUG },
+      { name: "Seedream 4.5", tag: "Изображения", slug: SEEDREAM_45_SLUG },
+    ]),
+  },
   {
     kind: "video",
     slug: SEEDANCE_SLUG,

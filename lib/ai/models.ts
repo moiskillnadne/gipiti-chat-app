@@ -26,7 +26,9 @@ export type ModelProvider =
   | "klingai"
   | "bytedance"
   | "deepseek"
-  | "perplexity";
+  | "perplexity"
+  | "moonshotai"
+  | "alibaba";
 
 export type ThinkingEffortConfig = {
   type: "effort";
@@ -408,6 +410,28 @@ const SEEDANCE_VIDEO_GEN_SECTIONS = {
   },
 } satisfies Partial<VideoGenConfig>;
 
+// Flux 3 Video: 21:9/16:9/4:3/1:1/3:4/9:16 (its 2:1 has no option token here),
+// 5-20s, hd/fhd. Resolution is not exposed: the video handler only forwards a
+// resolution token for google/veo, so a picker here would never reach the
+// gateway.
+const FLUX_VIDEO_GEN_SECTIONS = {
+  aspectRatio: {
+    options: [
+      VIDEO_ASPECT_OPTIONS["16:9"],
+      VIDEO_ASPECT_OPTIONS["9:16"],
+      VIDEO_ASPECT_OPTIONS["1:1"],
+      VIDEO_ASPECT_OPTIONS["4:3"],
+      VIDEO_ASPECT_OPTIONS["3:4"],
+      VIDEO_ASPECT_OPTIONS["21:9"],
+    ],
+    default: "16:9",
+  },
+  duration: {
+    options: [5, 10].map(videoDurationOption),
+    default: "5",
+  },
+} satisfies Partial<VideoGenConfig>;
+
 const GPT5_THINKING_CONFIG: ThinkingEffortConfig = {
   type: "effort",
   values: ["auto", "none", "medium", "high"] as const,
@@ -427,6 +451,17 @@ const OPUS_THINKING_CONFIG: ThinkingEffortConfig = {
 };
 
 export const chatModels: ChatModel[] = [
+  {
+    id: "grok-4.6",
+    name: "grok46.name",
+    description: "grok46.description",
+    provider: "xai",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+  },
   {
     id: "grok-4.5",
     name: "grok45.name",
@@ -543,6 +578,18 @@ export const chatModels: ChatModel[] = [
     thinkingConfig: GEMINI31_THINKING_CONFIG,
   },
   {
+    id: "gemini-3.7-flash",
+    name: "gemini37Flash.name",
+    description: "gemini37Flash.description",
+    provider: "google",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+    thinkingConfig: GEMINI31_THINKING_CONFIG,
+  },
+  {
     id: "gemini-3.6-flash",
     name: "gemini36Flash.name",
     description: "gemini36Flash.description",
@@ -646,6 +693,18 @@ export const chatModels: ChatModel[] = [
       } satisfies GoogleGenerativeAIProviderOptions,
     },
     imageGenConfig: GOOGLE_LITE_IMAGE_GEN_CONFIG,
+  },
+  {
+    id: "grok-imagine-image-2.0",
+    name: "grokImagineImage20.name",
+    description: "grokImagineImage20.description",
+    provider: "xai",
+    capabilities: {
+      attachments: true,
+      imageGeneration: true,
+    },
+    showInUI: true,
+    imageGenConfig: XAI_IMAGE_GEN_CONFIG,
   },
   {
     id: "grok-imagine-image",
@@ -755,6 +814,39 @@ export const chatModels: ChatModel[] = [
     provider: "deepseek",
     capabilities: {
       reasoning: true,
+    },
+    showInUI: true,
+  },
+  {
+    id: "kimi-k3-fast",
+    name: "kimiK3Fast.name",
+    description: "kimiK3Fast.description",
+    provider: "moonshotai",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+  },
+  {
+    id: "qwen3.8-max",
+    name: "qwen38Max.name",
+    description: "qwen38Max.description",
+    provider: "alibaba",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+  },
+  {
+    id: "qwen3.7-flash",
+    name: "qwen37Flash.name",
+    description: "qwen37Flash.description",
+    provider: "alibaba",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
     },
     showInUI: true,
   },
@@ -908,6 +1000,23 @@ export const chatModels: ChatModel[] = [
     },
   },
   {
+    id: "seedance-2.5",
+    name: "seedance25.name",
+    description: "seedance25.description",
+    provider: "bytedance",
+    capabilities: {
+      videoGeneration: true,
+      attachments: true,
+    },
+    showInUI: true,
+    videoGenConfig: {
+      gatewayModelId: "bytedance/seedance-2.5",
+      durationSeconds: 5,
+      imageInput: "optional",
+      ...SEEDANCE_VIDEO_GEN_SECTIONS,
+    },
+  },
+  {
     id: "seedance-2.0",
     name: "seedance20.name",
     description: "seedance20.description",
@@ -939,6 +1048,23 @@ export const chatModels: ChatModel[] = [
       durationSeconds: 5,
       imageInput: "optional",
       ...SEEDANCE_VIDEO_GEN_SECTIONS,
+    },
+  },
+  {
+    id: "flux-3-video",
+    name: "flux3Video.name",
+    description: "flux3Video.description",
+    provider: "bfl",
+    capabilities: {
+      videoGeneration: true,
+      attachments: true,
+    },
+    showInUI: true,
+    videoGenConfig: {
+      gatewayModelId: "bfl/flux-3-video",
+      durationSeconds: 5,
+      imageInput: "optional",
+      ...FLUX_VIDEO_GEN_SECTIONS,
     },
   },
   {
@@ -975,6 +1101,18 @@ export const chatModels: ChatModel[] = [
     },
     showInUI: true,
     imageGenConfig: RECRAFT_IMAGE_GEN_CONFIG,
+  },
+  {
+    id: "seedream-5.0-pro",
+    name: "seedream50Pro.name",
+    description: "seedream50Pro.description",
+    provider: "bytedance",
+    capabilities: {
+      attachments: true,
+      imageGeneration: true,
+    },
+    showInUI: true,
+    imageGenConfig: BYTEDANCE_IMAGE_GEN_CONFIG,
   },
   {
     id: "seedream-5.0-lite",
@@ -1079,17 +1217,24 @@ export const isVideoGenerationModel = (modelId: string) =>
 
 type DedicatedImageModelId =
   | "grok-imagine-image"
+  | "grok-imagine-image-2.0"
   | "flux-2-max"
   | "flux-kontext-max"
   | "recraft-v4.1-pro"
+  | "seedream-5.0-pro"
   | "seedream-5.0-lite"
   | "seedream-4.5";
 
+// The gateway serves xAI under the "spacexai" namespace and keeps "xai/*" as an
+// alias (verified 2026-08-22); the alias is used here so every xAI id in the
+// repo — including the video handler's providerOptions prefix check — matches.
 const DEDICATED_IMAGE_GATEWAY_MAP: Record<DedicatedImageModelId, string> = {
   "grok-imagine-image": "xai/grok-imagine-image",
+  "grok-imagine-image-2.0": "xai/grok-imagine-image-2.0",
   "flux-2-max": "bfl/flux-2-max",
   "flux-kontext-max": "bfl/flux-kontext-max",
   "recraft-v4.1-pro": "recraft/recraft-v4.1-pro",
+  "seedream-5.0-pro": "bytedance/seedream-5.0-pro",
   "seedream-5.0-lite": "bytedance/seedream-5.0-lite",
   "seedream-4.5": "bytedance/seedream-4.5",
 };
@@ -1197,6 +1342,7 @@ export const getOpenAIProviderOptions = (
 
 export const googleModelIds = [
   "gemini-3.1-pro",
+  "gemini-3.7-flash",
   "gemini-3.6-flash",
   "gemini-3.5-flash",
   "gemini-3.5-flash-lite",

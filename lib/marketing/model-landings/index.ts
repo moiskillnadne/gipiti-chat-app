@@ -10,6 +10,7 @@
  * to one; keep the two files in sync when a model is added or removed.
  */
 
+import { alibabaLandings } from "./alibaba";
 import { anthropicLandings } from "./anthropic";
 import { codeLandings } from "./code";
 import { deepseekLandings } from "./deepseek";
@@ -20,9 +21,11 @@ import { googleImageLandings } from "./image-google";
 import { openaiImageLandings } from "./image-openai";
 import { recraftImageLandings } from "./image-recraft";
 import { xaiImageLandings } from "./image-xai";
+import { moonshotaiLandings } from "./moonshotai";
 import { openaiLandings } from "./openai";
 import { perplexityLandings } from "./perplexity";
 import type { ModelLanding } from "./types";
+import { bflVideoLandings } from "./video-bfl";
 import { bytedanceVideoLandings } from "./video-bytedance";
 import { googleVideoLandings } from "./video-google";
 import { klingaiVideoLandings } from "./video-klingai";
@@ -55,6 +58,8 @@ export const modelLandings: ModelLanding[] = [
   ...perplexityLandings,
   ...xaiLandings,
   ...deepseekLandings,
+  ...moonshotaiLandings,
+  ...alibabaLandings,
   ...codeLandings,
   ...googleImageLandings,
   ...openaiImageLandings,
@@ -63,6 +68,7 @@ export const modelLandings: ModelLanding[] = [
   ...xaiImageLandings,
   ...bytedanceImageLandings,
   ...googleVideoLandings,
+  ...bflVideoLandings,
   ...klingaiVideoLandings,
   ...bytedanceVideoLandings,
   ...xaiVideoLandings,

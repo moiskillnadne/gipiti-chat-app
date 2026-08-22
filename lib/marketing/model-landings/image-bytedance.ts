@@ -1,4 +1,4 @@
-/** Landings for the ByteDance image models: Seedream 5.0 Lite and 4.5. */
+/** Landings for the ByteDance image models: Seedream 5.0 Pro, 5.0 Lite and 4.5. */
 
 import {
   buildChips,
@@ -11,14 +11,133 @@ import {
   FLUX_SLUG,
   GPT_IMAGE_SLUG,
   NANO_BANANA_SLUG,
+  SEEDANCE_25_SLUG,
   SEEDANCE_SLUG,
   SEEDREAM_45_SLUG,
   SEEDREAM_LITE_SLUG,
+  SEEDREAM_PRO_SLUG,
   vpnBenefit,
 } from "./shared";
 import type { ModelLanding } from "./types";
 
 export const bytedanceImageLandings: ModelLanding[] = [
+  {
+    kind: "image",
+    slug: SEEDREAM_PRO_SLUG,
+    modelId: "seedream-5.0-pro",
+    name: "Seedream 5.0 Pro",
+    vendor: "ByteDance",
+    accent: "warm",
+    badge: "ByteDance · Старшая модель · Изображения",
+    h1Top: "Seedream 5.0 Pro —",
+    h1Gradient: "фотореализм и точное редактирование",
+    sub: "Старшая модель ByteDance для изображений уже в GIPITI — сложные реалистичные сцены, аккуратный свет и точный контроль правок. Без VPN, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    ctaMain: "Попробовать Seedream 5.0 Pro",
+    metaTitle: "Seedream 5.0 Pro — генерация изображений ByteDance | GIPITI",
+    metaDescription:
+      "Seedream 5.0 Pro в GIPITI — старшая модель ByteDance: фотореалистичные сцены, предметная съёмка и точное редактирование по описанию на русском. Без VPN, оплата российскими картами.",
+    heroMedia: {
+      userMessage:
+        "Студийное фото флакона духов на камне, янтарная жидкость, мягкий градиентный фон, квадратный кадр",
+      aiIntro: "Готово — **студийный свет** и мягкие тени:",
+      aspect: "1:1",
+      resultCaption: "Флакон духов · студийный свет, мягкий градиент",
+      resultMeta: "Формат 1:1",
+      sample: {
+        src: "/images/model-landings/seedream-5-0-pro/perfume-bottle.webp",
+        alt: "Студийная съёмка гранёного стеклянного флакона духов с янтарной жидкостью на каменной поверхности — изображение, созданное Seedream 5.0 Pro в GIPITI",
+        width: 1280,
+        height: 1280,
+      },
+    },
+    benefits: [
+      {
+        icon: "sparkles",
+        title: "Фотореализм коммерческого уровня",
+        text: "Seedream 5.0 Pro создавалась под сложные реалистичные сцены: корректные блики, честные тени и материалы, которые выглядят как настоящие.",
+      },
+      {
+        icon: "wand",
+        title: "Точное редактирование",
+        text: "Скажите, что поменять — модель правит именно это и сохраняет остальной кадр: свет, цвет и детали не «уплывают» после каждой итерации.",
+      },
+      russianPromptBenefit,
+      vpnBenefit,
+    ],
+    steps: buildImageSteps(
+      "Seedream 5.0 Pro",
+      "Чем точнее описан кадр — свет, материалы, ракурс — тем ближе результат к съёмке."
+    ),
+    audience: [
+      {
+        title: "Предметная съёмка",
+        text: "Карточки товара и рекламные кадры без студии, фотографа и аренды света.",
+        userMessage:
+          "Керамические миски ручной работы на льняной салфетке, вид сверху, дневной свет",
+        aiReply: "**Готово** · керамика на льне, вид сверху",
+        sample: {
+          src: "/images/model-landings/seedream-5-0-pro/ceramics.webp",
+          alt: "Вид сверху: керамические миски ручной работы на льняной салфетке на светлом дубовом столе",
+          width: 900,
+          height: 900,
+        },
+      },
+      {
+        title: "Портреты и репортаж",
+        text: "Живые кадры с людьми для сайта, презентации или статьи.",
+        userMessage:
+          "Портрет керамистки в мастерской, глина на руках, свет из окна слева",
+        aiReply: "**Портрет** · мастерская, свет из окна",
+        sample: {
+          src: "/images/model-landings/seedream-5-0-pro/portrait-artist.webp",
+          alt: "Портрет керамистки в мастерской: глина на руках, мягкий свет из окна слева",
+          width: 900,
+          height: 900,
+        },
+      },
+      {
+        title: "Макро и детали",
+        text: "Сложные фактуры и мелкие детали крупным планом — металл, стекло, механика.",
+        userMessage:
+          "Макро механизма наручных часов, латунные шестерни, контровой свет",
+        aiReply: "**Макро** · механизм часов, контровой свет",
+        sample: {
+          src: "/images/model-landings/seedream-5-0-pro/watch-macro.webp",
+          alt: "Макросъёмка механизма наручных часов: стальные мосты и латунные шестерни на тёмном сланце",
+          width: 900,
+          height: 900,
+        },
+      },
+    ],
+    faq: [
+      {
+        question: "Что такое Seedream 5.0 Pro?",
+        answer:
+          "Seedream 5.0 Pro — старшая модель ByteDance для генерации изображений. Она рассчитана на сложные реалистичные сцены и точное редактирование: правки применяются адресно, а остальной кадр сохраняется. В GIPITI доступна без VPN и с оплатой российскими картами.",
+      },
+      {
+        question: "Чем Pro отличается от Seedream 5.0 Lite?",
+        answer:
+          "Pro детальнее прорабатывает свет, материалы и мелкие элементы кадра и точнее выполняет правки. Lite быстрее и дешевле — её удобно брать для набросков и перебора идей, а удачный кадр повторить в Pro.",
+      },
+      {
+        question: "Можно ли отредактировать своё изображение?",
+        answer:
+          "Да. Прикрепите картинку и опишите правку словами — модель изменит указанное и сохранит остальную часть кадра. Продолжайте уточнять в том же чате.",
+      },
+      ...sharedMediaFaq,
+    ],
+    otherModels: buildChips([
+      {
+        name: "Seedream 5.0 Lite",
+        tag: "Изображения",
+        slug: SEEDREAM_LITE_SLUG,
+      },
+      { name: "Seedream 4.5", tag: "Изображения", slug: SEEDREAM_45_SLUG },
+      { name: "Nano Banana", tag: "Изображения", slug: NANO_BANANA_SLUG },
+      { name: "Seedance 2.5", tag: "Видео", slug: SEEDANCE_25_SLUG },
+    ]),
+  },
   {
     kind: "image",
     slug: SEEDREAM_LITE_SLUG,

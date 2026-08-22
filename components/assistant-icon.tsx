@@ -3,11 +3,13 @@ import { getModelById, type ModelProvider } from "@/lib/ai/models";
 import { cn } from "@/lib/utils";
 import { SparklesIcon } from "./icons";
 import {
+  LogoAlibaba,
   LogoAnthropic,
   LogoBytedance,
   LogoDeepseek,
   LogoGoogle,
   LogoKling,
+  LogoMoonshot,
   LogoOpenAI,
   LogoPerplexity,
   LogoXai,
@@ -31,6 +33,8 @@ const providerIconMap: Partial<Record<ModelProvider, FC<IconComponentProps>>> =
     bytedance: LogoBytedance,
     deepseek: LogoDeepseek,
     perplexity: LogoPerplexity,
+    moonshotai: LogoMoonshot,
+    alibaba: LogoAlibaba,
   };
 
 export const AssistantIcon = ({

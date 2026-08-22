@@ -206,6 +206,17 @@ export const catalogModels: CatalogModel[] = [
     hue: 210,
   },
   {
+    modelId: "gemini-3.7-flash",
+    name: "Gemini 3.7 Flash",
+    vendor: "Google",
+    provider: "google",
+    category: "text",
+    description:
+      "Новейшая быстрая модель Google: уровень Pro в агентных задачах и коде при высокой скорости.",
+    tag: "Новинка",
+    hue: 210,
+  },
+  {
     modelId: "gemini-3.6-flash",
     name: "Gemini 3.6 Flash",
     vendor: "Google",
@@ -236,6 +247,17 @@ export const catalogModels: CatalogModel[] = [
       "Самая экономичная модель Google с рассуждениями — для простых, частых и объёмных задач.",
     tag: "Новинка",
     hue: 210,
+  },
+  {
+    modelId: "grok-4.6",
+    name: "Grok 4.6",
+    vendor: "xAI",
+    provider: "xai",
+    category: "text",
+    description:
+      "Новейшая модель xAI: длинные агентные задачи, программирование и работа с большим контекстом.",
+    tag: "Новинка",
+    hue: 0,
   },
   {
     modelId: "grok-4.5",
@@ -278,6 +300,39 @@ export const catalogModels: CatalogModel[] = [
       "Быстрая и доступная версия DeepSeek V4 для повседневных задач.",
     tag: "Новинка",
     hue: 250,
+  },
+  {
+    modelId: "kimi-k3-fast",
+    name: "Kimi K3 Fast",
+    vendor: "Moonshot AI",
+    provider: "moonshotai",
+    category: "text",
+    description:
+      "Быстрый флагман Moonshot AI: длинные задачи по программированию и контекст до миллиона токенов.",
+    tag: "Новинка",
+    hue: 295,
+  },
+  {
+    modelId: "qwen3.8-max",
+    name: "Qwen 3.8 Max",
+    vendor: "Alibaba",
+    provider: "alibaba",
+    category: "text",
+    description:
+      "Флагман Alibaba: программирование, длинные документы и профессиональные задачи от начала до конца.",
+    tag: "Новинка",
+    hue: 65,
+  },
+  {
+    modelId: "qwen3.7-flash",
+    name: "Qwen 3.7 Flash",
+    vendor: "Alibaba",
+    provider: "alibaba",
+    category: "text",
+    description:
+      "Быстрая мультимодальная модель Alibaba: текст, изображения и агентные сценарии по низкой цене.",
+    tag: "Новинка",
+    hue: 65,
   },
   {
     modelId: "sonar",
@@ -371,6 +426,17 @@ export const catalogModels: CatalogModel[] = [
     hue: 275,
   },
   {
+    modelId: "grok-imagine-image-2.0",
+    name: "Grok Imagine 2.0",
+    vendor: "xAI",
+    provider: "xai",
+    category: "images",
+    description:
+      "Новое поколение генератора изображений xAI: выше детализация и точнее следование описанию.",
+    tag: "Новинка",
+    hue: 0,
+  },
+  {
     modelId: "grok-imagine-image",
     name: "Grok Imagine",
     vendor: "xAI",
@@ -378,6 +444,17 @@ export const catalogModels: CatalogModel[] = [
     category: "images",
     description: "Быстрые генерации изображений и коротких видео от xAI.",
     hue: 0,
+  },
+  {
+    modelId: "seedream-5.0-pro",
+    name: "Seedream 5.0 Pro",
+    vendor: "ByteDance",
+    provider: "bytedance",
+    category: "images",
+    description:
+      "Старшая модель ByteDance: фотореалистичные сцены, предметная съёмка и точное редактирование.",
+    tag: "Новинка",
+    hue: 200,
   },
   {
     modelId: "seedream-5.0-lite",
@@ -410,6 +487,17 @@ export const catalogModels: CatalogModel[] = [
       "Видео со звуком по текстовому описанию — до 8 секунд, кинематографичное качество.",
     tag: "Новинка",
     hue: 170,
+  },
+  {
+    modelId: "flux-3-video",
+    name: "Flux 3 Video",
+    vendor: "BFL",
+    provider: "bfl",
+    category: "video",
+    description:
+      "Видеомодель Black Forest Labs: ролики со звуком по описанию или из готового изображения.",
+    tag: "Новинка",
+    hue: 315,
   },
   {
     modelId: "grok-imagine-video",
@@ -460,6 +548,17 @@ export const catalogModels: CatalogModel[] = [
     category: "video",
     description: "Быстрая и доступная генерация видео по текстовому описанию.",
     hue: 145,
+  },
+  {
+    modelId: "seedance-2.5",
+    name: "Seedance 2.5",
+    vendor: "ByteDance",
+    provider: "bytedance",
+    category: "video",
+    description:
+      "Новое поколение видеомодели ByteDance: ролики со звуком по тексту или из картинки, точный контроль сцены.",
+    tag: "Новинка",
+    hue: 200,
   },
   {
     modelId: "seedance-2.0",

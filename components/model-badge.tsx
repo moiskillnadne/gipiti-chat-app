@@ -15,6 +15,8 @@ const providerStyles: Record<ModelProvider | "unknown", string> = {
   bytedance: "bg-sky-100 text-sky-800",
   deepseek: "bg-indigo-100 text-indigo-800",
   perplexity: "bg-cyan-100 text-cyan-800",
+  moonshotai: "bg-violet-100 text-violet-800",
+  alibaba: "bg-amber-100 text-amber-800",
   unknown: "bg-gray-100 text-gray-800",
 };
 
