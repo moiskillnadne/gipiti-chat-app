@@ -183,7 +183,7 @@ export const homeFaqItems: HomeFaqItem[] = [
   },
   {
     question: "Что входит в подписку?",
-    answer: `Подписка включает доступ ко всем 30+ AI-моделям от 10 провайдеров (OpenAI, Google, Anthropic, xAI, DeepSeek, Perplexity, Kling AI, ByteDance, BFL, Recraft), генерацию изображений и видео, генерацию кода, анализ документов, поиск в интернете и режим рассуждений. Каждый месяц на ваш баланс зачисляется ${SUBSCRIPTION_PRICE_RUB} ₽ для всех функций.`,
+    answer: `Подписка включает доступ ко всем 40+ AI-моделям от 12 провайдеров (OpenAI, Google, Anthropic, xAI, DeepSeek, Perplexity, Moonshot AI, Alibaba, Kling AI, ByteDance, BFL, Recraft), генерацию изображений и видео, генерацию кода, анализ документов, поиск в интернете и режим рассуждений. Каждый месяц на ваш баланс зачисляется ${SUBSCRIPTION_PRICE_RUB} ₽ для всех функций.`,
   },
   {
     question: "Как работают лимиты?",

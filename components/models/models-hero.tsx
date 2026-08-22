@@ -1,5 +1,14 @@
 import Link from "next/link";
 
+import { catalogModels } from "@/lib/marketing/models-catalog";
+
+/**
+ * Rounded down to the nearest ten so the badge stays truthful between
+ * releases — it is derived from the catalog rather than hardcoded, which is
+ * how it drifted to "18+" while the catalog grew past forty.
+ */
+const MODEL_COUNT_FLOOR = Math.floor(catalogModels.length / 10) * 10;
+
 export const ModelsHero = () => (
   <section className="px-4 pt-6">
     <div className="mx-auto max-w-6xl">
@@ -19,7 +28,7 @@ export const ModelsHero = () => (
 
       <div className="pt-12">
         <div className="inline-flex items-center gap-2 rounded-full border border-indigo-500/35 bg-indigo-500/10 px-4 py-2 text-indigo-300 text-sm">
-          ✦ 18+ моделей в одной подписке
+          ✦ {MODEL_COUNT_FLOOR}+ моделей в одной подписке
         </div>
         <h1 className="mt-5 mb-5 max-w-3xl font-bold text-4xl text-white leading-[1.14] tracking-tight md:text-5xl lg:text-[54px]">
           <span>Все нейросети —</span>

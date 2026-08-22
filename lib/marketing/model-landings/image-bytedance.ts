@@ -12,7 +12,6 @@ import {
   GPT_IMAGE_SLUG,
   NANO_BANANA_SLUG,
   SEEDANCE_25_SLUG,
-  SEEDANCE_SLUG,
   SEEDREAM_45_SLUG,
   SEEDREAM_LITE_SLUG,
   SEEDREAM_PRO_SLUG,
@@ -241,10 +240,14 @@ export const bytedanceImageLandings: ModelLanding[] = [
       ...sharedMediaFaq,
     ],
     otherModels: buildChips([
+      {
+        name: "Seedream 5.0 Pro",
+        tag: "Изображения",
+        slug: SEEDREAM_PRO_SLUG,
+      },
       { name: "Seedream 4.5", tag: "Изображения", slug: SEEDREAM_45_SLUG },
       { name: "Nano Banana", tag: "Изображения", slug: NANO_BANANA_SLUG },
       { name: "Flux 2 Max", tag: "Изображения", slug: FLUX_SLUG },
-      { name: "Seedance 2.0", tag: "Видео", slug: SEEDANCE_SLUG },
     ]),
   },
   {
@@ -354,13 +357,17 @@ export const bytedanceImageLandings: ModelLanding[] = [
     ],
     otherModels: buildChips([
       {
+        name: "Seedream 5.0 Pro",
+        tag: "Изображения",
+        slug: SEEDREAM_PRO_SLUG,
+      },
+      {
         name: "Seedream 5.0 Lite",
         tag: "Изображения",
         slug: SEEDREAM_LITE_SLUG,
       },
       { name: "Nano Banana", tag: "Изображения", slug: NANO_BANANA_SLUG },
       { name: "GPT Image 2", tag: "Изображения", slug: GPT_IMAGE_SLUG },
-      { name: "Seedance 2.0", tag: "Видео", slug: SEEDANCE_SLUG },
     ]),
   },
 ];

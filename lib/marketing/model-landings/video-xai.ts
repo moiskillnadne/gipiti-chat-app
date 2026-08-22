@@ -7,7 +7,7 @@
 
 import { buildChips, buildVideoSteps, sharedMediaFaq } from "./media-shared";
 import {
-  GROK_IMAGINE_SLUG,
+  GROK_IMAGINE_20_SLUG,
   GROK_IMAGINE_VIDEO_SLUG,
   KLING_25_TURBO_SLUG,
   SEEDANCE_FAST_SLUG,
@@ -98,7 +98,11 @@ export const xaiVideoLandings: ModelLanding[] = [
       ...sharedMediaFaq,
     ],
     otherModels: buildChips([
-      { name: "Grok Imagine", tag: "Изображения", slug: GROK_IMAGINE_SLUG },
+      {
+        name: "Grok Imagine 2.0",
+        tag: "Изображения",
+        slug: GROK_IMAGINE_20_SLUG,
+      },
       { name: "Veo 3.1", tag: "Видео", slug: VEO_SLUG },
       { name: "Kling 2.5 Turbo", tag: "Видео", slug: KLING_25_TURBO_SLUG },
       { name: "Seedance 2.0 Fast", tag: "Видео", slug: SEEDANCE_FAST_SLUG },

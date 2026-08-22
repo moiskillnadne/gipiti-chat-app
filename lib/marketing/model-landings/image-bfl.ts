@@ -14,10 +14,10 @@ import {
 } from "./media-shared";
 import {
   FLUX_SLUG,
+  FLUX_VIDEO_SLUG,
   GPT_IMAGE_SLUG,
   NANO_BANANA_PRO_SLUG,
   RECRAFT_SLUG,
-  SEEDREAM_45_SLUG,
   vpnBenefit,
 } from "./shared";
 import type { ModelLanding } from "./types";
@@ -135,7 +135,7 @@ export const bflImageLandings: ModelLanding[] = [
       },
       { name: "GPT Image 2", tag: "Изображения", slug: GPT_IMAGE_SLUG },
       { name: "Recraft v4.1 Pro", tag: "Изображения", slug: RECRAFT_SLUG },
-      { name: "Seedream 4.5", tag: "Изображения", slug: SEEDREAM_45_SLUG },
+      { name: "Flux 3 Video", tag: "Видео", slug: FLUX_VIDEO_SLUG },
     ]),
   },
 ];

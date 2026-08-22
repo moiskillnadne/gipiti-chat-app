@@ -115,14 +115,14 @@ export const xaiLandings: ModelLanding[] = [
     name: "Grok 4.5",
     vendor: "xAI",
     accent: "violet",
-    badge: "xAI · Новейшая модель · Текст",
+    badge: "xAI · Проверенный флагман · Текст",
     h1Top: "Grok 4.5 —",
-    h1Gradient: "нейросеть xAI на русском",
-    sub: "Новейшая модель xAI уже в GIPITI — передовые результаты в программировании, аналитике и STEM-задачах. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    h1Gradient: "нейросеть xAI для STEM на русском",
+    sub: "Флагман xAI прошлого поколения уже в GIPITI — сильные результаты в программировании, аналитике и STEM-задачах. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
     ctaMain: "Попробовать Grok 4.5",
-    metaTitle: "Grok 4.5 — нейросеть xAI на русском без VPN | GIPITI",
+    metaTitle: "Grok 4.5 — нейросеть xAI для STEM и кода без VPN | GIPITI",
     metaDescription:
-      "Grok 4.5 — новейшая модель xAI в GIPITI: передовые результаты в программировании, аналитике и STEM. Без VPN, на русском, оплата российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+      "Grok 4.5 в GIPITI — модель xAI с сильными результатами в программировании, аналитике и STEM. Без VPN, на русском, оплата российскими картами. Дарим 200 ₽ каждому новому пользователю.",
     heroChat: {
       userMessage:
         "Вот результаты A/B-теста — можно ли верить росту конверсии? 📄 ab-test.csv",
@@ -176,7 +176,7 @@ export const xaiLandings: ModelLanding[] = [
       {
         question: "Что такое Grok 4.5?",
         answer:
-          "Grok 4.5 — новейшая модель xAI с передовыми результатами в программировании, аналитике и STEM-задачах. В GIPITI она доступна без VPN, с интерфейсом на русском языке и оплатой российскими картами.",
+          "Grok 4.5 — модель xAI с сильными результатами в программировании, аналитике и STEM-задачах. Новее неё только Grok 4.6, которая устойчивее в длинных задачах. Обе доступны в GIPITI без VPN, на русском и с оплатой российскими картами.",
       },
       {
         question: "Чем Grok отличается от ChatGPT?",
@@ -191,13 +191,9 @@ export const xaiLandings: ModelLanding[] = [
       ...sharedFaq,
     ],
     otherModels: [
+      { name: "Grok 4.6", tag: "Текст", href: `/models/${GROK_46_SLUG}` },
       { name: "GPT-5.6 Sol", tag: "Текст", href: `/models/${SOL_SLUG}` },
       { name: "Claude Opus 5", tag: "Текст", href: `/models/${OPUS_5_SLUG}` },
-      {
-        name: "Gemini 3.1 Pro",
-        tag: "Текст",
-        href: `/models/${GEMINI_PRO_SLUG}`,
-      },
       {
         name: "DeepSeek V4 Pro",
         tag: "Текст",
@@ -275,17 +271,13 @@ export const xaiLandings: ModelLanding[] = [
       ...sharedFaq,
     ],
     otherModels: [
+      { name: "Grok 4.6", tag: "Текст", href: `/models/${GROK_46_SLUG}` },
       { name: "Grok 4.5", tag: "Текст", href: `/models/${GROK_SLUG}` },
       { name: "GPT-5.6 Terra", tag: "Текст", href: `/models/${TERRA_SLUG}` },
       {
         name: "Gemini 3.5 Flash",
         tag: "Текст",
         href: `/models/${GEMINI_35_FLASH_SLUG}`,
-      },
-      {
-        name: "DeepSeek V4 Pro",
-        tag: "Текст",
-        href: `/models/${DEEPSEEK_SLUG}`,
       },
     ],
   },

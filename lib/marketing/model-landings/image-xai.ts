@@ -11,7 +11,6 @@ import {
   GROK_IMAGINE_20_SLUG,
   GROK_IMAGINE_SLUG,
   GROK_IMAGINE_VIDEO_SLUG,
-  GROK_SLUG,
   NANO_BANANA_LITE_SLUG,
   NANO_BANANA_SLUG,
   SEEDREAM_PRO_SLUG,
@@ -244,6 +243,11 @@ export const xaiImageLandings: ModelLanding[] = [
     ],
     otherModels: buildChips([
       {
+        name: "Grok Imagine 2.0",
+        tag: "Изображения",
+        slug: GROK_IMAGINE_20_SLUG,
+      },
+      {
         name: "Grok Imagine Video",
         tag: "Видео",
         slug: GROK_IMAGINE_VIDEO_SLUG,
@@ -254,7 +258,6 @@ export const xaiImageLandings: ModelLanding[] = [
         tag: "Изображения",
         slug: NANO_BANANA_LITE_SLUG,
       },
-      { name: "Grok 4.5", tag: "Текст", slug: GROK_SLUG },
     ]),
   },
 ];

@@ -101,9 +101,9 @@ export const googleLandings: ModelLanding[] = [
     ],
     otherModels: [
       {
-        name: "Gemini 3.6 Flash",
+        name: "Gemini 3.7 Flash",
         tag: "Текст",
-        href: `/models/${GEMINI_36_FLASH_SLUG}`,
+        href: `/models/${GEMINI_37_FLASH_SLUG}`,
       },
       { name: "GPT-5.6 Sol", tag: "Текст", href: `/models/${SOL_SLUG}` },
       { name: "Claude Opus 5", tag: "Текст", href: `/models/${OPUS_5_SLUG}` },
@@ -213,15 +213,15 @@ export const googleLandings: ModelLanding[] = [
     name: "Gemini 3.6 Flash",
     vendor: "Google",
     accent: "sky",
-    badge: "Google · Новейшая быстрая модель · Текст",
+    badge: "Google · Быстрая модель · Текст",
     h1Top: "Gemini 3.6 Flash —",
-    h1Gradient: "новая быстрая нейросеть Google",
-    sub: "Новейшая быстрая модель Google уже в GIPITI — качество старших моделей на скорости Flash: код, рабочие задачи и мультимодальность. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    h1Gradient: "быстрая нейросеть Google на русском",
+    sub: "Быстрая модель Google уже в GIPITI — качество старших моделей на скорости Flash: код, рабочие задачи и мультимодальность. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
     ctaMain: "Попробовать Gemini 3.6 Flash",
     metaTitle:
-      "Gemini 3.6 Flash — новая нейросеть Google на русском без VPN | GIPITI",
+      "Gemini 3.6 Flash — быстрая нейросеть Google на русском без VPN | GIPITI",
     metaDescription:
-      "Gemini 3.6 Flash — новейшая быстрая модель Google в GIPITI: код, рабочие задачи, фото и документы в одном чате. Без VPN, на русском, оплата российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+      "Gemini 3.6 Flash в GIPITI — быстрая модель Google для кода, рабочих задач, фото и документов в одном чате. Без VPN, на русском, оплата российскими картами. Дарим 200 ₽ каждому новому пользователю.",
     heroChat: {
       userMessage:
         "Собери из этой таблицы отчёт для руководителя: главное, тренды и что делать 📄 sales.xlsx",
@@ -274,6 +274,11 @@ export const googleLandings: ModelLanding[] = [
           "3.6 Flash — следующее поколение: точнее в программировании и многошаговых задачах, при этом расходует меньше токенов на ответ. Gemini 3.5 Flash остаётся доступна в GIPITI — можно сравнить обе модели на своей задаче.",
       },
       {
+        question: "Стоит ли перейти на Gemini 3.7 Flash?",
+        answer:
+          "Если важны код и многошаговые агентные задачи — да, 3.7 Flash в них заметно сильнее и экономнее по токенам. Для простых повседневных запросов разница почти незаметна. Обе модели доступны в GIPITI, переключение занимает один клик.",
+      },
+      {
         question: "Чем Gemini отличается от ChatGPT?",
         answer:
           "Gemini — модель Google, особенно сильная в мультимодальных задачах: фотографии, скриншоты и документы она разбирает в одном чате с текстом. В GIPITI доступны и Gemini, и GPT-5.6 — сравните их на своей задаче.",
@@ -281,6 +286,11 @@ export const googleLandings: ModelLanding[] = [
       ...sharedFaq,
     ],
     otherModels: [
+      {
+        name: "Gemini 3.7 Flash",
+        tag: "Текст",
+        href: `/models/${GEMINI_37_FLASH_SLUG}`,
+      },
       {
         name: "Gemini 3.1 Pro",
         tag: "Текст",
@@ -291,7 +301,6 @@ export const googleLandings: ModelLanding[] = [
         tag: "Текст",
         href: `/models/${GEMINI_35_FLASH_LITE_SLUG}`,
       },
-      { name: "GPT-5.6 Terra", tag: "Текст", href: `/models/${TERRA_SLUG}` },
       { name: "Claude Sonnet 5", tag: "Текст", href: `/models/${SONNET_SLUG}` },
     ],
   },

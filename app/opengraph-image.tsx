@@ -90,7 +90,7 @@ export default function Image() {
             marginTop: "24px",
           }}
         >
-          {["GPT-5.6", "Gemini 3.1 Pro", "Opus 5", "Grok 4.5"].map((model) => (
+          {["GPT-5.6", "Gemini 3.1 Pro", "Opus 5", "Grok 4.6"].map((model) => (
             <div
               key={model}
               style={{
