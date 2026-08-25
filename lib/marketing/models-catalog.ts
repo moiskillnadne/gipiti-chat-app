@@ -52,11 +52,11 @@ export const catalogSections: CatalogSection[] = [
     typePage: {
       h1Top: "Нейросети для работы",
       h1Gradient: "с текстом на русском",
-      sub: "GPT-5.6, Claude Opus 5, Gemini 3.6 Flash, DeepSeek V4, Perplexity Sonar и другие — пишите тексты, анализируйте документы и решайте рабочие задачи на русском языке. Без VPN, оплата российскими картами.",
+      sub: "GPT-5.6, Claude Opus 5, Gemini 3.7 Flash, Grok 4.6, Qwen 3.8 Max, DeepSeek V4 и другие — пишите тексты, анализируйте документы и решайте рабочие задачи на русском языке. Без VPN, оплата российскими картами.",
       metaTitle:
-        "Нейросети для работы с текстом — GPT-5.6, Claude, Gemini, DeepSeek, Perplexity | GIPITI",
+        "Нейросети для работы с текстом — GPT-5.6, Claude, Gemini, Grok, Qwen | GIPITI",
       metaDescription:
-        "Лучшие текстовые AI-модели в одном чате: GPT-5.6, Claude Opus 5, Gemini 3.6 Flash, DeepSeek V4, Perplexity Sonar и Grok 4.5. Без VPN, на русском, оплата российскими картами.",
+        "Лучшие текстовые AI-модели в одном чате: GPT-5.6, Claude Opus 5, Gemini 3.7 Flash, Grok 4.6, Qwen 3.8 Max, Kimi K3 и DeepSeek V4. Без VPN, на русском, оплата российскими картами.",
     },
   },
   {
@@ -68,11 +68,11 @@ export const catalogSections: CatalogSection[] = [
     typePage: {
       h1Top: "Нейросети для генерации",
       h1Gradient: "изображений на русском",
-      sub: "Nano Banana, GPT Image, Flux, Seedream, Recraft и другие — создавайте и редактируйте изображения по описанию на русском языке. Без VPN, оплата российскими картами.",
+      sub: "Nano Banana, GPT Image, Flux, Seedream 5.0 Pro, Grok Imagine 2.0 и Recraft — создавайте и редактируйте изображения по описанию на русском языке. Без VPN, оплата российскими картами.",
       metaTitle:
         "Нейросети для генерации изображений — Nano Banana, GPT Image, Flux, Seedream | GIPITI",
       metaDescription:
-        "Генерация и редактирование изображений по описанию: Nano Banana, GPT Image 2, Flux 2 Max, Seedream, Recraft и Grok Imagine в одной подписке. Без VPN, оплата российскими картами.",
+        "Генерация и редактирование изображений по описанию: Nano Banana, GPT Image 2, Flux 2 Max, Seedream 5.0 Pro, Recraft и Grok Imagine 2.0 в одной подписке. Без VPN, оплата российскими картами.",
     },
   },
   {
@@ -84,11 +84,11 @@ export const catalogSections: CatalogSection[] = [
     typePage: {
       h1Top: "Нейросети для генерации",
       h1Gradient: "видео на русском",
-      sub: "Veo 3.1, Kling 3.0, Seedance 2.0 и Grok Imagine Video — создавайте видеоролики по текстовому описанию или из готового изображения. Без VPN, оплата российскими картами.",
+      sub: "Veo 3.1, Kling 3.0, Seedance 2.5 и Flux 3 Video — создавайте видеоролики по текстовому описанию или из готового изображения. Без VPN, оплата российскими картами.",
       metaTitle:
-        "Нейросети для генерации видео — Veo 3.1, Kling 3.0, Seedance 2.0 | GIPITI",
+        "Нейросети для генерации видео — Veo 3.1, Kling 3.0, Seedance 2.5, Flux 3 | GIPITI",
       metaDescription:
-        "Генерация видео по текстовому промпту или из изображения: Veo 3.1 со звуком, Kling 3.0, Seedance 2.0 и Grok Imagine Video. Без VPN, на русском, оплата российскими картами.",
+        "Генерация видео по текстовому промпту или из изображения: Veo 3.1 со звуком, Kling 3.0, Seedance 2.5 и Flux 3 Video. Без VPN, на русском, оплата российскими картами.",
     },
   },
   {
@@ -206,14 +206,24 @@ export const catalogModels: CatalogModel[] = [
     hue: 210,
   },
   {
+    modelId: "gemini-3.7-flash",
+    name: "Gemini 3.7 Flash",
+    vendor: "Google",
+    provider: "google",
+    category: "text",
+    description:
+      "Новейшая быстрая модель Google: уровень Pro в агентных задачах и коде при высокой скорости.",
+    tag: "Новинка",
+    hue: 210,
+  },
+  {
     modelId: "gemini-3.6-flash",
     name: "Gemini 3.6 Flash",
     vendor: "Google",
     provider: "google",
     category: "text",
     description:
-      "Новейшая быстрая модель Google: выше качество в коде и агентных задачах при меньшем расходе токенов.",
-    tag: "Новинка",
+      "Быстрая модель Google прошлого поколения: код и агентные задачи при низком расходе токенов.",
     hue: 210,
   },
   {
@@ -238,14 +248,24 @@ export const catalogModels: CatalogModel[] = [
     hue: 210,
   },
   {
+    modelId: "grok-4.6",
+    name: "Grok 4.6",
+    vendor: "xAI",
+    provider: "xai",
+    category: "text",
+    description:
+      "Новейшая модель xAI: длинные агентные задачи, программирование и работа с большим контекстом.",
+    tag: "Новинка",
+    hue: 0,
+  },
+  {
     modelId: "grok-4.5",
     name: "Grok 4.5",
     vendor: "xAI",
     provider: "xai",
     category: "text",
     description:
-      "Новейшая модель xAI: передовые результаты в программировании, аналитике и STEM-задачах.",
-    tag: "Новинка",
+      "Проверенный флагман xAI прошлого поколения: программирование, аналитика и STEM-задачи.",
     hue: 0,
   },
   {
@@ -278,6 +298,39 @@ export const catalogModels: CatalogModel[] = [
       "Быстрая и доступная версия DeepSeek V4 для повседневных задач.",
     tag: "Новинка",
     hue: 250,
+  },
+  {
+    modelId: "kimi-k3-fast",
+    name: "Kimi K3 Fast",
+    vendor: "Moonshot AI",
+    provider: "moonshotai",
+    category: "text",
+    description:
+      "Быстрый флагман Moonshot AI: длинные задачи по программированию и контекст до миллиона токенов.",
+    tag: "Новинка",
+    hue: 295,
+  },
+  {
+    modelId: "qwen3.8-max",
+    name: "Qwen 3.8 Max",
+    vendor: "Alibaba",
+    provider: "alibaba",
+    category: "text",
+    description:
+      "Флагман Alibaba: программирование, длинные документы и профессиональные задачи от начала до конца.",
+    tag: "Новинка",
+    hue: 65,
+  },
+  {
+    modelId: "qwen3.7-flash",
+    name: "Qwen 3.7 Flash",
+    vendor: "Alibaba",
+    provider: "alibaba",
+    category: "text",
+    description:
+      "Быстрая мультимодальная модель Alibaba: текст, изображения и агентные сценарии по низкой цене.",
+    tag: "Новинка",
+    hue: 65,
   },
   {
     modelId: "sonar",
@@ -371,6 +424,17 @@ export const catalogModels: CatalogModel[] = [
     hue: 275,
   },
   {
+    modelId: "grok-imagine-image-2.0",
+    name: "Grok Imagine 2.0",
+    vendor: "xAI",
+    provider: "xai",
+    category: "images",
+    description:
+      "Новое поколение генератора изображений xAI: выше детализация и точнее следование описанию.",
+    tag: "Новинка",
+    hue: 0,
+  },
+  {
     modelId: "grok-imagine-image",
     name: "Grok Imagine",
     vendor: "xAI",
@@ -380,14 +444,24 @@ export const catalogModels: CatalogModel[] = [
     hue: 0,
   },
   {
+    modelId: "seedream-5.0-pro",
+    name: "Seedream 5.0 Pro",
+    vendor: "ByteDance",
+    provider: "bytedance",
+    category: "images",
+    description:
+      "Старшая модель ByteDance: фотореалистичные сцены, предметная съёмка и точное редактирование.",
+    tag: "Новинка",
+    hue: 200,
+  },
+  {
     modelId: "seedream-5.0-lite",
     name: "Seedream 5.0 Lite",
     vendor: "ByteDance",
     provider: "bytedance",
     category: "images",
     description:
-      "Новейшая модель ByteDance: понимает сложные промпты и учитывает актуальную информацию из сети.",
-    tag: "Новинка",
+      "Быстрая и недорогая модель линейки Seedream 5.0 — для набросков и перебора идей.",
     hue: 200,
   },
   {
@@ -410,6 +484,17 @@ export const catalogModels: CatalogModel[] = [
       "Видео со звуком по текстовому описанию — до 8 секунд, кинематографичное качество.",
     tag: "Новинка",
     hue: 170,
+  },
+  {
+    modelId: "flux-3-video",
+    name: "Flux 3 Video",
+    vendor: "BFL",
+    provider: "bfl",
+    category: "video",
+    description:
+      "Видеомодель Black Forest Labs: ролики со звуком по описанию или из готового изображения.",
+    tag: "Новинка",
+    hue: 315,
   },
   {
     modelId: "grok-imagine-video",
@@ -462,14 +547,24 @@ export const catalogModels: CatalogModel[] = [
     hue: 145,
   },
   {
+    modelId: "seedance-2.5",
+    name: "Seedance 2.5",
+    vendor: "ByteDance",
+    provider: "bytedance",
+    category: "video",
+    description:
+      "Новое поколение видеомодели ByteDance: ролики со звуком по тексту или из картинки, точный контроль сцены.",
+    tag: "Новинка",
+    hue: 200,
+  },
+  {
     modelId: "seedance-2.0",
     name: "Seedance 2.0",
     vendor: "ByteDance",
     provider: "bytedance",
     category: "video",
     description:
-      "Мультимодальная генерация видео со звуком: по тексту или из изображения, реалистичная физика движения.",
-    tag: "Новинка",
+      "Генерация видео со звуком по тексту или из изображения, реалистичная физика движения.",
     hue: 200,
   },
   {

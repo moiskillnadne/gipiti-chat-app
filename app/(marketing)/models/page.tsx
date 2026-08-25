@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     absolute: "Все AI-модели в одном чате — GPT, Claude, Gemini, Grok | GIPITI",
   },
   description:
-    "Каталог моделей GIPITI: GPT-5.6, Claude Opus 5, Gemini 3.1 Pro, Grok 4.5, Nano Banana, Veo 3.1 и другие. Текст, изображения, видео и код — без VPN, оплата российскими картами.",
+    "Каталог моделей GIPITI: GPT-5.6, Claude Opus 5, Gemini 3.1 Pro, Grok 4.6, Nano Banana, Veo 3.1 и другие. Текст, изображения, видео и код — без VPN, оплата российскими картами.",
   alternates: { canonical: "https://gipiti.ru/models" },
   openGraph: {
     type: "website",

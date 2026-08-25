@@ -7,10 +7,11 @@
 
 import { buildChips, buildVideoSteps, sharedMediaFaq } from "./media-shared";
 import {
+  FLUX_VIDEO_SLUG,
   GROK_IMAGINE_VIDEO_SLUG,
   KLING_30_SLUG,
   NANO_BANANA_SLUG,
-  SEEDANCE_SLUG,
+  SEEDANCE_25_SLUG,
   VEO_SLUG,
   vpnBenefit,
 } from "./shared";
@@ -102,7 +103,8 @@ export const googleVideoLandings: ModelLanding[] = [
     ],
     otherModels: buildChips([
       { name: "Kling 3.0", tag: "Видео", slug: KLING_30_SLUG },
-      { name: "Seedance 2.0", tag: "Видео", slug: SEEDANCE_SLUG },
+      { name: "Seedance 2.5", tag: "Видео", slug: SEEDANCE_25_SLUG },
+      { name: "Flux 3 Video", tag: "Видео", slug: FLUX_VIDEO_SLUG },
       { name: "Nano Banana", tag: "Изображения", slug: NANO_BANANA_SLUG },
       {
         name: "Grok Imagine Video",

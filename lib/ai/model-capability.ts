@@ -9,7 +9,8 @@ export const CAPABILITY_KEYS: readonly ModelCapabilityKey[] = [
   "video",
 ];
 
-const CODE_PATTERN = /codex|code|sonnet|opus|gpt-5\.\d|gemini-3|grok/i;
+const CODE_PATTERN =
+  /codex|code|sonnet|opus|gpt-5\.\d|gemini-3|grok|kimi|qwen/i;
 
 export type ModelCapabilityFlags = Record<ModelCapabilityKey, boolean>;
 

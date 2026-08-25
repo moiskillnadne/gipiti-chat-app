@@ -74,7 +74,7 @@ const demoTabs: DemoTab[] = [
   {
     id: "search",
     label: "Поиск в интернете",
-    modelBadge: "Grok 4.5",
+    modelBadge: "Grok 4.6",
     messages: [
       {
         role: "user",
@@ -83,7 +83,7 @@ const demoTabs: DemoTab[] = [
       {
         role: "assistant",
         content:
-          "За последнюю неделю: OpenAI представила новую архитектуру GPT-5.6 с улучшенным рассуждением, Google выпустила Gemini 3.6 Flash с нативной поддержкой мультимодальности, а Anthropic объявила о запуске Claude Opus 5 с расширенным контекстным окном.",
+          "За последнюю неделю: OpenAI представила новую архитектуру GPT-5.6 с улучшенным рассуждением, Google выпустила Gemini 3.7 Flash с нативной поддержкой мультимодальности, а Anthropic объявила о запуске Claude Opus 5 с расширенным контекстным окном.",
         toolCalls: [
           {
             type: "webSearch",
@@ -96,7 +96,7 @@ const demoTabs: DemoTab[] = [
             ],
           },
         ],
-        model: "Grok 4.5",
+        model: "Grok 4.6",
       },
     ],
   },

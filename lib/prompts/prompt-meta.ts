@@ -68,6 +68,8 @@ const PROVIDER_COLORS: Record<ModelProvider, string> = {
   bytedance: "oklch(0.6 0.14 230)",
   deepseek: "oklch(0.55 0.13 260)",
   perplexity: "oklch(0.6 0.11 200)",
+  moonshotai: "oklch(0.55 0.15 295)",
+  alibaba: "oklch(0.62 0.15 65)",
 };
 
 const FALLBACK_PROVIDER_COLOR = "var(--ink-4)";

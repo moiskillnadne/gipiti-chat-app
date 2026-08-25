@@ -32,6 +32,8 @@ const PROVIDER_ORDER: ModelProvider[] = [
   "bytedance",
   "deepseek",
   "perplexity",
+  "moonshotai",
+  "alibaba",
 ];
 
 const CAPABILITY_BUCKET_ORDER: ModelCapabilityKey[] = [

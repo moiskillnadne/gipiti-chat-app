@@ -271,10 +271,57 @@ const recraftImageProvider: ImageProvider = async ({
 };
 
 /**
+ * ByteDance rejects `aspectRatio` and shapes output through `size` instead — an
+ * aspect ratio sent to Seedream is silently dropped and every render comes back
+ * square (probed 2026-08-22 across 4.5, 5.0 Lite and 5.0 Pro), which made the
+ * composer's ratio picker a placebo on those models.
+ *
+ * Each ratio `BYTEDANCE_IMAGE_GEN_CONFIG` offers is mapped to exact dimensions
+ * that clear Seedream's floor of 3 686 400 pixels ("image size must be at least
+ * 3686400 pixels" — a 400 below it) while keeping the ratio exact and both
+ * sides multiples of 16. The square default and the widest ratio were verified
+ * against 5.0 Lite, the strictest of the three.
+ */
+const BYTEDANCE_ASPECT_TO_SIZE: Record<string, `${number}x${number}`> = {
+  "1:1": "1920x1920",
+  "4:3": "2240x1680",
+  "3:4": "1680x2240",
+  "16:9": "2560x1440",
+  "9:16": "1440x2560",
+  "3:2": "2352x1568",
+  "2:3": "1568x2352",
+  "21:9": "3024x1296",
+};
+
+/**
+ * The shape parameter a dedicated model actually honours. Everything except
+ * ByteDance takes `aspectRatio`; sending it to Seedream is silently ignored,
+ * so those models get the equivalent `size` instead.
+ */
+const buildImageShapeParams = (
+  gatewayModelId: string,
+  aspectRatio: string | undefined
+):
+  | { aspectRatio: `${number}:${number}` }
+  | { size: `${number}x${number}` }
+  | undefined => {
+  if (!aspectRatio) {
+    return;
+  }
+
+  if (gatewayModelId.startsWith("bytedance/")) {
+    const size = BYTEDANCE_ASPECT_TO_SIZE[aspectRatio];
+    return size ? { size } : undefined;
+  }
+
+  return { aspectRatio: aspectRatio as `${number}:${number}` };
+};
+
+/**
  * Dedicated gateway image models (grok-imagine-image, flux-2-max,
- * flux-kontext-max). Edits the latest chat image when one exists, else
- * text-to-image. Editing relies on the model accepting image input through the
- * gateway; unsupported models surface a gateway error (caught upstream).
+ * flux-kontext-max, seedream). Edits the latest chat image when one exists,
+ * else text-to-image. Editing relies on the model accepting image input through
+ * the gateway; unsupported models surface a gateway error (caught upstream).
  */
 const dedicatedImageProvider: ImageProvider = async ({
   modelId,
@@ -287,13 +334,16 @@ const dedicatedImageProvider: ImageProvider = async ({
   const latestImageUrl = resolveLatestImageUrl(uiMessages);
   onReasoning(latestImageUrl ? "Editing image..." : "Generating image...");
 
+  const shapeParams = buildImageShapeParams(
+    gatewayModelId,
+    settings?.aspectRatio
+  );
+
   const result = await runImageEdit(prompt, latestImageUrl, (imagePrompt) =>
     sdkGenerateImage({
       model: gateway.imageModel(gatewayModelId),
       prompt: imagePrompt,
-      ...(settings?.aspectRatio && {
-        aspectRatio: settings.aspectRatio as `${number}:${number}`,
-      }),
+      ...shapeParams,
     })
   );
 
