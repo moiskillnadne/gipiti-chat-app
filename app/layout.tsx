@@ -8,7 +8,6 @@ import { ErrorLogger } from "@/components/error-logger";
 import { UtmCapture } from "@/components/utm-capture";
 import { YandexMetrika } from "@/components/yandex-metrika";
 import "./globals.css";
-import { SessionProvider } from "next-auth/react";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://gipiti.ru"),
@@ -68,8 +67,13 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
+// Fonts are declared once here so every route shares one @font-face set. Only
+// Rubik (the body face) is preloaded: the other two are used on a handful of
+// routes and were costing ~106 KB of high-priority preloads on the landing.
+// `latin-ext` carries the ruble sign, which every page renders — without it
+// the subset was discovered late, after CSS parsed.
 const rubik = Rubik({
-  subsets: ["latin", "cyrillic"],
+  subsets: ["latin", "latin-ext", "cyrillic"],
   display: "swap",
   variable: "--font-rubik",
   weight: ["300", "400", "500", "600", "700"],
@@ -78,12 +82,14 @@ const rubik = Rubik({
 const geistMono = Geist_Mono({
   subsets: ["latin"],
   display: "swap",
+  preload: false,
   variable: "--font-geist-mono",
 });
 
 const fraunces = Fraunces({
   subsets: ["latin"],
   display: "swap",
+  preload: false,
   variable: "--font-fraunces",
   weight: ["300", "400", "500"],
   style: ["normal", "italic"],
@@ -114,7 +120,7 @@ export default function RootLayout({
         <UtmCapture />
         <SpeedInsights />
         <Toaster position="top-center" />
-        <SessionProvider>{children}</SessionProvider>
+        {children}
         <Analytics />
         <YandexMetrika />
         {shouldInjectToolbar && <VercelToolbar />}

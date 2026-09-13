@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 
 import { clientLog } from "@/lib/client-logger";
-import { useTranslations } from "@/lib/i18n/translate";
+import { useErrorTranslations } from "@/lib/i18n/errors";
 
 // Renders when the root layout itself fails, so globals.css is unavailable —
 // styles must stay inline and the markup must provide its own <html>/<body>.
@@ -14,7 +14,7 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  const t = useTranslations("errors");
+  const t = useErrorTranslations();
 
   useEffect(() => {
     clientLog.error("Global error boundary triggered", {

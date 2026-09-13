@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 
+import { isLandingSectionLink } from "@/lib/marketing/landing-links";
+
 // Root-relative so the anchors resolve to the landing-page sections from any
 // route (e.g. the blog), not only when already on "/".
 const productLinks = [
@@ -23,7 +25,11 @@ export const LandingFooter = () => (
       <div className="grid gap-8 md:grid-cols-3">
         {/* Brand column */}
         <div>
-          <Link className="font-bold text-white text-xl" href="/">
+          <Link
+            className="font-bold text-white text-xl"
+            href="/"
+            prefetch={false}
+          >
             GIPITI
           </Link>
           <p className="mt-3 max-w-xs text-sm text-zinc-500 leading-relaxed">
@@ -33,6 +39,7 @@ export const LandingFooter = () => (
           <Link
             className="mt-4 inline-flex items-center gap-2 text-indigo-400 text-sm transition-colors hover:text-indigo-300"
             href="/#pricing"
+            prefetch={false}
           >
             Попробовать бесплатно
             <span aria-hidden="true">&rarr;</span>
@@ -48,6 +55,7 @@ export const LandingFooter = () => (
                 <Link
                   className="text-sm text-zinc-400 transition-colors hover:text-white"
                   href={link.href}
+                  prefetch={isLandingSectionLink(link.href) ? false : undefined}
                 >
                   {link.label}
                 </Link>
@@ -65,6 +73,7 @@ export const LandingFooter = () => (
                 <Link
                   className="text-sm text-zinc-400 transition-colors hover:text-white"
                   href={link.href}
+                  prefetch={isLandingSectionLink(link.href) ? false : undefined}
                 >
                   {link.label}
                 </Link>

@@ -21,7 +21,9 @@ export function YandexMetrika() {
       ym(106642682, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});`,
         }}
         id="yandex-metrika"
-        strategy="afterInteractive"
+        // The 250 KB tag (webvisor included) used to run right as the page
+        // hydrated; after `load` it no longer competes with first paint.
+        strategy="lazyOnload"
       />
       <noscript>
         <div>
