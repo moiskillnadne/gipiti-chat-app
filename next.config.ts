@@ -42,6 +42,19 @@ const nextConfig: NextConfig = {
         source: HTML_PAGE_SOURCE,
         headers: [{ key: "Link", value: AGENT_DISCOVERY_LINK_HEADER }],
       },
+      {
+        // Hero media filenames carry a content hash (see
+        // scripts/encode-hero-video.sh), so they can be cached for a year.
+        // Vercel's default for public/ is `max-age=0, must-revalidate`, which
+        // re-validated the video on every visit.
+        source: "/videos/hero/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
     ]);
   },
   // Import .svg files as React components (SVGR) — used for provider logos.

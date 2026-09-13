@@ -4,6 +4,8 @@ import { motion, useMotionValueEvent, useScroll } from "framer-motion";
 import Link from "next/link";
 import { useState } from "react";
 
+import { isLandingSectionLink } from "@/lib/marketing/landing-links";
+
 // Root-relative so the anchors resolve to the landing-page sections from any
 // route (e.g. the blog), not only when already on "/".
 const navLinks = [
@@ -36,7 +38,11 @@ export const LandingNav = () => {
       transition={{ duration: 0.3 }}
     >
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
-        <Link className="font-bold text-2xl text-white" href="/">
+        <Link
+          className="font-bold text-2xl text-white"
+          href="/"
+          prefetch={false}
+        >
           GIPITI
         </Link>
 
@@ -46,6 +52,7 @@ export const LandingNav = () => {
               className="text-sm text-zinc-400 transition-colors hover:text-white"
               href={link.href}
               key={link.href}
+              prefetch={isLandingSectionLink(link.href) ? false : undefined}
             >
               {link.label}
             </Link>
@@ -56,6 +63,7 @@ export const LandingNav = () => {
           <Link
             className="text-sm text-zinc-400 transition-colors hover:text-white"
             href="/login"
+            prefetch={false}
           >
             Войти
           </Link>
@@ -70,6 +78,7 @@ export const LandingNav = () => {
             <Link
               className="hidden rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-5 py-2 font-medium text-sm text-white transition-all hover:shadow-indigo-500/25 hover:shadow-lg sm:inline-flex"
               href="/#pricing"
+              prefetch={false}
             >
               Тарифы
             </Link>

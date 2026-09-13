@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { SessionProvider } from "next-auth/react";
 import { AppSidebar } from "@/components/app-sidebar";
 import { DataStreamProvider } from "@/components/data-stream-provider";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -84,23 +85,25 @@ export default async function Layout({
     webSearchCookie === undefined ? true : webSearchCookie === "1";
 
   return (
-    <DataStreamProvider>
-      <ModelProvider
-        initialImageGenSetting={initialImageGenSetting}
-        initialModelId={validatedModelId}
-        initialThinkingSetting={initialThinkingSetting}
-        initialVideoGenSetting={initialVideoGenSetting}
-        userType={userType}
-      >
-        <ProjectProvider initialProjectId={projectId}>
-          <WebSearchProvider initialEnabled={initialWebSearchEnabled}>
-            <SidebarProvider defaultOpen={!isCollapsed}>
-              <AppSidebar user={session?.user} />
-              <SidebarInset>{children}</SidebarInset>
-            </SidebarProvider>
-          </WebSearchProvider>
-        </ProjectProvider>
-      </ModelProvider>
-    </DataStreamProvider>
+    <SessionProvider>
+      <DataStreamProvider>
+        <ModelProvider
+          initialImageGenSetting={initialImageGenSetting}
+          initialModelId={validatedModelId}
+          initialThinkingSetting={initialThinkingSetting}
+          initialVideoGenSetting={initialVideoGenSetting}
+          userType={userType}
+        >
+          <ProjectProvider initialProjectId={projectId}>
+            <WebSearchProvider initialEnabled={initialWebSearchEnabled}>
+              <SidebarProvider defaultOpen={!isCollapsed}>
+                <AppSidebar user={session?.user} />
+                <SidebarInset>{children}</SidebarInset>
+              </SidebarProvider>
+            </WebSearchProvider>
+          </ProjectProvider>
+        </ModelProvider>
+      </DataStreamProvider>
+    </SessionProvider>
   );
 }

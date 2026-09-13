@@ -6,7 +6,7 @@ import { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { clientLog } from "@/lib/client-logger";
-import { useTranslations } from "@/lib/i18n/translate";
+import { useErrorTranslations } from "@/lib/i18n/errors";
 
 type RouteErrorFallbackProps = {
   error: Error & { digest?: string };
@@ -19,7 +19,7 @@ type RouteErrorFallbackProps = {
  * a single failed query take down the whole app.
  */
 export function RouteErrorFallback({ error, reset }: RouteErrorFallbackProps) {
-  const t = useTranslations("errors");
+  const t = useErrorTranslations();
 
   useEffect(() => {
     clientLog.error("Route error boundary triggered", {
