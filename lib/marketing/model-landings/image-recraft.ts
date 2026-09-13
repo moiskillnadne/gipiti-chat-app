@@ -9,7 +9,7 @@
 import { buildChips, buildImageSteps, sharedMediaFaq } from "./media-shared";
 import {
   FLUX_SLUG,
-  GPT_IMAGE_SLUG,
+  GPT_IMAGE_25_FLARE_SLUG,
   NANO_BANANA_PRO_SLUG,
   RECRAFT_SLUG,
   SEEDREAM_LITE_SLUG,
@@ -134,7 +134,11 @@ export const recraftImageLandings: ModelLanding[] = [
         tag: "Изображения",
         slug: NANO_BANANA_PRO_SLUG,
       },
-      { name: "GPT Image 2", tag: "Изображения", slug: GPT_IMAGE_SLUG },
+      {
+        name: "GPT Image 2.5 Flare",
+        tag: "Изображения",
+        slug: GPT_IMAGE_25_FLARE_SLUG,
+      },
       {
         name: "Seedream 5.0 Lite",
         tag: "Изображения",

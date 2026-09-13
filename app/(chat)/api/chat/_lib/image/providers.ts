@@ -10,9 +10,9 @@ import { generateImageGenerationId } from "@/lib/ai/media-upload";
 import {
   getDedicatedImageGatewayModelId,
   getModelById,
+  getOpenAIImageGatewayModelId,
   isDedicatedImageModel,
   isOpenAIImageModel,
-  OPENAI_IMAGE_GATEWAY_MODEL_ID,
 } from "@/lib/ai/models";
 import { myProvider } from "@/lib/ai/providers";
 import { generateRecraftImage, isRecraftModel } from "@/lib/ai/recraft-client";
@@ -155,12 +155,14 @@ async function resolvePreviousImageUrl(
 }
 
 /**
- * gpt-image-1.5 via gateway.imageModel(). Supports text-to-image and edit mode
- * (input image forwarded through generateImage's prompt object). Cost is read
- * from the gateway provider metadata, unlike the prior direct-SDK path which
- * could not report image usage.
+ * OpenAI gpt-image models (GPT Image 2, 2.5 Flare, 2.5 Sunburst) via
+ * gateway.imageModel(). Supports text-to-image and edit mode (input image
+ * forwarded through generateImage's prompt object). Cost is read from the
+ * gateway provider metadata, unlike the prior direct-SDK path which could not
+ * report image usage.
  */
 const openaiImageProvider: ImageProvider = async ({
+  modelId,
   prompt,
   settings,
   previousGenerationId,
@@ -200,7 +202,7 @@ const openaiImageProvider: ImageProvider = async ({
       : prompt;
 
     const result = await sdkGenerateImage({
-      model: gateway.imageModel(OPENAI_IMAGE_GATEWAY_MODEL_ID),
+      model: gateway.imageModel(getOpenAIImageGatewayModelId(modelId)),
       prompt: generationPrompt,
       ...(size && { size: size as `${number}x${number}` }),
       ...(providerOptions && { providerOptions }),

@@ -578,6 +578,18 @@ export const chatModels: ChatModel[] = [
     thinkingConfig: GEMINI31_THINKING_CONFIG,
   },
   {
+    id: "gemini-3.8-flash",
+    name: "gemini38Flash.name",
+    description: "gemini38Flash.description",
+    provider: "google",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+    thinkingConfig: GEMINI31_THINKING_CONFIG,
+  },
+  {
     id: "gemini-3.7-flash",
     name: "gemini37Flash.name",
     description: "gemini37Flash.description",
@@ -719,6 +731,44 @@ export const chatModels: ChatModel[] = [
     imageGenConfig: XAI_IMAGE_GEN_CONFIG,
   },
   {
+    id: "gpt-image-2.5-flare",
+    name: "gptImage25Flare.name",
+    description: "gptImage25Flare.description",
+    provider: "openai",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+      imageGeneration: true,
+    },
+    showInUI: true,
+    providerOptions: {
+      openai: {
+        imageSize: "1024x1024",
+        imageQuality: "hd",
+      },
+    },
+    imageGenConfig: OPENAI_IMAGE_GEN_CONFIG,
+  },
+  {
+    id: "gpt-image-2.5-sunburst",
+    name: "gptImage25Sunburst.name",
+    description: "gptImage25Sunburst.description",
+    provider: "openai",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+      imageGeneration: true,
+    },
+    showInUI: true,
+    providerOptions: {
+      openai: {
+        imageSize: "1024x1024",
+        imageQuality: "hd",
+      },
+    },
+    imageGenConfig: OPENAI_IMAGE_GEN_CONFIG,
+  },
+  {
     id: "gpt-image-2",
     name: "gptImage2.name",
     description: "gptImage2.description",
@@ -796,6 +846,19 @@ export const chatModels: ChatModel[] = [
     },
     showInUI: true,
     thinkingConfig: OPUS_THINKING_CONFIG,
+  },
+  {
+    id: "deepseek-v4.1-flash",
+    name: "deepseekV41Flash.name",
+    description: "deepseekV41Flash.description",
+    provider: "deepseek",
+    capabilities: {
+      reasoning: true,
+      // Vision only: the gateway forwards images but silently drops PDF parts
+      // (verified 2026-09-13), same situation as the Alibaba/Moonshot models.
+      attachments: true,
+    },
+    showInUI: true,
   },
   {
     id: "deepseek-v4-pro",
@@ -1248,18 +1311,35 @@ export const getDedicatedImageGatewayModelId = (modelId: string): string => {
   return gatewayId;
 };
 
-/** Gateway model id backing the OpenAI gpt-image generation/edit flow. */
-export const OPENAI_IMAGE_GATEWAY_MODEL_ID = "openai/gpt-image-2";
+type OpenAIImageModelId =
+  | "gpt-image-2.5-flare"
+  | "gpt-image-2.5-sunburst"
+  | "gpt-image-2";
+
+/** Gateway model ids backing the OpenAI gpt-image generation/edit flow. */
+const OPENAI_IMAGE_GATEWAY_MAP: Record<OpenAIImageModelId, string> = {
+  "gpt-image-2.5-flare": "openai/gpt-image-2.5-flare",
+  "gpt-image-2.5-sunburst": "openai/gpt-image-2.5-sunburst",
+  "gpt-image-2": "openai/gpt-image-2",
+};
 
 /**
- * OpenAI's gpt-image model. Unlike dedicated image models it also advertises
+ * OpenAI's gpt-image models. Unlike dedicated image models they also advertise
  * `reasoning` + `attachments` (to enable the image-edit upload flow in the UI),
- * so it needs its own predicate rather than being matched by
- * `isDedicatedImageModel`. It is generated via `generateImage()` +
+ * so they need their own predicate rather than being matched by
+ * `isDedicatedImageModel`. They are generated via `generateImage()` +
  * `gateway.imageModel()`, supporting both text-to-image and edit modes.
  */
 export const isOpenAIImageModel = (modelId: string): boolean =>
-  modelId === "gpt-image-2";
+  Object.hasOwn(OPENAI_IMAGE_GATEWAY_MAP, modelId);
+
+export const getOpenAIImageGatewayModelId = (modelId: string): string => {
+  const gatewayId = OPENAI_IMAGE_GATEWAY_MAP[modelId as OpenAIImageModelId];
+  if (!gatewayId) {
+    throw new Error(`Unknown OpenAI image model: ${modelId}`);
+  }
+  return gatewayId;
+};
 
 export const getVideoGenConfig = (modelId: string): VideoGenConfig => {
   const config = getModelById(modelId)?.videoGenConfig;
@@ -1342,6 +1422,7 @@ export const getOpenAIProviderOptions = (
 
 export const googleModelIds = [
   "gemini-3.1-pro",
+  "gemini-3.8-flash",
   "gemini-3.7-flash",
   "gemini-3.6-flash",
   "gemini-3.5-flash",

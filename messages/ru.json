@@ -1526,13 +1526,17 @@
       "name": "Gemini 3.1 Pro",
       "description": "Отличная модель для сложных задач."
     },
+    "gemini38Flash": {
+      "name": "Gemini 3.8 Flash",
+      "description": "Новейшая быстрая модель Google: уровень Pro в агентных задачах и генерации кода при высокой скорости."
+    },
     "gemini37Flash": {
       "name": "Gemini 3.7 Flash",
-      "description": "Новейшая быстрая модель Google: уровень Pro в агентных задачах и генерации кода при высокой скорости."
+      "description": "Быстрая модель Google прошлого поколения: уровень Pro в агентных задачах и коде при высокой скорости."
     },
     "gemini36Flash": {
       "name": "Gemini 3.6 Flash",
-      "description": "Быстрая модель Google прошлого поколения: код и агентные задачи при низком расходе токенов."
+      "description": "Проверенная быстрая модель Google: код и агентные задачи при низком расходе токенов."
     },
     "gemini35Flash": {
       "name": "Gemini 3.5 Flash",
@@ -1561,6 +1565,10 @@
     "haiku45": {
       "name": "Haiku 4.5",
       "description": "Быстрая и компактная модель Anthropic для повседневных задач с рассуждениями."
+    },
+    "deepseekV41Flash": {
+      "name": "DeepSeek V4.1 Flash",
+      "description": "Новая быстрая модель DeepSeek: рассуждения, работа с изображениями и ниже стоимость запроса."
     },
     "deepseekV4Pro": {
       "name": "DeepSeek V4 Pro",
@@ -1614,9 +1622,17 @@
       "name": "Grok Imagine",
       "description": "Быстрая генерация изображений от xAI."
     },
+    "gptImage25Flare": {
+      "name": "GPT Image 2.5 Flare",
+      "description": "Новейшая модель OpenAI для быстрой повседневной генерации изображений высокого качества."
+    },
+    "gptImage25Sunburst": {
+      "name": "GPT Image 2.5 Sunburst",
+      "description": "Новейшая модель OpenAI с упором на точное редактирование: правки по описанию без потери деталей."
+    },
     "gptImage2": {
       "name": "GPT Image 2",
-      "description": "Генерация высококачественных изображений с помощью новейшей модели OpenAI."
+      "description": "Проверенная модель OpenAI для генерации и редактирования изображений."
     },
     "veo31": {
       "name": "Veo 3.1",
