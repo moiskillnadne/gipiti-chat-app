@@ -497,6 +497,32 @@
   animation: shimmer 3s linear infinite;
 }
 
+/* Landing — hero entrance. CSS-only so the first paint never waits for
+   hydration; the headline (LCP element) is deliberately not animated at all.
+   `backwards` keeps delayed items hidden during their delay, resting state is
+   the natural one. Easing matches components/landing/fade-in.tsx. */
+@keyframes landing-rise {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-landing-rise {
+  animation: landing-rise 0.6s cubic-bezier(0.21, 0.47, 0.32, 0.98) backwards;
+  animation-delay: var(--landing-rise-delay, 0s);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-landing-rise {
+    animation: none;
+  }
+}
+
 /* Landing — gradient border rotation */
 @keyframes gradient-rotate {
   0% {
