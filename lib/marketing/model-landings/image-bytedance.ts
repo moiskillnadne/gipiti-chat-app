@@ -9,7 +9,7 @@ import {
 } from "./media-shared";
 import {
   FLUX_SLUG,
-  GPT_IMAGE_SLUG,
+  GPT_IMAGE_25_SUNBURST_SLUG,
   NANO_BANANA_SLUG,
   SEEDANCE_25_SLUG,
   SEEDREAM_45_SLUG,
@@ -367,7 +367,11 @@ export const bytedanceImageLandings: ModelLanding[] = [
         slug: SEEDREAM_LITE_SLUG,
       },
       { name: "Nano Banana", tag: "Изображения", slug: NANO_BANANA_SLUG },
-      { name: "GPT Image 2", tag: "Изображения", slug: GPT_IMAGE_SLUG },
+      {
+        name: "GPT Image 2.5 Sunburst",
+        tag: "Изображения",
+        slug: GPT_IMAGE_25_SUNBURST_SLUG,
+      },
     ]),
   },
 ];

@@ -52,11 +52,11 @@ export const catalogSections: CatalogSection[] = [
     typePage: {
       h1Top: "Нейросети для работы",
       h1Gradient: "с текстом на русском",
-      sub: "GPT-5.6, Claude Opus 5, Gemini 3.7 Flash, Grok 4.6, Qwen 3.8 Max, DeepSeek V4 и другие — пишите тексты, анализируйте документы и решайте рабочие задачи на русском языке. Без VPN, оплата российскими картами.",
+      sub: "GPT-5.6, Claude Opus 5, Gemini 3.8 Flash, Grok 4.6, Qwen 3.8 Max, DeepSeek V4 и другие — пишите тексты, анализируйте документы и решайте рабочие задачи на русском языке. Без VPN, оплата российскими картами.",
       metaTitle:
         "Нейросети для работы с текстом — GPT-5.6, Claude, Gemini, Grok, Qwen | GIPITI",
       metaDescription:
-        "Лучшие текстовые AI-модели в одном чате: GPT-5.6, Claude Opus 5, Gemini 3.7 Flash, Grok 4.6, Qwen 3.8 Max, Kimi K3 и DeepSeek V4. Без VPN, на русском, оплата российскими картами.",
+        "Лучшие текстовые AI-модели в одном чате: GPT-5.6, Claude Opus 5, Gemini 3.8 Flash, Grok 4.6, Qwen 3.8 Max, Kimi K3 и DeepSeek V4. Без VPN, на русском, оплата российскими картами.",
     },
   },
   {
@@ -68,11 +68,11 @@ export const catalogSections: CatalogSection[] = [
     typePage: {
       h1Top: "Нейросети для генерации",
       h1Gradient: "изображений на русском",
-      sub: "Nano Banana, GPT Image, Flux, Seedream 5.0 Pro, Grok Imagine 2.0 и Recraft — создавайте и редактируйте изображения по описанию на русском языке. Без VPN, оплата российскими картами.",
+      sub: "Nano Banana, GPT Image 2.5, Flux, Seedream 5.0 Pro, Grok Imagine 2.0 и Recraft — создавайте и редактируйте изображения по описанию на русском языке. Без VPN, оплата российскими картами.",
       metaTitle:
         "Нейросети для генерации изображений — Nano Banana, GPT Image, Flux, Seedream | GIPITI",
       metaDescription:
-        "Генерация и редактирование изображений по описанию: Nano Banana, GPT Image 2, Flux 2 Max, Seedream 5.0 Pro, Recraft и Grok Imagine 2.0 в одной подписке. Без VPN, оплата российскими картами.",
+        "Генерация и редактирование изображений по описанию: Nano Banana, GPT Image 2.5, Flux 2 Max, Seedream 5.0 Pro, Recraft и Grok Imagine 2.0 в одной подписке. Без VPN, оплата российскими картами.",
     },
   },
   {
@@ -206,8 +206,8 @@ export const catalogModels: CatalogModel[] = [
     hue: 210,
   },
   {
-    modelId: "gemini-3.7-flash",
-    name: "Gemini 3.7 Flash",
+    modelId: "gemini-3.8-flash",
+    name: "Gemini 3.8 Flash",
     vendor: "Google",
     provider: "google",
     category: "text",
@@ -217,13 +217,23 @@ export const catalogModels: CatalogModel[] = [
     hue: 210,
   },
   {
+    modelId: "gemini-3.7-flash",
+    name: "Gemini 3.7 Flash",
+    vendor: "Google",
+    provider: "google",
+    category: "text",
+    description:
+      "Быстрая модель Google прошлого поколения: уровень Pro в агентных задачах и коде при высокой скорости.",
+    hue: 210,
+  },
+  {
     modelId: "gemini-3.6-flash",
     name: "Gemini 3.6 Flash",
     vendor: "Google",
     provider: "google",
     category: "text",
     description:
-      "Быстрая модель Google прошлого поколения: код и агентные задачи при низком расходе токенов.",
+      "Проверенная быстрая модель Google: код и агентные задачи при низком расходе токенов.",
     hue: 210,
   },
   {
@@ -278,6 +288,17 @@ export const catalogModels: CatalogModel[] = [
     hue: 0,
   },
   {
+    modelId: "deepseek-v4.1-flash",
+    name: "DeepSeek V4.1 Flash",
+    vendor: "DeepSeek",
+    provider: "deepseek",
+    category: "text",
+    description:
+      "Новая быстрая модель DeepSeek: рассуждения, понимание изображений и низкая цена запроса.",
+    tag: "Новинка",
+    hue: 250,
+  },
+  {
     modelId: "deepseek-v4-pro",
     name: "DeepSeek V4 Pro",
     vendor: "DeepSeek",
@@ -285,7 +306,6 @@ export const catalogModels: CatalogModel[] = [
     category: "text",
     description:
       "Флагман DeepSeek: глубокие рассуждения и контекст до миллиона токенов.",
-    tag: "Новинка",
     hue: 250,
   },
   {
@@ -295,8 +315,7 @@ export const catalogModels: CatalogModel[] = [
     provider: "deepseek",
     category: "text",
     description:
-      "Быстрая и доступная версия DeepSeek V4 для повседневных задач.",
-    tag: "Новинка",
+      "Быстрая и доступная версия DeepSeek V4 прошлого поколения для повседневных задач.",
     hue: 250,
   },
   {
@@ -395,13 +414,35 @@ export const catalogModels: CatalogModel[] = [
     hue: 90,
   },
   {
+    modelId: "gpt-image-2.5-flare",
+    name: "GPT Image 2.5 Flare",
+    vendor: "OpenAI",
+    provider: "openai",
+    category: "images",
+    description:
+      "Новая модель OpenAI для быстрой повседневной генерации: посты, карточки товаров, иллюстрации.",
+    tag: "Новинка",
+    hue: 250,
+  },
+  {
+    modelId: "gpt-image-2.5-sunburst",
+    name: "GPT Image 2.5 Sunburst",
+    vendor: "OpenAI",
+    provider: "openai",
+    category: "images",
+    description:
+      "Новая модель OpenAI с упором на точное редактирование: правки без потери остальной сцены.",
+    tag: "Новинка",
+    hue: 250,
+  },
+  {
     modelId: "gpt-image-2",
     name: "GPT Image 2",
     vendor: "OpenAI",
     provider: "openai",
     category: "images",
     description:
-      "Фотореалистичные генерации и точное редактирование от OpenAI.",
+      "Проверенная модель OpenAI прошлого поколения: фотореализм и точное редактирование.",
     hue: 250,
   },
   {

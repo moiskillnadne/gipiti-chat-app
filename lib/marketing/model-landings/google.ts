@@ -1,14 +1,16 @@
 /**
- * Landings for the Google Gemini text models: 3.1 Pro, 3.7 Flash, 3.6 Flash,
- * 3.5 Flash and 3.5 Flash Lite.
+ * Landings for the Google Gemini text models: 3.1 Pro, 3.8 Flash, 3.7 Flash,
+ * 3.6 Flash, 3.5 Flash and 3.5 Flash Lite.
  */
 
 import {
+  analystsAudience,
   buildSteps,
   GEMINI_35_FLASH_LITE_SLUG,
   GEMINI_35_FLASH_SLUG,
   GEMINI_36_FLASH_SLUG,
   GEMINI_37_FLASH_SLUG,
+  GEMINI_38_FLASH_SLUG,
   GEMINI_PRO_SLUG,
   GROK_SLUG,
   LUNA_SLUG,
@@ -93,9 +95,95 @@ export const googleLandings: ModelLanding[] = [
           "Gemini — модель Google, особенно сильная в мультимодальных задачах: фотографии, скриншоты и документы она разбирает в одном чате с текстом. В GIPITI доступны и Gemini, и GPT-5.6 — сравните их на своей задаче.",
       },
       {
-        question: "Чем Gemini 3.1 Pro отличается от Gemini 3.6 Flash?",
+        question: "Чем Gemini 3.1 Pro отличается от Gemini 3.8 Flash?",
         answer:
           "Pro — глубина: сложные рассуждения, большие документы и точный анализ. Flash — скорость и низкая цена для повседневных задач. Обе модели доступны в GIPITI — переключайтесь в один клик.",
+      },
+      ...sharedFaq,
+    ],
+    otherModels: [
+      {
+        name: "Gemini 3.8 Flash",
+        tag: "Текст",
+        href: `/models/${GEMINI_38_FLASH_SLUG}`,
+      },
+      { name: "GPT-5.6 Sol", tag: "Текст", href: `/models/${SOL_SLUG}` },
+      { name: "Claude Opus 5", tag: "Текст", href: `/models/${OPUS_5_SLUG}` },
+      { name: "Grok 4.5", tag: "Текст", href: `/models/${GROK_SLUG}` },
+    ],
+  },
+  {
+    kind: "text",
+    slug: GEMINI_38_FLASH_SLUG,
+    modelId: "gemini-3.8-flash",
+    name: "Gemini 3.8 Flash",
+    vendor: "Google",
+    accent: "sky",
+    badge: "Google · Новейшая быстрая модель · Текст",
+    h1Top: "Gemini 3.8 Flash —",
+    h1Gradient: "новейшая быстрая нейросеть Google",
+    sub: "Самая свежая Flash-модель Google уже в GIPITI — уровень старших моделей в коде и агентных задачах, но быстро и недорого. Читает документы, фото и видео. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    ctaMain: "Попробовать Gemini 3.8 Flash",
+    metaTitle:
+      "Gemini 3.8 Flash — новейшая нейросеть Google на русском без VPN | GIPITI",
+    metaDescription:
+      "Gemini 3.8 Flash — новейшая быстрая модель Google в GIPITI: код, агентные задачи, документы и фото в одном чате. Без VPN, на русском, оплата российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    heroChat: {
+      userMessage:
+        "Вот скриншот дашборда за квартал — что здесь тревожит и о чём спросить команду? 📷 dashboard.png",
+      aiIntro: "Разобрал график. **Три момента** стоят внимания:",
+      aiBullets: [
+        "**Отток** вырос с 3,1% до 4,4% за два месяца — быстрее, чем росла база",
+        "**Конверсия** из пробного периода упала на 6 п. п. при том же трафике",
+        "**Вопрос команде** — что изменилось в онбординге в июле",
+      ],
+    },
+    benefits: [
+      {
+        icon: "zap",
+        title: "Скорость Flash, качество Pro",
+        text: "Gemini 3.8 Flash — новейшая рабочая лошадка Google: агентные задачи и генерация кода на уровне старших моделей при скорости и цене Flash.",
+      },
+      {
+        icon: "code",
+        title: "Сильна в коде и многошаговых задачах",
+        text: "Пишет и правит код, выполняет команды в терминале и не теряет цель на длинной цепочке шагов — точнее и экономнее по токенам, чем 3.7 Flash.",
+      },
+      {
+        icon: "file-text",
+        title: "Читает документы, фото и видео",
+        text: "Прикрепите PDF, скриншот или кадр — модель разберётся в содержимом и ответит по существу, а контекст в миллион токенов вмещает объёмные материалы.",
+      },
+      vpnBenefit,
+    ],
+    steps: buildSteps("Gemini 3.8 Flash"),
+    audience: [
+      {
+        title: "Разработчики",
+        text: "Правки, ревью и разбор чужого кода — быстро и без ожидания тяжёлой модели.",
+        userMessage:
+          "Перепиши этот обработчик на async/await и объясни, что изменилось",
+        aiReply:
+          "Готово. Главное отличие — **ошибки теперь ловятся** в одном месте, а не в каждом колбэке…",
+      },
+      analystsAudience,
+      supportAudience,
+    ],
+    faq: [
+      {
+        question: "Что такое Gemini 3.8 Flash?",
+        answer:
+          "Gemini 3.8 Flash — новейшая быстрая модель Google. Она рассчитана на повседневную работу: код, агентные задачи, документы и изображения — при высокой скорости и низкой цене. В GIPITI доступна без VPN, на русском и с оплатой российскими картами.",
+      },
+      {
+        question: "Чем Gemini 3.8 Flash отличается от 3.7 Flash?",
+        answer:
+          "3.8 Flash — следующее поколение: точнее в коде и многошаговых агентных задачах и экономнее расходует токены при той же цене за токен. Gemini 3.7 Flash остаётся доступна в GIPITI — можно сравнить обе модели на своей задаче.",
+      },
+      {
+        question: "Когда лучше взять Gemini 3.1 Pro?",
+        answer:
+          "Если задача требует максимально глубокого разбора — большое исследование, сложный анализ или объёмный документ с тонкими выводами. Для остального 3.8 Flash обычно быстрее при сопоставимом качестве.",
       },
       ...sharedFaq,
     ],
@@ -105,9 +193,13 @@ export const googleLandings: ModelLanding[] = [
         tag: "Текст",
         href: `/models/${GEMINI_37_FLASH_SLUG}`,
       },
-      { name: "GPT-5.6 Sol", tag: "Текст", href: `/models/${SOL_SLUG}` },
-      { name: "Claude Opus 5", tag: "Текст", href: `/models/${OPUS_5_SLUG}` },
-      { name: "Grok 4.5", tag: "Текст", href: `/models/${GROK_SLUG}` },
+      {
+        name: "Gemini 3.1 Pro",
+        tag: "Текст",
+        href: `/models/${GEMINI_PRO_SLUG}`,
+      },
+      { name: "GPT-5.6 Terra", tag: "Текст", href: `/models/${TERRA_SLUG}` },
+      { name: "Claude Sonnet 5", tag: "Текст", href: `/models/${SONNET_SLUG}` },
     ],
   },
   {
@@ -117,15 +209,15 @@ export const googleLandings: ModelLanding[] = [
     name: "Gemini 3.7 Flash",
     vendor: "Google",
     accent: "sky",
-    badge: "Google · Новейшая быстрая модель · Текст",
+    badge: "Google · Быстрая модель · Текст",
     h1Top: "Gemini 3.7 Flash —",
-    h1Gradient: "новейшая быстрая нейросеть Google",
-    sub: "Самая свежая Flash-модель Google уже в GIPITI — уровень старших моделей в коде и агентных задачах, но быстро и недорого. Читает документы, фото и видео. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    h1Gradient: "быстрая нейросеть Google на русском",
+    sub: "Быстрая модель Google уже в GIPITI — уровень старших моделей в коде и агентных задачах при высокой скорости и низкой цене. Читает документы, фото и видео. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
     ctaMain: "Попробовать Gemini 3.7 Flash",
     metaTitle:
-      "Gemini 3.7 Flash — новейшая нейросеть Google на русском без VPN | GIPITI",
+      "Gemini 3.7 Flash — быстрая нейросеть Google на русском без VPN | GIPITI",
     metaDescription:
-      "Gemini 3.7 Flash — новейшая быстрая модель Google в GIPITI: код, агентные задачи, документы и фото в одном чате. Без VPN, на русском, оплата российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+      "Gemini 3.7 Flash — быстрая модель Google в GIPITI: код, агентные задачи, документы и фото в одном чате. Без VPN, на русском, оплата российскими картами. Дарим 200 ₽ каждому новому пользователю.",
     heroChat: {
       userMessage:
         "Проверь этот скрипт выгрузки и объясни, почему он падает на больших файлах 📄 export.py",
@@ -177,7 +269,12 @@ export const googleLandings: ModelLanding[] = [
       {
         question: "Что такое Gemini 3.7 Flash?",
         answer:
-          "Gemini 3.7 Flash — новейшая быстрая модель Google. Она рассчитана на повседневную работу: код, агентные задачи, документы и изображения — при высокой скорости и низкой цене. В GIPITI доступна без VPN, на русском и с оплатой российскими картами.",
+          "Gemini 3.7 Flash — быстрая модель Google прошлого поколения. Она рассчитана на повседневную работу: код, агентные задачи, документы и изображения — при высокой скорости и низкой цене. В GIPITI доступна без VPN, на русском и с оплатой российскими картами.",
+      },
+      {
+        question: "Стоит ли перейти на Gemini 3.8 Flash?",
+        answer:
+          "Если важны код и многошаговые агентные задачи — да, 3.8 Flash в них точнее и экономнее по токенам при той же цене. Для простых повседневных запросов разница почти незаметна. Обе модели доступны в GIPITI, переключение занимает один клик.",
       },
       {
         question: "Чем Gemini 3.7 Flash отличается от 3.6 Flash?",
@@ -193,6 +290,11 @@ export const googleLandings: ModelLanding[] = [
     ],
     otherModels: [
       {
+        name: "Gemini 3.8 Flash",
+        tag: "Текст",
+        href: `/models/${GEMINI_38_FLASH_SLUG}`,
+      },
+      {
         name: "Gemini 3.6 Flash",
         tag: "Текст",
         href: `/models/${GEMINI_36_FLASH_SLUG}`,
@@ -202,7 +304,6 @@ export const googleLandings: ModelLanding[] = [
         tag: "Текст",
         href: `/models/${GEMINI_PRO_SLUG}`,
       },
-      { name: "GPT-5.6 Terra", tag: "Текст", href: `/models/${TERRA_SLUG}` },
       { name: "Claude Sonnet 5", tag: "Текст", href: `/models/${SONNET_SLUG}` },
     ],
   },
@@ -274,9 +375,9 @@ export const googleLandings: ModelLanding[] = [
           "3.6 Flash — следующее поколение: точнее в программировании и многошаговых задачах, при этом расходует меньше токенов на ответ. Gemini 3.5 Flash остаётся доступна в GIPITI — можно сравнить обе модели на своей задаче.",
       },
       {
-        question: "Стоит ли перейти на Gemini 3.7 Flash?",
+        question: "Стоит ли перейти на Gemini 3.8 Flash?",
         answer:
-          "Если важны код и многошаговые агентные задачи — да, 3.7 Flash в них заметно сильнее и экономнее по токенам. Для простых повседневных запросов разница почти незаметна. Обе модели доступны в GIPITI, переключение занимает один клик.",
+          "Если важны код и многошаговые агентные задачи — да, 3.8 Flash в них заметно сильнее и экономнее по токенам. Для простых повседневных запросов разница почти незаметна. Обе модели доступны в GIPITI, переключение занимает один клик.",
       },
       {
         question: "Чем Gemini отличается от ChatGPT?",
@@ -287,9 +388,9 @@ export const googleLandings: ModelLanding[] = [
     ],
     otherModels: [
       {
-        name: "Gemini 3.7 Flash",
+        name: "Gemini 3.8 Flash",
         tag: "Текст",
-        href: `/models/${GEMINI_37_FLASH_SLUG}`,
+        href: `/models/${GEMINI_38_FLASH_SLUG}`,
       },
       {
         name: "Gemini 3.1 Pro",

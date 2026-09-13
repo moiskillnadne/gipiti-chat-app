@@ -1,16 +1,19 @@
 /**
- * Landings for DeepSeek V4 Pro and V4 Flash.
+ * Landings for DeepSeek V4.1 Flash, V4 Pro and V4 Flash.
  *
- * Note: neither model has the attachments capability in the registry, so the
- * copy deliberately avoids "upload a document" claims — users paste text
- * instead. The shared documents FAQ is replaced with a context-size one.
+ * Note: V4 Pro and V4 Flash have no attachments capability in the registry,
+ * so their copy deliberately avoids "upload a document" claims — users paste
+ * text instead. V4.1 Flash reads images (photos, screenshots) but the gateway
+ * drops PDF parts for it, so its copy claims photos only. The shared documents
+ * FAQ is replaced with a context-size or attachments one on every landing.
  */
 
 import {
   buildSteps,
+  DEEPSEEK_41_FLASH_SLUG,
   DEEPSEEK_FLASH_SLUG,
   DEEPSEEK_SLUG,
-  GROK_SLUG,
+  GEMINI_38_FLASH_SLUG,
   LUNA_SLUG,
   priceFaq,
   SONAR_SLUG,
@@ -30,6 +33,13 @@ const attachmentsFaq: LandingFaqItem = {
     "Модели DeepSeek работают без вложений — вставьте текст прямо в чат. Если нужно прочитать PDF, Word или таблицу целиком, выберите GPT-5.6, Claude или Gemini: они доступны в той же подписке.",
 };
 
+/** V4.1 Flash takes photos and screenshots, but no PDF/Word/tables. */
+const photosOnlyFaq: LandingFaqItem = {
+  question: "Можно ли загрузить документ в DeepSeek V4.1 Flash?",
+  answer:
+    "Модель читает изображения — прикрепите фото, скриншот или снимок страницы. PDF, Word и таблицы она пока не принимает: вставьте текст прямо в чат или выберите GPT-5.6, Claude или Gemini — они доступны в той же подписке.",
+};
+
 const contextFaq: LandingFaqItem = {
   question: "Какой размер контекста у DeepSeek V4 Pro?",
   answer:
@@ -37,6 +47,110 @@ const contextFaq: LandingFaqItem = {
 };
 
 export const deepseekLandings: ModelLanding[] = [
+  {
+    kind: "text",
+    slug: DEEPSEEK_41_FLASH_SLUG,
+    modelId: "deepseek-v4.1-flash",
+    name: "DeepSeek V4.1 Flash",
+    vendor: "DeepSeek",
+    accent: "blue",
+    badge: "DeepSeek · Новая быстрая модель · Текст",
+    h1Top: "DeepSeek V4.1 Flash\u00A0—",
+    h1Gradient: "быстрая нейросеть с пониманием фото",
+    sub: "Новое поколение быстрой модели DeepSeek уже в GIPITI — рассуждения, работа с фото и скриншотами и низкая цена запроса. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    ctaMain: "Попробовать V4.1 Flash",
+    metaTitle:
+      "DeepSeek V4.1 Flash — быстрая нейросеть DeepSeek на русском | GIPITI",
+    metaDescription:
+      "DeepSeek V4.1 Flash в GIPITI — новая быстрая модель DeepSeek с рассуждениями и пониманием изображений по минимальной цене. Без VPN, на русском, оплата российскими картами.",
+    heroChat: {
+      userMessage:
+        "Вот скриншот ошибки из консоли — что сломалось и как починить? 📷 error.png",
+      aiIntro: "Разобрал скриншот. Причина — **несовпадение версий**:",
+      aiBullets: [
+        "**Ошибка** — клиент ждёт API v2, а сервер отвечает по v1",
+        "**Решение** — обновить клиент до 2.x или указать версию в запросе",
+        "**Проверка** — перезапустите сборку и повторите запрос",
+      ],
+    },
+    benefits: [
+      {
+        icon: "zap",
+        title: "Быстрые ответы с рассуждением",
+        text: "V4.1 Flash отвечает почти сразу, но рассуждает над задачей — новая архитектура даёт точнее ответы при меньшей нагрузке и цене.",
+      },
+      {
+        icon: "image",
+        title: "Понимает фото и скриншоты",
+        text: "Первая быстрая модель DeepSeek со зрением: прикрепите скриншот ошибки, фото документа или график — модель разберёт содержимое и ответит по существу.",
+      },
+      {
+        icon: "wallet",
+        title: "Минимальная цена запроса",
+        text: "Одна из самых доступных моделей в GIPITI: стартовых 200 ₽ и месячного баланса подписки хватает надолго.",
+      },
+      vpnBenefit,
+    ],
+    steps: buildSteps(
+      "DeepSeek V4.1 Flash",
+      "Текстом на русском — или прикрепите фото или скриншот."
+    ),
+    audience: [
+      {
+        title: "Разработчики",
+        text: "Скриншоты ошибок, логи и фрагменты кода — быстрый разбор без ожидания длинного ответа.",
+        userMessage: "Что не так с этим стектрейсом? 📷 trace.png",
+        aiReply:
+          "Падает на **десериализации даты**: поле приходит строкой, а парсер ждёт число…",
+      },
+      supportAudience,
+      {
+        title: "Студенты и исследователи",
+        text: "Сфотографируйте задачу или страницу конспекта — модель объяснит решение на вашем уровне.",
+        userMessage: "Объясни решение этой задачи по шагам 📷 zadacha.jpg",
+        aiReply:
+          "Это уравнение на **теорему Виета**. Сначала найдём сумму и произведение корней…",
+      },
+    ],
+    faq: [
+      {
+        question: "Что такое DeepSeek V4.1 Flash?",
+        answer:
+          "DeepSeek V4.1 Flash — новая быстрая модель DeepSeek на обновлённой архитектуре: рассуждения, понимание изображений и низкая цена запроса. В GIPITI она доступна без VPN, с интерфейсом на русском языке и оплатой российскими картами.",
+      },
+      {
+        question: "Чем V4.1 Flash отличается от V4 Flash?",
+        answer:
+          "V4.1 Flash понимает изображения — V4 Flash работала только с текстом. Кроме того, новая архитектура отвечает быстрее и точнее при меньшей нагрузке. Обе модели доступны в GIPITI — переключайтесь в один клик.",
+      },
+      {
+        question: "Подойдёт ли V4.1 Flash для сложных задач?",
+        answer:
+          "Для глубокой аналитики, больших кодовых баз и контекста до миллиона токенов лучше выбрать DeepSeek V4 Pro или другой флагман. V4.1 Flash сильна там, где важны скорость и цена: переписка, скриншоты, выжимки и быстрые правки.",
+      },
+      vpnFaq,
+      priceFaq,
+      photosOnlyFaq,
+    ],
+    otherModels: [
+      {
+        name: "DeepSeek V4 Pro",
+        tag: "Текст",
+        href: `/models/${DEEPSEEK_SLUG}`,
+      },
+      {
+        name: "DeepSeek V4 Flash",
+        tag: "Текст",
+        href: `/models/${DEEPSEEK_FLASH_SLUG}`,
+      },
+      {
+        name: "Gemini 3.8 Flash",
+        tag: "Текст",
+        href: `/models/${GEMINI_38_FLASH_SLUG}`,
+      },
+      { name: "GPT-5.6 Luna", tag: "Текст", href: `/models/${LUNA_SLUG}` },
+    ],
+  },
   {
     kind: "text",
     slug: DEEPSEEK_SLUG,
@@ -128,7 +242,11 @@ export const deepseekLandings: ModelLanding[] = [
       { name: "GPT-5.6 Terra", tag: "Текст", href: `/models/${TERRA_SLUG}` },
       { name: "Claude Sonnet 5", tag: "Текст", href: `/models/${SONNET_SLUG}` },
       { name: "Sonar", tag: "Текст", href: `/models/${SONAR_SLUG}` },
-      { name: "Grok 4.5", tag: "Текст", href: `/models/${GROK_SLUG}` },
+      {
+        name: "DeepSeek V4.1 Flash",
+        tag: "Текст",
+        href: `/models/${DEEPSEEK_41_FLASH_SLUG}`,
+      },
     ],
   },
   {
@@ -205,6 +323,11 @@ export const deepseekLandings: ModelLanding[] = [
         answer:
           "Для сложной аналитики, больших кодовых баз и длинных документов лучше выбрать V4 Pro или другой флагман. Flash сильна там, где важны скорость и цена: переписка, выжимки, быстрые правки.",
       },
+      {
+        question: "Стоит ли перейти на DeepSeek V4.1 Flash?",
+        answer:
+          "Если нужны изображения — да: V4.1 Flash читает фото и скриншоты, а V4 Flash работает только с текстом. Новая версия к тому же быстрее и точнее. Обе модели доступны в GIPITI, переключение занимает один клик.",
+      },
       vpnFaq,
       priceFaq,
       attachmentsFaq,
@@ -215,9 +338,13 @@ export const deepseekLandings: ModelLanding[] = [
         tag: "Текст",
         href: `/models/${DEEPSEEK_SLUG}`,
       },
+      {
+        name: "DeepSeek V4.1 Flash",
+        tag: "Текст",
+        href: `/models/${DEEPSEEK_41_FLASH_SLUG}`,
+      },
       { name: "GPT-5.6 Luna", tag: "Текст", href: `/models/${LUNA_SLUG}` },
       { name: "Claude Sonnet 5", tag: "Текст", href: `/models/${SONNET_SLUG}` },
-      { name: "Sonar", tag: "Текст", href: `/models/${SONAR_SLUG}` },
     ],
   },
 ];

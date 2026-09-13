@@ -47,6 +47,7 @@ export const myProvider = customProvider({
     // turns and breaks multi-turn tool-call continuations (400 "Corrupted
     // thought signature").
     "gemini-3.1-pro": gateway.languageModel("google/gemini-3.1-pro-preview"),
+    "gemini-3.8-flash": gateway.languageModel("google/gemini-3.8-flash"),
     "gemini-3.7-flash": gateway.languageModel("google/gemini-3.7-flash"),
     "gemini-3.6-flash": gateway.languageModel("google/gemini-3.6-flash"),
     "gemini-3.5-flash": gateway.languageModel("google/gemini-3.5-flash"),
@@ -68,6 +69,9 @@ export const myProvider = customProvider({
     // DeepSeek streams reasoning natively (reasoning_content, normalized by
     // the Gateway to reasoning parts) — no extractReasoningMiddleware wrapper,
     // same as grok-4.3 above.
+    "deepseek-v4.1-flash": gateway.languageModel(
+      "deepseek/deepseek-v4.1-flash"
+    ),
     "deepseek-v4-pro": gateway.languageModel("deepseek/deepseek-v4-pro"),
     "deepseek-v4-flash": gateway.languageModel("deepseek/deepseek-v4-flash"),
     // Moonshot and Alibaba stream reasoning natively too (reasoning_content,

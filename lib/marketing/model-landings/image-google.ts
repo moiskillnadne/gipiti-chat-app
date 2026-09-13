@@ -9,7 +9,8 @@
 import { buildChips, buildImageSteps, sharedMediaFaq } from "./media-shared";
 import {
   FLUX_SLUG,
-  GPT_IMAGE_SLUG,
+  GPT_IMAGE_25_FLARE_SLUG,
+  GPT_IMAGE_25_SUNBURST_SLUG,
   NANO_BANANA_LITE_SLUG,
   NANO_BANANA_PRO_SLUG,
   NANO_BANANA_SLUG,
@@ -139,7 +140,11 @@ export const googleImageLandings: ModelLanding[] = [
         tag: "Изображения",
         slug: NANO_BANANA_LITE_SLUG,
       },
-      { name: "GPT Image 2", tag: "Изображения", slug: GPT_IMAGE_SLUG },
+      {
+        name: "GPT Image 2.5 Flare",
+        tag: "Изображения",
+        slug: GPT_IMAGE_25_FLARE_SLUG,
+      },
       { name: "Veo 3.1", tag: "Видео", slug: VEO_SLUG },
     ]),
   },
@@ -256,7 +261,11 @@ export const googleImageLandings: ModelLanding[] = [
     ],
     otherModels: buildChips([
       { name: "Nano Banana", tag: "Изображения", slug: NANO_BANANA_SLUG },
-      { name: "GPT Image 2", tag: "Изображения", slug: GPT_IMAGE_SLUG },
+      {
+        name: "GPT Image 2.5 Sunburst",
+        tag: "Изображения",
+        slug: GPT_IMAGE_25_SUNBURST_SLUG,
+      },
       { name: "Flux 2 Max", tag: "Изображения", slug: FLUX_SLUG },
       { name: "GPT-5.6 Sol", tag: "Текст", slug: SOL_SLUG },
     ]),

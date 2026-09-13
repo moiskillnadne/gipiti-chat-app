@@ -3,7 +3,7 @@
 import {
   analystsAudience,
   buildSteps,
-  GEMINI_37_FLASH_SLUG,
+  GEMINI_38_FLASH_SLUG,
   GROK_46_SLUG,
   KIMI_K3_FAST_SLUG,
   lawyersAudience,
@@ -195,9 +195,9 @@ export const alibabaLandings: ModelLanding[] = [
         href: `/models/${QWEN_38_MAX_SLUG}`,
       },
       {
-        name: "Gemini 3.7 Flash",
+        name: "Gemini 3.8 Flash",
         tag: "Текст",
-        href: `/models/${GEMINI_37_FLASH_SLUG}`,
+        href: `/models/${GEMINI_38_FLASH_SLUG}`,
       },
       {
         name: "Kimi K3 Fast",

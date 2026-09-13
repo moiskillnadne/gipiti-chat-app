@@ -15,7 +15,7 @@ import {
 import {
   FLUX_SLUG,
   FLUX_VIDEO_SLUG,
-  GPT_IMAGE_SLUG,
+  GPT_IMAGE_25_SUNBURST_SLUG,
   NANO_BANANA_PRO_SLUG,
   RECRAFT_SLUG,
   vpnBenefit,
@@ -133,7 +133,11 @@ export const bflImageLandings: ModelLanding[] = [
         tag: "Изображения",
         slug: NANO_BANANA_PRO_SLUG,
       },
-      { name: "GPT Image 2", tag: "Изображения", slug: GPT_IMAGE_SLUG },
+      {
+        name: "GPT Image 2.5 Sunburst",
+        tag: "Изображения",
+        slug: GPT_IMAGE_25_SUNBURST_SLUG,
+      },
       { name: "Recraft v4.1 Pro", tag: "Изображения", slug: RECRAFT_SLUG },
       { name: "Flux 3 Video", tag: "Видео", slug: FLUX_VIDEO_SLUG },
     ]),
