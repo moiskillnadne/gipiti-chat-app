@@ -41,6 +41,8 @@ const codeExtension = (name?: string) => {
       ".json",
       ".md",
       ".txt",
+      ".csv",
+      ".tsv",
       ".py",
       ".rb",
       ".go",

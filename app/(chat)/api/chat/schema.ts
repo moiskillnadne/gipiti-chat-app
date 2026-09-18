@@ -16,6 +16,8 @@ const filePartSchema = z.object({
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     "text/markdown",
     "text/plain",
+    "text/csv",
+    "text/tab-separated-values",
   ]),
   name: z.string().min(1).max(100),
   url: z.string().url(),

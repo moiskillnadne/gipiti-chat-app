@@ -27,7 +27,8 @@ const getFileIcon = (contentType: string) => {
   if (
     contentType ===
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
-    contentType === "text/csv"
+    contentType === "text/csv" ||
+    contentType === "text/tab-separated-values"
   ) {
     return <SpreadsheetIcon size={32} />;
   }

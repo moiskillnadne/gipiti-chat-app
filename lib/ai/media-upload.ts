@@ -85,6 +85,12 @@ type TextFileUploadOptions = {
   extension: string;
   /** Media type stored on the blob; charset is appended automatically. */
   contentType: string;
+  /**
+   * Prefix the file with a UTF-8 byte order mark. Excel on Windows assumes the
+   * ANSI code page for BOM-less text files and renders Cyrillic as garbage, so
+   * spreadsheet formats want it; Markdown/TXT tooling prefers no BOM.
+   */
+  withBom?: boolean;
 };
 
 /**
@@ -93,11 +99,12 @@ type TextFileUploadOptions = {
  */
 export async function uploadGeneratedTextFile(
   text: string,
-  { extension, contentType }: TextFileUploadOptions
+  { extension, contentType, withBom = false }: TextFileUploadOptions
 ): Promise<string> {
   const filename = `generated-${generateUUID()}.${extension}`;
+  const body = withBom ? `\uFEFF${text}` : text;
 
-  const { url } = await put(filename, Buffer.from(text, "utf8"), {
+  const { url } = await put(filename, Buffer.from(body, "utf8"), {
     access: "public",
     contentType: `${contentType}; charset=utf-8`,
   });
@@ -116,4 +123,15 @@ export const uploadGeneratedTxt = (text: string): Promise<string> =>
   uploadGeneratedTextFile(text, {
     extension: "txt",
     contentType: "text/plain",
+  });
+
+/**
+ * Upload generated CSV as a .csv file (UTF-8 with BOM so Excel opens Cyrillic
+ * correctly). Used by the generateCsv tool.
+ */
+export const uploadGeneratedCsv = (csv: string): Promise<string> =>
+  uploadGeneratedTextFile(csv, {
+    extension: "csv",
+    contentType: "text/csv",
+    withBom: true,
   });

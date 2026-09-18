@@ -2,10 +2,15 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ChatMessage } from "@/lib/types";
 import {
   attachTextContentForModel,
+  CSV_MIME_TYPE,
+  decodeTextFile,
   formatTextAttachmentForModel,
+  isTextAttachmentTruncated,
   MARKDOWN_MIME_TYPE,
+  MAX_EXTRACTED_CHARS,
   PLAIN_TEXT_MIME_TYPE,
   resolveTextAttachmentMediaType,
+  TSV_MIME_TYPE,
 } from "../text-attachments";
 
 vi.mock("server-only", () => ({}));
@@ -137,5 +142,81 @@ describe("attachTextContentForModel", () => {
       type: "text",
       text: '[Не удалось прочитать файл "gone.md".]',
     });
+  });
+});
+
+describe("CSV / TSV attachments", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("maps .csv and .tsv to their own media types regardless of case", () => {
+    expect(resolveTextAttachmentMediaType("sales.csv")).toBe(CSV_MIME_TYPE);
+    expect(resolveTextAttachmentMediaType("SALES.CSV")).toBe(CSV_MIME_TYPE);
+    expect(resolveTextAttachmentMediaType("sales.tsv")).toBe(TSV_MIME_TYPE);
+  });
+
+  it("inlines a text/csv part with a csv fence", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("id,name\n1,Анна\n", { status: 200 }))
+    );
+    const message = userMessage([filePart(CSV_MIME_TYPE, "sales.csv")]);
+
+    const [result] = await attachTextContentForModel([message]);
+
+    expect(result.parts[0]).toEqual({
+      type: "text",
+      text: 'Содержимое файла "sales.csv":\n\n````csv\nid,name\n1,Анна\n\n````',
+    });
+  });
+
+  it("decodes a Windows-1251 blob that predates upload normalisation", async () => {
+    // "имя\nИван" in cp1251
+    const cp1251 = new Uint8Array([
+      0xe8, 0xec, 0xff, 0x0a, 0xc8, 0xe2, 0xe0, 0xed,
+    ]);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(cp1251, { status: 200 }))
+    );
+    const message = userMessage([filePart(CSV_MIME_TYPE, "legacy.csv")]);
+
+    const [result] = await attachTextContentForModel([message]);
+
+    expect((result.parts[0] as { text: string }).text).toContain("имя\nИван");
+  });
+});
+
+describe("decodeTextFile", () => {
+  it("strips a UTF-8 BOM", () => {
+    const bytes = new Uint8Array([0xef, 0xbb, 0xbf, 0x69, 0x64, 0x2c, 0x61]);
+    expect(decodeTextFile(bytes)).toBe("id,a");
+  });
+
+  it("keeps valid UTF-8 as is", () => {
+    const bytes = new TextEncoder().encode("город,Ёжик");
+    expect(decodeTextFile(bytes)).toBe("город,Ёжик");
+  });
+
+  it("falls back to Windows-1251 for bytes that are not valid UTF-8", () => {
+    const cp1251 = new Uint8Array([0xcf, 0xf0, 0xe8, 0xe2, 0xe5, 0xf2]);
+    expect(decodeTextFile(cp1251)).toBe("Привет");
+  });
+
+  it("accepts an ArrayBuffer", () => {
+    const buffer = new TextEncoder().encode("a,b").buffer as ArrayBuffer;
+    expect(decodeTextFile(buffer)).toBe("a,b");
+  });
+});
+
+describe("isTextAttachmentTruncated", () => {
+  it("is false at the cap and true above it", () => {
+    expect(isTextAttachmentTruncated("x".repeat(MAX_EXTRACTED_CHARS))).toBe(
+      false
+    );
+    expect(isTextAttachmentTruncated("x".repeat(MAX_EXTRACTED_CHARS + 1))).toBe(
+      true
+    );
   });
 });

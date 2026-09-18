@@ -15,6 +15,10 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useSessionStorage, useWindowSize } from "usehooks-ts";
+import type {
+  UploadErrorBody,
+  UploadErrorCode,
+} from "@/app/(chat)/api/files/upload/route";
 import { useModel } from "@/contexts/model-context";
 import { useWebSearch } from "@/contexts/web-search-context";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -50,6 +54,20 @@ type MultimodalInputProps = {
   className?: string;
   // Kept for backward compatibility with chat.tsx; usage UI is hidden in this redesign.
   usage?: AppUsage;
+};
+
+/** Successful upload payload: the blob result plus the text-truncation flag. */
+type UploadResponseBody = {
+  url: string;
+  pathname: string;
+  contentType: string;
+  isTruncated?: boolean;
+};
+
+/** Upload failure codes that have their own localized message. */
+const UPLOAD_ERROR_MESSAGE_KEYS: Partial<Record<UploadErrorCode, string>> = {
+  file_too_large: "uploadTooLarge",
+  unsupported_type: "uploadUnsupportedType",
 };
 
 function PureMultimodalInput({
@@ -174,17 +192,21 @@ function PureMultimodalInput({
         });
 
         if (response.ok) {
-          const data = await response.json();
-          const { url, pathname, contentType } = data;
+          const { url, pathname, contentType, isTruncated } =
+            (await response.json()) as UploadResponseBody;
+          if (isTruncated) {
+            toast.warning(tInput("uploadTruncated", { name: file.name }));
+          }
           return { url, name: pathname, contentType };
         }
-        const { error } = await response.json();
-        toast.error(error);
+        const { code } = (await response.json()) as Partial<UploadErrorBody>;
+        const messageKey = code ? UPLOAD_ERROR_MESSAGE_KEYS[code] : undefined;
+        toast.error(messageKey ? tInput(messageKey) : tCommon("uploadFailed"));
       } catch (_error) {
         toast.error(tCommon("uploadFailed"));
       }
     },
-    [tCommon]
+    [tCommon, tInput]
   );
 
   const processFileList = useCallback(

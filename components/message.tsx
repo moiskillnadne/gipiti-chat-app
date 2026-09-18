@@ -72,6 +72,7 @@ const DOCUMENT_FORMAT_BY_TOOL_TYPE = {
   "tool-generateDocx": "docx",
   "tool-generateMarkdown": "markdown",
   "tool-generateTxt": "txt",
+  "tool-generateCsv": "csv",
 } as const satisfies Record<string, DocumentFormat>;
 
 type DocumentToolType = keyof typeof DOCUMENT_FORMAT_BY_TOOL_TYPE;
@@ -99,6 +100,8 @@ const documentUrlFromToolPart = (
       return part.output?.docxUrl;
     case "tool-generateMarkdown":
       return part.output?.markdownUrl;
+    case "tool-generateCsv":
+      return part.output?.csvUrl;
     default:
       return part.output?.txtUrl;
   }
