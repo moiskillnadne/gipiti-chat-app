@@ -8,6 +8,7 @@ import { ModelsCta } from "@/components/models/models-cta";
 import { ModelsHero } from "@/components/models/models-hero";
 import { toJsonLdString } from "@/lib/marketing/json-ld";
 import { catalogModels } from "@/lib/marketing/models-catalog";
+import { DEFAULT_OG_IMAGE } from "@/lib/seo/open-graph";
 
 export const dynamic = "force-static";
 export const revalidate = 3600;
@@ -25,6 +26,7 @@ export const metadata: Metadata = {
     description:
       "GPT, Claude, Gemini, Grok и модели генерации изображений и видео — в одной подписке, без VPN.",
     url: "https://gipiti.ru/models",
+    images: [DEFAULT_OG_IMAGE],
   },
 };
 
