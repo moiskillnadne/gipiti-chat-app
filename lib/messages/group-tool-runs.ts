@@ -14,6 +14,7 @@ const STANDALONE_MEDIA_TOOL_TYPES = new Set([
   "tool-generatePdf",
   "tool-generateDocx",
   "tool-generateMarkdown",
+  "tool-generateTxt",
 ]);
 
 /**

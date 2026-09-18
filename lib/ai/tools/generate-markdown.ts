@@ -18,7 +18,7 @@ Use this tool when:
 - The user wants written content delivered as a Markdown file rather than as a chat reply — notes, README, documentation, a spec, a changelog.
 - The user asks to modify, update, extend, or rewrite a .md file that is already in the conversation — one they uploaded or one you generated earlier — and wants the updated file back.
 
-Prefer generatePdf or generateDocx when the user asks specifically for a PDF or Word document. Do NOT use this tool when:
+Prefer generatePdf or generateDocx when the user asks specifically for a PDF or Word document, and generateTxt when they ask for a plain .txt file. Do NOT use this tool when:
 - The user just wants an answer in chat and did not ask for a file. Markdown formatting in a normal reply does not require this tool.
 - The user wants to read, summarize, or analyze an attached .md file without producing a new file — answer directly instead.
 
