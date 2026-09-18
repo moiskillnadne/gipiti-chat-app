@@ -18,7 +18,7 @@ Use this tool when:
 - The user wants written content delivered as a plain-text file rather than as a chat reply — notes, a list, a transcript, a log, a script draft, configuration lines.
 - The user asks to modify, update, extend, or rewrite a .txt file that is already in the conversation — one they uploaded or one you generated earlier — and wants the updated file back.
 
-Prefer generateMarkdown when the user asks for Markdown / .md, and generatePdf or generateDocx when they ask specifically for a PDF or Word document. Do NOT use this tool when:
+Prefer generateMarkdown when the user asks for Markdown / .md, generateCsv for tabular data (CSV, a table for Excel / Google Sheets), and generatePdf or generateDocx when they ask specifically for a PDF or Word document. Do NOT use this tool when:
 - The user just wants an answer in chat and did not ask for a file.
 - The user wants to read, summarize, or analyze an attached .txt file without producing a new file — answer directly instead.
 

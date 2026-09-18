@@ -9,7 +9,7 @@ const CARD =
   "flex w-full max-w-[392px] items-center gap-3 rounded-lg border border-rule bg-card p-3.5 shadow-sm";
 
 /** Downloadable document formats produced by the generate* tools. */
-export type DocumentFormat = "pdf" | "docx" | "markdown" | "txt";
+export type DocumentFormat = "pdf" | "docx" | "markdown" | "txt" | "csv";
 
 type FormatLabels = {
   /** Short badge shown under the title (e.g. "PDF"). */
@@ -20,17 +20,20 @@ type FormatLabels = {
     | "generatingPdf"
     | "generatingDocx"
     | "generatingMarkdown"
-    | "generatingTxt";
+    | "generatingTxt"
+    | "generatingCsv";
   documentKey:
     | "pdfDocument"
     | "docxDocument"
     | "markdownDocument"
-    | "txtDocument";
+    | "txtDocument"
+    | "csvDocument";
   downloadKey:
     | "downloadPdf"
     | "downloadDocx"
     | "downloadMarkdown"
-    | "downloadTxt";
+    | "downloadTxt"
+    | "downloadCsv";
 };
 
 export const DOCUMENT_FORMAT_LABELS: Record<DocumentFormat, FormatLabels> = {
@@ -62,6 +65,13 @@ export const DOCUMENT_FORMAT_LABELS: Record<DocumentFormat, FormatLabels> = {
     documentKey: "txtDocument",
     downloadKey: "downloadTxt",
   },
+  csv: {
+    badge: "CSV",
+    extension: "csv",
+    generatingKey: "generatingCsv",
+    documentKey: "csvDocument",
+    downloadKey: "downloadCsv",
+  },
 };
 
 type DocumentPreviewProps = {
@@ -85,7 +95,7 @@ const BlinkDots = () => (
 );
 
 /**
- * Card for a tool-generated document (PDF / DOCX / Markdown / TXT): a generating
+ * Card for a tool-generated document (PDF / DOCX / Markdown / TXT / CSV): a generating
  * placeholder, an error state, or the finished file with open + download
  * actions. One component for every format so the cards stay identical.
  */

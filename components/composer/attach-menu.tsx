@@ -16,7 +16,7 @@ export type AttachAccept = "image" | "document" | "code";
 const ACCEPT_BY_KIND: Record<AttachAccept, string> = {
   image: "image/jpeg,image/png,image/webp",
   document:
-    "application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.docx",
+    "application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.docx,text/csv,text/tab-separated-values,.csv,.tsv",
   code: "text/markdown,text/plain,.md,.markdown,.txt,.ts,.tsx,.js,.jsx,.json,.css,.html",
 };
 

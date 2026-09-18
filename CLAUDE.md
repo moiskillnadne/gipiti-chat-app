@@ -183,7 +183,7 @@ PLAYWRIGHT                # Set to "True" for mock models in tests
 11. **Payment Intent Expiry**: 30-minute hardcoded expiry
 12. **Cookie Persistence**: Model, style, project selections stored in cookies — must use server actions to update
 13. **ChatSDKError**: Use `new ChatSDKError("type:surface")` for consistent error handling across API routes
-14. **Text attachments**: `.md`/`.txt`/code uploads are validated by extension (browser MIME is unreliable), stored as `text/markdown` or `text/plain`, and inlined as text for the model by `lib/ai/text-attachments.ts` (like `.docx` via `docx-extract.ts`) — providers only accept images/PDFs as file parts
+14. **Text attachments**: `.md`/`.txt`/`.csv`/`.tsv`/code uploads are validated by extension (browser MIME is unreliable), normalised to UTF-8 on upload (BOM stripped, Windows-1251 re-encoded), stored as `text/markdown`, `text/plain`, `text/csv` or `text/tab-separated-values`, and inlined as text for the model by `lib/ai/text-attachments.ts` (like `.docx` via `docx-extract.ts`) — providers only accept images/PDFs as file parts
 15. **Provider SDKs**: Xai/Anthropic models are reached via the Vercel AI Gateway (@ai-sdk/gateway) — there is no direct Xai/Anthropic SDK in this repo
 
 ## Internationalization (i18n)

@@ -30,7 +30,7 @@ const MAX_ITEMS = 20;
 const MAX_ITEM_LENGTH = 2000;
 const MAX_DESCRIPTION_LENGTH = 280;
 const ALLOWED_FILE_TYPES =
-  "application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword,text/plain,text/markdown";
+  "application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword,text/plain,text/markdown,text/csv,.csv";
 
 export type EditorV1Props = {
   kind: "project";

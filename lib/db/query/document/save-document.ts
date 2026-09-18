@@ -8,7 +8,8 @@ export type DocumentKind =
   | "pdf"
   | "docx"
   | "markdown"
-  | "txt";
+  | "txt"
+  | "csv";
 
 export async function saveDocument({
   id,

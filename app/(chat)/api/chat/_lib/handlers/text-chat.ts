@@ -20,6 +20,7 @@ import { resolveLatestImageUrl } from "@/lib/ai/resolve-latest-image";
 import { attachTextContentForModel } from "@/lib/ai/text-attachments";
 import { calculator } from "@/lib/ai/tools/calculator";
 import { extractUrl } from "@/lib/ai/tools/extract-url";
+import { generateCsv } from "@/lib/ai/tools/generate-csv";
 import { generateDocx } from "@/lib/ai/tools/generate-docx";
 import { generateImage } from "@/lib/ai/tools/generate-image";
 import { generateMarkdown } from "@/lib/ai/tools/generate-markdown";
@@ -206,6 +207,10 @@ export async function runTextChat(
           chatId: ctx.chatId,
         }),
         generateTxt: generateTxt({
+          userId: ctx.userId,
+          chatId: ctx.chatId,
+        }),
+        generateCsv: generateCsv({
           userId: ctx.userId,
           chatId: ctx.chatId,
         }),
