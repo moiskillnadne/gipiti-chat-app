@@ -20,6 +20,7 @@ import {
   getModelsByCategory,
   getSectionBySlug,
 } from "@/lib/marketing/models-catalog";
+import { DEFAULT_OG_IMAGE, getLandingOgImage } from "@/lib/seo/open-graph";
 
 export const dynamic = "force-static";
 export const revalidate = 3600;
@@ -57,6 +58,7 @@ export const generateMetadata = async ({
         title: section.typePage.metaTitle,
         description: section.typePage.metaDescription,
         url: canonicalUrl,
+        images: [DEFAULT_OG_IMAGE],
       },
     };
   }
@@ -74,6 +76,7 @@ export const generateMetadata = async ({
         title: landing.metaTitle,
         description: landing.metaDescription,
         url: canonicalUrl,
+        images: [getLandingOgImage(landing)],
       },
     };
   }
