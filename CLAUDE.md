@@ -172,7 +172,7 @@ PLAYWRIGHT                # Set to "True" for mock models in tests
 
 1. **Message Schema**: Always use `Message_v2`, not deprecated `Message` table
 2. **Composite Keys**: `Document` uses (id + createdAt) as PK, not just id. `Vote_v2` uses (chatId + messageId)
-3. **Document table scope**: Only stores generated image/video output (kind="image"|"video"). Not a general-purpose document/artifact store
+3. **Document table scope**: Only stores generated tool output (kind="image"|"video"|"pdf"|"docx"|"markdown"). Not a general-purpose document/artifact store. `kind` is a varchar enum in TS only — adding a kind needs no migration
 4. **Token Systems**: Dual system — balance-based (primary, deducts before inference) + period-based (legacy aggregation). Both must be updated
 5. **Quota Checks**: Always check quota/balance BEFORE calling AI API to avoid wasted inference
 6. **Stream Recovery**: Requires Redis; gracefully degrades without it. 15-second recovery window
@@ -183,7 +183,8 @@ PLAYWRIGHT                # Set to "True" for mock models in tests
 11. **Payment Intent Expiry**: 30-minute hardcoded expiry
 12. **Cookie Persistence**: Model, style, project selections stored in cookies — must use server actions to update
 13. **ChatSDKError**: Use `new ChatSDKError("type:surface")` for consistent error handling across API routes
-14. **Provider SDKs**: Xai/Anthropic models are reached via the Vercel AI Gateway (@ai-sdk/gateway) — there is no direct Xai/Anthropic SDK in this repo
+14. **Text attachments**: `.md`/`.txt`/code uploads are validated by extension (browser MIME is unreliable), stored as `text/markdown` or `text/plain`, and inlined as text for the model by `lib/ai/text-attachments.ts` (like `.docx` via `docx-extract.ts`) — providers only accept images/PDFs as file parts
+15. **Provider SDKs**: Xai/Anthropic models are reached via the Vercel AI Gateway (@ai-sdk/gateway) — there is no direct Xai/Anthropic SDK in this repo
 
 ## Internationalization (i18n)
 

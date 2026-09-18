@@ -12,10 +12,13 @@ import { groupToolRuns } from "@/lib/messages/group-tool-runs";
 import type { ChatMessage } from "@/lib/types";
 import { cn, sanitizeText } from "@/lib/utils";
 import { AssistantIcon } from "./assistant-icon";
-import { DocxPreview } from "./elements/docx-preview";
+import {
+  DOCUMENT_FORMAT_LABELS,
+  type DocumentFormat,
+  DocumentPreview,
+} from "./elements/document-preview";
 import { MediaPreview, type MediaPreviewState } from "./elements/media-preview";
 import { MessageContent } from "./elements/message";
-import { PdfPreview } from "./elements/pdf-preview";
 import { Response } from "./elements/response";
 import {
   Source,
@@ -61,6 +64,28 @@ const mediaStateFromToolPart = (
     return "error";
   }
   return hasUrl ? "done" : "generating";
+};
+
+type DocumentToolPart = Extract<
+  ChatMessage["parts"][number],
+  { type: "tool-generatePdf" | "tool-generateDocx" | "tool-generateMarkdown" }
+>;
+
+/** Read the generated file URL from a finished document tool call, if any. */
+const documentUrlFromToolPart = (
+  part: DocumentToolPart
+): string | undefined => {
+  if (part.state !== "output-available") {
+    return;
+  }
+  switch (part.type) {
+    case "tool-generatePdf":
+      return part.output?.pdfUrl;
+    case "tool-generateDocx":
+      return part.output?.docxUrl;
+    default:
+      return part.output?.markdownUrl;
+  }
 };
 
 const PurePreviewMessage = ({
@@ -116,17 +141,17 @@ const PurePreviewMessage = ({
     }
   };
 
-  const downloadPdf = async (pdfUrl: string, title?: string) => {
+  const downloadDocument = async (
+    documentUrl: string,
+    format: DocumentFormat,
+    title?: string
+  ) => {
+    const { extension } = DOCUMENT_FORMAT_LABELS[format];
     try {
-      await downloadFromUrl(pdfUrl, `${title?.trim() || "document"}.pdf`);
-    } catch {
-      toast({ type: "error", description: t("downloadFileError") });
-    }
-  };
-
-  const downloadDocx = async (docxUrl: string, title?: string) => {
-    try {
-      await downloadFromUrl(docxUrl, `${title?.trim() || "document"}.docx`);
+      await downloadFromUrl(
+        documentUrl,
+        `${title?.trim() || "document"}.${extension}`
+      );
     } catch {
       toast({ type: "error", description: t("downloadFileError") });
     }
@@ -185,7 +210,8 @@ const PurePreviewMessage = ({
                     p.type === "data-videoGenerationFinish" ||
                     p.type === "tool-generateImage" ||
                     p.type === "tool-generatePdf" ||
-                    p.type === "tool-generateDocx"
+                    p.type === "tool-generateDocx" ||
+                    p.type === "tool-generateMarkdown"
                 )) ||
               mode === "edit",
             "max-w-[calc(100%-2.5rem)] sm:max-w-[min(fit-content,80%)]":
@@ -249,42 +275,38 @@ const PurePreviewMessage = ({
               );
             }
 
-            if (part.type === "tool-generatePdf") {
-              const pdfUrl =
-                part.state === "output-available"
-                  ? part.output?.pdfUrl
-                  : undefined;
-              const pdfTitle = part.input?.title;
+            // Tool-generated documents share one card; only the output URL
+            // field and the download extension differ per format.
+            if (
+              part.type === "tool-generatePdf" ||
+              part.type === "tool-generateDocx" ||
+              part.type === "tool-generateMarkdown"
+            ) {
+              const format: DocumentFormat =
+                part.type === "tool-generatePdf"
+                  ? "pdf"
+                  : part.type === "tool-generateDocx"
+                    ? "docx"
+                    : "markdown";
+              const documentUrl = documentUrlFromToolPart(part);
+              const documentTitle = part.input?.title;
 
               return (
-                <PdfPreview
+                <DocumentPreview
+                  format={format}
                   key={key}
                   onDownload={
-                    pdfUrl ? () => downloadPdf(pdfUrl, pdfTitle) : undefined
+                    documentUrl
+                      ? () =>
+                          downloadDocument(documentUrl, format, documentTitle)
+                      : undefined
                   }
-                  state={mediaStateFromToolPart(part.state, Boolean(pdfUrl))}
-                  title={pdfTitle}
-                  url={pdfUrl}
-                />
-              );
-            }
-
-            if (part.type === "tool-generateDocx") {
-              const docxUrl =
-                part.state === "output-available"
-                  ? part.output?.docxUrl
-                  : undefined;
-              const docxTitle = part.input?.title;
-
-              return (
-                <DocxPreview
-                  key={key}
-                  onDownload={
-                    docxUrl ? () => downloadDocx(docxUrl, docxTitle) : undefined
-                  }
-                  state={mediaStateFromToolPart(part.state, Boolean(docxUrl))}
-                  title={docxTitle}
-                  url={docxUrl}
+                  state={mediaStateFromToolPart(
+                    part.state,
+                    Boolean(documentUrl)
+                  )}
+                  title={documentTitle}
+                  url={documentUrl}
                 />
               );
             }

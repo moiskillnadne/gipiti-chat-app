@@ -17,10 +17,11 @@ const ACCEPT_BY_KIND: Record<AttachAccept, string> = {
   image: "image/jpeg,image/png,image/webp",
   document:
     "application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.docx",
-  code: "text/plain,.md,.ts,.tsx,.js,.jsx,.json,.css,.html",
+  code: "text/markdown,text/plain,.md,.markdown,.txt,.ts,.tsx,.js,.jsx,.json,.css,.html",
 };
 
-const MOBILE_COMBINED_ACCEPT = [
+/** Every accepted type, for the mobile single-button picker and drag-and-drop. */
+export const ALL_ATTACH_ACCEPT = [
   ACCEPT_BY_KIND.image,
   ACCEPT_BY_KIND.document,
   ACCEPT_BY_KIND.code,
@@ -74,7 +75,7 @@ export function AttachMenu({ disabled, onPick }: AttachMenuProps) {
         )}
         data-testid="attachments-button"
         disabled={disabled}
-        onClick={() => onPick(MOBILE_COMBINED_ACCEPT)}
+        onClick={() => onPick(ALL_ATTACH_ACCEPT)}
         type="button"
       >
         <Paperclip className="size-3.5" strokeWidth={1.6} />

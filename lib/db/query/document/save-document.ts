@@ -2,7 +2,7 @@ import { ChatSDKError } from "../../../errors";
 import { db } from "../../connection";
 import { document } from "../../schema";
 
-export type DocumentKind = "image" | "video" | "pdf" | "docx";
+export type DocumentKind = "image" | "video" | "pdf" | "docx" | "markdown";
 
 export async function saveDocument({
   id,

@@ -21,7 +21,7 @@ const getFileIcon = (contentType: string) => {
   ) {
     return <DocIcon size={32} />;
   }
-  if (contentType === "text/plain") {
+  if (contentType === "text/plain" || contentType === "text/markdown") {
     return <TextIcon size={32} />;
   }
   if (

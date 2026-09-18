@@ -204,7 +204,7 @@ export const document = pgTable(
     title: text("title").notNull(),
     content: text("content"),
     kind: varchar("kind", {
-      enum: ["image", "video", "pdf", "docx"],
+      enum: ["image", "video", "pdf", "docx", "markdown"],
     })
       .notNull()
       .default("image"),
