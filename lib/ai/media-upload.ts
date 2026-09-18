@@ -79,3 +79,19 @@ export async function uploadGeneratedDocx(docxData: Buffer): Promise<string> {
   });
   return url;
 }
+
+/**
+ * Upload generated Markdown text to Vercel Blob as a UTF-8 .md file and return
+ * its public URL. Shared by the generateMarkdown tool.
+ */
+export async function uploadGeneratedMarkdown(
+  markdown: string
+): Promise<string> {
+  const filename = `generated-${generateUUID()}.md`;
+
+  const { url } = await put(filename, Buffer.from(markdown, "utf8"), {
+    access: "public",
+    contentType: "text/markdown; charset=utf-8",
+  });
+  return url;
+}

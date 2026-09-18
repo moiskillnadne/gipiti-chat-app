@@ -24,7 +24,7 @@ import { useTranslations } from "@/lib/i18n/translate";
 import type { Attachment, ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
 import { cn } from "@/lib/utils";
-import { AttachMenu } from "./composer/attach-menu";
+import { ALL_ATTACH_ACCEPT, AttachMenu } from "./composer/attach-menu";
 import { AttachmentItem, UploadingItem } from "./composer/attachment-item";
 import { BalanceSpendBanner } from "./composer/balance-spend-banner";
 import { DragOverlay } from "./composer/drag-overlay";
@@ -290,7 +290,7 @@ function PureMultimodalInput({
   return (
     <div className={cn("relative flex w-full flex-col", className)}>
       <input
-        accept="image/jpeg,image/png,image/webp,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        accept={ALL_ATTACH_ACCEPT}
         className="-top-4 -left-4 pointer-events-none fixed size-0.5 opacity-0"
         multiple
         onChange={handleFileChange}

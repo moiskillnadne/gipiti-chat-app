@@ -8,7 +8,45 @@ import type { MediaPreviewState } from "./media-preview";
 const CARD =
   "flex w-full max-w-[392px] items-center gap-3 rounded-lg border border-rule bg-card p-3.5 shadow-sm";
 
-type DocxPreviewProps = {
+/** Downloadable document formats produced by the generate* tools. */
+export type DocumentFormat = "pdf" | "docx" | "markdown";
+
+type FormatLabels = {
+  /** Short badge shown under the title (e.g. "PDF"). */
+  badge: string;
+  /** File extension used for the download name. */
+  extension: string;
+  generatingKey: "generatingPdf" | "generatingDocx" | "generatingMarkdown";
+  documentKey: "pdfDocument" | "docxDocument" | "markdownDocument";
+  downloadKey: "downloadPdf" | "downloadDocx" | "downloadMarkdown";
+};
+
+export const DOCUMENT_FORMAT_LABELS: Record<DocumentFormat, FormatLabels> = {
+  pdf: {
+    badge: "PDF",
+    extension: "pdf",
+    generatingKey: "generatingPdf",
+    documentKey: "pdfDocument",
+    downloadKey: "downloadPdf",
+  },
+  docx: {
+    badge: "DOCX",
+    extension: "docx",
+    generatingKey: "generatingDocx",
+    documentKey: "docxDocument",
+    downloadKey: "downloadDocx",
+  },
+  markdown: {
+    badge: "MD",
+    extension: "md",
+    generatingKey: "generatingMarkdown",
+    documentKey: "markdownDocument",
+    downloadKey: "downloadMarkdown",
+  },
+};
+
+type DocumentPreviewProps = {
+  format: DocumentFormat;
   state: MediaPreviewState;
   title?: string;
   url?: string;
@@ -27,13 +65,20 @@ const BlinkDots = () => (
   </div>
 );
 
-export const DocxPreview = ({
+/**
+ * Card for a tool-generated document (PDF / DOCX / Markdown): a generating
+ * placeholder, an error state, or the finished file with open + download
+ * actions. One component for every format so the cards stay identical.
+ */
+export const DocumentPreview = ({
+  format,
   state,
   title,
   url,
   onDownload,
-}: DocxPreviewProps) => {
+}: DocumentPreviewProps) => {
   const t = useTranslations("chat.media");
+  const labels = DOCUMENT_FORMAT_LABELS[format];
 
   if (state === "queued" || state === "generating") {
     return (
@@ -43,10 +88,10 @@ export const DocxPreview = ({
         </div>
         <div className="min-w-0">
           <div className="font-medium text-[13px] text-ink">
-            {t("generatingDocx")}
+            {t(labels.generatingKey)}
           </div>
           <div className="mt-[3px] font-mono text-[10px] text-ink-3 uppercase tracking-[0.06em]">
-            DOCX
+            {labels.badge}
           </div>
         </div>
         <BlinkDots />
@@ -79,10 +124,10 @@ export const DocxPreview = ({
       </div>
       <div className="min-w-0 flex-1">
         <div className="truncate font-medium text-[13px] text-ink">
-          {title || t("docxDocument")}
+          {title || t(labels.documentKey)}
         </div>
         <div className="mt-[3px] font-mono text-[10px] text-ink-3 uppercase tracking-[0.06em]">
-          DOCX
+          {labels.badge}
         </div>
       </div>
       <div className="flex shrink-0 items-center gap-1.5">
@@ -101,7 +146,7 @@ export const DocxPreview = ({
           <button
             className="flex size-[34px] items-center justify-center rounded-md border border-ink bg-ink text-paper transition-colors duration-fast ease-canon hover:bg-black"
             onClick={onDownload}
-            title={t("downloadDocx")}
+            title={t(labels.downloadKey)}
             type="button"
           >
             <DownloadIcon className="size-4" />

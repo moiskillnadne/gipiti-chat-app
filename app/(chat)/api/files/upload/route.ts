@@ -3,25 +3,40 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { auth } from "@/app/(auth)/auth";
+import { resolveTextAttachmentMediaType } from "@/lib/ai/text-attachments";
 
-// Use Blob instead of File since File is not available in Node.js environment
-const SUPPORTED_FILE_TYPES = [
+const MAX_FILE_BYTES = 10 * 1024 * 1024;
+
+// Binary types are validated by the browser-reported MIME type. Text files
+// (.md, .txt, code) are validated by extension instead — see
+// `resolveTextAttachmentMediaType` for why the browser type can't be trusted.
+const SUPPORTED_BINARY_TYPES = [
   "image/jpeg",
   "image/png",
   "application/pdf",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ];
 
+const UNSUPPORTED_TYPE_MESSAGE =
+  "File type should be JPEG, PNG, PDF, DOCX, MD, TXT, or a code file";
+
 const FileSchema = z.object({
-  file: z
-    .instanceof(Blob)
-    .refine((file) => file.size <= 10 * 1024 * 1024, {
-      message: "File size should be less than 10MB",
-    })
-    .refine((file) => SUPPORTED_FILE_TYPES.includes(file.type), {
-      message: "File type should be JPEG, PNG, PDF, or DOCX",
-    }),
+  file: z.instanceof(Blob).refine((file) => file.size <= MAX_FILE_BYTES, {
+    message: "File size should be less than 10MB",
+  }),
+  filename: z.string().min(1),
 });
+
+/**
+ * Resolve the media type the attachment is stored and sent to chat with, or
+ * `undefined` when the file is not supported.
+ */
+const resolveMediaType = (file: Blob, filename: string): string | undefined => {
+  if (SUPPORTED_BINARY_TYPES.includes(file.type)) {
+    return file.type;
+  }
+  return resolveTextAttachmentMediaType(filename);
+};
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -36,13 +51,15 @@ export async function POST(request: Request) {
 
   try {
     const formData = await request.formData();
-    const file = formData.get("file") as Blob;
+    const file = formData.get("file");
 
-    if (!file) {
+    if (!(file instanceof Blob)) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
-    const validatedFile = FileSchema.safeParse({ file });
+    // Blob has no name; the File subclass the browser sends does.
+    const filename = file instanceof File ? file.name : "";
+    const validatedFile = FileSchema.safeParse({ file, filename });
 
     if (!validatedFile.success) {
       const errorMessage = validatedFile.error.errors
@@ -52,13 +69,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: errorMessage }, { status: 400 });
     }
 
-    // Get filename from formData since Blob doesn't have name property
-    const filename = (formData.get("file") as File).name;
+    const mediaType = resolveMediaType(file, filename);
+    if (!mediaType) {
+      return NextResponse.json(
+        { error: UNSUPPORTED_TYPE_MESSAGE },
+        { status: 400 }
+      );
+    }
+
     const fileBuffer = await file.arrayBuffer();
 
     try {
-      const data = await put(`${filename}`, fileBuffer, {
+      // Pin the stored content type so text files come back as text/markdown
+      // or text/plain regardless of what the browser reported on upload.
+      const data = await put(filename, fileBuffer, {
         access: "public",
+        contentType: mediaType,
       });
 
       return NextResponse.json(data);
