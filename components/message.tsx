@@ -66,10 +66,24 @@ const mediaStateFromToolPart = (
   return hasUrl ? "done" : "generating";
 };
 
+/** Tool part types that render as a downloadable document card. */
+const DOCUMENT_FORMAT_BY_TOOL_TYPE = {
+  "tool-generatePdf": "pdf",
+  "tool-generateDocx": "docx",
+  "tool-generateMarkdown": "markdown",
+  "tool-generateTxt": "txt",
+} as const satisfies Record<string, DocumentFormat>;
+
+type DocumentToolType = keyof typeof DOCUMENT_FORMAT_BY_TOOL_TYPE;
+
 type DocumentToolPart = Extract<
   ChatMessage["parts"][number],
-  { type: "tool-generatePdf" | "tool-generateDocx" | "tool-generateMarkdown" }
+  { type: DocumentToolType }
 >;
+
+const isDocumentToolPart = (
+  part: ChatMessage["parts"][number]
+): part is DocumentToolPart => part.type in DOCUMENT_FORMAT_BY_TOOL_TYPE;
 
 /** Read the generated file URL from a finished document tool call, if any. */
 const documentUrlFromToolPart = (
@@ -83,8 +97,10 @@ const documentUrlFromToolPart = (
       return part.output?.pdfUrl;
     case "tool-generateDocx":
       return part.output?.docxUrl;
-    default:
+    case "tool-generateMarkdown":
       return part.output?.markdownUrl;
+    default:
+      return part.output?.txtUrl;
   }
 };
 
@@ -209,9 +225,7 @@ const PurePreviewMessage = ({
                     p.type === "data-imageGenerationFinish" ||
                     p.type === "data-videoGenerationFinish" ||
                     p.type === "tool-generateImage" ||
-                    p.type === "tool-generatePdf" ||
-                    p.type === "tool-generateDocx" ||
-                    p.type === "tool-generateMarkdown"
+                    isDocumentToolPart(p)
                 )) ||
               mode === "edit",
             "max-w-[calc(100%-2.5rem)] sm:max-w-[min(fit-content,80%)]":
@@ -277,17 +291,8 @@ const PurePreviewMessage = ({
 
             // Tool-generated documents share one card; only the output URL
             // field and the download extension differ per format.
-            if (
-              part.type === "tool-generatePdf" ||
-              part.type === "tool-generateDocx" ||
-              part.type === "tool-generateMarkdown"
-            ) {
-              const format: DocumentFormat =
-                part.type === "tool-generatePdf"
-                  ? "pdf"
-                  : part.type === "tool-generateDocx"
-                    ? "docx"
-                    : "markdown";
+            if (isDocumentToolPart(part)) {
+              const format = DOCUMENT_FORMAT_BY_TOOL_TYPE[part.type];
               const documentUrl = documentUrlFromToolPart(part);
               const documentTitle = part.input?.title;
 

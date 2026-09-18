@@ -24,6 +24,7 @@ import { generateDocx } from "@/lib/ai/tools/generate-docx";
 import { generateImage } from "@/lib/ai/tools/generate-image";
 import { generateMarkdown } from "@/lib/ai/tools/generate-markdown";
 import { generatePdf } from "@/lib/ai/tools/generate-pdf";
+import { generateTxt } from "@/lib/ai/tools/generate-txt";
 import { webSearch } from "@/lib/ai/tools/web-search";
 import {
   isGeminiSignatureDebugEnabled,
@@ -201,6 +202,10 @@ export async function runTextChat(
           chatId: ctx.chatId,
         }),
         generateMarkdown: generateMarkdown({
+          userId: ctx.userId,
+          chatId: ctx.chatId,
+        }),
+        generateTxt: generateTxt({
           userId: ctx.userId,
           chatId: ctx.chatId,
         }),

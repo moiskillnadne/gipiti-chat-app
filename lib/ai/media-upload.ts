@@ -80,18 +80,40 @@ export async function uploadGeneratedDocx(docxData: Buffer): Promise<string> {
   return url;
 }
 
-/**
- * Upload generated Markdown text to Vercel Blob as a UTF-8 .md file and return
- * its public URL. Shared by the generateMarkdown tool.
- */
-export async function uploadGeneratedMarkdown(
-  markdown: string
-): Promise<string> {
-  const filename = `generated-${generateUUID()}.md`;
+type TextFileUploadOptions = {
+  /** File extension without the dot, e.g. "md" or "txt". */
+  extension: string;
+  /** Media type stored on the blob; charset is appended automatically. */
+  contentType: string;
+};
 
-  const { url } = await put(filename, Buffer.from(markdown, "utf8"), {
+/**
+ * Upload generated text to Vercel Blob as a UTF-8 file and return its public
+ * URL. Shared by every text-format document tool (Markdown, TXT).
+ */
+export async function uploadGeneratedTextFile(
+  text: string,
+  { extension, contentType }: TextFileUploadOptions
+): Promise<string> {
+  const filename = `generated-${generateUUID()}.${extension}`;
+
+  const { url } = await put(filename, Buffer.from(text, "utf8"), {
     access: "public",
-    contentType: "text/markdown; charset=utf-8",
+    contentType: `${contentType}; charset=utf-8`,
   });
   return url;
 }
+
+/** Upload generated Markdown as a .md file. Used by the generateMarkdown tool. */
+export const uploadGeneratedMarkdown = (markdown: string): Promise<string> =>
+  uploadGeneratedTextFile(markdown, {
+    extension: "md",
+    contentType: "text/markdown",
+  });
+
+/** Upload generated plain text as a .txt file. Used by the generateTxt tool. */
+export const uploadGeneratedTxt = (text: string): Promise<string> =>
+  uploadGeneratedTextFile(text, {
+    extension: "txt",
+    contentType: "text/plain",
+  });

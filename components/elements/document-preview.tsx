@@ -9,16 +9,28 @@ const CARD =
   "flex w-full max-w-[392px] items-center gap-3 rounded-lg border border-rule bg-card p-3.5 shadow-sm";
 
 /** Downloadable document formats produced by the generate* tools. */
-export type DocumentFormat = "pdf" | "docx" | "markdown";
+export type DocumentFormat = "pdf" | "docx" | "markdown" | "txt";
 
 type FormatLabels = {
   /** Short badge shown under the title (e.g. "PDF"). */
   badge: string;
   /** File extension used for the download name. */
   extension: string;
-  generatingKey: "generatingPdf" | "generatingDocx" | "generatingMarkdown";
-  documentKey: "pdfDocument" | "docxDocument" | "markdownDocument";
-  downloadKey: "downloadPdf" | "downloadDocx" | "downloadMarkdown";
+  generatingKey:
+    | "generatingPdf"
+    | "generatingDocx"
+    | "generatingMarkdown"
+    | "generatingTxt";
+  documentKey:
+    | "pdfDocument"
+    | "docxDocument"
+    | "markdownDocument"
+    | "txtDocument";
+  downloadKey:
+    | "downloadPdf"
+    | "downloadDocx"
+    | "downloadMarkdown"
+    | "downloadTxt";
 };
 
 export const DOCUMENT_FORMAT_LABELS: Record<DocumentFormat, FormatLabels> = {
@@ -43,6 +55,13 @@ export const DOCUMENT_FORMAT_LABELS: Record<DocumentFormat, FormatLabels> = {
     documentKey: "markdownDocument",
     downloadKey: "downloadMarkdown",
   },
+  txt: {
+    badge: "TXT",
+    extension: "txt",
+    generatingKey: "generatingTxt",
+    documentKey: "txtDocument",
+    downloadKey: "downloadTxt",
+  },
 };
 
 type DocumentPreviewProps = {
@@ -66,7 +85,7 @@ const BlinkDots = () => (
 );
 
 /**
- * Card for a tool-generated document (PDF / DOCX / Markdown): a generating
+ * Card for a tool-generated document (PDF / DOCX / Markdown / TXT): a generating
  * placeholder, an error state, or the finished file with open + download
  * actions. One component for every format so the cards stay identical.
  */

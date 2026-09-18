@@ -6,6 +6,7 @@ import type { generateDocxTool } from "./ai/tools/generate-docx";
 import type { generateImageTool } from "./ai/tools/generate-image";
 import type { generateMarkdownTool } from "./ai/tools/generate-markdown";
 import type { generatePdfTool } from "./ai/tools/generate-pdf";
+import type { generateTxtTool } from "./ai/tools/generate-txt";
 import type { webSearch } from "./ai/tools/web-search";
 import type { Prompt } from "./db/schema";
 import type { AppUsage } from "./usage";
@@ -33,6 +34,7 @@ type generateDocxToolType = InferUITool<ReturnType<typeof generateDocxTool>>;
 type generateMarkdownToolType = InferUITool<
   ReturnType<typeof generateMarkdownTool>
 >;
+type generateTxtToolType = InferUITool<ReturnType<typeof generateTxtTool>>;
 
 export type ChatTools = {
   calculator: calculatorTool;
@@ -42,6 +44,7 @@ export type ChatTools = {
   generatePdf: generatePdfToolType;
   generateDocx: generateDocxToolType;
   generateMarkdown: generateMarkdownToolType;
+  generateTxt: generateTxtToolType;
 };
 
 export type CustomUIDataTypes = {
