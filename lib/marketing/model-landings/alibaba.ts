@@ -4,10 +4,10 @@ import {
   analystsAudience,
   buildSteps,
   GEMINI_38_FLASH_SLUG,
-  GROK_46_SLUG,
+  GROK_47_SLUG,
   KIMI_K3_FAST_SLUG,
   lawyersAudience,
-  OPUS_5_SLUG,
+  OPUS_55_SLUG,
   QWEN_37_FLASH_SLUG,
   QWEN_38_MAX_SLUG,
   sharedFaq,
@@ -79,7 +79,7 @@ export const alibabaLandings: ModelLanding[] = [
       {
         question: "Можно ли прикреплять документы?",
         answer:
-          "Модель понимает изображения и файлы Word. PDF она не читает — для таких документов в GIPITI есть Gemini, GPT-5.6 и Claude, они разбирают PDF напрямую.",
+          "Модель понимает изображения и файлы Word. PDF она не читает — для таких документов в GIPITI есть Gemini, GPT-6 и Claude, они разбирают PDF напрямую.",
       },
       {
         question: "Чем Qwen 3.8 Max отличается от Qwen 3.7 Flash?",
@@ -99,8 +99,12 @@ export const alibabaLandings: ModelLanding[] = [
         tag: "Текст",
         href: `/models/${KIMI_K3_FAST_SLUG}`,
       },
-      { name: "Claude Opus 5", tag: "Текст", href: `/models/${OPUS_5_SLUG}` },
-      { name: "Grok 4.6", tag: "Текст", href: `/models/${GROK_46_SLUG}` },
+      {
+        name: "Claude Opus 5.5",
+        tag: "Текст",
+        href: `/models/${OPUS_55_SLUG}`,
+      },
+      { name: "Grok 4.7", tag: "Текст", href: `/models/${GROK_47_SLUG}` },
     ],
   },
   {
@@ -179,7 +183,7 @@ export const alibabaLandings: ModelLanding[] = [
       {
         question: "Можно ли прикреплять документы?",
         answer:
-          "Модель понимает изображения и файлы Word. PDF она не читает — для таких документов возьмите Gemini, GPT-5.6 или Claude.",
+          "Модель понимает изображения и файлы Word. PDF она не читает — для таких документов возьмите Gemini, GPT-6 или Claude.",
       },
       {
         question: "Когда лучше взять Qwen 3.8 Max?",

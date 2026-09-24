@@ -11,11 +11,11 @@ import {
   FLUX_SLUG,
   GPT_IMAGE_25_FLARE_SLUG,
   GPT_IMAGE_25_SUNBURST_SLUG,
+  GPT6_SOL_SLUG,
   NANO_BANANA_LITE_SLUG,
   NANO_BANANA_PRO_SLUG,
   NANO_BANANA_SLUG,
   SEEDREAM_LITE_SLUG,
-  SOL_SLUG,
   VEO_SLUG,
   vpnBenefit,
 } from "./shared";
@@ -267,7 +267,7 @@ export const googleImageLandings: ModelLanding[] = [
         slug: GPT_IMAGE_25_SUNBURST_SLUG,
       },
       { name: "Flux 2 Max", tag: "Изображения", slug: FLUX_SLUG },
-      { name: "GPT-5.6 Sol", tag: "Текст", slug: SOL_SLUG },
+      { name: "GPT-6 Sol", tag: "Текст", slug: GPT6_SOL_SLUG },
     ]),
   },
   {

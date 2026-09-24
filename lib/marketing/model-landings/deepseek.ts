@@ -14,7 +14,7 @@ import {
   DEEPSEEK_FLASH_SLUG,
   DEEPSEEK_SLUG,
   GEMINI_38_FLASH_SLUG,
-  LUNA_SLUG,
+  GPT6_LUNA_SLUG,
   priceFaq,
   SONAR_SLUG,
   SONNET_SLUG,
@@ -30,14 +30,14 @@ import type { LandingFaqItem, ModelLanding } from "./types";
 const attachmentsFaq: LandingFaqItem = {
   question: "Можно ли загрузить документ в DeepSeek?",
   answer:
-    "Модели DeepSeek работают без вложений — вставьте текст прямо в чат. Если нужно прочитать PDF, Word или таблицу целиком, выберите GPT-5.6, Claude или Gemini: они доступны в той же подписке.",
+    "Модели DeepSeek работают без вложений — вставьте текст прямо в чат. Если нужно прочитать PDF, Word или таблицу целиком, выберите GPT-6, Claude или Gemini: они доступны в той же подписке.",
 };
 
 /** V4.1 Flash takes photos and screenshots, but no PDF/Word/tables. */
 const photosOnlyFaq: LandingFaqItem = {
   question: "Можно ли загрузить документ в DeepSeek V4.1 Flash?",
   answer:
-    "Модель читает изображения — прикрепите фото, скриншот или снимок страницы. PDF, Word и таблицы она пока не принимает: вставьте текст прямо в чат или выберите GPT-5.6, Claude или Gemini — они доступны в той же подписке.",
+    "Модель читает изображения — прикрепите фото, скриншот или снимок страницы. PDF, Word и таблицы она пока не принимает: вставьте текст прямо в чат или выберите GPT-6, Claude или Gemini — они доступны в той же подписке.",
 };
 
 const contextFaq: LandingFaqItem = {
@@ -148,7 +148,7 @@ export const deepseekLandings: ModelLanding[] = [
         tag: "Текст",
         href: `/models/${GEMINI_38_FLASH_SLUG}`,
       },
-      { name: "GPT-5.6 Luna", tag: "Текст", href: `/models/${LUNA_SLUG}` },
+      { name: "GPT-6 Luna", tag: "Текст", href: `/models/${GPT6_LUNA_SLUG}` },
     ],
   },
   {
@@ -227,7 +227,7 @@ export const deepseekLandings: ModelLanding[] = [
       {
         question: "Чем DeepSeek отличается от ChatGPT?",
         answer:
-          "DeepSeek известен флагманским качеством по заметно меньшей цене, а V4 Pro к тому же держит контекст до миллиона токенов. В GIPITI доступны и DeepSeek, и GPT-5.6 — сравните их на своей задаче.",
+          "DeepSeek известен флагманским качеством по заметно меньшей цене, а V4 Pro к тому же держит контекст до миллиона токенов. В GIPITI доступны и DeepSeek, и GPT-6 — сравните их на своей задаче.",
       },
       {
         question: "Чем V4 Pro отличается от V4 Flash?",
@@ -343,7 +343,7 @@ export const deepseekLandings: ModelLanding[] = [
         tag: "Текст",
         href: `/models/${DEEPSEEK_41_FLASH_SLUG}`,
       },
-      { name: "GPT-5.6 Luna", tag: "Текст", href: `/models/${LUNA_SLUG}` },
+      { name: "GPT-6 Luna", tag: "Текст", href: `/models/${GPT6_LUNA_SLUG}` },
       { name: "Claude Sonnet 5", tag: "Текст", href: `/models/${SONNET_SLUG}` },
     ],
   },

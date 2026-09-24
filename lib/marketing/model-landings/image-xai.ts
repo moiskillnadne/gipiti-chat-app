@@ -7,7 +7,7 @@ import {
   sharedMediaFaq,
 } from "./media-shared";
 import {
-  GROK_46_SLUG,
+  GROK_47_SLUG,
   GROK_IMAGINE_20_SLUG,
   GROK_IMAGINE_SLUG,
   GROK_IMAGINE_VIDEO_SLUG,
@@ -138,7 +138,7 @@ export const xaiImageLandings: ModelLanding[] = [
         tag: "Видео",
         slug: GROK_IMAGINE_VIDEO_SLUG,
       },
-      { name: "Grok 4.6", tag: "Текст", slug: GROK_46_SLUG },
+      { name: "Grok 4.7", tag: "Текст", slug: GROK_47_SLUG },
     ]),
   },
   {

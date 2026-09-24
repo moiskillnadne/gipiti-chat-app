@@ -64,7 +64,9 @@ export const ModelLandingChatMockup = ({
           </div>
 
           <div className="mt-1.5 flex items-center gap-3 rounded-full border border-zinc-700 py-2.5 pr-2.5 pl-5">
-            <span className="flex-1 truncate text-sm text-zinc-500">
+            {/* min-w-0 lets the flex item shrink so `truncate` can ellipsize;
+                without it a long model name widens the whole mobile hero. */}
+            <span className="min-w-0 flex-1 truncate text-sm text-zinc-500">
               {sectionCopy.text.composerPlaceholder(landing.name)}
             </span>
             <div

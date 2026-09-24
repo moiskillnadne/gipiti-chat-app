@@ -12,10 +12,10 @@ import {
   buildSteps,
   DEEPSEEK_SLUG,
   GEMINI_PRO_SLUG,
+  GPT6_SOL_SLUG,
   GROK_SLUG,
-  OPUS_5_SLUG,
+  OPUS_55_SLUG,
   priceFaq,
-  SOL_SLUG,
   SONAR_PRO_SLUG,
   SONAR_REASONING_SLUG,
   SONAR_SLUG,
@@ -118,7 +118,7 @@ export const perplexityLandings: ModelLanding[] = [
       ...sharedFaq,
     ],
     otherModels: [
-      { name: "GPT-5.6 Sol", tag: "Текст", href: `/models/${SOL_SLUG}` },
+      { name: "GPT-6 Sol", tag: "Текст", href: `/models/${GPT6_SOL_SLUG}` },
       {
         name: "Gemini 3.1 Pro",
         tag: "Текст",
@@ -217,7 +217,7 @@ export const perplexityLandings: ModelLanding[] = [
         tag: "Текст",
         href: `/models/${SONAR_REASONING_SLUG}`,
       },
-      { name: "GPT-5.6 Sol", tag: "Текст", href: `/models/${SOL_SLUG}` },
+      { name: "GPT-6 Sol", tag: "Текст", href: `/models/${GPT6_SOL_SLUG}` },
       {
         name: "Gemini 3.1 Pro",
         tag: "Текст",
@@ -302,7 +302,7 @@ export const perplexityLandings: ModelLanding[] = [
       {
         question: "Можно ли загрузить документ в Sonar Reasoning Pro?",
         answer:
-          "Эта модель работает без вложений — вставьте нужный текст прямо в чат. Если требуется прочитать PDF или таблицу целиком, выберите GPT-5.6, Claude или Gemini: они доступны в той же подписке.",
+          "Эта модель работает без вложений — вставьте нужный текст прямо в чат. Если требуется прочитать PDF или таблицу целиком, выберите GPT-6, Claude или Gemini: они доступны в той же подписке.",
       },
       sourcesFaq,
       vpnFaq,
@@ -311,7 +311,11 @@ export const perplexityLandings: ModelLanding[] = [
     otherModels: [
       { name: "Sonar Pro", tag: "Текст", href: `/models/${SONAR_PRO_SLUG}` },
       { name: "Sonar", tag: "Текст", href: `/models/${SONAR_SLUG}` },
-      { name: "Claude Opus 5", tag: "Текст", href: `/models/${OPUS_5_SLUG}` },
+      {
+        name: "Claude Opus 5.5",
+        tag: "Текст",
+        href: `/models/${OPUS_55_SLUG}`,
+      },
       { name: "GPT-5.6 Terra", tag: "Текст", href: `/models/${TERRA_SLUG}` },
     ],
   },

@@ -36,7 +36,9 @@ export const ModelLandingHero = ({ landing }: { landing: ModelLanding }) => {
           <b className="font-medium text-zinc-200">{landing.name}</b>
         </nav>
 
-        <div className="grid items-center gap-10 pt-12 pb-10 lg:grid-cols-[1.05fr_1fr] lg:gap-14">
+        {/* grid-cols-1 is minmax(0, 1fr): an auto track would grow to the
+            mockup's min-content and push the mobile hero past the viewport. */}
+        <div className="grid grid-cols-1 items-center gap-10 pt-12 pb-10 lg:grid-cols-[1.05fr_1fr] lg:gap-14">
           <div>
             <div
               className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm ${accent.badge}`}

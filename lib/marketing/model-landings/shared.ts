@@ -16,11 +16,14 @@ import type {
 } from "./types";
 
 // Text landings
+export const GPT6_SOL_SLUG = "gpt-6-sol";
+export const GPT6_LUNA_SLUG = "gpt-6-luna";
 export const SOL_SLUG = "gpt-5-6-sol";
 export const TERRA_SLUG = "gpt-5-6-terra";
 export const LUNA_SLUG = "gpt-5-6-luna";
 export const GPT55_SLUG = "gpt-5-5";
 export const CODEX_SLUG = "gpt-codex-5-3";
+export const OPUS_55_SLUG = "claude-opus-5-5";
 export const OPUS_5_SLUG = "claude-opus-5";
 export const OPUS_48_SLUG = "claude-opus-4-8";
 export const SONNET_SLUG = "claude-sonnet-5";
@@ -34,6 +37,7 @@ export const GEMINI_35_FLASH_LITE_SLUG = "gemini-3-5-flash-lite";
 export const SONAR_SLUG = "perplexity-sonar";
 export const SONAR_PRO_SLUG = "perplexity-sonar-pro";
 export const SONAR_REASONING_SLUG = "perplexity-sonar-reasoning-pro";
+export const GROK_47_SLUG = "grok-4-7";
 export const GROK_46_SLUG = "grok-4-6";
 export const GROK_SLUG = "grok-4-5";
 export const GROK_43_SLUG = "grok-4-3";
@@ -204,9 +208,9 @@ export const supportAudience: LandingAudienceCard = {
     "Здравствуйте! Спасибо, что написали. К сожалению, **по условиям заказа** возврат оформить нельзя, но мы можем предложить…",
 };
 
-/** Chips shared by the GPT-5.6 landings — only models with a live landing. */
+/** Chips shared by the GPT landings — only models with a live landing. */
 export const crossLandingChips: LandingModelChip[] = [
-  { name: "Claude Opus 5", tag: "Текст", href: `/models/${OPUS_5_SLUG}` },
+  { name: "Claude Opus 5.5", tag: "Текст", href: `/models/${OPUS_55_SLUG}` },
   { name: "Gemini 3.1 Pro", tag: "Текст", href: `/models/${GEMINI_PRO_SLUG}` },
-  { name: "Grok 4.5", tag: "Текст", href: `/models/${GROK_SLUG}` },
+  { name: "Grok 4.7", tag: "Текст", href: `/models/${GROK_47_SLUG}` },
 ];

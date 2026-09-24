@@ -15,10 +15,10 @@ import {
   GPT_IMAGE_25_FLARE_SLUG,
   GPT_IMAGE_25_SUNBURST_SLUG,
   GPT_IMAGE_SLUG,
+  GPT6_SOL_SLUG,
   NANO_BANANA_PRO_SLUG,
   NANO_BANANA_SLUG,
   SEEDREAM_45_SLUG,
-  SOL_SLUG,
   vpnBenefit,
 } from "./shared";
 import type { LandingBenefit, LandingFaqItem, ModelLanding } from "./types";
@@ -157,7 +157,7 @@ export const openaiImageLandings: ModelLanding[] = [
       },
       { name: "GPT Image 2", tag: "Изображения", slug: GPT_IMAGE_SLUG },
       { name: "Nano Banana", tag: "Изображения", slug: NANO_BANANA_SLUG },
-      { name: "GPT-5.6 Sol", tag: "Текст", slug: SOL_SLUG },
+      { name: "GPT-6 Sol", tag: "Текст", slug: GPT6_SOL_SLUG },
     ]),
   },
   {

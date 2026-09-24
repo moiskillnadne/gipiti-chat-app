@@ -17,7 +17,7 @@ const demoTabs: DemoTab[] = [
   {
     id: "writing",
     label: "Написание текста",
-    modelBadge: "GPT-5.6",
+    modelBadge: "GPT-6",
     messages: [
       {
         role: "user",
@@ -27,14 +27,14 @@ const demoTabs: DemoTab[] = [
         role: "assistant",
         content:
           "Откройте для себя мощь искусственного интеллекта нового поколения. Наша платформа объединяет лучшие языковые модели в едином интерфейсе, позволяя вам создавать контент, анализировать данные и решать сложные задачи за считанные секунды.",
-        model: "GPT-5.6",
+        model: "GPT-6",
       },
     ],
   },
   {
     id: "analysis",
     label: "Анализ документов",
-    modelBadge: "Claude Opus 5",
+    modelBadge: "Claude Opus 5.5",
     messages: [
       {
         role: "user",
@@ -48,7 +48,7 @@ const demoTabs: DemoTab[] = [
         role: "assistant",
         content:
           "Я проанализировал документ. Ключевые условия: срок действия — 12 месяцев с автопродлением, неустойка 0.1% за день просрочки, юрисдикция — арбитражный суд г. Москвы. Рекомендую обратить внимание на пункт 5.3 об ответственности.",
-        model: "Claude Opus 5",
+        model: "Claude Opus 5.5",
       },
     ],
   },
@@ -74,7 +74,7 @@ const demoTabs: DemoTab[] = [
   {
     id: "search",
     label: "Поиск в интернете",
-    modelBadge: "Grok 4.6",
+    modelBadge: "Grok 4.7",
     messages: [
       {
         role: "user",
@@ -83,7 +83,7 @@ const demoTabs: DemoTab[] = [
       {
         role: "assistant",
         content:
-          "За последнюю неделю: OpenAI представила новую архитектуру GPT-5.6 с улучшенным рассуждением, Google выпустила Gemini 3.8 Flash с нативной поддержкой мультимодальности, а Anthropic объявила о запуске Claude Opus 5 с расширенным контекстным окном.",
+          "За последнюю неделю: OpenAI представила новое поколение GPT-6 с улучшенным рассуждением, Google выпустила Gemini 3.8 Flash с нативной поддержкой мультимодальности, а Anthropic объявила о запуске Claude Opus 5.5 для длинных агентных задач.",
         toolCalls: [
           {
             type: "webSearch",
@@ -96,7 +96,7 @@ const demoTabs: DemoTab[] = [
             ],
           },
         ],
-        model: "Grok 4.6",
+        model: "Grok 4.7",
       },
     ],
   },

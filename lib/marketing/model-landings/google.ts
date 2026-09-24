@@ -12,11 +12,11 @@ import {
   GEMINI_37_FLASH_SLUG,
   GEMINI_38_FLASH_SLUG,
   GEMINI_PRO_SLUG,
+  GPT6_LUNA_SLUG,
+  GPT6_SOL_SLUG,
   GROK_SLUG,
-  LUNA_SLUG,
   lawyersAudience,
-  OPUS_5_SLUG,
-  SOL_SLUG,
+  OPUS_55_SLUG,
   SONAR_SLUG,
   SONNET_SLUG,
   sharedFaq,
@@ -92,7 +92,7 @@ export const googleLandings: ModelLanding[] = [
       {
         question: "Чем Gemini отличается от ChatGPT?",
         answer:
-          "Gemini — модель Google, особенно сильная в мультимодальных задачах: фотографии, скриншоты и документы она разбирает в одном чате с текстом. В GIPITI доступны и Gemini, и GPT-5.6 — сравните их на своей задаче.",
+          "Gemini — модель Google, особенно сильная в мультимодальных задачах: фотографии, скриншоты и документы она разбирает в одном чате с текстом. В GIPITI доступны и Gemini, и GPT-6 — сравните их на своей задаче.",
       },
       {
         question: "Чем Gemini 3.1 Pro отличается от Gemini 3.8 Flash?",
@@ -107,8 +107,12 @@ export const googleLandings: ModelLanding[] = [
         tag: "Текст",
         href: `/models/${GEMINI_38_FLASH_SLUG}`,
       },
-      { name: "GPT-5.6 Sol", tag: "Текст", href: `/models/${SOL_SLUG}` },
-      { name: "Claude Opus 5", tag: "Текст", href: `/models/${OPUS_5_SLUG}` },
+      { name: "GPT-6 Sol", tag: "Текст", href: `/models/${GPT6_SOL_SLUG}` },
+      {
+        name: "Claude Opus 5.5",
+        tag: "Текст",
+        href: `/models/${OPUS_55_SLUG}`,
+      },
       { name: "Grok 4.5", tag: "Текст", href: `/models/${GROK_SLUG}` },
     ],
   },
@@ -382,7 +386,7 @@ export const googleLandings: ModelLanding[] = [
       {
         question: "Чем Gemini отличается от ChatGPT?",
         answer:
-          "Gemini — модель Google, особенно сильная в мультимодальных задачах: фотографии, скриншоты и документы она разбирает в одном чате с текстом. В GIPITI доступны и Gemini, и GPT-5.6 — сравните их на своей задаче.",
+          "Gemini — модель Google, особенно сильная в мультимодальных задачах: фотографии, скриншоты и документы она разбирает в одном чате с текстом. В GIPITI доступны и Gemini, и GPT-6 — сравните их на своей задаче.",
       },
       ...sharedFaq,
     ],
@@ -474,7 +478,7 @@ export const googleLandings: ModelLanding[] = [
       {
         question: "Подойдёт ли Flash для сложных задач?",
         answer:
-          "Для глубокой аналитики и больших документов лучше выбрать Gemini 3.1 Pro или GPT-5.6 Sol. Flash сильна там, где важна скорость: переписка, выжимки, посты и повседневные вопросы.",
+          "Для глубокой аналитики и больших документов лучше выбрать Gemini 3.1 Pro или GPT-6 Sol. Flash сильна там, где важна скорость: переписка, выжимки, посты и повседневные вопросы.",
       },
       ...sharedFaq,
     ],
@@ -489,7 +493,7 @@ export const googleLandings: ModelLanding[] = [
         tag: "Текст",
         href: `/models/${GEMINI_PRO_SLUG}`,
       },
-      { name: "GPT-5.6 Luna", tag: "Текст", href: `/models/${LUNA_SLUG}` },
+      { name: "GPT-6 Luna", tag: "Текст", href: `/models/${GPT6_LUNA_SLUG}` },
       { name: "Sonar", tag: "Текст", href: `/models/${SONAR_SLUG}` },
     ],
   },
@@ -566,7 +570,7 @@ export const googleLandings: ModelLanding[] = [
       {
         question: "Для каких задач лучше выбрать другую модель?",
         answer:
-          "Для сложной аналитики, больших документов и ответственных текстов возьмите Gemini 3.1 Pro, GPT-5.6 Sol или Claude Opus 5. Flash Lite создана для потока простых задач, где важнее скорость и цена.",
+          "Для сложной аналитики, больших документов и ответственных текстов возьмите Gemini 3.1 Pro, GPT-6 Sol или Claude Opus 5.5. Flash Lite создана для потока простых задач, где важнее скорость и цена.",
       },
       ...sharedFaq,
     ],
@@ -581,8 +585,12 @@ export const googleLandings: ModelLanding[] = [
         tag: "Текст",
         href: `/models/${GEMINI_35_FLASH_SLUG}`,
       },
-      { name: "GPT-5.6 Luna", tag: "Текст", href: `/models/${LUNA_SLUG}` },
-      { name: "Claude Opus 5", tag: "Текст", href: `/models/${OPUS_5_SLUG}` },
+      { name: "GPT-6 Luna", tag: "Текст", href: `/models/${GPT6_LUNA_SLUG}` },
+      {
+        name: "Claude Opus 5.5",
+        tag: "Текст",
+        href: `/models/${OPUS_55_SLUG}`,
+      },
     ],
   },
 ];
