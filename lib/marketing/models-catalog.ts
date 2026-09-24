@@ -52,11 +52,11 @@ export const catalogSections: CatalogSection[] = [
     typePage: {
       h1Top: "Нейросети для работы",
       h1Gradient: "с текстом на русском",
-      sub: "GPT-5.6, Claude Opus 5, Gemini 3.8 Flash, Grok 4.6, Qwen 3.8 Max, DeepSeek V4 и другие — пишите тексты, анализируйте документы и решайте рабочие задачи на русском языке. Без VPN, оплата российскими картами.",
+      sub: "GPT-6, Claude Opus 5.5, Gemini 3.8 Flash, Grok 4.7, Qwen 3.8 Max, DeepSeek V4 и другие — пишите тексты, анализируйте документы и решайте рабочие задачи на русском языке. Без VPN, оплата российскими картами.",
       metaTitle:
-        "Нейросети для работы с текстом — GPT-5.6, Claude, Gemini, Grok, Qwen | GIPITI",
+        "Нейросети для работы с текстом — GPT-6, Claude, Gemini, Grok, Qwen | GIPITI",
       metaDescription:
-        "Лучшие текстовые AI-модели в одном чате: GPT-5.6, Claude Opus 5, Gemini 3.8 Flash, Grok 4.6, Qwen 3.8 Max, Kimi K3 и DeepSeek V4. Без VPN, на русском, оплата российскими картами.",
+        "Лучшие текстовые AI-модели в одном чате: GPT-6, Claude Opus 5.5, Gemini 3.8 Flash, Grok 4.7, Qwen 3.8 Max, Kimi K3 и DeepSeek V4. Без VPN, на русском, оплата российскими картами.",
     },
   },
   {
@@ -110,6 +110,28 @@ export const catalogSections: CatalogSection[] = [
 
 export const catalogModels: CatalogModel[] = [
   {
+    modelId: "gpt-6-sol",
+    name: "GPT-6 Sol",
+    vendor: "OpenAI",
+    provider: "openai",
+    category: "text",
+    description:
+      "Флагман нового поколения GPT-6: сложный код, агентные задачи и контекст на миллион токенов.",
+    tag: "Новинка",
+    hue: 250,
+  },
+  {
+    modelId: "gpt-6-luna",
+    name: "GPT-6 Luna",
+    vendor: "OpenAI",
+    provider: "openai",
+    category: "text",
+    description:
+      "Быстрая и экономичная модель GPT-6 — рассуждения для частых и объёмных задач по минимальной цене.",
+    tag: "Новинка",
+    hue: 250,
+  },
+  {
     modelId: "gpt-5.6-sol",
     name: "GPT-5.6 Sol",
     vendor: "OpenAI",
@@ -117,7 +139,6 @@ export const catalogModels: CatalogModel[] = [
     category: "text",
     description:
       "Флагман серии GPT-5.6: сложные агентные задачи, программирование и глубокие рассуждения.",
-    tag: "Новинка",
     hue: 250,
   },
   {
@@ -128,7 +149,6 @@ export const catalogModels: CatalogModel[] = [
     category: "text",
     description:
       "Сбалансированная модель GPT-5.6 для повседневной работы — уровень прошлого флагмана вдвое дешевле.",
-    tag: "Новинка",
     hue: 250,
   },
   {
@@ -138,8 +158,7 @@ export const catalogModels: CatalogModel[] = [
     provider: "openai",
     category: "text",
     description:
-      "Быстрая и доступная модель серии GPT-5.6 — сильные возможности по минимальной цене.",
-    tag: "Новинка",
+      "Быстрая и доступная модель серии GPT-5.6 — сильные возможности по низкой цене.",
     hue: 250,
   },
   {
@@ -154,14 +173,24 @@ export const catalogModels: CatalogModel[] = [
     hue: 250,
   },
   {
+    modelId: "opus-5.5",
+    name: "Claude Opus 5.5",
+    vendor: "Anthropic",
+    provider: "anthropic",
+    category: "text",
+    description:
+      "Сильнейшая модель Anthropic: длинные агентные задачи, программирование и понятные отчёты о ходе работы.",
+    tag: "Новинка",
+    hue: 30,
+  },
+  {
     modelId: "opus-5",
     name: "Claude Opus 5",
     vendor: "Anthropic",
     provider: "anthropic",
     category: "text",
     description:
-      "Сильнейшая модель Anthropic: глубокая аналитика, эталонная редактура и большой контекст.",
-    tag: "Новинка",
+      "Предыдущий флагман Anthropic: глубокая аналитика, эталонная редактура и большой контекст.",
     hue: 30,
   },
   {
@@ -258,14 +287,24 @@ export const catalogModels: CatalogModel[] = [
     hue: 210,
   },
   {
+    modelId: "grok-4.7",
+    name: "Grok 4.7",
+    vendor: "xAI",
+    provider: "xai",
+    category: "text",
+    description:
+      "Новейшая модель xAI: многочасовые задачи по коду и документам, самопроверка и большой контекст.",
+    tag: "Новинка",
+    hue: 0,
+  },
+  {
     modelId: "grok-4.6",
     name: "Grok 4.6",
     vendor: "xAI",
     provider: "xai",
     category: "text",
     description:
-      "Новейшая модель xAI: длинные агентные задачи, программирование и работа с большим контекстом.",
-    tag: "Новинка",
+      "Предыдущий флагман xAI: длинные агентные задачи, программирование и работа с большим контекстом.",
     hue: 0,
   },
   {
@@ -629,6 +668,19 @@ export const catalogModels: CatalogModel[] = [
     hue: 250,
   },
 ];
+
+/**
+ * Catalog size rounded down to the nearest ten, for copy like "50+ моделей".
+ * Derived rather than hardcoded so it stays truthful between releases — the
+ * hand-written "18+" drifted while the catalog grew past fifty.
+ */
+export const catalogModelCountFloor: number =
+  Math.floor(catalogModels.length / 10) * 10;
+
+/** Number of distinct providers behind the catalog models. */
+export const catalogProviderCount: number = new Set(
+  catalogModels.map((model) => model.provider)
+).size;
 
 export const getModelsByCategory = (
   category: CatalogCategory

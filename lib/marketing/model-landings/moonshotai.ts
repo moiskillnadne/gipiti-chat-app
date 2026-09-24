@@ -5,10 +5,10 @@ import {
   DEEPSEEK_SLUG,
   documentsBenefit,
   GEMINI_38_FLASH_SLUG,
-  GROK_46_SLUG,
+  GPT6_SOL_SLUG,
+  GROK_47_SLUG,
   KIMI_K3_FAST_SLUG,
   QWEN_38_MAX_SLUG,
-  SOL_SLUG,
   sharedFaq,
   studentsAudience,
   vpnBenefit,
@@ -84,12 +84,12 @@ export const moonshotaiLandings: ModelLanding[] = [
       {
         question: "Можно ли прикреплять файлы?",
         answer:
-          "Да, изображения и файлы Word — модель прочитает их прямо в чате. Для PDF лучше выбрать Gemini, GPT-5.6 или Claude: они разбирают такие документы напрямую.",
+          "Да, изображения и файлы Word — модель прочитает их прямо в чате. Для PDF лучше выбрать Gemini, GPT-6 или Claude: они разбирают такие документы напрямую.",
       },
       {
         question: "Когда лучше выбрать другую модель?",
         answer:
-          "Если нужен разбор PDF или максимально глубокая аналитика — возьмите Claude Opus 5 или Gemini 3.7 Flash. Kimi K3 Fast сильна там, где важны длинный код и большой контекст.",
+          "Если нужен разбор PDF или максимально глубокая аналитика — возьмите Claude Opus 5.5 или Gemini 3.8 Flash. Kimi K3 Fast сильна там, где важны длинный код и большой контекст.",
       },
       ...sharedFaq,
     ],
@@ -104,8 +104,8 @@ export const moonshotaiLandings: ModelLanding[] = [
         tag: "Текст",
         href: `/models/${DEEPSEEK_SLUG}`,
       },
-      { name: "GPT-5.6 Sol", tag: "Текст", href: `/models/${SOL_SLUG}` },
-      { name: "Grok 4.6", tag: "Текст", href: `/models/${GROK_46_SLUG}` },
+      { name: "GPT-6 Sol", tag: "Текст", href: `/models/${GPT6_SOL_SLUG}` },
+      { name: "Grok 4.7", tag: "Текст", href: `/models/${GROK_47_SLUG}` },
       {
         name: "Gemini 3.8 Flash",
         tag: "Текст",

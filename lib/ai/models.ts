@@ -452,6 +452,17 @@ const OPUS_THINKING_CONFIG: ThinkingEffortConfig = {
 
 export const chatModels: ChatModel[] = [
   {
+    id: "grok-4.7",
+    name: "grok47.name",
+    description: "grok47.description",
+    provider: "xai",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+  },
+  {
     id: "grok-4.6",
     name: "grok46.name",
     description: "grok46.description",
@@ -478,6 +489,29 @@ export const chatModels: ChatModel[] = [
     name: "grok43.name",
     description: "grok43.description",
     provider: "xai",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+  },
+  {
+    id: "gpt-6-sol",
+    name: "gpt6Sol.name",
+    description: "gpt6Sol.description",
+    provider: "openai",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+    thinkingConfig: GPT5_THINKING_CONFIG,
+  },
+  {
+    id: "gpt-6-luna",
+    name: "gpt6Luna.name",
+    description: "gpt6Luna.description",
+    provider: "openai",
     capabilities: {
       reasoning: true,
       attachments: true,
@@ -786,6 +820,18 @@ export const chatModels: ChatModel[] = [
       },
     },
     imageGenConfig: OPENAI_IMAGE_GEN_CONFIG,
+  },
+  {
+    id: "opus-5.5",
+    name: "opus55.name",
+    description: "opus55.description",
+    provider: "anthropic",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+    thinkingConfig: OPUS_THINKING_CONFIG,
   },
   {
     id: "opus-5",
@@ -1390,6 +1436,8 @@ export type ReasoningSummary = (typeof REASONING_SUMMARY)[number];
 export const DEFAULT_REASONING_SUMMARY: ReasoningSummary = "auto";
 
 export const openaiModelIds = [
+  "gpt-6-sol",
+  "gpt-6-luna",
   "gpt-5.6-sol",
   "gpt-5.6-terra",
   "gpt-5.6-luna",
@@ -1452,6 +1500,7 @@ export const getGoogleProviderOptions = (
 };
 
 export const anthropicModelIds = [
+  "opus-5.5",
   "opus-5",
   "opus-4.8",
   "sonnet-5",

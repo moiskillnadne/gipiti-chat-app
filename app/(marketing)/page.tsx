@@ -14,13 +14,22 @@ import { PainPointsSection } from "@/components/landing/pain-points-section";
 import { PricingSection } from "@/components/landing/pricing-section";
 import { TrustBar } from "@/components/landing/trust-bar";
 import { homeFaqItems } from "@/lib/marketing/landing-content";
+import {
+  catalogModelCountFloor,
+  catalogProviderCount,
+} from "@/lib/marketing/models-catalog";
+
+// Derived from the catalog so the homepage count cannot drift between releases.
+const MODEL_REACH = [
+  `${catalogModelCountFloor}+ AI-моделям`,
+  `от ${catalogProviderCount} провайдеров`,
+].join(" ");
 
 export const metadata: Metadata = {
   title: {
     absolute: "GIPITI - AI-чат с ChatGPT, Gemini, Claude, Grok, Flux и Recraft",
   },
-  description:
-    "GIPITI — платформа с доступом к 18+ AI-моделям от 6 провайдеров. Генерация текста, изображений и видео, генерация кода, анализ документов.",
+  description: `GIPITI — платформа с доступом к ${MODEL_REACH}. Генерация текста, изображений и видео, генерация кода, анализ документов.`,
   alternates: {
     canonical: "https://gipiti.ru",
   },
@@ -33,7 +42,7 @@ const jsonLd = {
   alternateName: ["Гипити", "гипити"],
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",
-  description: "AI-чат платформа с доступом к 18+ моделям от 6 провайдеров",
+  description: `AI-чат платформа с доступом к ${MODEL_REACH}`,
   url: "https://gipiti.ru",
   inLanguage: "ru",
   offers: {
@@ -43,10 +52,10 @@ const jsonLd = {
     availability: "https://schema.org/InStock",
   },
   featureList: [
-    "Доступ к GPT-5.6",
+    "Доступ к GPT-6",
     "Доступ к Gemini 3.1 Pro",
-    "Доступ к Claude Opus 5",
-    "Доступ к Grok 4.6",
+    "Доступ к Claude Opus 5.5",
+    "Доступ к Grok 4.7",
     "Доступ к Flux и Recraft",
     "Генерация изображений",
     "Генерация видео",

@@ -9,10 +9,23 @@ export const myProvider = customProvider({
   languageModels: {
     // xAI grok-4.x streams reasoning natively (not <think> tags), so no
     // extractReasoningMiddleware wrapper here.
+    // grok-4.7 uses the gateway's canonical "spacexai/" id rather than the
+    // "xai/" alias: TokenLens prices the alias from models.dev's xai entry
+    // ($2/$6 per 1M), while the gateway bills grok-4.7 at $1.2/$3.6 — only the
+    // "spacexai/" id resolves to the gateway's real price.
+    "grok-4.7": gateway.languageModel("spacexai/grok-4.7"),
     "grok-4.6": gateway.languageModel("xai/grok-4.6"),
     "grok-4.5": gateway.languageModel("xai/grok-4.5"),
     "grok-4.3": gateway.languageModel("xai/grok-4.3"),
     "title-model": gateway.languageModel("google/gemini-3.1-flash-lite"),
+    "gpt-6-sol": wrapLanguageModel({
+      model: gateway.languageModel("openai/gpt-6-sol"),
+      middleware: extractReasoningMiddleware({ tagName: "think" }),
+    }),
+    "gpt-6-luna": wrapLanguageModel({
+      model: gateway.languageModel("openai/gpt-6-luna"),
+      middleware: extractReasoningMiddleware({ tagName: "think" }),
+    }),
     "gpt-5.6-sol": wrapLanguageModel({
       model: gateway.languageModel("openai/gpt-5.6-sol"),
       middleware: extractReasoningMiddleware({ tagName: "think" }),
@@ -61,6 +74,7 @@ export const myProvider = customProvider({
     "gemini-3.1-flash-lite-image": gateway.languageModel(
       "google/gemini-3.1-flash-lite-image"
     ),
+    "opus-5.5": gateway.languageModel("anthropic/claude-opus-5.5"),
     "opus-5": gateway.languageModel("anthropic/claude-opus-5"),
     "opus-4.8": gateway.languageModel("anthropic/claude-opus-4.8"),
     "sonnet-5": gateway.languageModel("anthropic/claude-sonnet-5"),

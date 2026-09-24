@@ -4,9 +4,9 @@ import {
   buildSteps,
   CODEX_SLUG,
   DEEPSEEK_SLUG,
+  GPT6_SOL_SLUG,
   GROK_SLUG,
   priceFaq,
-  SOL_SLUG,
   SONNET_SLUG,
   vpnBenefit,
   vpnFaq,
@@ -105,16 +105,16 @@ export const codeLandings: ModelLanding[] = [
           "С популярными: JavaScript и TypeScript, Python, Go, Java, C#, PHP, Swift, SQL и другими. Объяснения при этом можно получать на русском — просто пишите запрос по-русски.",
       },
       {
-        question: "Чем Codex отличается от GPT-5.6?",
+        question: "Чем Codex отличается от GPT-6?",
         answer:
-          "Codex заточена под код и лучше держится структуры проекта, а GPT-5.6 универсальнее и сильнее в тексте и документах. Обе модели доступны в GIPITI — переключайтесь в один клик прямо в чате.",
+          "Codex заточена под код и лучше держится структуры проекта, а GPT-6 универсальнее и сильнее в тексте и документах. Обе модели доступны в GIPITI — переключайтесь в один клик прямо в чате.",
       },
       vpnFaq,
       priceFaq,
       codeFilesFaq,
     ],
     otherModels: [
-      { name: "GPT-5.6 Sol", tag: "Текст", href: `/models/${SOL_SLUG}` },
+      { name: "GPT-6 Sol", tag: "Текст", href: `/models/${GPT6_SOL_SLUG}` },
       { name: "Claude Sonnet 5", tag: "Текст", href: `/models/${SONNET_SLUG}` },
       { name: "Grok 4.5", tag: "Текст", href: `/models/${GROK_SLUG}` },
       {
