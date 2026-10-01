@@ -16,6 +16,8 @@ import type {
 } from "./types";
 
 // Text landings
+export const GPT61_SOL_SLUG = "gpt-6-1-sol";
+export const GPT6_ASTRA_SLUG = "gpt-6-astra";
 export const GPT6_SOL_SLUG = "gpt-6-sol";
 export const GPT6_LUNA_SLUG = "gpt-6-luna";
 export const SOL_SLUG = "gpt-5-6-sol";
@@ -23,9 +25,11 @@ export const TERRA_SLUG = "gpt-5-6-terra";
 export const LUNA_SLUG = "gpt-5-6-luna";
 export const GPT55_SLUG = "gpt-5-5";
 export const CODEX_SLUG = "gpt-codex-5-3";
+export const FABLE_51_SLUG = "claude-fable-5-1";
 export const OPUS_55_SLUG = "claude-opus-5-5";
 export const OPUS_5_SLUG = "claude-opus-5";
 export const OPUS_48_SLUG = "claude-opus-4-8";
+export const SONNET_55_SLUG = "claude-sonnet-5-5";
 export const SONNET_SLUG = "claude-sonnet-5";
 export const SONNET_46_SLUG = "claude-sonnet-4-6";
 export const GEMINI_PRO_SLUG = "gemini-3-1-pro";

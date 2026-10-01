@@ -18,6 +18,14 @@ export const myProvider = customProvider({
     "grok-4.5": gateway.languageModel("xai/grok-4.5"),
     "grok-4.3": gateway.languageModel("xai/grok-4.3"),
     "title-model": gateway.languageModel("google/gemini-3.1-flash-lite"),
+    "gpt-6.1-sol": wrapLanguageModel({
+      model: gateway.languageModel("openai/gpt-6.1-sol"),
+      middleware: extractReasoningMiddleware({ tagName: "think" }),
+    }),
+    "gpt-6-astra": wrapLanguageModel({
+      model: gateway.languageModel("openai/gpt-6-astra"),
+      middleware: extractReasoningMiddleware({ tagName: "think" }),
+    }),
     "gpt-6-sol": wrapLanguageModel({
       model: gateway.languageModel("openai/gpt-6-sol"),
       middleware: extractReasoningMiddleware({ tagName: "think" }),
@@ -74,9 +82,11 @@ export const myProvider = customProvider({
     "gemini-3.1-flash-lite-image": gateway.languageModel(
       "google/gemini-3.1-flash-lite-image"
     ),
+    "fable-5.1": gateway.languageModel("anthropic/claude-fable-5.1"),
     "opus-5.5": gateway.languageModel("anthropic/claude-opus-5.5"),
     "opus-5": gateway.languageModel("anthropic/claude-opus-5"),
     "opus-4.8": gateway.languageModel("anthropic/claude-opus-4.8"),
+    "sonnet-5.5": gateway.languageModel("anthropic/claude-sonnet-5.5"),
     "sonnet-5": gateway.languageModel("anthropic/claude-sonnet-5"),
     "sonnet-4.6": gateway.languageModel("anthropic/claude-sonnet-4.6"),
     "haiku-4.5": gateway.languageModel("anthropic/claude-haiku-4.5"),

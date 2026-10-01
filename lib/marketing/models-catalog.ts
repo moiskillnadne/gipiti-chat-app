@@ -110,6 +110,28 @@ export const catalogSections: CatalogSection[] = [
 
 export const catalogModels: CatalogModel[] = [
   {
+    modelId: "gpt-6.1-sol",
+    name: "GPT-6.1 Sol",
+    vendor: "OpenAI",
+    provider: "openai",
+    category: "text",
+    description:
+      "Обновлённый флагман GPT-6: сложный код, агентные задачи и контекст на миллион токенов по прежней цене.",
+    tag: "Новинка",
+    hue: 250,
+  },
+  {
+    modelId: "gpt-6-astra",
+    name: "GPT-6 Astra",
+    vendor: "OpenAI",
+    provider: "openai",
+    category: "text",
+    description:
+      "Самая мощная модель OpenAI: сложные рассуждения, код, исследования и работа с документами.",
+    tag: "Новинка",
+    hue: 250,
+  },
+  {
     modelId: "gpt-6-sol",
     name: "GPT-6 Sol",
     vendor: "OpenAI",
@@ -173,13 +195,24 @@ export const catalogModels: CatalogModel[] = [
     hue: 250,
   },
   {
+    modelId: "fable-5.1",
+    name: "Claude Fable 5.1",
+    vendor: "Anthropic",
+    provider: "anthropic",
+    category: "text",
+    description:
+      "Премиальная модель Anthropic: многочасовые задачи по коду, работа со знаниями и исследования.",
+    tag: "Новинка",
+    hue: 30,
+  },
+  {
     modelId: "opus-5.5",
     name: "Claude Opus 5.5",
     vendor: "Anthropic",
     provider: "anthropic",
     category: "text",
     description:
-      "Сильнейшая модель Anthropic: длинные агентные задачи, программирование и понятные отчёты о ходе работы.",
+      "Мощная модель Anthropic: длинные агентные задачи, программирование и понятные отчёты о ходе работы.",
     tag: "Новинка",
     hue: 30,
   },
@@ -204,14 +237,24 @@ export const catalogModels: CatalogModel[] = [
     hue: 30,
   },
   {
+    modelId: "sonnet-5.5",
+    name: "Claude Sonnet 5.5",
+    vendor: "Anthropic",
+    provider: "anthropic",
+    category: "text",
+    description:
+      "Новейший Sonnet: код, документы, таблицы и повседневные задачи — сильнее Sonnet 5 по той же цене.",
+    tag: "Новинка",
+    hue: 30,
+  },
+  {
     modelId: "sonnet-5",
     name: "Claude Sonnet 5",
     vendor: "Anthropic",
     provider: "anthropic",
     category: "text",
     description:
-      "Новое поколение сбалансированной модели Anthropic — код, аналитика и повседневные задачи.",
-    tag: "Новинка",
+      "Сбалансированная модель Anthropic прошлого поколения — код, аналитика и повседневные задачи.",
     hue: 30,
   },
   {

@@ -438,6 +438,16 @@ const GPT5_THINKING_CONFIG: ThinkingEffortConfig = {
   default: "auto",
 };
 
+// GPT-6.1 Sol and GPT-6 Astra have no "none" level. The gateway still accepts
+// `reasoningEffort: "none"` for them, but probing showed it is silently treated
+// as the default effort (same reasoning tokens and cost as "medium"), so a
+// "none" option would be a placebo picker.
+const GPT6_ALWAYS_REASONING_THINKING_CONFIG: ThinkingEffortConfig = {
+  type: "effort",
+  values: ["auto", "low", "medium", "high"] as const,
+  default: "auto",
+};
+
 const GEMINI31_THINKING_CONFIG: ThinkingEffortConfig = {
   type: "effort",
   values: ["auto", "low", "high"] as const,
@@ -494,6 +504,30 @@ export const chatModels: ChatModel[] = [
       attachments: true,
     },
     showInUI: true,
+  },
+  {
+    id: "gpt-6.1-sol",
+    name: "gpt61Sol.name",
+    description: "gpt61Sol.description",
+    provider: "openai",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+    thinkingConfig: GPT6_ALWAYS_REASONING_THINKING_CONFIG,
+  },
+  {
+    id: "gpt-6-astra",
+    name: "gpt6Astra.name",
+    description: "gpt6Astra.description",
+    provider: "openai",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+    thinkingConfig: GPT6_ALWAYS_REASONING_THINKING_CONFIG,
   },
   {
     id: "gpt-6-sol",
@@ -822,6 +856,18 @@ export const chatModels: ChatModel[] = [
     imageGenConfig: OPENAI_IMAGE_GEN_CONFIG,
   },
   {
+    id: "fable-5.1",
+    name: "fable51.name",
+    description: "fable51.description",
+    provider: "anthropic",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+    thinkingConfig: OPUS_THINKING_CONFIG,
+  },
+  {
     id: "opus-5.5",
     name: "opus55.name",
     description: "opus55.description",
@@ -849,6 +895,18 @@ export const chatModels: ChatModel[] = [
     id: "opus-4.8",
     name: "opus48.name",
     description: "opus48.description",
+    provider: "anthropic",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+    thinkingConfig: OPUS_THINKING_CONFIG,
+  },
+  {
+    id: "sonnet-5.5",
+    name: "sonnet55.name",
+    description: "sonnet55.description",
     provider: "anthropic",
     capabilities: {
       reasoning: true,
@@ -1436,6 +1494,8 @@ export type ReasoningSummary = (typeof REASONING_SUMMARY)[number];
 export const DEFAULT_REASONING_SUMMARY: ReasoningSummary = "auto";
 
 export const openaiModelIds = [
+  "gpt-6.1-sol",
+  "gpt-6-astra",
   "gpt-6-sol",
   "gpt-6-luna",
   "gpt-5.6-sol",
@@ -1500,9 +1560,11 @@ export const getGoogleProviderOptions = (
 };
 
 export const anthropicModelIds = [
+  "fable-5.1",
   "opus-5.5",
   "opus-5",
   "opus-4.8",
+  "sonnet-5.5",
   "sonnet-5",
   "sonnet-4.6",
   "haiku-4.5",

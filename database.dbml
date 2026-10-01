@@ -1,0 +1,402 @@
+// Database schema for gipiti-chat-app
+// Paste this into https://dbdiagram.io/d to render the ERD
+// Source: lib/db/schema.ts
+//
+// Billing model: pure pay-per-use on a currency Balance (no tokens, no quotas,
+// no feature gating). Per-request charge = provider USD cost x live FX rate x
+// markup, stored as integer minor units of the user's currency.
+
+Project gipiti_chat_app {
+  database_type: 'PostgreSQL'
+  Note: 'Multi-provider AI chat app — auth, currency balance (pay-per-use), subscription catalog, transaction ledger, projects'
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+Enum billing_period {
+  daily
+  weekly
+  monthly
+  annual
+}
+
+Enum subscription_status {
+  active
+  past_due
+  cancelled
+  expired
+}
+
+Enum payment_intent_status {
+  pending
+  processing
+  succeeded
+  failed
+  expired
+}
+
+Enum payment_intent_kind {
+  subscription
+  topup
+}
+
+Enum transaction_type {
+  welcome
+  subscription_renewal
+  subscription_purchase
+  topup_purchase
+  usage_debit
+  refund
+  adjustment
+}
+
+Enum balance_pool {
+  subscription
+  topup
+}
+
+Enum document_kind {
+  image
+  video
+}
+
+// ============================================================================
+// USER & AUTH
+// ============================================================================
+
+Table User {
+  id uuid [pk, default: `gen_random_uuid()`]
+  email varchar(255) [not null]
+  password varchar(255)
+  email_verified boolean [not null, default: false]
+  is_tester boolean [not null, default: false]
+  email_verification_code varchar(255)
+  email_verification_code_expiry timestamp
+  reset_password_token varchar(255)
+  reset_password_token_expiry timestamp
+  trial_used_at timestamp
+  utm_source varchar(255)
+  utm_medium varchar(255)
+  utm_campaign varchar(255)
+  utm_content varchar(255)
+  utm_term varchar(255)
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+
+  Indexes {
+    reset_password_token [name: 'user_reset_password_token_idx']
+    email_verification_code [name: 'user_email_verification_code_idx']
+  }
+  Note: 'No billing fields — all spendable funds live in Balance'
+}
+
+Table Balance {
+  user_id uuid [pk, ref: > User.id]
+  currency_code varchar(3) [not null, ref: > Currency.code]
+  subscription_amount bigint [not null, default: 0, note: 'minor units; wiped & re-credited on renewal']
+  topup_amount bigint [not null, default: 0, note: 'minor units; persistent — holds the welcome grant']
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+  Note: 'One row per user. Two pools, one currency. Deduction order: subscription pool first, then top-up'
+}
+
+// ============================================================================
+// CURRENCY & FX
+// ============================================================================
+
+Table Currency {
+  code varchar(3) [pk, note: 'ISO 4217, e.g. RUB/USD/KZT/BYN']
+  name varchar(64) [not null]
+  symbol varchar(8) [not null]
+  minor_units integer [not null, default: 2, note: 'ISO 4217 minor units (RUB=2, JPY=0)']
+  is_active boolean [not null, default: true]
+  created_at timestamp [not null, default: `now()`]
+}
+
+Table FxRate {
+  id uuid [pk, default: `gen_random_uuid()`]
+  base_currency varchar(3) [not null, default: 'USD']
+  quote_currency varchar(3) [not null, ref: > Currency.code]
+  rate decimal(18,8) [not null, note: 'quote-currency units per 1 USD']
+  source varchar(64) [not null]
+  fetched_at timestamp [not null, default: `now()`]
+
+  Indexes {
+    (quote_currency, fetched_at) [name: 'fx_rate_quote_fetched_idx']
+  }
+  Note: 'Live USD-base rates, refreshed hourly. Deduction uses the latest row; last cached row reused on fetch failure'
+}
+
+// ============================================================================
+// CHAT
+// ============================================================================
+
+Table Chat {
+  id uuid [pk, default: `gen_random_uuid()`]
+  createdAt timestamp [not null]
+  title text [not null]
+  userId uuid [not null, ref: > User.id]
+  lastContext jsonb [note: 'AppUsage snapshot']
+}
+
+Table Message_v2 {
+  id uuid [pk, default: `gen_random_uuid()`]
+  chatId uuid [not null, ref: > Chat.id]
+  role varchar [not null]
+  parts json [not null]
+  attachments json [not null]
+  createdAt timestamp [not null]
+  modelId varchar(128)
+}
+
+Table Vote_v2 {
+  chatId uuid [not null, ref: > Chat.id]
+  messageId uuid [not null, ref: > Message_v2.id]
+  isUpvoted boolean [not null]
+
+  Indexes {
+    (chatId, messageId) [pk]
+  }
+}
+
+Table Document {
+  id uuid [not null, default: `gen_random_uuid()`]
+  createdAt timestamp [not null]
+  title text [not null]
+  content text
+  kind document_kind [not null, default: 'image']
+  userId uuid [not null, ref: > User.id]
+  generationId varchar(256)
+
+  Indexes {
+    (id, createdAt) [pk]
+  }
+  Note: 'Generated image/video output storage'
+}
+
+Table Stream {
+  id uuid [pk, default: `gen_random_uuid()`]
+  chatId uuid [not null, ref: > Chat.id]
+  createdAt timestamp [not null]
+  Note: 'Resumable stream recovery'
+}
+
+// ============================================================================
+// SUBSCRIPTIONS & BILLING
+// ============================================================================
+
+Table Subscription {
+  id uuid [pk, default: `gen_random_uuid()`]
+  code varchar(64) [not null]
+  display_name varchar(128)
+  billing_period billing_period [not null, default: 'monthly']
+  billing_period_count integer [not null, default: 1]
+  is_active boolean [not null, default: true]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+
+  Indexes {
+    code [unique, name: 'subscription_code_idx']
+  }
+  Note: 'Catalog/dictionary. No quotas or feature flags — pure pay-per-use'
+}
+
+Table SubscriptionPrice {
+  id uuid [pk, default: `gen_random_uuid()`]
+  subscription_id uuid [not null, ref: > Subscription.id]
+  currency_code varchar(3) [not null, ref: > Currency.code]
+  price bigint [not null, note: 'minor units; paid amount = credited subscription pool (1:1)']
+  is_active boolean [not null, default: true]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+
+  Indexes {
+    (subscription_id, currency_code) [unique, name: 'subscription_price_sub_currency_idx']
+  }
+}
+
+Table UserSubscription {
+  id uuid [pk, default: `gen_random_uuid()`]
+  user_id uuid [not null, ref: > User.id]
+  subscription_id uuid [not null, ref: > Subscription.id]
+  currency_code varchar(3) [not null, ref: > Currency.code, note: 'locked at signup; matches Balance.currency_code']
+  status subscription_status [not null, default: 'active']
+  current_period_start timestamp [not null]
+  current_period_end timestamp [not null]
+  next_billing_date timestamp [not null]
+  cancel_at_period_end boolean [not null, default: false]
+  external_subscription_id varchar(128)
+  card_token varchar(128)
+  card_mask varchar(32)
+  last_payment_date timestamp
+  last_payment_amount bigint [note: 'minor units']
+  is_trial boolean [not null, default: false]
+  trial_ends_at timestamp
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+  cancelled_at timestamp
+
+  Indexes {
+    user_id [unique, name: 'user_subscription_active_user_idx', note: 'partial: WHERE status = active — at most one active sub per user']
+    status [name: 'user_subscription_status_idx']
+    next_billing_date [name: 'user_subscription_next_billing_idx']
+  }
+  Note: 'A user current subscription. Free users have no active row'
+}
+
+Table PaymentIntent {
+  id uuid [pk, default: `gen_random_uuid()`]
+  session_id varchar(64) [not null]
+  user_id uuid [not null, ref: > User.id]
+  kind payment_intent_kind [not null, default: 'subscription']
+  subscription_id uuid [ref: > Subscription.id]
+  currency_code varchar(3) [not null, ref: > Currency.code]
+  amount bigint [not null, note: 'minor units']
+  status payment_intent_status [not null, default: 'pending']
+  external_transaction_id varchar(128)
+  external_subscription_id varchar(128)
+  failure_reason text
+  metadata jsonb
+  expires_at timestamp [not null]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+
+  Indexes {
+    session_id [unique, name: 'payment_intent_session_id_idx']
+    (user_id, status) [name: 'payment_intent_user_id_status_idx']
+    expires_at [name: 'payment_intent_expires_at_idx']
+    created_at [name: 'payment_intent_created_at_idx']
+  }
+}
+
+Table CancellationFeedback {
+  id uuid [pk, default: `gen_random_uuid()`]
+  user_id uuid [not null, ref: > User.id]
+  subscription_id uuid [ref: > UserSubscription.id]
+  reasons jsonb [not null, note: 'string[]']
+  additional_feedback text
+  subscription_code varchar(64)
+  billing_period billing_period
+  subscription_duration_days integer
+  was_trial boolean [not null, default: false]
+  created_at timestamp [not null, default: `now()`]
+
+  Indexes {
+    user_id [name: 'cancellation_feedback_user_id_idx']
+    created_at [name: 'cancellation_feedback_created_at_idx']
+  }
+}
+
+// ============================================================================
+// TRANSACTION — single audit ledger for every balance movement
+// (replaces TokenBalanceTransaction + all per-feature usage logs)
+// ============================================================================
+
+Table Transaction {
+  id uuid [pk, default: `gen_random_uuid()`]
+  user_id uuid [not null, ref: > User.id]
+  type transaction_type [not null]
+  currency_code varchar(3) [not null, ref: > Currency.code]
+  pool balance_pool [not null]
+  amount bigint [not null, note: 'signed minor units (negative = debit)']
+  subscription_balance_after bigint [not null]
+  topup_balance_after bigint [not null]
+  usd_cost decimal(18,10) [note: 'usage-debit pricing snapshot (nullable for credits)']
+  fx_rate decimal(18,8)
+  markup decimal(6,4)
+  model_id varchar(128)
+  chat_id uuid [ref: > Chat.id]
+  message_id uuid [ref: > Message_v2.id]
+  reference_type varchar(32)
+  reference_id varchar(128)
+  description text
+  metadata jsonb
+  created_at timestamp [not null, default: `now()`]
+
+  Indexes {
+    user_id [name: 'transaction_user_id_idx']
+    (user_id, created_at) [name: 'transaction_user_created_idx']
+    type [name: 'transaction_type_idx']
+    (reference_type, reference_id) [name: 'transaction_reference_idx']
+  }
+  Note: 'Usage debits snapshot usd_cost/fx_rate/markup/pool so any charge is reproducible'
+}
+
+// ============================================================================
+// CUSTOMIZATION: PROJECTS
+// ============================================================================
+
+Table Project {
+  id uuid [pk, default: `gen_random_uuid()`]
+  user_id uuid [not null, ref: > User.id]
+  name varchar(128) [not null]
+  description varchar(280)
+  swatch varchar(16)
+  context_entries jsonb [not null, note: 'string[]']
+  is_default boolean [not null, default: false]
+  pinned boolean [not null, default: false]
+  usage_count integer [not null, default: 0]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+
+  Indexes {
+    user_id [name: 'project_user_id_idx']
+  }
+}
+
+Table ProjectFile {
+  id uuid [pk, default: `gen_random_uuid()`]
+  project_id uuid [not null, ref: > Project.id]
+  user_id uuid [not null, ref: > User.id]
+  name varchar(256) [not null]
+  size integer [not null]
+  mime_type varchar(128) [not null]
+  blob_url text [not null]
+  pathname text [not null]
+  created_at timestamp [not null, default: `now()`]
+
+  Indexes {
+    project_id [name: 'project_file_project_id_idx']
+  }
+}
+
+// ============================================================================
+// TABLE GROUPS (visual clustering in dbdiagram.io)
+// ============================================================================
+
+TableGroup auth {
+  User
+  Balance
+}
+
+TableGroup currency {
+  Currency
+  FxRate
+}
+
+TableGroup chat {
+  Chat
+  Message_v2
+  Vote_v2
+  Document
+  Stream
+}
+
+TableGroup billing {
+  Subscription
+  SubscriptionPrice
+  UserSubscription
+  PaymentIntent
+  CancellationFeedback
+}
+
+TableGroup ledger {
+  Transaction
+}
+
+TableGroup customization {
+  Project
+  ProjectFile
+}
