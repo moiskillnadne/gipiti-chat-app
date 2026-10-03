@@ -38,6 +38,7 @@ import { ProjectPickerPopover } from "./composer/project-picker-popover";
 import { ThinkPopover } from "./composer/think-popover";
 import { VideoSettingsPopover } from "./composer/video-settings-popover";
 import { WebSearchToggle } from "./composer/web-search-toggle";
+import { useMediaLightbox } from "./elements/media-lightbox-provider";
 import { PromptInputTextarea } from "./elements/prompt-input";
 import { ArrowUpIcon, StopIcon } from "./icons";
 
@@ -84,6 +85,8 @@ function PureMultimodalInput({
 }: MultimodalInputProps) {
   const tCommon = useTranslations("common.toasts");
   const tInput = useTranslations("chat.input");
+  const tMedia = useTranslations("chat.media");
+  const lightbox = useMediaLightbox();
   const spendBanner = useSpendBanner();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -365,6 +368,15 @@ function PureMultimodalInput({
               <AttachmentItem
                 attachment={attachment}
                 key={attachment.url}
+                onOpen={
+                  lightbox
+                    ? () =>
+                        lightbox.openMedia(attachment.url, {
+                          mediaType: "image",
+                          prompt: attachment.name,
+                        })
+                    : undefined
+                }
                 onRemove={() => {
                   setAttachments((current) =>
                     current.filter((a) => a.url !== attachment.url)
@@ -373,6 +385,7 @@ function PureMultimodalInput({
                     fileInputRef.current.value = "";
                   }
                 }}
+                openLabel={tMedia("openImage")}
                 removeLabel={tInput("removeAttachment")}
               />
             ))}

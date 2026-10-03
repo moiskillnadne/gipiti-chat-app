@@ -7,12 +7,12 @@ import {
   Maximize2Icon,
   RefreshCwIcon,
   VideoIcon,
-  XIcon,
 } from "lucide-react";
 import { type CSSProperties, useEffect, useState } from "react";
-import { createPortal } from "react-dom";
 import { useTranslations } from "@/lib/i18n/translate";
+import { parseAspectRatio } from "@/lib/media/aspect-ratio";
 import { cn } from "@/lib/utils";
+import { useMediaLightbox } from "./media-lightbox-provider";
 
 export type MediaPreviewState = "queued" | "generating" | "done" | "error";
 export type MediaPreviewMediaType = "image" | "video";
@@ -41,18 +41,12 @@ type CardShape = {
   isPortrait: boolean;
 };
 
-const ASPECT_TOKEN_PATTERN = /^(\d+):(\d+)$/;
-
 const cardShapeFromAspect = (token?: string): CardShape => {
-  const match = token ? ASPECT_TOKEN_PATTERN.exec(token) : null;
-  if (!match) {
+  const ratio = parseAspectRatio(token);
+  if (!ratio) {
     return { isPortrait: false };
   }
-  const width = Number.parseInt(match[1], 10);
-  const height = Number.parseInt(match[2], 10);
-  if (!(width > 0 && height > 0)) {
-    return { isPortrait: false };
-  }
+  const { width, height } = ratio;
   return {
     mediaStyle: { aspectRatio: `${width} / ${height}` },
     isPortrait: height > width,
@@ -214,74 +208,6 @@ const ActionButtons = ({
   );
 };
 
-const Lightbox = ({
-  mediaType,
-  url,
-  prompt,
-  onClose,
-}: {
-  mediaType: MediaPreviewMediaType;
-  url: string;
-  prompt?: string;
-  onClose: () => void;
-}) => {
-  const t = useTranslations("chat.media");
-
-  useEffect(() => {
-    const handleKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [onClose]);
-
-  if (typeof document === "undefined") {
-    return null;
-  }
-
-  return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-4">
-      <button
-        aria-label={t("close")}
-        className="absolute inset-0 size-full cursor-default"
-        onClick={onClose}
-        type="button"
-      />
-      <div className="relative z-[1] flex max-h-full max-w-full items-center justify-center">
-        {mediaType === "image" ? (
-          // biome-ignore lint/performance/noImgElement: model-generated image, no Next loader
-          // biome-ignore lint/nursery/useImageSize: dimensions unknown
-          <img
-            alt={prompt ?? ""}
-            className="max-h-[90vh] max-w-[90vw] rounded-md object-contain"
-            src={url}
-          />
-        ) : (
-          // biome-ignore lint/a11y/useMediaCaption: generated video has no captions
-          <video
-            autoPlay
-            className="max-h-[90vh] max-w-[90vw] rounded-md object-contain"
-            controls
-            playsInline
-            src={url}
-          />
-        )}
-        <button
-          aria-label={t("close")}
-          className="-top-3 -right-3 absolute flex size-9 items-center justify-center rounded-full bg-white text-ink shadow-lg transition-transform hover:scale-105"
-          onClick={onClose}
-          type="button"
-        >
-          <XIcon className="size-5" />
-        </button>
-      </div>
-    </div>,
-    document.body
-  );
-};
-
 const QueuedCard = ({ mediaType }: { mediaType: MediaPreviewMediaType }) => {
   const t = useTranslations("chat.media");
   return (
@@ -423,7 +349,8 @@ const DoneCard = ({
   metaLabel?: string;
   onRegenerate?: () => void;
   onDownload?: () => void;
-  onOpen: () => void;
+  /** Opens the fullscreen lightbox; absent outside a lightbox provider. */
+  onOpen?: () => void;
   shape: CardShape;
 }) => {
   const t = useTranslations("chat.media");
@@ -432,13 +359,21 @@ const DoneCard = ({
       <div className={MEDIA_AREA} style={shape.mediaStyle}>
         {url ? (
           mediaType === "image" ? (
-            // biome-ignore lint/performance/noImgElement: model-generated image, no Next loader
-            // biome-ignore lint/nursery/useImageSize: dimensions unknown
-            <img
-              alt={prompt ?? ""}
-              className="size-full object-cover"
-              src={url}
-            />
+            <button
+              aria-label={t("openImage")}
+              className="block size-full cursor-zoom-in disabled:cursor-default"
+              disabled={!onOpen}
+              onClick={onOpen}
+              type="button"
+            >
+              {/* biome-ignore lint/performance/noImgElement: model-generated image, no Next loader */}
+              {/* biome-ignore lint/nursery/useImageSize: dimensions unknown */}
+              <img
+                alt={prompt ?? ""}
+                className="size-full object-cover"
+                src={url}
+              />
+            </button>
           ) : (
             // biome-ignore lint/a11y/useMediaCaption: generated video has no captions
             <video
@@ -451,7 +386,7 @@ const DoneCard = ({
           )
         ) : null}
         <ModelChip mediaType={mediaType} modelLabel={modelLabel} />
-        <OpenButton label={t("open")} onOpen={onOpen} />
+        {onOpen && <OpenButton label={t("open")} onOpen={onOpen} />}
       </div>
       <div className="flex items-end gap-2.5 border-rule border-t px-3.5 py-3">
         <div className="min-w-0 flex-1">
@@ -491,7 +426,7 @@ export const MediaPreview = ({
   onDownload,
 }: MediaPreviewProps) => {
   const t = useTranslations("chat.media");
-  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const lightbox = useMediaLightbox();
   const shape = cardShapeFromAspect(aspectRatio);
 
   if (state === "queued") {
@@ -526,27 +461,22 @@ export const MediaPreview = ({
         : undefined
       : dimensions;
 
+  const openLightbox =
+    lightbox && url
+      ? () => lightbox.openMedia(url, { mediaType, prompt })
+      : undefined;
+
   return (
-    <>
-      <DoneCard
-        mediaType={mediaType}
-        metaLabel={metaLabel}
-        modelLabel={modelLabel}
-        onDownload={onDownload}
-        onOpen={() => setIsLightboxOpen(true)}
-        onRegenerate={onRegenerate}
-        prompt={prompt}
-        shape={shape}
-        url={url}
-      />
-      {isLightboxOpen && url && (
-        <Lightbox
-          mediaType={mediaType}
-          onClose={() => setIsLightboxOpen(false)}
-          prompt={prompt}
-          url={url}
-        />
-      )}
-    </>
+    <DoneCard
+      mediaType={mediaType}
+      metaLabel={metaLabel}
+      modelLabel={modelLabel}
+      onDownload={onDownload}
+      onOpen={openLightbox}
+      onRegenerate={onRegenerate}
+      prompt={prompt}
+      shape={shape}
+      url={url}
+    />
   );
 };

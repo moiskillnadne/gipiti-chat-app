@@ -4,6 +4,7 @@ import equal from "fast-deep-equal";
 import { motion } from "framer-motion";
 import { ChevronDownIcon } from "lucide-react";
 import { memo, useMemo, useState } from "react";
+import { useMediaDownload } from "@/hooks/use-media-download";
 import { getModelById } from "@/lib/ai/models";
 import type { Vote } from "@/lib/db/schema";
 import { downloadFromUrl } from "@/lib/download";
@@ -17,6 +18,7 @@ import {
   type DocumentFormat,
   DocumentPreview,
 } from "./elements/document-preview";
+import { useMediaLightbox } from "./elements/media-lightbox-provider";
 import { MediaPreview, type MediaPreviewState } from "./elements/media-preview";
 import { MessageContent } from "./elements/message";
 import { Response } from "./elements/response";
@@ -146,19 +148,8 @@ const PurePreviewMessage = ({
     return label.includes(".") ? undefined : label;
   };
 
-  const downloadMedia = async (
-    mediaUrl: string,
-    mediaType: "image" | "video"
-  ) => {
-    try {
-      await downloadFromUrl(
-        mediaUrl,
-        mediaType === "image" ? "generated-image.png" : "generated-video.mp4"
-      );
-    } catch {
-      toast({ type: "error", description: t("downloadError") });
-    }
-  };
+  const downloadMedia = useMediaDownload();
+  const lightbox = useMediaLightbox();
 
   const downloadDocument = async (
     documentUrl: string,
@@ -248,6 +239,11 @@ const PurePreviewMessage = ({
                     url: attachment.url,
                   }}
                   key={attachment.url}
+                  onOpen={
+                    lightbox
+                      ? () => lightbox.openMedia(attachment.url)
+                      : undefined
+                  }
                 />
               ))}
             </div>
