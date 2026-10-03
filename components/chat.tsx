@@ -28,6 +28,7 @@ import type { Attachment, ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
 import { fetcher, fetchWithErrorHandlers, generateUUID } from "@/lib/utils";
 import { useDataStream } from "./data-stream-provider";
+import { MediaLightboxProvider } from "./elements/media-lightbox-provider";
 import { Messages } from "./messages";
 import { MultimodalInput } from "./multimodal-input";
 import { getChatHistoryPaginationKey } from "./sidebar-history";
@@ -232,38 +233,40 @@ export function Chat({
 
   return (
     <>
-      <div className="overscroll-behavior-contain flex h-dvh min-w-0 touch-pan-y flex-col bg-background">
-        <ChatHeader chatId={id} isReadonly={isReadonly} />
+      <MediaLightboxProvider messages={messages}>
+        <div className="overscroll-behavior-contain flex h-dvh min-w-0 touch-pan-y flex-col bg-background">
+          <ChatHeader chatId={id} isReadonly={isReadonly} />
 
-        <Suspense fallback={<div className="flex-1" />}>
-          <Messages
-            chatId={id}
-            isReadonly={isReadonly}
-            messages={messages}
-            regenerate={regenerate}
-            setMessages={setMessages}
-            status={status}
-            votes={votes}
-          />
-        </Suspense>
-
-        <div className="sticky bottom-0 z-1 mx-auto flex w-full max-w-4xl gap-2 border-t-0 bg-background px-2 pb-3 md:px-4 md:pb-4">
-          {!isReadonly && (
-            <MultimodalInput
-              attachments={attachments}
+          <Suspense fallback={<div className="flex-1" />}>
+            <Messages
               chatId={id}
-              input={input}
-              sendMessage={sendMessage}
-              setAttachments={setAttachments}
-              setInput={setInput}
+              isReadonly={isReadonly}
+              messages={messages}
+              regenerate={regenerate}
               setMessages={setMessages}
               status={status}
-              stop={stop}
-              usage={usage}
+              votes={votes}
             />
-          )}
+          </Suspense>
+
+          <div className="sticky bottom-0 z-1 mx-auto flex w-full max-w-4xl gap-2 border-t-0 bg-background px-2 pb-3 md:px-4 md:pb-4">
+            {!isReadonly && (
+              <MultimodalInput
+                attachments={attachments}
+                chatId={id}
+                input={input}
+                sendMessage={sendMessage}
+                setAttachments={setAttachments}
+                setInput={setInput}
+                setMessages={setMessages}
+                status={status}
+                stop={stop}
+                usage={usage}
+              />
+            )}
+          </div>
         </div>
-      </div>
+      </MediaLightboxProvider>
 
       <AlertDialog
         onOpenChange={setShowCreditCardAlert}

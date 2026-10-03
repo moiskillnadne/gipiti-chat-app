@@ -76,24 +76,38 @@ type AttachmentItemProps = {
   size?: number;
   removeLabel?: string;
   onRemove?: () => void;
+  openLabel?: string;
+  /** Opens the image in the fullscreen lightbox (image attachments only). */
+  onOpen?: () => void;
 };
+
+const THUMBNAIL_CLASS =
+  "relative inline-flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-md bg-paper-2 text-ink-3";
 
 export function AttachmentItem({
   attachment,
   size,
   removeLabel,
   onRemove,
+  openLabel,
+  onOpen,
 }: AttachmentItemProps) {
   const { name, url, contentType } = attachment;
   const isPdfFile = isPdf(contentType);
   const code = codeExtension(name);
   const isImg = isImage(contentType);
   const sizeLabel = formatBytes(size);
+  const isOpenable = isImg && Boolean(url) && Boolean(onOpen);
 
   return (
     <div className="group relative inline-flex max-w-[280px] items-center gap-2.5 rounded-md border border-rule bg-paper px-3 py-2 pl-2 text-[12.5px] text-ink-2 transition-colors duration-fast ease-canon hover:border-rule-strong">
-      <span className="relative inline-flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-md bg-paper-2 text-ink-3">
-        {isImg && url ? (
+      {isOpenable ? (
+        <button
+          aria-label={openLabel}
+          className={cn(THUMBNAIL_CLASS, "cursor-zoom-in")}
+          onClick={onOpen}
+          type="button"
+        >
           <Image
             alt={name ?? "image"}
             className="size-full object-cover"
@@ -102,16 +116,29 @@ export function AttachmentItem({
             unoptimized
             width={36}
           />
-        ) : isPdfFile ? (
-          <FileText className="size-4 text-citrus-deep" strokeWidth={1.6} />
-        ) : code ? (
-          <span className="font-medium font-mono text-[11px] text-citrus">
-            {code}
-          </span>
-        ) : (
-          <FileText className="size-4" strokeWidth={1.6} />
-        )}
-      </span>
+        </button>
+      ) : (
+        <span className={THUMBNAIL_CLASS}>
+          {isImg && url ? (
+            <Image
+              alt={name ?? "image"}
+              className="size-full object-cover"
+              height={36}
+              src={url}
+              unoptimized
+              width={36}
+            />
+          ) : isPdfFile ? (
+            <FileText className="size-4 text-citrus-deep" strokeWidth={1.6} />
+          ) : code ? (
+            <span className="font-medium font-mono text-[11px] text-citrus">
+              {code}
+            </span>
+          ) : (
+            <FileText className="size-4" strokeWidth={1.6} />
+          )}
+        </span>
+      )}
       <span className="flex min-w-0 flex-col gap-0.5">
         <span className="truncate font-medium text-[12.5px] text-ink">
           {name}

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { useTranslations } from "@/lib/i18n/translate";
 import type { Attachment } from "@/lib/types";
 import { Loader } from "./elements/loader";
 import {
@@ -39,19 +40,39 @@ export const PreviewAttachment = ({
   attachment,
   isUploading = false,
   onRemove,
+  onOpen,
 }: {
   attachment: Attachment;
   isUploading?: boolean;
   onRemove?: () => void;
+  /** Opens the image in the fullscreen lightbox (image attachments only). */
+  onOpen?: () => void;
 }) => {
+  const t = useTranslations("chat.media");
   const { name, url, contentType } = attachment;
+  const isImage = contentType?.startsWith("image");
 
   return (
     <div
       className="group relative size-16 overflow-hidden rounded-lg border bg-muted"
       data-testid="input-attachment-preview"
     >
-      {contentType?.startsWith("image") ? (
+      {isImage && onOpen ? (
+        <button
+          aria-label={t("openImage")}
+          className="block size-full cursor-zoom-in"
+          onClick={onOpen}
+          type="button"
+        >
+          <Image
+            alt={name ?? "An image attachment"}
+            className="size-full object-cover"
+            height={64}
+            src={url}
+            width={64}
+          />
+        </button>
+      ) : isImage ? (
         <Image
           alt={name ?? "An image attachment"}
           className="size-full object-cover"
@@ -85,7 +106,7 @@ export const PreviewAttachment = ({
         </Button>
       )}
 
-      <div className="absolute inset-x-0 bottom-0 truncate bg-linear-to-t from-black/80 to-transparent px-1 py-0.5 text-[10px] text-white">
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 truncate bg-linear-to-t from-black/80 to-transparent px-1 py-0.5 text-[10px] text-white">
         {name}
       </div>
     </div>
