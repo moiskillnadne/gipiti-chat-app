@@ -905,7 +905,7 @@
       "removeStyle": "Убрать стиль",
       "removeProject": "Убрать проект",
       "removeAttachment": "Удалить",
-      "uploadingPercent": "Загрузка {percent}%",
+      "uploading": "Загрузка…",
       "noStylesShort": "У вас ещё нет стилей",
       "noProjectsShort": "У вас ещё нет проектов",
       "streamingLabel": "Идёт ответ"
@@ -961,6 +961,8 @@
       "errorTitle": "Не удалось сгенерировать",
       "errorTimeout": "Превышено время ожидания. Попробуйте ещё раз.",
       "openImage": "Открыть изображение",
+      "attachmentFallbackName": "Файл",
+      "downloadFile": "Скачать файл",
       "lightbox": {
         "lightbox": "Просмотр медиа",
         "gallery": "Галерея",

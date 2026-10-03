@@ -18,7 +18,6 @@ import {
   type DocumentFormat,
   DocumentPreview,
 } from "./elements/document-preview";
-import { useMediaLightbox } from "./elements/media-lightbox-provider";
 import { MediaPreview, type MediaPreviewState } from "./elements/media-preview";
 import { MessageContent } from "./elements/message";
 import { Response } from "./elements/response";
@@ -29,8 +28,8 @@ import {
   SourcesTrigger,
 } from "./elements/source";
 import { MessageActions } from "./message-actions";
+import { MessageAttachments } from "./message-attachments";
 import { MessageEditor } from "./message-editor";
-import { PreviewAttachment } from "./preview-attachment";
 import { toast } from "./toast";
 import { ToolRunRenderer } from "./tool-run-renderer";
 
@@ -149,7 +148,6 @@ const PurePreviewMessage = ({
   };
 
   const downloadMedia = useMediaDownload();
-  const lightbox = useMediaLightbox();
 
   const downloadDocument = async (
     documentUrl: string,
@@ -226,27 +224,8 @@ const PurePreviewMessage = ({
               message.role === "user" && mode !== "edit",
           })}
         >
-          {attachmentsFromMessage.length > 0 && message.role === "user" && (
-            <div
-              className="flex flex-row justify-end gap-2"
-              data-testid={"message-attachments"}
-            >
-              {attachmentsFromMessage.map((attachment) => (
-                <PreviewAttachment
-                  attachment={{
-                    name: attachment.filename ?? "file",
-                    contentType: attachment.mediaType,
-                    url: attachment.url,
-                  }}
-                  key={attachment.url}
-                  onOpen={
-                    lightbox
-                      ? () => lightbox.openMedia(attachment.url)
-                      : undefined
-                  }
-                />
-              ))}
-            </div>
+          {message.role === "user" && (
+            <MessageAttachments parts={attachmentsFromMessage} />
           )}
 
           {groupedParts.map((part, index) => {

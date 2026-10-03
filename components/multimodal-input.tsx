@@ -24,6 +24,8 @@ import { useWebSearch } from "@/contexts/web-search-context";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSpendBanner } from "@/hooks/use-spend-banner";
 import { supportsAttachments, supportsToolCalling } from "@/lib/ai/models";
+import { formatFileSize } from "@/lib/attachments/attachment-display";
+import { MAX_ATTACHMENT_NAME_LENGTH } from "@/lib/attachments/attachment-limits";
 import { useTranslations } from "@/lib/i18n/translate";
 import type { Attachment, ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
@@ -65,6 +67,13 @@ type UploadResponseBody = {
   isTruncated?: boolean;
 };
 
+/** A file still uploading; `id` keeps same-named files apart. */
+type UploadQueueEntry = {
+  id: string;
+  name: string;
+  size: number;
+};
+
 /** Upload failure codes that have their own localized message. */
 const UPLOAD_ERROR_MESSAGE_KEYS: Partial<Record<UploadErrorCode, string>> = {
   file_too_large: "uploadTooLarge",
@@ -101,7 +110,7 @@ function PureMultimodalInput({
   // web-search toggle would be dead UI for them.
   const canUseTools = supportsToolCalling(currentModelId);
 
-  const [uploadQueue, setUploadQueue] = useState<string[]>([]);
+  const [uploadQueue, setUploadQueue] = useState<UploadQueueEntry[]>([]);
   const [isDragging, setIsDragging] = useState(false);
 
   const resetHeight = useCallback(() => {
@@ -153,7 +162,11 @@ function PureMultimodalInput({
         ...attachments.map((attachment) => ({
           type: "file" as const,
           url: attachment.url,
+          // `filename` is the AI SDK field the UI and model read; `name` is
+          // kept for the server-side text/docx inliners and older readers.
+          filename: attachment.name,
           name: attachment.name,
+          size: attachment.size,
           mediaType: attachment.contentType,
         })),
         {
@@ -184,7 +197,7 @@ function PureMultimodalInput({
   ]);
 
   const uploadFile = useCallback(
-    async (file: File) => {
+    async (file: File): Promise<Attachment | undefined> => {
       const formData = new FormData();
       formData.append("file", file);
 
@@ -195,12 +208,19 @@ function PureMultimodalInput({
         });
 
         if (response.ok) {
-          const { url, pathname, contentType, isTruncated } =
+          const { url, contentType, isTruncated } =
             (await response.json()) as UploadResponseBody;
           if (isTruncated) {
             toast.warning(tInput("uploadTruncated", { name: file.name }));
           }
-          return { url, name: pathname, contentType };
+          // Keep the user's own file name (the blob pathname may differ) and
+          // the original size, both shown on the attachment card.
+          return {
+            url,
+            name: file.name.slice(0, MAX_ATTACHMENT_NAME_LENGTH),
+            contentType,
+            size: file.size,
+          };
         }
         const { code } = (await response.json()) as Partial<UploadErrorBody>;
         const messageKey = code ? UPLOAD_ERROR_MESSAGE_KEYS[code] : undefined;
@@ -217,19 +237,34 @@ function PureMultimodalInput({
       if (files.length === 0) {
         return;
       }
-      setUploadQueue(files.map((file) => file.name));
-      try {
-        const uploadPromises = files.map((file) => uploadFile(file));
-        const uploaded = await Promise.all(uploadPromises);
-        const successful = uploaded.filter(
-          (attachment) => attachment !== undefined
-        );
-        setAttachments((current) => [...current, ...successful]);
-      } catch (error) {
-        console.error("Error uploading files!", error);
-      } finally {
-        setUploadQueue([]);
-      }
+      const entries = files.map((file) => ({
+        file,
+        queueEntry: {
+          id: crypto.randomUUID(),
+          name: file.name,
+          size: file.size,
+        },
+      }));
+      setUploadQueue((current) => [
+        ...current,
+        ...entries.map(({ queueEntry }) => queueEntry),
+      ]);
+      // Each file leaves the queue (and joins the attachments) as soon as its
+      // own upload settles, instead of waiting for the whole batch.
+      await Promise.all(
+        entries.map(async ({ file, queueEntry }) => {
+          try {
+            const attachment = await uploadFile(file);
+            if (attachment) {
+              setAttachments((current) => [...current, attachment]);
+            }
+          } finally {
+            setUploadQueue((current) =>
+              current.filter((entry) => entry.id !== queueEntry.id)
+            );
+          }
+        })
+      );
     },
     [setAttachments, uploadFile]
   );
@@ -389,11 +424,12 @@ function PureMultimodalInput({
                 removeLabel={tInput("removeAttachment")}
               />
             ))}
-            {uploadQueue.map((filename) => (
+            {uploadQueue.map((entry) => (
               <UploadingItem
-                filename={filename}
-                key={filename}
-                uploadingLabel={tInput("uploadingPercent", { percent: 60 })}
+                filename={entry.name}
+                key={entry.id}
+                sizeLabel={formatFileSize(entry.size)}
+                uploadingLabel={tInput("uploading")}
               />
             ))}
           </div>

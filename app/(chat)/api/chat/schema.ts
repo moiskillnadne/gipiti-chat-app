@@ -1,6 +1,10 @@
 import { z } from "zod";
 
 import { chatModelIds } from "@/lib/ai/models";
+import {
+  MAX_ATTACHMENT_BYTES,
+  MAX_ATTACHMENT_NAME_LENGTH,
+} from "@/lib/attachments/attachment-limits";
 
 const textPartSchema = z.object({
   type: z.enum(["text"]),
@@ -19,7 +23,12 @@ const filePartSchema = z.object({
     "text/csv",
     "text/tab-separated-values",
   ]),
-  name: z.string().min(1).max(100),
+  // Legacy key, still read by the server-side text/docx inliners.
+  name: z.string().min(1).max(MAX_ATTACHMENT_NAME_LENGTH),
+  // AI SDK field — what the chat UI and the model see as the file name.
+  filename: z.string().min(1).max(MAX_ATTACHMENT_NAME_LENGTH).optional(),
+  // Original size in bytes; display-only metadata for the attachment card.
+  size: z.number().int().nonnegative().max(MAX_ATTACHMENT_BYTES).optional(),
   url: z.string().url(),
 });
 

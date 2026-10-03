@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useProject } from "@/contexts/project-context";
+import { formatFileSize } from "@/lib/attachments/attachment-display";
 import type { Project, ProjectFile } from "@/lib/db/schema";
 import { useTranslations } from "@/lib/i18n/translate";
 import {
@@ -36,16 +37,6 @@ export type EditorV1Props = {
   kind: "project";
   initialEntity: Project;
   initialFiles: ProjectFile[];
-};
-
-const formatBytes = (bytes: number): string => {
-  if (bytes < 1024) {
-    return `${bytes} Б`;
-  }
-  if (bytes < 1024 * 1024) {
-    return `${Math.round(bytes / 1024)} КБ`;
-  }
-  return `${(bytes / (1024 * 1024)).toFixed(1)} МБ`;
 };
 
 const formatDate = (date: Date): string =>
@@ -527,7 +518,7 @@ export function EditorV1(props: EditorV1Props) {
                       {f.name}
                     </a>
                     <span className="editor-v1-file-meta">
-                      {formatBytes(f.size)}
+                      {formatFileSize(f.size)}
                     </span>
                     <button
                       className="editor-v1-btn editor-v1-btn-ghost editor-v1-btn-sm editor-v1-btn-danger"
