@@ -405,21 +405,27 @@ export const ToolRunRenderer = ({
 
   const onlyThought = steps.length === 1 && steps[0].kind === "thought";
 
-  let title: React.ReactNode;
-  if (isMessageStreaming) {
-    title = (
-      <>
-        {tRun("researching")}
-        <em className="font-normal text-ink-2 italic">…</em>
-      </>
-    );
-  } else if (onlyThought) {
-    title = tRun("thoughtFor", { duration: elapsed });
+  let finishedTitle: string;
+  if (onlyThought) {
+    finishedTitle = tRun("thoughtFor", { duration: elapsed });
   } else if (steps.length === 1) {
-    title = tRun("lookedItUp");
+    finishedTitle = tRun("lookedItUp");
   } else {
-    title = tRun("researched");
+    finishedTitle = tRun("researched");
   }
+
+  // Each title variant is its own keyed element so the streaming → finished
+  // swap replaces a whole element instead of removing bare text nodes, which
+  // page translators (Chrome/Yandex Translate) swap for <font> wrappers and
+  // React then fails to remove (GIPITI-101).
+  const title = isMessageStreaming ? (
+    <span key="streaming">
+      {tRun("researching")}
+      <em className="font-normal text-ink-2 italic">…</em>
+    </span>
+  ) : (
+    <span key="finished">{finishedTitle}</span>
+  );
 
   const meta = (
     <>
