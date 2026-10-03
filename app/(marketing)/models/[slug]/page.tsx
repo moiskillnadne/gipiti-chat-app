@@ -11,9 +11,9 @@ import { ModelsTypeHero } from "@/components/models/models-type-hero";
 import { toJsonLdString } from "@/lib/marketing/json-ld";
 import {
   getModelLandingBySlug,
-  type ModelLanding,
   modelLandings,
 } from "@/lib/marketing/model-landings";
+import type { ModelLanding } from "@/lib/marketing/model-landings/types";
 import {
   type CatalogSection,
   catalogSections,

@@ -20,11 +20,11 @@ import {
   Zap,
 } from "lucide-react";
 
+import { sectionCopy } from "@/lib/marketing/model-landings/shared";
 import type {
   LandingBenefitIcon,
   ModelLanding,
-} from "@/lib/marketing/model-landings";
-import { sectionCopy } from "@/lib/marketing/model-landings";
+} from "@/lib/marketing/model-landings/types";
 
 import { accentClasses } from "./accent-styles";
 import { ModelLandingSectionHead } from "./model-landing-section-head";

@@ -1,6 +1,6 @@
 import { LandingFooter } from "@/components/landing/landing-footer";
 import { LandingNav } from "@/components/landing/landing-nav";
-import type { ModelLanding } from "@/lib/marketing/model-landings";
+import type { ModelLanding } from "@/lib/marketing/model-landings/types";
 
 import { ModelLandingAudience } from "./model-landing-audience";
 import { ModelLandingBenefits } from "./model-landing-benefits";

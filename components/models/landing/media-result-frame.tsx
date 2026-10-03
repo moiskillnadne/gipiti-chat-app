@@ -6,7 +6,7 @@ import type {
   LandingMediaAspect,
   LandingMediaSample,
   ModelLandingAccent,
-} from "@/lib/marketing/model-landings";
+} from "@/lib/marketing/model-landings/types";
 
 import { accentClasses } from "./accent-styles";
 import { EmphasizedText } from "./emphasized-text";

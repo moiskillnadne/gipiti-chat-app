@@ -1,4 +1,4 @@
-import type { ModelLandingAccent } from "@/lib/marketing/model-landings";
+import type { ModelLandingAccent } from "@/lib/marketing/model-landings/types";
 
 /**
  * Per-accent Tailwind class tokens for model landing pages. Full literal

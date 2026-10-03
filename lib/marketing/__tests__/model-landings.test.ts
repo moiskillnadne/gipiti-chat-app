@@ -3,8 +3,11 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { chatModels } from "../../ai/models";
-import type { LandingMediaSample, MediaModelLanding } from "../model-landings";
 import { modelLandings } from "../model-landings";
+import type {
+  LandingMediaSample,
+  MediaModelLanding,
+} from "../model-landings/types";
 import { catalogModels, catalogSections } from "../models-catalog";
 
 const landingBySlug = new Map(

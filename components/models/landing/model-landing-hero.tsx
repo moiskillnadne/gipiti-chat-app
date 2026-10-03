@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import type { ModelLanding } from "@/lib/marketing/model-landings";
+import type { ModelLanding } from "@/lib/marketing/model-landings/types";
 
 import { accentClasses } from "./accent-styles";
 import { ModelLandingChatMockup } from "./model-landing-chat-mockup";

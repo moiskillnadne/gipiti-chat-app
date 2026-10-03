@@ -12,7 +12,7 @@ import {
 import type {
   LandingFaqItem,
   ModelLandingAccent,
-} from "@/lib/marketing/model-landings";
+} from "@/lib/marketing/model-landings/types";
 
 import { accentClasses } from "./accent-styles";
 
