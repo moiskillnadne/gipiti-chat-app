@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
+import { getClientDiagnostics, truncateStack } from "@/lib/client-diagnostics";
 import { clientLog } from "@/lib/client-logger";
 import { useErrorTranslations } from "@/lib/i18n/errors";
 
@@ -26,6 +27,8 @@ export function RouteErrorFallback({ error, reset }: RouteErrorFallbackProps) {
       digest: error.digest,
       message: error.message,
       pathname: window.location.pathname,
+      stack: truncateStack(error.stack),
+      ...getClientDiagnostics(),
     });
   }, [error]);
 
