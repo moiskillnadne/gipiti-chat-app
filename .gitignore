@@ -53,4 +53,7 @@ logs/
 cloudpayments-documentation.en.md
 gipiti.drawio.png
 
-.claude
+# Claude Code: local state stays ignored; shared project config is committed
+.claude/*
+!.claude/settings.json
+!.claude/commands/

@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "ExitPlanMode",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" && pnpm exec tsx scripts/hooks/save-plan.ts",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -111,6 +111,13 @@ All require `Authorization: Bearer ${CRON_SECRET}`: `reset-quotas` (renew billin
 - React: no index keys, functional components; Next.js: `<Image>` not `<img>`, semantic HTML/ARIA
 - Named exports, components < 200 lines, business logic in `lib/` not components
 
+### Plans (`docs/plans/`)
+- For any task that touches more than 2 files, start with a plan (plan mode).
+- A plan must cover: goal, files that change, order of work, risks, and verification (which tests / commands). Start it with a `# <Title>` heading — the filename slug comes from it.
+- Approved plans are saved automatically by a `PostToolUse` hook on `ExitPlanMode` (`.claude/settings.json` → `scripts/hooks/save-plan.ts`) to `docs/plans/YYYY-MM-DD-<slug>.md`; the hook reports the path back. Don't save a second copy.
+- If a plan was agreed in chat without plan mode (no hook fired), save it there yourself before any code changes, same format.
+- If the implementation departs from the plan, update the plan file in the same commit. When the work is done, set `status: done` in its frontmatter.
+
 ### i18n
 - No next-intl — a small in-house shim in `lib/i18n/translate.ts` exposes `useTranslations(ns)` / `await getTranslations(ns)` with the same shape.
 - Russian only: strings in `messages/ru.json`; the `errors` namespace lives in `messages/ru.errors.json` (loaded separately by root error boundaries).
