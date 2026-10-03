@@ -50,6 +50,23 @@ const ZOOM_SETTINGS = {
   doubleTapDelay: 0,
 } as const;
 
+/**
+ * Checkerboard behind image slides. Transparent images (e.g. a dark logo PNG)
+ * are otherwise invisible on the black backdrop; opaque images cover it fully.
+ */
+const CAROUSEL_SETTINGS = {
+  finite: true,
+  padding: "16px",
+  imageProps: {
+    style: {
+      backgroundColor: "#ffffff",
+      backgroundImage:
+        "repeating-conic-gradient(#e4e4e7 0% 25%, transparent 0% 50%)",
+      backgroundSize: "16px 16px",
+    },
+  },
+} as const;
+
 const captionDateFormatter = new Intl.DateTimeFormat("ru-RU", {
   dateStyle: "medium",
   timeStyle: "short",
@@ -182,7 +199,7 @@ export const MediaLightbox = ({
   return (
     <Lightbox
       captions={{ descriptionMaxLines: 4, descriptionTextAlign: "start" }}
-      carousel={{ finite: true, padding: "16px" }}
+      carousel={CAROUSEL_SETTINGS}
       close={onClose}
       controller={{ closeOnBackdropClick: true }}
       download={{
