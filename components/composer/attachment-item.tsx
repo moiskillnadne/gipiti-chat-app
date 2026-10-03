@@ -1,7 +1,8 @@
 "use client";
 
-import { FileText, X } from "lucide-react";
+import { FileText, Loader2, X } from "lucide-react";
 import Image from "next/image";
+import { formatFileSize } from "@/lib/attachments/attachment-display";
 import type { Attachment } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -9,19 +10,6 @@ const isImage = (contentType?: string) =>
   Boolean(contentType?.startsWith("image"));
 
 const isPdf = (contentType?: string) => contentType === "application/pdf";
-
-const formatBytes = (bytes?: number) => {
-  if (!bytes && bytes !== 0) {
-    return;
-  }
-  if (bytes < 1024) {
-    return `${bytes} B`;
-  }
-  if (bytes < 1024 * 1024) {
-    return `${(bytes / 1024).toFixed(0)} KB`;
-  }
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-};
 
 const codeExtension = (name?: string) => {
   if (!name) {
@@ -73,7 +61,6 @@ const typeLabel = (attachment: Attachment) => {
 
 type AttachmentItemProps = {
   attachment: Attachment;
-  size?: number;
   removeLabel?: string;
   onRemove?: () => void;
   openLabel?: string;
@@ -86,17 +73,16 @@ const THUMBNAIL_CLASS =
 
 export function AttachmentItem({
   attachment,
-  size,
   removeLabel,
   onRemove,
   openLabel,
   onOpen,
 }: AttachmentItemProps) {
-  const { name, url, contentType } = attachment;
+  const { name, url, contentType, size } = attachment;
   const isPdfFile = isPdf(contentType);
   const code = codeExtension(name);
   const isImg = isImage(contentType);
-  const sizeLabel = formatBytes(size);
+  const sizeLabel = size === undefined ? undefined : formatFileSize(size);
   const isOpenable = isImg && Boolean(url) && Boolean(onOpen);
 
   return (
@@ -118,7 +104,12 @@ export function AttachmentItem({
           />
         </button>
       ) : (
-        <span className={THUMBNAIL_CLASS}>
+        <span
+          className={cn(
+            THUMBNAIL_CLASS,
+            isPdfFile && "bg-danger-soft text-danger"
+          )}
+        >
           {isImg && url ? (
             <Image
               alt={name ?? "image"}
@@ -129,7 +120,7 @@ export function AttachmentItem({
               width={36}
             />
           ) : isPdfFile ? (
-            <FileText className="size-4 text-citrus-deep" strokeWidth={1.6} />
+            <FileText className="size-4" strokeWidth={1.6} />
           ) : code ? (
             <span className="font-medium font-mono text-[11px] text-citrus">
               {code}
@@ -140,7 +131,10 @@ export function AttachmentItem({
         </span>
       )}
       <span className="flex min-w-0 flex-col gap-0.5">
-        <span className="truncate font-medium text-[12.5px] text-ink">
+        <span
+          className="truncate font-medium text-[12.5px] text-ink"
+          title={name}
+        >
           {name}
         </span>
         <span className="flex items-center gap-1.5 font-mono text-[10px] text-ink-3 uppercase tracking-[0.04em]">
@@ -176,32 +170,41 @@ export function AttachmentItem({
 
 type UploadingItemProps = {
   filename: string;
-  percent?: number;
+  /** Formatted file size, e.g. "2,4 МБ". */
+  sizeLabel?: string;
   uploadingLabel: string;
 };
 
+/** Composer chip for a file whose upload has not finished yet. */
 export function UploadingItem({
   filename,
-  percent = 60,
+  sizeLabel,
   uploadingLabel,
 }: UploadingItemProps) {
-  const clamped = Math.max(0, Math.min(100, percent));
   return (
     <div
-      className="relative inline-flex max-w-[280px] items-center gap-2.5 rounded-md border border-transparent px-3 py-2 pl-2 text-[12.5px] text-ink-2 shadow-[inset_0_0_0_1px_var(--rule)]"
-      style={{
-        background: `linear-gradient(90deg, var(--paper) 0%, var(--paper) ${clamped}%, var(--paper-2) ${clamped}%)`,
-      }}
+      aria-busy="true"
+      className="relative inline-flex max-w-[280px] items-center gap-2.5 rounded-md border border-rule bg-paper-2 px-3 py-2 pl-2 text-[12.5px] text-ink-2"
+      data-testid="attachment-uploading"
     >
-      <span className="inline-flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-md bg-paper-2 text-ink-3">
-        <FileText className="size-4" strokeWidth={1.6} />
+      <span className="inline-flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-md bg-paper text-citrus-deep">
+        <Loader2 className="size-4 animate-spin" strokeWidth={1.8} />
       </span>
       <span className="flex min-w-0 flex-col gap-0.5">
-        <span className="truncate font-medium text-[12.5px] text-ink">
+        <span
+          className="truncate font-medium text-[12.5px] text-ink"
+          title={filename}
+        >
           {filename}
         </span>
-        <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.04em]">
+        <span className="flex items-center gap-1.5 font-mono text-[10px] text-ink-3 uppercase tracking-[0.04em]">
           <b className="font-medium text-citrus-deep">{uploadingLabel}</b>
+          {sizeLabel && (
+            <>
+              <span className="size-[3px] rounded-full bg-ink-4" />
+              <span>{sizeLabel}</span>
+            </>
+          )}
         </span>
       </span>
     </div>

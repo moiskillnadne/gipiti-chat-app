@@ -94,9 +94,12 @@ export type ChatMessage = UIMessage<
 >;
 
 export type Attachment = {
+  /** The user's original file name (not the blob pathname). */
   name: string;
   url: string;
   contentType: string;
+  /** Original file size in bytes. */
+  size?: number;
 };
 
 // Direct image generation message parts (for standalone image models)

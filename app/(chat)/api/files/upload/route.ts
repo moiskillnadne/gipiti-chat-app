@@ -7,8 +7,7 @@ import {
   isTextAttachmentTruncated,
   resolveTextAttachmentMediaType,
 } from "@/lib/ai/text-attachments";
-
-const MAX_FILE_BYTES = 10 * 1024 * 1024;
+import { MAX_ATTACHMENT_BYTES } from "@/lib/attachments/attachment-limits";
 
 // Binary types are validated by the browser-reported MIME type. Text files
 // (.md, .txt, .csv, code) are validated by extension instead — see
@@ -94,7 +93,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
-    if (file.size > MAX_FILE_BYTES) {
+    if (file.size > MAX_ATTACHMENT_BYTES) {
       return errorResponse(
         "file_too_large",
         "File size should be less than 10MB",
