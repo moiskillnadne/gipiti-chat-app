@@ -8,10 +8,16 @@ GIPITI — a Next.js 16 (App Router, Turbopack) AI chat app for the Russian mark
 
 ## Development Commands
 
-Standard scripts (dev, build, db:*, lint, format) are in `package.json`. Non-obvious ones:
+Standard scripts (dev, build, db:*, lint, format) are in `package.json`.
+
+**After making changes, run `pnpm check` and fix everything it reports before calling the work done.** It runs typecheck, lint + formatting (Biome), and unit tests in parallel, then `next build` (skipped while the static checks fail). Passing steps print one line each and failing steps print their full output. It works in fresh worktrees without `.env` files: placeholder values cover the env vars the build needs, and it never touches the DB. Use `pnpm check:fast` (no build) for quick iterations, but finish with a full `pnpm check`. Formatting failures are fixed with `pnpm format`.
+
+Non-obvious ones:
 
 ```bash
-pnpm build:debug                 # next build only — use this to check the app builds after changes
+pnpm check                       # full 360° check: typecheck + lint/format + unit tests + build (~45s)
+pnpm check:fast                  # same without the build (~12s)
+pnpm typecheck                   # tsc --noEmit
 pnpm build                       # NOTE: runs DB migrations first (tsx lib/db/migrate), then next build
 pnpm test:unit                   # Vitest; only picks up **/__tests__/**/*.test.ts
 pnpm vitest run lib/ai/__tests__/model-registry.test.ts   # single unit test file
