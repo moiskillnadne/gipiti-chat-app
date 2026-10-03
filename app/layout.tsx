@@ -4,6 +4,7 @@ import { VercelToolbar } from "@vercel/toolbar/next";
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Geist_Mono, Rubik } from "next/font/google";
 import { Toaster } from "sonner";
+import { DomMutationGuard } from "@/components/dom-mutation-guard";
 import { ErrorLogger } from "@/components/error-logger";
 import { UtmCapture } from "@/components/utm-capture";
 import { YandexMetrika } from "@/components/yandex-metrika";
@@ -116,6 +117,7 @@ export default function RootLayout({
         <meta content={PAPER_THEME_COLOR} name="theme-color" />
       </head>
       <body className="antialiased" suppressHydrationWarning>
+        <DomMutationGuard />
         <ErrorLogger />
         <UtmCapture />
         <SpeedInsights />

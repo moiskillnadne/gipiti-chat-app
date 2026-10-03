@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 
+import { getClientDiagnostics, truncateStack } from "@/lib/client-diagnostics";
 import { clientLog } from "@/lib/client-logger";
 import { useErrorTranslations } from "@/lib/i18n/errors";
 
@@ -21,6 +22,8 @@ export default function GlobalError({
       digest: error.digest,
       message: error.message,
       pathname: window.location.pathname,
+      stack: truncateStack(error.stack),
+      ...getClientDiagnostics(),
     });
   }, [error]);
 

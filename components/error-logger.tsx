@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { getClientDiagnostics, truncateStack } from "@/lib/client-diagnostics";
 import { clientLog } from "@/lib/client-logger";
 
 export function ErrorLogger() {
@@ -10,6 +11,12 @@ export function ErrorLogger() {
         src: event.filename,
         line: event.lineno,
         col: event.colno,
+        pathname: window.location.pathname,
+        stack:
+          event.error instanceof Error
+            ? truncateStack(event.error.stack)
+            : undefined,
+        ...getClientDiagnostics(),
       });
     };
 
@@ -19,6 +26,8 @@ export function ErrorLogger() {
           event.reason instanceof Error
             ? event.reason.message
             : String(event.reason),
+        pathname: window.location.pathname,
+        ...getClientDiagnostics(),
       });
     };
 
