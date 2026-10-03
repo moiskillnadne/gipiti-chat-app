@@ -1,7 +1,7 @@
 import { DownloadIcon } from "lucide-react";
 
-import type { MediaModelLanding } from "@/lib/marketing/model-landings";
-import { sectionCopy } from "@/lib/marketing/model-landings";
+import { sectionCopy } from "@/lib/marketing/model-landings/shared";
+import type { MediaModelLanding } from "@/lib/marketing/model-landings/types";
 
 import { accentClasses } from "./accent-styles";
 import { EmphasizedText } from "./emphasized-text";

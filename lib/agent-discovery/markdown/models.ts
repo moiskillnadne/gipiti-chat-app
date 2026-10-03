@@ -1,7 +1,5 @@
-import {
-  getModelLandingBySlug,
-  type ModelLanding,
-} from "@/lib/marketing/model-landings";
+import { getModelLandingBySlug } from "@/lib/marketing/model-landings";
+import type { ModelLanding } from "@/lib/marketing/model-landings/types";
 import {
   type CatalogSection,
   catalogSections,

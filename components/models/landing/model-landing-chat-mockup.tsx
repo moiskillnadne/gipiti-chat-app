@@ -1,5 +1,5 @@
-import type { TextModelLanding } from "@/lib/marketing/model-landings";
-import { sectionCopy } from "@/lib/marketing/model-landings";
+import { sectionCopy } from "@/lib/marketing/model-landings/shared";
+import type { TextModelLanding } from "@/lib/marketing/model-landings/types";
 
 import { accentClasses } from "./accent-styles";
 import { EmphasizedText } from "./emphasized-text";

@@ -8,7 +8,7 @@
  * rest fall back to the site-wide card.
  */
 
-import type { ModelLanding } from "@/lib/marketing/model-landings";
+import type { ModelLanding } from "@/lib/marketing/model-landings/types";
 import { SITE_URL } from "./site";
 
 export type OpenGraphImage = {

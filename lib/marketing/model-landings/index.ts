@@ -3,8 +3,9 @@
  *
  * Modules are grouped by vendor; image and video landings carry the modality
  * as a filename prefix (`image-*`, `video-*`) because several vendors ship
- * models in more than one category. Everything is aggregated here — all
- * consumers import from `@/lib/marketing/model-landings`.
+ * models in more than one category. The landing data and lookup helpers are
+ * aggregated here; import `sectionCopy` from `./shared` and the landing types
+ * from `./types` directly.
  *
  * Every model in `models-catalog.ts` has a landing, so each catalog card links
  * to one; keep the two files in sync when a model is added or removed.
@@ -31,25 +32,6 @@ import { googleVideoLandings } from "./video-google";
 import { klingaiVideoLandings } from "./video-klingai";
 import { xaiVideoLandings } from "./video-xai";
 import { xaiLandings } from "./xai";
-
-export { sectionCopy } from "./shared";
-export type {
-  LandingAudienceCard,
-  LandingBenefit,
-  LandingBenefitIcon,
-  LandingFaqItem,
-  LandingHeroChat,
-  LandingHeroMedia,
-  LandingKind,
-  LandingMediaAspect,
-  LandingMediaSample,
-  LandingModelChip,
-  LandingStep,
-  MediaModelLanding,
-  ModelLanding,
-  ModelLandingAccent,
-  TextModelLanding,
-} from "./types";
 
 export const modelLandings: ModelLanding[] = [
   ...openaiLandings,
