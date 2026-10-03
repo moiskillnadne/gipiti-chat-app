@@ -140,3 +140,18 @@ See `.env.example` (`AUTH_SECRET`, `AI_GATEWAY_API_KEY`, `BLOB_READ_WRITE_TOKEN`
 9. **SVG imports**: a Turbopack SVGR rule in `next.config.ts` turns **every** `.svg` import into a React component.
 10. **Static assets**: files in `public/` are served from `/`, never `/public/...`.
 11. **Hidden deps**: `redis` and `@opentelemetry/api-logs` look unused but are required transitively — don't remove.
+
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in Linear (team key `GIPITI`, e.g. GIPITI-98), via the Linear MCP tools. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default five-role vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
