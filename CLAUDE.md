@@ -140,6 +140,7 @@ See `.env.example` (`AUTH_SECRET`, `AI_GATEWAY_API_KEY`, `BLOB_READ_WRITE_TOKEN`
 9. **SVG imports**: a Turbopack SVGR rule in `next.config.ts` turns **every** `.svg` import into a React component.
 10. **Static assets**: files in `public/` are served from `/`, never `/public/...`.
 11. **Hidden deps**: `redis` and `@opentelemetry/api-logs` look unused but are required transitively — don't remove.
+12. **Page translators**: Chrome/Yandex Translate swap React text nodes for `<font>` wrappers, and React then throws `removeChild`/`insertBefore` errors when it removes them (GIPITI-101). `components/dom-mutation-guard.tsx` (mounted in the root layout) patches `Node.prototype` to absorb these errors. Don't remove it as dead code. When UI text swaps between variants, wrap each variant in its own element instead of mixing bare text with siblings.
 
 
 ## Agent skills
