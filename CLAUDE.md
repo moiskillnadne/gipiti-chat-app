@@ -141,3 +141,18 @@ See `.env.example` (`AUTH_SECRET`, `AI_GATEWAY_API_KEY`, `BLOB_READ_WRITE_TOKEN`
 10. **Static assets**: files in `public/` are served from `/`, never `/public/...`.
 11. **Hidden deps**: `redis` and `@opentelemetry/api-logs` look unused but are required transitively — don't remove.
 12. **Page translators**: Chrome/Yandex Translate swap React text nodes for `<font>` wrappers, and React then throws `removeChild`/`insertBefore` errors when it removes them (GIPITI-101). `components/dom-mutation-guard.tsx` (mounted in the root layout) patches `Node.prototype` to absorb these errors. Don't remove it as dead code. When UI text swaps between variants, wrap each variant in its own element instead of mixing bare text with siblings.
+
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in Linear (team key `GIPITI`, e.g. GIPITI-98), via the Linear MCP tools. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default five-role vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
