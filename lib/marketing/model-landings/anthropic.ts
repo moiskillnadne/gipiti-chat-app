@@ -1,6 +1,7 @@
 /**
  * Landings for the Anthropic Claude models: Fable 5.1, Opus 5.5, Opus 5,
- * Opus 4.8, Sonnet 5.5, Sonnet 5 and the previous-generation Sonnet 4.6.
+ * Opus 4.8, Sonnet 5.5, Sonnet 5, the previous-generation Sonnet 4.6 and
+ * Haiku 5.5.
  */
 
 import {
@@ -8,11 +9,13 @@ import {
   buildSteps,
   documentsBenefit,
   FABLE_51_SLUG,
+  GEMINI_38_FLASH_SLUG,
   GEMINI_PRO_SLUG,
   GPT6_ASTRA_SLUG,
   GPT6_LUNA_SLUG,
   GPT6_SOL_SLUG,
   GROK_SLUG,
+  HAIKU_55_SLUG,
   lawyersAudience,
   OPUS_5_SLUG,
   OPUS_48_SLUG,
@@ -682,6 +685,106 @@ export const anthropicLandings: ModelLanding[] = [
       },
       { name: "GPT-6 Luna", tag: "Текст", href: `/models/${GPT6_LUNA_SLUG}` },
       { name: "Grok 4.5", tag: "Текст", href: `/models/${GROK_SLUG}` },
+    ],
+  },
+  {
+    kind: "text",
+    slug: HAIKU_55_SLUG,
+    modelId: "haiku-5.5",
+    name: "Claude Haiku 5.5",
+    vendor: "Anthropic",
+    accent: "sky",
+    badge: "Anthropic · Новейший Haiku · Текст",
+    h1Top: "Claude Haiku 5.5 —",
+    h1Gradient: "быстрая и доступная нейросеть Claude",
+    sub: "Новейший Haiku уже в GIPITI — быстрые ответы с рассуждениями, работа с файлами и изображениями по самой низкой цене среди моделей Claude. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    ctaMain: "Попробовать Claude Haiku 5.5",
+    metaTitle: "Claude Haiku 5.5 — быстрая нейросеть Claude без VPN | GIPITI",
+    metaDescription:
+      "Claude Haiku 5.5 — новейший Haiku от Anthropic в GIPITI: быстрые ответы, рассуждения, файлы и изображения по самой низкой цене среди моделей Claude. Без VPN, на русском, оплата российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    heroChat: {
+      userMessage:
+        "Разбери 40 отзывов покупателей: что хвалят, на что жалуются? 📄 reviews.csv",
+      aiIntro: "Разобрал отзывы. Картина такая — **три главные темы**:",
+      aiBullets: [
+        "**Хвалят доставку** — 26 отзывов отмечают, что заказ пришёл раньше срока",
+        "**Жалуются на размер** — 9 отзывов: одежда маломерит на один размер",
+        "**Просят упаковку** — 5 человек хотят подарочную коробку",
+      ],
+    },
+    benefits: [
+      {
+        icon: "zap",
+        title: "Отвечает быстро",
+        text: "Haiku 5.5 — самая быстрая линейка Claude: короткие вопросы, переписка и разбор файлов без долгого ожидания.",
+      },
+      {
+        icon: "wallet",
+        title: "Самая доступная модель Claude",
+        text: "Запросы к Haiku 5.5 до 20 раз дешевле, чем к Sonnet 5.5, — подходит для частых и объёмных задач, когда важно беречь баланс.",
+      },
+      {
+        icon: "file-text",
+        title: "Файлы, изображения и большой контекст",
+        text: "Читает PDF, таблицы и картинки, держит в контексте до миллиона токенов и рассуждает, когда задача этого требует.",
+      },
+      vpnBenefit,
+    ],
+    steps: buildSteps("Claude Haiku 5.5"),
+    audience: [
+      {
+        title: "Поддержка и продажи",
+        text: "Быстрые ответы клиентам, шаблоны писем и разбор обращений в нужном тоне.",
+        userMessage:
+          "Ответь клиенту: товар закончился, предложи похожий и скидку 10%",
+        aiReply:
+          "Здравствуйте! К сожалению, эта модель закончилась, но есть **очень похожая** — и на неё действует скидка 10%…",
+      },
+      {
+        title: "Менеджеры и офисные сотрудники",
+        text: "Короткие сводки, письма и таблицы — за секунды и по низкой цене.",
+        userMessage:
+          "Сделай краткую сводку этой переписки: что решили и кто что делает 📄 thread.txt",
+        aiReply:
+          "Решили **перенести запуск на 14 ноября**. Анна готовит макеты, Игорь — договор с подрядчиком, отчёт в пятницу…",
+      },
+      studentsAudience,
+    ],
+    faq: [
+      {
+        question: "Что такое Claude Haiku 5.5?",
+        answer:
+          "Claude Haiku 5.5 — новейшая быстрая и доступная модель Anthropic: рассуждения, работа с файлами и изображениями, контекст — миллион токенов. В GIPITI она доступна без VPN, с интерфейсом на русском языке и оплатой российскими картами.",
+      },
+      {
+        question: "Чем Haiku 5.5 отличается от Sonnet 5.5?",
+        answer:
+          "Haiku 5.5 быстрее и до 20 раз дешевле — для частых, коротких и объёмных задач. Sonnet 5.5 сильнее в сложном коде и длинных документах. Обе модели доступны в GIPITI — переключайтесь в один клик.",
+      },
+      {
+        question: "Чем Haiku 5.5 отличается от Haiku 4.5?",
+        answer:
+          "Haiku 5.5 — новое поколение: контекст вырос до миллиона токенов, а запросы стали дешевле. Haiku 4.5 тоже остаётся доступен в GIPITI.",
+      },
+      ...sharedFaq,
+    ],
+    otherModels: [
+      {
+        name: "Claude Sonnet 5.5",
+        tag: "Текст",
+        href: `/models/${SONNET_55_SLUG}`,
+      },
+      {
+        name: "Claude Opus 5.5",
+        tag: "Текст",
+        href: `/models/${OPUS_55_SLUG}`,
+      },
+      { name: "GPT-6 Luna", tag: "Текст", href: `/models/${GPT6_LUNA_SLUG}` },
+      {
+        name: "Gemini 3.8 Flash",
+        tag: "Текст",
+        href: `/models/${GEMINI_38_FLASH_SLUG}`,
+      },
     ],
   },
 ];
