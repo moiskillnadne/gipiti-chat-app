@@ -89,6 +89,7 @@ export const myProvider = customProvider({
     "sonnet-5.5": gateway.languageModel("anthropic/claude-sonnet-5.5"),
     "sonnet-5": gateway.languageModel("anthropic/claude-sonnet-5"),
     "sonnet-4.6": gateway.languageModel("anthropic/claude-sonnet-4.6"),
+    "haiku-5.5": gateway.languageModel("anthropic/claude-haiku-5.5"),
     "haiku-4.5": gateway.languageModel("anthropic/claude-haiku-4.5"),
     // DeepSeek streams reasoning natively (reasoning_content, normalized by
     // the Gateway to reasoning parts) — no extractReasoningMiddleware wrapper,

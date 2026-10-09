@@ -25,6 +25,7 @@ const NEW_MODEL_IDS = [
   "gpt-6-astra",
   "sonnet-5.5",
   "fable-5.1",
+  "haiku-5.5",
 ] as const;
 
 const getEffortValues = (modelId: string): readonly string[] => {
@@ -102,7 +103,7 @@ describe("newly added models", () => {
     }
   );
 
-  it.each(["sonnet-5.5", "fable-5.1"])(
+  it.each(["sonnet-5.5", "fable-5.1", "haiku-5.5"])(
     "offers only effort levels the Anthropic API accepts for %s",
     (modelId) => {
       // anthropic.effort = "none" is rejected as "invalid anthropic provider options".
@@ -120,5 +121,6 @@ describe("newly added models", () => {
     expect(usesReasoningTagMiddleware("gpt-6-astra")).toBe(true);
     expect(usesReasoningTagMiddleware("sonnet-5.5")).toBe(false);
     expect(usesReasoningTagMiddleware("fable-5.1")).toBe(false);
+    expect(usesReasoningTagMiddleware("haiku-5.5")).toBe(false);
   });
 });
