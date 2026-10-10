@@ -42,6 +42,7 @@ export const entitlementsByUserType: Record<UserType, Entitlements> = {
       "sonnet-5.5",
       "sonnet-5",
       "sonnet-4.6",
+      "haiku-5.5",
       "haiku-4.5",
       "deepseek-v4.1-flash",
       "deepseek-v4-pro",

@@ -940,6 +940,18 @@ export const chatModels: ChatModel[] = [
     thinkingConfig: OPUS_THINKING_CONFIG,
   },
   {
+    id: "haiku-5.5",
+    name: "haiku55.name",
+    description: "haiku55.description",
+    provider: "anthropic",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+    thinkingConfig: OPUS_THINKING_CONFIG,
+  },
+  {
     id: "haiku-4.5",
     name: "haiku45.name",
     description: "haiku45.description",
@@ -1567,6 +1579,7 @@ export const anthropicModelIds = [
   "sonnet-5.5",
   "sonnet-5",
   "sonnet-4.6",
+  "haiku-5.5",
   "haiku-4.5",
 ] as const;
 export type AnthropicModelId = (typeof anthropicModelIds)[number];

@@ -32,6 +32,7 @@ export const OPUS_48_SLUG = "claude-opus-4-8";
 export const SONNET_55_SLUG = "claude-sonnet-5-5";
 export const SONNET_SLUG = "claude-sonnet-5";
 export const SONNET_46_SLUG = "claude-sonnet-4-6";
+export const HAIKU_55_SLUG = "claude-haiku-5-5";
 export const GEMINI_PRO_SLUG = "gemini-3-1-pro";
 export const GEMINI_38_FLASH_SLUG = "gemini-3-8-flash";
 export const GEMINI_37_FLASH_SLUG = "gemini-3-7-flash";

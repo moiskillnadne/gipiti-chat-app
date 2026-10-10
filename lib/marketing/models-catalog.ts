@@ -268,6 +268,17 @@ export const catalogModels: CatalogModel[] = [
     hue: 30,
   },
   {
+    modelId: "haiku-5.5",
+    name: "Claude Haiku 5.5",
+    vendor: "Anthropic",
+    provider: "anthropic",
+    category: "text",
+    description:
+      "Новейший Haiku: быстрые ответы с рассуждениями, файлы и изображения — самая доступная модель Claude.",
+    tag: "Новинка",
+    hue: 30,
+  },
+  {
     modelId: "gemini-3.1-pro",
     name: "Gemini 3.1 Pro",
     vendor: "Google",
