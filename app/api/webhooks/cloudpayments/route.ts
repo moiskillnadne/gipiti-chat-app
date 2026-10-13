@@ -5,19 +5,21 @@ import type {
   CloudPaymentsCheckWebhook,
   CloudPaymentsFailWebhook,
   CloudPaymentsPayWebhook,
+  CloudPaymentsRefundWebhook,
 } from "@/lib/payments/cloudpayments-types";
 import { handleCancelWebhook } from "./lib/handlers/cancel";
 import { handleCheckWebhook } from "./lib/handlers/check";
 import { handleFailWebhook } from "./lib/handlers/fail";
 import { handlePayWebhook } from "./lib/handlers/pay";
 import { handleRecurrentWebhook } from "./lib/handlers/recurrent";
+import { handleRefundWebhook } from "./lib/handlers/refund";
 import { normalizeRecurrentPayload } from "./lib/recurrent-normalizer";
 
 // CloudPayments has a 30s timeout for webhooks.
 // Ensure Vercel allocates enough time (especially for cold starts + DB queries).
 export const maxDuration = 25;
 
-type WebhookType = "check" | "pay" | "fail" | "recurrent" | "cancel";
+type WebhookType = "check" | "pay" | "fail" | "recurrent" | "cancel" | "refund";
 
 function validateWebhookSignature(
   body: string,
@@ -42,7 +44,8 @@ function getWebhookType(request: Request): WebhookType | null {
     type === "pay" ||
     type === "fail" ||
     type === "recurrent" ||
-    type === "cancel"
+    type === "cancel" ||
+    type === "refund"
   ) {
     return type;
   }
@@ -102,6 +105,8 @@ export async function POST(request: Request): Promise<Response> {
     }
     case "cancel":
       return handleCancelWebhook(payload as CloudPaymentsCancelWebhook);
+    case "refund":
+      return handleRefundWebhook(payload as CloudPaymentsRefundWebhook);
     default:
       return Response.json({ code: 0 });
   }

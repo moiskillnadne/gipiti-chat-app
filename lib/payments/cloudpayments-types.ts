@@ -158,6 +158,21 @@ export type CloudPaymentsCancelWebhook = {
   Data?: string;
 };
 
+// Refund notification: sent when a payment is refunded (fully or partially)
+// from the back office or via the API. `TransactionId` is the refund itself;
+// `PaymentTransactionId` is the original payment.
+export type CloudPaymentsRefundWebhook = {
+  TransactionId?: number | string;
+  PaymentTransactionId?: number | string;
+  Amount?: number | string;
+  DateTime?: string;
+  OperationType?: string;
+  InvoiceId?: string;
+  AccountId?: string;
+  Email?: string;
+  Data?: string;
+};
+
 export type CloudPaymentsWebhookResponse = {
   code: number;
 };
