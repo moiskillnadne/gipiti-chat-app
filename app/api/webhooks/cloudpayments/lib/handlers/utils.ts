@@ -63,3 +63,19 @@ export function toNumber(value: unknown): number | null {
 
   return null;
 }
+
+/**
+ * CloudPayments transaction ids arrive as numbers in JSON notifications and as
+ * strings in form-urlencoded ones; normalize both to the stored string form.
+ */
+export function toTransactionId(value: unknown): string | null {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value.toString();
+  }
+
+  if (typeof value === "string" && value.trim() !== "") {
+    return value.trim();
+  }
+
+  return null;
+}

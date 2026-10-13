@@ -145,6 +145,17 @@ export async function handleRecurrentWebhook(
     return Response.json({ code: 0 });
   }
 
+  // A row we already closed (e.g. after a full refund) must stay closed: our
+  // own recurrent cancel triggers a Cancelled notification right after.
+  const isAlreadyCancelled = userSub.status === "cancelled";
+
+  if ((Status === "Cancelled" || Status === "Expired") && isAlreadyCancelled) {
+    console.log(
+      `[CloudPayments:Recurrent] Subscription ${userSub.id} already cancelled; ignoring ${Status}`
+    );
+    return Response.json({ code: 0 });
+  }
+
   if (Status === "Cancelled") {
     await db
       .update(userSubscription)
