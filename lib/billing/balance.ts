@@ -29,6 +29,7 @@ type TransactionMetadata = {
   subscriptionId?: string;
   paymentIntentId?: string;
   refundOf?: string;
+  refundedAmount?: number;
   previousSubscriptionAmount?: number;
   previousTopupAmount?: number;
 };

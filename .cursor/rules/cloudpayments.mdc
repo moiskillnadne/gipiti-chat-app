@@ -34,6 +34,7 @@ alwaysApply: false
 3. **fail** - Failed payment
 4. **recurrent** - Recurring payment execution
 5. **cancel** - Subscription cancellation
+6. **refund** - Payment refunded (full or partial): debits the pool the payment credited, idempotent per refund `TransactionId`; a fully refunded subscription is cancelled immediately (CP recurrent + DB). Requires the Refund notification URL `...?type=refund` in the back office
 
 ### Webhook Security
 - Webhooks are validated using HMAC-SHA256 signature

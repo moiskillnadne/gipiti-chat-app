@@ -82,7 +82,7 @@ Chat layout providers: `SessionProvider → DataStreamProvider → ModelProvider
 
 ### Payments (CloudPayments)
 
-- Webhook `/api/webhooks/cloudpayments/` (HMAC-SHA256 validated): check, pay, fail, recurrent, cancel. Branches on `data.kind` (`subscription` vs `topup`); top-up crediting is idempotent per intent.
+- Webhook `/api/webhooks/cloudpayments/` (HMAC-SHA256 validated): check, pay, fail, recurrent, cancel, refund. Branches on `data.kind` (`subscription` vs `topup`); top-up crediting is idempotent per intent. Refunds (`lib/billing/refund.ts`) debit the pool the original payment credited (floored at zero), idempotent per refund id; a fully refunded subscription is cancelled immediately.
 - `PaymentIntent` table, 30-minute expiry. Client widget flow in `app/(auth)/manage-subscription/hooks/use-payment.ts`.
 - Docs links + key files: `.cursor/rules/cloudpayments.mdc`, `cloudpayments-documentation.en.md`.
 

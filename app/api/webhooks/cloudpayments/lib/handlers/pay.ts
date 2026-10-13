@@ -28,6 +28,7 @@ import {
   parseWebhookData,
   type TopupWebhookData,
   toNumber,
+  toTransactionId,
 } from "./utils";
 
 const RUB_MINOR_UNITS = 2;
@@ -59,8 +60,7 @@ export async function handlePayWebhook(
 
   const normalizedCurrency = (Currency || "RUB").toUpperCase();
   const amountValue = toNumber(Amount);
-  const transactionId =
-    typeof TransactionId === "number" ? TransactionId.toString() : null;
+  const transactionId = toTransactionId(TransactionId);
 
   let planName: string | null = null;
   let sessionId: string | null = null;
@@ -326,7 +326,7 @@ export async function handlePayWebhook(
       // Continue processing - balance reset failure shouldn't block subscription
     }
 
-    const upsertPaymentIntent = async (session: string) => {
+    const upsertPaymentIntent = async (session: string): Promise<void> => {
       const intents = await db
         .select()
         .from(paymentIntent)
@@ -337,6 +337,21 @@ export async function handlePayWebhook(
           )
         )
         .limit(1);
+
+      // Recurrent charges echo the original widget Data (same sessionId). Reuse
+      // the session intent only for its own payment, otherwise a renewal would
+      // overwrite the purchase's transaction id and its refund could not be
+      // matched any more.
+      const isSessionIntentForThisPayment =
+        intents.length > 0 &&
+        (intents[0].externalTransactionId === null ||
+          transactionId === null ||
+          intents[0].externalTransactionId === transactionId);
+
+      if (intents.length > 0 && !isSessionIntentForThisPayment) {
+        await upsertPaymentIntent(`cp_txn_${transactionId}`);
+        return;
+      }
 
       if (intents.length > 0) {
         await db
