@@ -150,29 +150,55 @@ export type Balance = InferSelectModel<typeof balance>;
 // CHAT (unchanged structurally; FK cascades tightened)
 // ============================================================================
 
-export const chat = pgTable("Chat", {
-  id: uuid("id").primaryKey().notNull().defaultRandom(),
-  createdAt: timestamp("createdAt").notNull(),
-  title: text("title").notNull(),
-  userId: uuid("userId")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-  lastContext: jsonb("lastContext").$type<AppUsage | null>(),
-});
+export const chat = pgTable(
+  "Chat",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    createdAt: timestamp("createdAt").notNull(),
+    title: text("title").notNull(),
+    userId: uuid("userId")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    lastContext: jsonb("lastContext").$type<AppUsage | null>(),
+  },
+  (table) => ({
+    // Serves the sidebar chat list (userId = ? ORDER BY createdAt DESC with
+    // createdAt cursors) and the Message_v2 -> Chat -> User join used by
+    // period analytics.
+    userCreatedIdx: index("chat_user_created_idx").on(
+      table.userId,
+      table.createdAt
+    ),
+  })
+);
 
 export type Chat = InferSelectModel<typeof chat>;
 
-export const message = pgTable("Message_v2", {
-  id: uuid("id").primaryKey().notNull().defaultRandom(),
-  chatId: uuid("chatId")
-    .notNull()
-    .references(() => chat.id, { onDelete: "cascade" }),
-  role: varchar("role").notNull(),
-  parts: json("parts").notNull(),
-  attachments: json("attachments").notNull(),
-  createdAt: timestamp("createdAt").notNull(),
-  modelId: varchar("modelId", { length: 128 }),
-});
+export const message = pgTable(
+  "Message_v2",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    chatId: uuid("chatId")
+      .notNull()
+      .references(() => chat.id, { onDelete: "cascade" }),
+    role: varchar("role").notNull(),
+    parts: json("parts").notNull(),
+    attachments: json("attachments").notNull(),
+    createdAt: timestamp("createdAt").notNull(),
+    modelId: varchar("modelId", { length: 128 }),
+  },
+  (table) => ({
+    // Serves loading a chat's messages in order, the "delete trailing
+    // messages after timestamp" edit path, and the join to Chat.
+    chatCreatedIdx: index("message_v2_chat_created_idx").on(
+      table.chatId,
+      table.createdAt
+    ),
+    // Serves global period filters (messages per day / per period) that have
+    // no chat in the predicate; the largest table, previously a seq scan.
+    createdAtIdx: index("message_v2_created_at_idx").on(table.createdAt),
+  })
+);
 
 export type DBMessage = InferSelectModel<typeof message>;
 
@@ -510,6 +536,13 @@ export const transaction = pgTable(
       table.createdAt
     ),
     typeIdx: index("transaction_type_idx").on(table.type),
+    // Period analytics filter on type = 'usage_debit' AND created_at range.
+    // (user_id, created_at) cannot serve a global range and the type-only
+    // index has low selectivity because usage_debit dominates.
+    typeCreatedIdx: index("transaction_type_created_idx").on(
+      table.type,
+      table.createdAt
+    ),
     referenceIdx: index("transaction_reference_idx").on(
       table.referenceType,
       table.referenceId
