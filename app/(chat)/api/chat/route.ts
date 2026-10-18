@@ -1,5 +1,6 @@
 import { createUIMessageStream, JsonToSseTransformStream } from "ai";
 import { auth } from "@/app/(auth)/auth";
+import { recordUserActivity } from "@/lib/activity/record-user-activity";
 import { deleteChatById } from "@/lib/db/query/chat/delete-chat-by-id";
 import { getChatById } from "@/lib/db/query/chat/get-chat-by-id";
 import { ChatSDKError } from "@/lib/errors";
@@ -35,6 +36,9 @@ export async function POST(request: Request) {
   if (!session?.user) {
     return new ChatSDKError("unauthorized:chat").toResponse();
   }
+
+  // Catches tabs left open across Moscow midnight that chat without reloading.
+  recordUserActivity(session.user.id);
 
   try {
     const ctx = await prepareChatTurn(parsed.body, session, request);

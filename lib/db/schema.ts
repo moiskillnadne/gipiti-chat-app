@@ -2,6 +2,7 @@ import { type InferSelectModel, sql } from "drizzle-orm";
 import {
   bigint,
   boolean,
+  date,
   decimal,
   foreignKey,
   index,
@@ -712,3 +713,28 @@ export const quizResponse = pgTable(
 );
 
 export type QuizResponse = InferSelectModel<typeof quizResponse>;
+
+// ============================================================================
+// ACTIVITY (one row per user per Moscow calendar day with an authenticated request)
+// ============================================================================
+
+// Written fire-and-forget by lib/activity/record-user-activity.ts and read by the
+// admin dashboard for DAU / MAU / retention. `activity_day` is the Moscow calendar
+// day computed in the app (not in SQL) so the dedup key and the row always agree.
+export const userActivityDay = pgTable(
+  "UserActivityDay",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    // Drizzle's default `date` mode is "string": values are "YYYY-MM-DD".
+    activityDay: date("activity_day").notNull(),
+    firstSeenAt: timestamp("first_seen_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.userId, table.activityDay] }),
+    dayIdx: index("user_activity_day_day_idx").on(table.activityDay),
+  })
+);
+
+export type UserActivityDay = InferSelectModel<typeof userActivityDay>;

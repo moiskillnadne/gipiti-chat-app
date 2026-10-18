@@ -6,6 +6,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { ModelProvider } from "@/contexts/model-context";
 import { ProjectProvider } from "@/contexts/project-context";
 import { WebSearchProvider } from "@/contexts/web-search-context";
+import { recordUserActivity } from "@/lib/activity/record-user-activity";
 import {
   chatModelIds,
   DEFAULT_CHAT_MODEL,
@@ -33,6 +34,12 @@ export default async function Layout({
   children: React.ReactNode;
 }) {
   const [session, cookieStore] = await Promise.all([auth(), cookies()]);
+
+  // Daily-active marker for the admin dashboard; deduped and fire-and-forget.
+  if (session?.user?.id) {
+    recordUserActivity(session.user.id);
+  }
+
   const isCollapsed = cookieStore.get("sidebar_state")?.value !== "true";
 
   // Get initial model and thinking settings from cookies

@@ -316,6 +316,13 @@
       "when": 1792320540794,
       "tag": "0044_period_query_indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1792322105448,
+      "tag": "0045_user_activity_day",
+      "breakpoints": true
     }
   ]
 }
