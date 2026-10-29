@@ -440,14 +440,18 @@ const FLUX_VIDEO_GEN_SECTIONS = {
 
 // Wan 3.0: up to 30s clips with native audio. Ratios 16:9/9:16/1:1/4:3/3:4
 // (Replicate/OpenRouter docs, not the Vercel page) and whole-second durations
-// 2-30s (Vercel changelog + fal) — checked 2026-10; the gateway's param names
-// for them are undocumented, so confirm each one changes the output after
-// deploy. Default 5s keeps the cost modest (billed per second, $0.05-0.20/s).
-// Only 5s/10s are offered: the model does up to 30s, but the video handler runs
-// inline in a 300s function and no longer clip has been timed there. Add 15s/30s
-// only after measuring them on prod (or move long clips to a background job).
-// Resolution is not exposed: the video handler only forwards a resolution token
-// for google/veo, so a picker here would never reach the gateway.
+// 2-30s (Vercel changelog + fal) — checked 2026-10.
+// Probed 2026-10-29 with the exact request the app sends (prompt only, 9:16,
+// 5s, no resolution): the clip came back 1080x1920 with audio, i.e. aspectRatio
+// is honoured and the gateway defaults to 1080p at $0.20/s ($1.00 per 5s), and
+// generation took 130s. Only 5s is offered: a 10s clip at that default would
+// cost $2.00 and likely take ~250s in a 300s function that charges only after
+// the upload, so a timeout would leave the gateway bill uncharged. Add 10s+
+// only after timing it on prod, or after pinning a lower tier. A lowercase
+// top-level resolution "480p" was ignored (gateway warning: "wan3 models only
+// support the 480P, 720P, 1080P resolution tiers"); the uppercase token is
+// unverified. Resolution is not exposed: the video handler only forwards a
+// resolution token for google/veo and xai, so a picker here would do nothing.
 const WAN_VIDEO_GEN_SECTIONS = {
   aspectRatio: {
     options: [
@@ -460,7 +464,7 @@ const WAN_VIDEO_GEN_SECTIONS = {
     default: "16:9",
   },
   duration: {
-    options: [5, 10].map(videoDurationOption),
+    options: [5].map(videoDurationOption),
     default: "5",
   },
 } satisfies Partial<VideoGenConfig>;
@@ -1261,8 +1265,10 @@ export const chatModels: ChatModel[] = [
       attachments: true,
       toolCalling: false,
     },
-    // Hidden: the gateway now serves perplexity/sonar-pro as plain Sonar, so
-    // the picker entry would mislead. Kept registered for old chats/cookies.
+    // Hidden: perplexity/sonar-pro was removed from the gateway catalog (the
+    // gateway routes it to plain Sonar), so providers.ts aliases this id to
+    // perplexity/sonar (probed 2026-10-29). Kept registered for old
+    // chats/cookies.
     showInUI: false,
   },
   {
@@ -1274,7 +1280,10 @@ export const chatModels: ChatModel[] = [
       reasoning: true,
       toolCalling: false,
     },
-    // Hidden for the same reason as sonar-pro: served as plain Sonar now.
+    // Hidden for the same reason as sonar-pro: aliased to perplexity/sonar in
+    // providers.ts. `reasoning` only selects nativeReasoningPrompt; with no
+    // thinkingConfig no reasoningEffort is sent, and plain Sonar accepted that
+    // request (probed 2026-10-29).
     showInUI: false,
   },
   {
@@ -1324,9 +1333,9 @@ export const chatModels: ChatModel[] = [
     videoGenConfig: {
       gatewayModelId: "spacexai/grok-imagine-video-1.5",
       durationSeconds: 8,
-      // xAI docs claim text-to-video, but Vercel's page and docs call this id
-      // image-to-video only. Landing copy leads with image input; smoke-test a
-      // prompt-only clip after deploy and switch to "required" if it fails.
+      // Text-to-video works on this id despite Vercel's docs calling it
+      // image-to-video only: a prompt-only 16:9 4 s clip came back 1280x720
+      // with audio (probed 2026-10-29). A seed image stays optional.
       imageInput: "optional",
       ...GROK_VIDEO_GEN_SECTIONS,
     },
@@ -1617,10 +1626,11 @@ export const isReasoningModelId = (modelId: string) =>
  * in `lib/ai/providers.ts` and therefore needs the system prompt to instruct
  * `<think></think>` tag emission. Only OpenAI models are wrapped for that.
  *
- * Exceptions: sonar-reasoning-pro and minimax-m3.1-flash are also wrapped in
- * providers.ts, but Perplexity and MiniMax emit `<think>` tags on their own —
- * the middleware strips them without any prompt instruction, so they
- * intentionally stay false here and receive `nativeReasoningPrompt`.
+ * Exception: minimax-m3.1-flash is also wrapped in providers.ts as a no-op
+ * guard (it streamed native reasoning, no tags, when probed 2026-10-29). It is
+ * never told to emit `<think>` tags, so it intentionally stays false here and
+ * receives `nativeReasoningPrompt`. sonar-reasoning-pro is no longer wrapped:
+ * it is aliased to plain perplexity/sonar, which emits no tags.
  *
  * Native-reasoning models (Anthropic extended thinking, grok-4.x, and Gemini 3
  * with `includeThoughts`) must NOT receive that instruction — they'd echo literal

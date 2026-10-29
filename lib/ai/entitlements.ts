@@ -62,8 +62,9 @@ export const entitlementsByUserType: Record<UserType, Entitlements> = {
       "glm-5.3",
       "minimax-m3.1-flash",
       "mimo-v2.6-pro",
-      // sonar-pro / sonar-reasoning-pro are hidden: the gateway serves both as
-      // plain Sonar. Their registry entries stay so old chats still resolve.
+      // sonar-pro / sonar-reasoning-pro are hidden: both left the gateway
+      // catalog and are aliased to perplexity/sonar in providers.ts (probed
+      // 2026-10-29). Their registry entries stay so old chats still resolve.
       "sonar",
       "nano-banana-2.1",
       "gemini-3-pro-image",

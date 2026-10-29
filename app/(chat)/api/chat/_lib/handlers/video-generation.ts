@@ -33,13 +33,11 @@ const buildVideoProviderOptions = (
       config.gatewayModelId.startsWith("spacexai/")) &&
     settings?.resolution
   ) {
-    // The gateway keys provider options by namespace, and which one it reads
-    // for spacexai/ ids is unverified. Send both: it ignores the one it does
-    // not use. Check that a 720p clip differs from a 480p one after deploy.
-    return {
-      xai: { resolution: settings.resolution },
-      spacexai: { resolution: settings.resolution },
-    };
+    // spacexai/ ids still read resolution from the "xai" namespace: with
+    // { xai: { resolution } } alone, grok-imagine-video-1.5 returned 848x480
+    // billed $0.08/s for "480p" and 1280x720 billed $0.14/s for "720p"
+    // (probed 2026-10-29).
+    return { xai: { resolution: settings.resolution } };
   }
   if (config.gatewayModelId.startsWith("klingai/") && settings?.mode) {
     return { klingai: { mode: settings.mode } };

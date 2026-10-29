@@ -118,36 +118,35 @@ export const myProvider = customProvider({
     "qwen3.8-max": gateway.languageModel("alibaba/qwen3.8-max"),
     "qwen3.8-flash": gateway.languageModel("alibaba/qwen3.8-flash"),
     "qwen3.7-flash": gateway.languageModel("alibaba/qwen3.7-flash"),
-    // Meta, Mistral, Z.ai and Xiaomi are assumed to stream reasoning natively
-    // through the gateway (reasoning parts, no <think> tags in the text) —
-    // unverified against the live gateway; add extractReasoningMiddleware here
-    // if a smoke test shows literal <think> tags in the answer.
+    // Mistral, Z.ai and Xiaomi stream reasoning natively through the gateway
+    // (reasoning parts, no <think> tags in the text); Meta Muse keeps its
+    // reasoning hidden (reasoning tokens billed, no reasoning text). Probed
+    // 2026-10-29, so no extractReasoningMiddleware wrapper.
     "muse-wonder-1.0": gateway.languageModel("meta/muse-wonder-1.0"),
     "muse-spark-1.3": gateway.languageModel("meta/muse-spark-1.3"),
     "mistral-large-4": gateway.languageModel("mistral/mistral-large-4"),
     "glm-5.3": gateway.languageModel("zai/glm-5.3"),
-    // MiniMax M-series emit their chain of thought as literal <think> tags in
-    // the text stream, so strip them into reasoning parts. A no-op when the
-    // gateway already normalises reasoning. Like sonar-reasoning-pro below, the
-    // model emits the tags unprompted — usesReasoningTagMiddleware in models.ts
-    // stays false for it (no <think> instruction in the system prompt).
+    // MiniMax M3.1 Flash streamed native reasoning parts with no <think> tags
+    // in the text (probed 2026-10-29, unwrapped). The wrapper is kept as a
+    // no-op guard in case a MiniMax route starts emitting literal tags; the
+    // model is never told to emit them — usesReasoningTagMiddleware in
+    // models.ts stays false for it.
     "minimax-m3.1-flash": wrapLanguageModel({
       model: gateway.languageModel("minimax/minimax-m3.1-flash"),
       middleware: extractReasoningMiddleware({ tagName: "think" }),
     }),
     "mimo-v2.6-pro": gateway.languageModel("xiaomi/mimo-v2.6-pro"),
     sonar: gateway.languageModel("perplexity/sonar"),
-    // sonar-pro and sonar-reasoning-pro are hidden from the picker (the gateway
-    // now serves both as plain Sonar) but stay registered so old chats and
-    // saved model cookies still resolve.
-    "sonar-pro": gateway.languageModel("perplexity/sonar-pro"),
-    // Perplexity puts CoT as literal <think> tags inside the text stream (no
-    // native reasoning parts), so strip them into reasoning parts here. The
-    // model emits the tags unprompted — usesReasoningTagMiddleware in models.ts
-    // stays false for it (no <think> instruction in the system prompt).
-    "sonar-reasoning-pro": wrapLanguageModel({
-      model: gateway.languageModel("perplexity/sonar-reasoning-pro"),
-      middleware: extractReasoningMiddleware({ tagName: "think" }),
-    }),
+    // sonar-pro and sonar-reasoning-pro are hidden from the picker but stay
+    // registered so old chats and saved model cookies still resolve. Both ids
+    // were removed from the gateway catalog; the gateway still accepts them but
+    // routes them to perplexity/sonar (routing.canonicalSlug, probed
+    // 2026-10-29). Alias them to perplexity/sonar here so they keep working if
+    // the gateway drops the redirect, and so TokenLens prices these turns at
+    // Sonar's rate instead of the retired Pro rates ($3/$15 and $2/$8 per 1M).
+    // Plain Sonar emitted no <think> tags in the same probe, so no
+    // extractReasoningMiddleware wrapper.
+    "sonar-pro": gateway.languageModel("perplexity/sonar"),
+    "sonar-reasoning-pro": gateway.languageModel("perplexity/sonar"),
   },
 });

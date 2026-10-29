@@ -17,6 +17,7 @@ import {
   openaiModelIds,
   supportsToolCalling,
   usesReasoningTagMiddleware,
+  validateVideoGenSetting,
 } from "../models";
 import { myProvider } from "../providers";
 
@@ -166,6 +167,18 @@ describe("newly added models", () => {
     );
   });
 
+  it("offers Wan 3.0 only as a 5 s clip and coerces a saved 10 s setting", () => {
+    // Probed 2026-10-29: Wan defaults to 1080p at $0.20/s and a 5 s clip took
+    // 130 s, so a 10 s clip risks the 300 s route limit before it is charged.
+    const durations = getVideoGenConfig("wan-v3.0-video").duration?.options.map(
+      (option) => option.value
+    );
+    expect(durations).toEqual(["5"]);
+    expect(
+      validateVideoGenSetting("wan-v3.0-video", { duration: "10" })?.duration
+    ).toBe("5");
+  });
+
   it("uses the spacexai namespace for every Grok gateway id", () => {
     expect(getVideoGenConfig("grok-imagine-video").gatewayModelId).toBe(
       "spacexai/grok-imagine-video-1.5"
@@ -189,9 +202,20 @@ describe("newly added models", () => {
     }
   );
 
+  // Both Pro ids left the gateway catalog (probed 2026-10-29); old chats must
+  // reach plain Sonar and be priced at Sonar's rate.
+  it.each(HIDDEN_LEGACY_MODEL_IDS)(
+    "routes %s to perplexity/sonar",
+    (modelId) => {
+      expect(myProvider.languageModel(modelId).modelId).toBe(
+        "perplexity/sonar"
+      );
+    }
+  );
+
   it("strips <think> tags only for the OpenAI additions", () => {
     expect(usesReasoningTagMiddleware("gpt-6.1-terra")).toBe(true);
-    // MiniMax is wrapped in providers.ts but emits <think> unprompted.
+    // MiniMax is wrapped in providers.ts as a no-op guard, never prompted.
     expect(usesReasoningTagMiddleware("minimax-m3.1-flash")).toBe(false);
     expect(usesReasoningTagMiddleware("gpt-6.1-sol")).toBe(true);
     expect(usesReasoningTagMiddleware("gpt-6-astra")).toBe(true);
