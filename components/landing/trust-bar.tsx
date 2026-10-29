@@ -28,8 +28,8 @@ type StatItem = {
 };
 
 const stats: StatItem[] = [
-  { value: 10, suffix: "", label: "AI-провайдеров" },
-  { value: 30, suffix: "+", label: "AI-моделей" },
+  { value: 18, suffix: "", label: "AI-провайдеров" },
+  { value: 70, suffix: "+", label: "AI-моделей" },
   { value: 500, suffix: "+", label: "пользователей" },
 ];
 

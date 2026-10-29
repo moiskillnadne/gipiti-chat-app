@@ -28,8 +28,18 @@ const buildVideoProviderOptions = (
   config: VideoGenConfig,
   settings: VideoGenSetting | undefined
 ): Record<string, Record<string, string>> | undefined => {
-  if (config.gatewayModelId.startsWith("xai/") && settings?.resolution) {
-    return { xai: { resolution: settings.resolution } };
+  if (
+    (config.gatewayModelId.startsWith("xai/") ||
+      config.gatewayModelId.startsWith("spacexai/")) &&
+    settings?.resolution
+  ) {
+    // The gateway keys provider options by namespace, and which one it reads
+    // for spacexai/ ids is unverified. Send both: it ignores the one it does
+    // not use. Check that a 720p clip differs from a 480p one after deploy.
+    return {
+      xai: { resolution: settings.resolution },
+      spacexai: { resolution: settings.resolution },
+    };
   }
   if (config.gatewayModelId.startsWith("klingai/") && settings?.mode) {
     return { klingai: { mode: settings.mode } };

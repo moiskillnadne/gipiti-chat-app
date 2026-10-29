@@ -17,6 +17,12 @@ const providerStyles: Record<ModelProvider | "unknown", string> = {
   perplexity: "bg-cyan-100 text-cyan-800",
   moonshotai: "bg-violet-100 text-violet-800",
   alibaba: "bg-amber-100 text-amber-800",
+  meta: "bg-fuchsia-100 text-fuchsia-800",
+  mistral: "bg-yellow-100 text-yellow-800",
+  zai: "bg-lime-100 text-lime-800",
+  minimax: "bg-red-100 text-red-800",
+  xiaomi: "bg-stone-100 text-stone-800",
+  microsoft: "bg-slate-100 text-slate-800",
   unknown: "bg-gray-100 text-gray-800",
 };
 

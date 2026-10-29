@@ -34,6 +34,18 @@ const nextConfig: NextConfig = {
         destination: "https://gipiti.ru/:path*",
         permanent: true,
       },
+      // Sonar Pro and Sonar Reasoning Pro are hidden (the gateway now serves
+      // them as plain Sonar), so their landings were removed.
+      {
+        source: "/models/perplexity-sonar-pro",
+        destination: "/models/perplexity-sonar",
+        permanent: true,
+      },
+      {
+        source: "/models/perplexity-sonar-reasoning-pro",
+        destination: "/models/perplexity-sonar",
+        permanent: true,
+      },
     ]);
   },
   headers() {

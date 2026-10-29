@@ -22,16 +22,22 @@ import { googleImageLandings } from "./image-google";
 import { openaiImageLandings } from "./image-openai";
 import { recraftImageLandings } from "./image-recraft";
 import { xaiImageLandings } from "./image-xai";
+import { metaLandings } from "./meta";
+import { minimaxLandings } from "./minimax";
+import { mistralLandings } from "./mistral";
 import { moonshotaiLandings } from "./moonshotai";
 import { openaiLandings } from "./openai";
 import { perplexityLandings } from "./perplexity";
 import type { ModelLanding } from "./types";
+import { alibabaVideoLandings } from "./video-alibaba";
 import { bflVideoLandings } from "./video-bfl";
 import { bytedanceVideoLandings } from "./video-bytedance";
 import { googleVideoLandings } from "./video-google";
 import { klingaiVideoLandings } from "./video-klingai";
 import { xaiVideoLandings } from "./video-xai";
 import { xaiLandings } from "./xai";
+import { xiaomiLandings } from "./xiaomi";
+import { zaiLandings } from "./zai";
 
 export const modelLandings: ModelLanding[] = [
   ...openaiLandings,
@@ -42,6 +48,11 @@ export const modelLandings: ModelLanding[] = [
   ...deepseekLandings,
   ...moonshotaiLandings,
   ...alibabaLandings,
+  ...metaLandings,
+  ...mistralLandings,
+  ...zaiLandings,
+  ...minimaxLandings,
+  ...xiaomiLandings,
   ...codeLandings,
   ...googleImageLandings,
   ...openaiImageLandings,
@@ -53,6 +64,7 @@ export const modelLandings: ModelLanding[] = [
   ...bflVideoLandings,
   ...klingaiVideoLandings,
   ...bytedanceVideoLandings,
+  ...alibabaVideoLandings,
   ...xaiVideoLandings,
 ];
 

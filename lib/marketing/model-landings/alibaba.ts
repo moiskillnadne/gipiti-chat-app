@@ -1,19 +1,29 @@
-/** Landings for the Alibaba Qwen text models: 3.8 Max and 3.7 Flash. */
+/**
+ * Landings for the Alibaba Qwen text models: 3.8 Max Prime, 3.8 Max, 3.8 Flash
+ * and the previous-generation 3.7 Flash.
+ */
 
 import {
   analystsAudience,
   buildSteps,
+  DEEPSEEK_41_FLASH_1017_SLUG,
+  GEMINI_4_ARGON_SLUG,
   GEMINI_38_FLASH_SLUG,
   GROK_47_SLUG,
   KIMI_K3_FAST_SLUG,
+  KIMI_K31_PRO_SLUG,
   lawyersAudience,
+  MINIMAX_M31_FLASH_SLUG,
   OPUS_55_SLUG,
+  priceFaq,
   QWEN_37_FLASH_SLUG,
+  QWEN_38_FLASH_SLUG,
+  QWEN_38_MAX_PRIME_SLUG,
   QWEN_38_MAX_SLUG,
   sharedFaq,
   supportAudience,
-  TERRA_SLUG,
   vpnBenefit,
+  vpnFaq,
 } from "./shared";
 import type { LandingBenefit, ModelLanding } from "./types";
 
@@ -25,6 +35,120 @@ const imageInputBenefit: LandingBenefit = {
 };
 
 export const alibabaLandings: ModelLanding[] = [
+  {
+    kind: "text",
+    slug: QWEN_38_MAX_PRIME_SLUG,
+    modelId: "qwen3.8-max-prime",
+    name: "Qwen 3.8 Max Prime",
+    vendor: "Alibaba",
+    accent: "rose",
+    badge: "Alibaba · Флагман Qwen · Текст",
+    h1Top: "Qwen 3.8 Max Prime —",
+    h1Gradient: "производительный флагман Alibaba",
+    sub: "Высокопроизводительная версия флагмана Qwen 3.8 Max уже в GIPITI — контекст на миллион токенов и ответы длиной до 131 тысячи токенов для больших профессиональных задач. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    ctaMain: "Попробовать Qwen 3.8 Max Prime",
+    metaTitle: "Qwen 3.8 Max Prime — нейросеть Alibaba без VPN | GIPITI",
+    metaDescription:
+      "Qwen 3.8 Max Prime в GIPITI — производительный флагман Alibaba: контекст 1 млн токенов, длинные ответы и изображения. Без VPN, на русском, оплата картами РФ.",
+    heroChat: {
+      userMessage:
+        "Собери техническое задание на мобильное приложение доставки: роли, экраны, API и критерии приёмки",
+      aiIntro: "Подготовил полное ТЗ. Структура — **четыре раздела**:",
+      aiBullets: [
+        "**Роли** — клиент, курьер, оператор и их права доступа",
+        "**Экраны** — 23 экрана с состояниями ошибок и пустых списков",
+        "**Приёмка** — проверяемые критерии для каждой функции",
+      ],
+    },
+    benefits: [
+      {
+        icon: "file-text",
+        title: "Очень длинные ответы",
+        text: "Модель выдаёт до 131 тысячи токенов за раз — полное ТЗ, большой отчёт или модуль кода целиком, без «продолжи» через каждые пару страниц.",
+      },
+      {
+        icon: "layers",
+        title: "Контекст на миллион токенов",
+        text: "Загрузите все материалы проекта в один диалог — Max Prime удержит их и сошлётся на нужное место.",
+      },
+      {
+        icon: "image",
+        title: "Понимает изображения",
+        text: "Макеты, схемы, сканы и скриншоты — модель разберёт, что на них, и учтёт это в ответе.",
+      },
+      vpnBenefit,
+    ],
+    steps: buildSteps(
+      "Qwen 3.8 Max Prime",
+      "Текстом на русском — или прикрепите изображение, код или файл Word."
+    ),
+    audience: [
+      {
+        title: "Продакт-менеджеры и аналитики",
+        text: "Техзадания, спецификации и аналитические записки — целиком, в одном ответе.",
+        userMessage:
+          "Опиши требования к личному кабинету по этим заметкам со встреч",
+        aiReply:
+          "Собрал **42 требования** в пять блоков. Три из них противоречат друг другу — отметил их отдельно…",
+      },
+      {
+        title: "Разработчики",
+        text: "Генерация больших модулей, тестов и документации за один проход.",
+        userMessage: "Напиши сервис уведомлений с ретраями, тестами и README",
+        aiReply:
+          "Готово: **сервис, 18 тестов и README**. Ретраи сделал с экспоненциальной задержкой и потолком…",
+      },
+      {
+        title: "Юристы и консультанты",
+        text: "Объёмные договоры и регламенты — сравнение редакций и подробные заключения.",
+        userMessage:
+          "Сравни две редакции положения о закупках и опиши все изменения",
+        aiReply:
+          "Изменений **31**, существенных — шесть. Самое важное: порог для конкурса снижен с 3 до 1 млн ₽…",
+      },
+    ],
+    faq: [
+      {
+        question: "Что такое Qwen 3.8 Max Prime?",
+        answer:
+          "Qwen 3.8 Max Prime — высокопроизводительный вариант флагманской модели Alibaba Qwen 3.8 Max, выпущенный 23 сентября 2026 года. Контекст — до миллиона токенов, длина ответа — до 131 тысячи токенов; модель понимает изображения. В GIPITI доступна без VPN и на русском.",
+      },
+      {
+        question: "Чем Max Prime отличается от обычной Qwen 3.8 Max?",
+        answer:
+          "Prime — высокопроизводительный вариант того же флагмана: быстрее выдаёт ответ при тех же возможностях, но запросы к нему примерно вдвое дороже ($4 / $12 против $2 / $6 за миллион токенов). Если скорость не критична, обычной Qwen 3.8 Max хватит для большинства задач. Обе модели есть в GIPITI — переключайтесь в один клик.",
+      },
+      {
+        question: "Можно ли прикреплять документы?",
+        answer:
+          "Модель понимает изображения и файлы Word. PDF она не читает — для таких документов выберите Gemini, GPT-6 или Claude.",
+      },
+      vpnFaq,
+      priceFaq,
+    ],
+    otherModels: [
+      {
+        name: "Qwen 3.8 Max",
+        tag: "Текст",
+        href: `/models/${QWEN_38_MAX_SLUG}`,
+      },
+      {
+        name: "Qwen 3.8 Flash",
+        tag: "Текст",
+        href: `/models/${QWEN_38_FLASH_SLUG}`,
+      },
+      {
+        name: "Kimi K3.1 Pro",
+        tag: "Текст",
+        href: `/models/${KIMI_K31_PRO_SLUG}`,
+      },
+      {
+        name: "Gemini 4 Argon",
+        tag: "Текст",
+        href: `/models/${GEMINI_4_ARGON_SLUG}`,
+      },
+    ],
+  },
   {
     kind: "text",
     slug: QWEN_38_MAX_SLUG,
@@ -90,9 +214,9 @@ export const alibabaLandings: ModelLanding[] = [
     ],
     otherModels: [
       {
-        name: "Qwen 3.7 Flash",
+        name: "Qwen 3.8 Flash",
         tag: "Текст",
-        href: `/models/${QWEN_37_FLASH_SLUG}`,
+        href: `/models/${QWEN_38_FLASH_SLUG}`,
       },
       {
         name: "Kimi K3 Fast",
@@ -105,6 +229,124 @@ export const alibabaLandings: ModelLanding[] = [
         href: `/models/${OPUS_55_SLUG}`,
       },
       { name: "Grok 4.7", tag: "Текст", href: `/models/${GROK_47_SLUG}` },
+    ],
+  },
+  {
+    kind: "text",
+    slug: QWEN_38_FLASH_SLUG,
+    modelId: "qwen3.8-flash",
+    name: "Qwen 3.8 Flash",
+    vendor: "Alibaba",
+    accent: "sky",
+    badge: "Alibaba · Новая быстрая модель · Текст",
+    h1Top: "Qwen 3.8 Flash —",
+    h1Gradient: "новая быстрая нейросеть Alibaba",
+    sub: "Быстрая модель поколения Qwen 3.8 уже в GIPITI — рассуждает перед ответом, понимает изображения и держит контекст около миллиона токенов при очень низкой цене запроса. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    ctaMain: "Попробовать Qwen 3.8 Flash",
+    metaTitle: "Qwen 3.8 Flash — быстрая нейросеть Alibaba | GIPITI",
+    metaDescription:
+      "Qwen 3.8 Flash в GIPITI — быстрая и недорогая модель Alibaba: рассуждения, изображения и контекст около 1 млн токенов. Без VPN, на русском, оплата картами РФ.",
+    heroChat: {
+      userMessage:
+        "Вот выгрузка из 300 отзывов — сгруппируй жалобы и посчитай, каких больше",
+      aiIntro: "Прошёлся по всем отзывам. **Топ-3 жалобы**:",
+      aiBullets: [
+        "**Доставка** — 112 отзывов, чаще всего про опоздание курьера",
+        "**Упаковка** — 64 отзыва, мятые коробки и протёкшие баночки",
+        "**Поддержка** — 41 отзыв, долгий ответ в выходные",
+      ],
+    },
+    benefits: [
+      {
+        icon: "zap",
+        title: "Быстро и недорого",
+        text: "Flash-модель создана для частых запросов: ответы приходят быстро, а цена запроса одна из самых низких в каталоге GIPITI.",
+      },
+      {
+        icon: "layers",
+        title: "Большой контекст для лёгкой модели",
+        text: "Контекст около миллиона токенов: можно загрузить длинную переписку или большую выгрузку и работать с ней целиком.",
+      },
+      {
+        icon: "image",
+        title: "Читает изображения",
+        text: "Скриншоты, фото чеков, таблицы на картинке — модель извлечёт данные и ответит по существу.",
+      },
+      vpnBenefit,
+    ],
+    steps: buildSteps(
+      "Qwen 3.8 Flash",
+      "Текстом на русском — или прикрепите изображение или файл Word."
+    ),
+    audience: [
+      {
+        title: "Маркетплейсы и e-commerce",
+        text: "Отзывы, описания карточек и ответы покупателям — десятками за раз.",
+        userMessage: "Напиши ответ на негативный отзыв о размере кроссовок",
+        aiReply:
+          "«Спасибо, что написали! Жаль, что **размер не подошёл** — обменяем пару бесплатно, достаточно…»",
+      },
+      {
+        title: "Операционные команды",
+        text: "Разбор таблиц, скриншотов и логов, когда ответ нужен прямо сейчас.",
+        userMessage: "Сверь суммы на этом скриншоте с итогом в отчёте 📷",
+        aiReply:
+          "Не сходится **одна строка**: в отчёте 18 400 ₽, на скриншоте 14 800 ₽ — похоже, переставлены цифры…",
+      },
+      {
+        title: "Все, кому нужен быстрый помощник",
+        text: "Письма, заметки, переводы и короткие справки — без ожидания и лишних трат.",
+        userMessage:
+          "Переведи это письмо партнёру на английский, тон — дружелюбный",
+        aiReply:
+          "Готово: «Hi Anna! **Thanks a lot** for the quick reply — we're happy to move forward…»",
+      },
+    ],
+    faq: [
+      {
+        question: "Что такое Qwen 3.8 Flash?",
+        answer:
+          "Qwen 3.8 Flash — быстрая и недорогая модель Alibaba из поколения Qwen 3.8, появившаяся в конце августа 2026 года. Она умеет рассуждать перед ответом, понимает изображения и работает с контекстом около миллиона токенов. В GIPITI доступна без VPN и на русском.",
+      },
+      {
+        question: "Чем Qwen 3.8 Flash отличается от Qwen 3.7 Flash?",
+        answer:
+          "3.8 Flash — модель более нового поколения Qwen: она появилась на шлюзе в конце августа 2026 года, работает с контекстом около миллиона токенов и по умолчанию рассуждает перед ответом. Qwen 3.7 Flash остаётся в GIPITI — сравните обе версии на своих задачах и выберите ту, что отвечает лучше.",
+      },
+      {
+        question: "Когда лучше взять Qwen 3.8 Max?",
+        answer:
+          "Когда задача сложная и многошаговая: большой код, глубокий анализ, длинный документ. Для частых коротких запросов, переписки и разбора скриншотов быстрее и дешевле Flash.",
+      },
+      {
+        question: "Можно ли прикреплять документы?",
+        answer:
+          "Модель понимает изображения и файлы Word. PDF она не читает — для таких документов выберите Gemini, GPT-6 или Claude.",
+      },
+      vpnFaq,
+      priceFaq,
+    ],
+    otherModels: [
+      {
+        name: "Qwen 3.7 Flash",
+        tag: "Текст",
+        href: `/models/${QWEN_37_FLASH_SLUG}`,
+      },
+      {
+        name: "Qwen 3.8 Max",
+        tag: "Текст",
+        href: `/models/${QWEN_38_MAX_SLUG}`,
+      },
+      {
+        name: "DeepSeek V4.1 Flash 1017",
+        tag: "Текст",
+        href: `/models/${DEEPSEEK_41_FLASH_1017_SLUG}`,
+      },
+      {
+        name: "MiniMax M3.1 Flash",
+        tag: "Текст",
+        href: `/models/${MINIMAX_M31_FLASH_SLUG}`,
+      },
     ],
   },
   {
@@ -208,7 +450,11 @@ export const alibabaLandings: ModelLanding[] = [
         tag: "Текст",
         href: `/models/${KIMI_K3_FAST_SLUG}`,
       },
-      { name: "GPT-5.6 Terra", tag: "Текст", href: `/models/${TERRA_SLUG}` },
+      {
+        name: "Qwen 3.8 Flash",
+        tag: "Текст",
+        href: `/models/${QWEN_38_FLASH_SLUG}`,
+      },
     ],
   },
 ];

@@ -33,7 +33,12 @@ import {
 } from "@/lib/constants";
 import { chargeUsageSafe } from "../charge";
 import type { ChatTurnContext, StreamWriter } from "../context";
-import { getTokenlensCatalog, mergeUsage, usageChargeUsd } from "../usage";
+import {
+  getTokenlensCatalog,
+  mergeUsage,
+  sumGatewayCostUsd,
+  usageChargeUsd,
+} from "../usage";
 
 const FINAL_ANSWER_REMINDER =
   "Please provide your final answer now based on the information you've gathered. Do not call any more tools.";
@@ -253,7 +258,7 @@ export async function runTextChat(
       isEnabled: isProductionEnvironment,
       functionId: "stream-text",
     },
-    onFinish: async ({ usage }) => {
+    onFinish: async ({ usage, steps }) => {
       try {
         const catalog = await getTokenlensCatalog();
         const resolvedModelId = myProvider.languageModel(model).modelId;
@@ -262,6 +267,7 @@ export async function runTextChat(
           accumulator: ctx.imageUsageAccumulator,
           modelId: resolvedModelId,
           catalog,
+          gatewayCostUsd: sumGatewayCostUsd(steps),
         });
         ctx.lastUsage.value = merged;
         writer.write({ type: "data-usage", data: merged });

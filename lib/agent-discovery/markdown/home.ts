@@ -23,9 +23,10 @@ import { absoluteUrl } from "../constants";
  */
 
 const INTRO = [
-  "GIPITI (Гипити) — российская платформа-агрегатор нейросетей: доступ к 30+ AI-моделям",
-  "от 10 провайдеров (OpenAI, Google, Anthropic, xAI, DeepSeek, Perplexity, Kling AI,",
-  "ByteDance, BFL, Recraft) в одном чате. Работает без VPN, интерфейс на русском языке,",
+  "GIPITI (Гипити) — российская платформа-агрегатор нейросетей: доступ к 70+ AI-моделям",
+  "от 18 провайдеров (OpenAI, Google, Anthropic, xAI, Meta, DeepSeek, Alibaba, Moonshot AI,",
+  "Mistral AI, Z.ai, MiniMax, Xiaomi, Perplexity, Microsoft, Kling AI, ByteDance, BFL, Recraft)",
+  "в одном чате. Работает без VPN, интерфейс на русском языке,",
   "оплата российскими картами в рублях.",
 ].join(" ");
 

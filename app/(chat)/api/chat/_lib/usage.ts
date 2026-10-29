@@ -65,7 +65,36 @@ type MergeUsageInput = {
   accumulator: ImageGenerationUsageAccumulator;
   modelId: string | undefined;
   catalog: ModelCatalog | undefined;
+  /**
+   * Provider cost the gateway reported for the text steps (USD). Used only
+   * when the TokenLens catalog has no price for the model, so a model missing
+   * from models.dev is not charged $0.
+   */
+  gatewayCostUsd?: number;
 };
+
+/**
+ * Sum the gateway-reported USD cost over the steps of a text turn. Returns
+ * undefined when no step carried a usable cost.
+ */
+export function sumGatewayCostUsd(
+  steps: ReadonlyArray<{ providerMetadata?: unknown }>
+): number | undefined {
+  let total = 0;
+  let found = false;
+  for (const step of steps) {
+    const gateway = (
+      step.providerMetadata as Record<string, unknown> | undefined
+    )?.gateway as Record<string, unknown> | undefined;
+    const cost = gateway?.cost;
+    const parsed = cost == null ? Number.NaN : Number.parseFloat(String(cost));
+    if (Number.isFinite(parsed) && parsed > 0) {
+      total += parsed;
+      found = true;
+    }
+  }
+  return found ? total : undefined;
+}
 
 /**
  * Resolve the TokenLens usage summary for a gateway model id, working around a
@@ -115,6 +144,7 @@ export function mergeUsage({
   accumulator,
   modelId,
   catalog,
+  gatewayCostUsd,
 }: MergeUsageInput): AppUsage {
   const mergedInputTokens =
     (usage.inputTokens ?? 0) + accumulator.totalInputTokens;
@@ -130,7 +160,14 @@ export function mergeUsage({
   }
 
   const summary = resolveUsageSummary({ modelId, usage, catalog });
-  const chatTotalUsd = summary.costUSD?.totalUSD ?? 0;
+  const catalogTotalUsd = summary.costUSD?.totalUSD;
+  if (!catalogTotalUsd && gatewayCostUsd) {
+    console.warn(
+      "[ALARM-USAGE]TokenLens has no price for model, billing gateway cost",
+      { modelId, gatewayCostUsd }
+    );
+  }
+  const chatTotalUsd = catalogTotalUsd || gatewayCostUsd || 0;
 
   return {
     ...usage,

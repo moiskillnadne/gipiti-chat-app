@@ -10,7 +10,7 @@ export const CAPABILITY_KEYS: readonly ModelCapabilityKey[] = [
 ];
 
 const CODE_PATTERN =
-  /codex|code|sonnet|opus|gpt-5\.\d|gemini-3|grok|kimi|qwen/i;
+  /codex|code|sonnet|opus|gpt-5\.\d|gemini-[34]|grok|kimi|qwen|glm|minimax/i;
 
 export type ModelCapabilityFlags = Record<ModelCapabilityKey, boolean>;
 

@@ -1,11 +1,13 @@
 /**
- * Landings for the Google Gemini text models: 3.1 Pro, 3.8 Flash, 3.7 Flash,
- * 3.6 Flash, 3.5 Flash and 3.5 Flash Lite.
+ * Landings for the Google Gemini text models: 4 Argon, 3.1 Pro, 3.8 Flash,
+ * 3.7 Flash, 3.6 Flash, 3.5 Flash and 3.5 Flash Lite.
  */
 
 import {
   analystsAudience,
   buildSteps,
+  documentsFaq,
+  GEMINI_4_ARGON_SLUG,
   GEMINI_35_FLASH_LITE_SLUG,
   GEMINI_35_FLASH_SLUG,
   GEMINI_36_FLASH_SLUG,
@@ -14,9 +16,11 @@ import {
   GEMINI_PRO_SLUG,
   GPT6_LUNA_SLUG,
   GPT6_SOL_SLUG,
-  GROK_SLUG,
+  GPT61_TERRA_SLUG,
+  KIMI_K31_PRO_SLUG,
   lawyersAudience,
   OPUS_55_SLUG,
+  priceFaq,
   SONAR_SLUG,
   SONNET_SLUG,
   sharedFaq,
@@ -24,10 +28,124 @@ import {
   supportAudience,
   TERRA_SLUG,
   vpnBenefit,
+  vpnFaq,
 } from "./shared";
 import type { ModelLanding } from "./types";
 
 export const googleLandings: ModelLanding[] = [
+  {
+    kind: "text",
+    slug: GEMINI_4_ARGON_SLUG,
+    modelId: "gemini-4-argon",
+    name: "Gemini 4 Argon",
+    vendor: "Google",
+    accent: "indigo",
+    badge: "Google · Новинка · Текст",
+    h1Top: "Gemini 4 Argon —",
+    h1Gradient: "нейросеть Google для кода и сложных задач",
+    sub: "Новая модель Google из линейки Gemini 4 уже в GIPITI — программирование, многошаговые задачи и глубокие рассуждения с контекстом на миллион токенов. Читает фото, скриншоты и PDF. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    ctaMain: "Попробовать Gemini 4 Argon",
+    metaTitle: "Gemini 4 Argon — нейросеть Google на русском | GIPITI",
+    metaDescription:
+      "Gemini 4 Argon в GIPITI — новая модель Google для кода, агентных задач и рассуждений с контекстом 1 млн токенов. Без VPN, на русском, оплата картами РФ.",
+    heroChat: {
+      userMessage:
+        "Вот спецификация нового API на 40 страниц — составь план перевода нашего сервиса на третью версию 📄 api-v3-spec.pdf",
+      aiIntro: "Прочитал спецификацию целиком. Предлагаю **три этапа**:",
+      aiBullets: [
+        "**Авторизация** — в v3 сменился формат токена, начать стоит с неё",
+        "**Пагинация** — 12 методов переходят с номеров страниц на курсоры",
+        "**Чистка** — убрать устаревшие поля и включить строгую валидацию",
+      ],
+    },
+    benefits: [
+      {
+        icon: "code",
+        title: "Для кода и агентной работы",
+        text: "Google создавала Argon для программирования, многошаговых агентных сценариев и сложных рассуждений: модель продумывает решение, прежде чем отвечать.",
+      },
+      {
+        icon: "layers",
+        title: "Миллион токенов контекста",
+        text: "Целый репозиторий, стопка договоров или многочасовая стенограмма помещаются в один диалог — модель видит материал полностью, а не урывками.",
+      },
+      {
+        icon: "file-text",
+        title: "Фото, скриншоты и PDF",
+        text: "Прикрепите снимок экрана, фотографию схемы или PDF-документ — Argon разберёт их в том же чате, что и текст.",
+      },
+      vpnBenefit,
+    ],
+    steps: buildSteps("Gemini 4 Argon"),
+    audience: [
+      {
+        title: "Разработчики",
+        text: "Миграции, рефакторинг и разбор чужого проекта — с опорой на документацию и весь код сразу.",
+        userMessage:
+          "Вставил модуль заказов — найди, где теряется часовой пояс у дат",
+        aiReply:
+          "Дата обрезается в **сериализаторе ответа**: там вызывается toISOString без учёта зоны клиента…",
+      },
+      {
+        title: "Аналитики и продакт-менеджеры",
+        text: "Длинные отчёты, исследования и выгрузки — выводы и следующие шаги вместо пересказа.",
+        userMessage:
+          "Сведи три квартальных отчёта в одну страницу для руководителя 📄",
+        aiReply:
+          "Главное за полгода: **выручка +18%**, но маржа просела из-за логистики. Ниже — три решения на обсуждение…",
+      },
+      {
+        title: "Студенты и преподаватели",
+        text: "Разбор учебников и статей в PDF, задачи с фото и объяснения без лишней воды.",
+        userMessage:
+          "Объясни доказательство из этой главы по шагам 📄 glava-4.pdf",
+        aiReply:
+          "Доказательство держится на **одной идее**: от противного предполагаем, что множество конечно…",
+      },
+    ],
+    faq: [
+      {
+        question: "Что такое Gemini 4 Argon?",
+        answer:
+          "Gemini 4 Argon — модель Google из линейки Gemini 4, рассчитанная на программирование, агентные задачи и сложные рассуждения. Контекст — до миллиона токенов, на вход принимает текст, изображения и PDF. В GIPITI она доступна без VPN, на русском и с оплатой российскими картами.",
+      },
+      {
+        question: "Чем Gemini 4 Argon отличается от Gemini 3.1 Pro?",
+        answer:
+          "Argon — модель следующей линейки Gemini 4, которую Google делала прежде всего под код и многошаговую агентную работу. Gemini 3.1 Pro остаётся в GIPITI как проверенный мультимодальный флагман — сравните обе модели на своей задаче и переключайтесь в один клик.",
+      },
+      {
+        question: "Как попробовать Gemini 4 Argon в России?",
+        answer:
+          "Зарегистрируйтесь в GIPITI по email, выберите Gemini 4 Argon в списке моделей и напишите запрос на русском. Аккаунт Google, VPN и зарубежная карта не нужны.",
+      },
+      documentsFaq,
+      vpnFaq,
+      priceFaq,
+    ],
+    otherModels: [
+      {
+        name: "Gemini 3.1 Pro",
+        tag: "Текст",
+        href: `/models/${GEMINI_PRO_SLUG}`,
+      },
+      {
+        name: "GPT-6.1 Terra",
+        tag: "Текст",
+        href: `/models/${GPT61_TERRA_SLUG}`,
+      },
+      {
+        name: "Claude Opus 5.5",
+        tag: "Текст",
+        href: `/models/${OPUS_55_SLUG}`,
+      },
+      {
+        name: "Kimi K3.1 Pro",
+        tag: "Текст",
+        href: `/models/${KIMI_K31_PRO_SLUG}`,
+      },
+    ],
+  },
   {
     kind: "text",
     slug: GEMINI_PRO_SLUG,
@@ -113,7 +231,11 @@ export const googleLandings: ModelLanding[] = [
         tag: "Текст",
         href: `/models/${OPUS_55_SLUG}`,
       },
-      { name: "Grok 4.5", tag: "Текст", href: `/models/${GROK_SLUG}` },
+      {
+        name: "Gemini 4 Argon",
+        tag: "Текст",
+        href: `/models/${GEMINI_4_ARGON_SLUG}`,
+      },
     ],
   },
   {

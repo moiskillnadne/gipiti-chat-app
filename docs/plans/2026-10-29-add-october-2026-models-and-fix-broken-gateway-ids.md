@@ -45,6 +45,7 @@ New `ModelProvider` values: `meta`, `mistral`, `zai`, `minimax`, `xiaomi`, `micr
 - `lib/ai/__tests__/model-registry.test.ts` — new ids in the new-model checks
 - Landings: `lib/marketing/model-landings/{shared,index,google,openai,moonshotai,alibaba,deepseek,perplexity,video-xai}.ts`, new `meta.ts`, `mistral.ts`, `zai.ts`, `minimax.ts`, `xiaomi.ts`, `video-alibaba.ts`; `lib/marketing/models-catalog.ts`; `lib/marketing/landing-content.ts` (provider count/list); `next.config.ts` (Sonar redirects)
 - `docs/model-landing-drafts/2026-10-image-models.md` — image landing copy + render prompts
+- Added after review: `app/(chat)/api/chat/_lib/prepare-chat-turn.ts` (step budget keyed off `supportsToolCalling` only), `app/(chat)/api/chat/_lib/usage.ts` + `handlers/text-chat.ts` (gateway-cost fallback), `lib/ai/__tests__/model-registry.test.ts` and `_lib/__tests__/usage.test.ts` (new guards)
 
 ## Order of work (multi-agent workflow)
 
@@ -62,9 +63,11 @@ Orchestrator: Opus (main loop). Coders: Sonnet. Research, content/SEO, review: O
 ## Risks
 
 - **No live gateway check.** Ids, model type (e.g. Nano Banana 2.1 as language vs image model) and params come from the table + search. The user runs `pnpm models:list` before merge.
-- **Text billing uses TokenLens (models.dev).** New vendors (Meta, Mistral, Z.ai, MiniMax, Xiaomi) may be missing there → $0 charge + `[ALARM-USAGE]`. Same mechanism as every model today; check first prod charges. A gateway-`cost` fallback is a separate follow-up.
+- **Text billing uses TokenLens (models.dev).** New vendors (Meta, Mistral, Z.ai, MiniMax, Xiaomi) may be missing there. Mitigation added after review: when TokenLens returns no price, `mergeUsage` bills the sum of the steps' `providerMetadata.gateway.cost` (logs `[ALARM-USAGE]`), so an unpriced model is never free. Still check the first prod charge per model; if the catalog has a price it wins over the gateway cost.
 - **spacexai switch** changes the TokenLens lookup id for grok-4.3/4.5/4.6 (grok-4.7 already uses it and prices correctly).
-- **Grok video providerOptions namespace** under `spacexai/` is unverified — resolution may be ignored; verify a 720p clip after deploy.
+- **Grok video providerOptions namespace** under `spacexai/` is unverified — the handler now sends the resolution under both `xai` and `spacexai`; verify a 720p clip differs from a 480p one after deploy.
+- **Grok video text-to-video** is unverified for the stable id (Vercel docs say image-to-video only, xAI docs say both). Registry keeps `imageInput: "optional"`; landing copy leads with image input. Smoke-test a prompt-only clip; if it fails set `imageInput: "required"`.
+- **Wan video length capped at 5/10 s** (departure from the original 5/10/15/30): the video handler runs inline in a 300 s function and nothing longer than 12 s has been timed there. Add 15/30 s only after measuring on prod or moving long clips to a background job; landing copy no longer promises 30 s.
 - MiniMax `<think>` handling and capability flags of new vendors are unverified.
 
 ## Verification
