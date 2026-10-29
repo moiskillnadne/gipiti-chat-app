@@ -64,12 +64,14 @@ export const MINIMAX_M31_FLASH_SLUG = "minimax-m3-1-flash";
 export const MIMO_V26_PRO_SLUG = "xiaomi-mimo-v2-6-pro";
 
 // Image landings
+export const NANO_BANANA_21_SLUG = "nano-banana-2-1";
 export const NANO_BANANA_SLUG = "nano-banana";
 export const NANO_BANANA_LITE_SLUG = "nano-banana-lite";
 export const NANO_BANANA_PRO_SLUG = "nano-banana-pro";
 export const GPT_IMAGE_25_FLARE_SLUG = "gpt-image-2-5-flare";
 export const GPT_IMAGE_25_SUNBURST_SLUG = "gpt-image-2-5-sunburst";
 export const GPT_IMAGE_SLUG = "gpt-image-2";
+export const FLUX_3_IMAGE_SLUG = "flux-3-image";
 export const FLUX_SLUG = "flux-2-max";
 export const RECRAFT_SLUG = "recraft-v4-1-pro";
 export const GROK_IMAGINE_20_SLUG = "grok-imagine-2-0";
@@ -77,6 +79,8 @@ export const GROK_IMAGINE_SLUG = "grok-imagine";
 export const SEEDREAM_PRO_SLUG = "seedream-5-0-pro";
 export const SEEDREAM_LITE_SLUG = "seedream-5-0-lite";
 export const SEEDREAM_45_SLUG = "seedream-4-5";
+export const MAI_IMAGE_26_SLUG = "mai-image-2-6";
+export const MAI_IMAGE_26_FLASH_SLUG = "mai-image-2-6-flash";
 
 // Video landings
 export const VEO_SLUG = "veo-3-1";

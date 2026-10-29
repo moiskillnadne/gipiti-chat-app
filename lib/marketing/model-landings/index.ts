@@ -19,6 +19,7 @@ import { googleLandings } from "./google";
 import { bflImageLandings } from "./image-bfl";
 import { bytedanceImageLandings } from "./image-bytedance";
 import { googleImageLandings } from "./image-google";
+import { microsoftImageLandings } from "./image-microsoft";
 import { openaiImageLandings } from "./image-openai";
 import { recraftImageLandings } from "./image-recraft";
 import { xaiImageLandings } from "./image-xai";
@@ -60,6 +61,7 @@ export const modelLandings: ModelLanding[] = [
   ...recraftImageLandings,
   ...xaiImageLandings,
   ...bytedanceImageLandings,
+  ...microsoftImageLandings,
   ...googleVideoLandings,
   ...bflVideoLandings,
   ...klingaiVideoLandings,

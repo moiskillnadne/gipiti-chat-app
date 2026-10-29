@@ -1808,7 +1808,7 @@
       "description": "Видеомодель Black Forest Labs. Создаёт ролики со звуком по текстовому описанию или из загруженной картинки."
     },
     "flux3Image": {
-      "name": "FLUX 3 Image",
+      "name": "Flux 3 Image",
       "description": "Флагманская модель Black Forest Labs: генерация изображений и точное редактирование в одной модели."
     },
     "flux2Max": {
@@ -1837,7 +1837,7 @@
     },
     "maiImage26": {
       "name": "MAI-Image 2.6",
-      "description": "Модель Microsoft AI для качественной генерации и редактирования изображений по референсам."
+      "description": "Модель Microsoft AI для качественной генерации и точного редактирования изображений."
     },
     "maiImage26Flash": {
       "name": "MAI-Image 2.6 Flash",

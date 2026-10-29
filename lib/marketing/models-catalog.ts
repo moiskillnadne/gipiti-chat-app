@@ -68,7 +68,7 @@ export const catalogSections: CatalogSection[] = [
     typePage: {
       h1Top: "Нейросети для генерации",
       h1Gradient: "изображений на русском",
-      sub: "Nano Banana, GPT Image 2.5, Flux, Seedream 5.0 Pro, Grok Imagine 2.0 и Recraft — создавайте и редактируйте изображения по описанию на русском языке. Без VPN, оплата российскими картами.",
+      sub: "Nano Banana 2.1, GPT Image 2.5, Flux 3 Image, Seedream 5.0 Pro, MAI-Image 2.6, Grok Imagine 2.0 и Recraft — создавайте и редактируйте изображения по описанию на русском языке. Без VPN, оплата российскими картами.",
       metaTitle:
         "Нейросети для генерации изображений — Nano Banana, GPT Image, Flux, Seedream | GIPITI",
       metaDescription:
@@ -597,6 +597,17 @@ export const catalogModels: CatalogModel[] = [
     hue: 90,
   },
   {
+    modelId: "nano-banana-2.1",
+    name: "Nano Banana 2.1",
+    vendor: "Google",
+    provider: "google",
+    category: "images",
+    description:
+      "Новое поколение Nano Banana: генерация и точечное редактирование изображений в 1K, 2K и 4K.",
+    tag: "Новинка",
+    hue: 90,
+  },
+  {
     modelId: "gemini-3.1-flash-lite-image",
     name: "Nano Banana Lite",
     vendor: "Google",
@@ -648,6 +659,17 @@ export const catalogModels: CatalogModel[] = [
     description:
       "Проверенная модель OpenAI прошлого поколения: фотореализм и точное редактирование.",
     hue: 250,
+  },
+  {
+    modelId: "flux-3-image",
+    name: "Flux 3 Image",
+    vendor: "BFL",
+    provider: "bfl",
+    category: "images",
+    description:
+      "Новый флагман Black Forest Labs: генерация и точечное редактирование изображений в одной модели.",
+    tag: "Новинка",
+    hue: 315,
   },
   {
     modelId: "flux-2-max",
@@ -718,6 +740,28 @@ export const catalogModels: CatalogModel[] = [
     description:
       "Точное редактирование с сохранением деталей, света и цвета; сильная работа с текстом на картинке.",
     hue: 200,
+  },
+  {
+    modelId: "mai-image-2.6",
+    name: "MAI-Image 2.6",
+    vendor: "Microsoft",
+    provider: "microsoft",
+    category: "images",
+    description:
+      "Модель Microsoft AI с упором на качество: генерация и точное редактирование объектов, надписей и композиции.",
+    tag: "Новинка",
+    hue: 120,
+  },
+  {
+    modelId: "mai-image-2.6-flash",
+    name: "MAI-Image 2.6 Flash",
+    vendor: "Microsoft",
+    provider: "microsoft",
+    category: "images",
+    description:
+      "Быстрая и более дешёвая версия MAI-Image 2.6: те же генерация и правки изображений.",
+    tag: "Новинка",
+    hue: 120,
   },
   {
     modelId: "veo-3.1",

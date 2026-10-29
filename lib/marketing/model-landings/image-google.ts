@@ -1,17 +1,18 @@
 /**
  * Landings for the Google image models — the Nano Banana family.
  *
- * Resolution claims follow the registry: the Pro and regular models expose
+ * Resolution claims follow the registry: 2.1, Pro and the regular model expose
  * 1K/2K/4K, while Lite is 1K-only (Google rejects larger sizes for it), so its
- * copy never promises 2K or 4K.
+ * copy never promises 2K or 4K. The 2.1 renders are real 2K output
+ * (2752 × 1536, the last image of the stream; the first is a 1376 × 768
+ * preview), and a 4K request returned 5504 × 3072.
  */
 
 import { buildChips, buildImageSteps, sharedMediaFaq } from "./media-shared";
 import {
   FLUX_SLUG,
-  GPT_IMAGE_25_FLARE_SLUG,
   GPT_IMAGE_25_SUNBURST_SLUG,
-  GPT6_SOL_SLUG,
+  NANO_BANANA_21_SLUG,
   NANO_BANANA_LITE_SLUG,
   NANO_BANANA_PRO_SLUG,
   NANO_BANANA_SLUG,
@@ -22,6 +23,132 @@ import {
 import type { ModelLanding } from "./types";
 
 export const googleImageLandings: ModelLanding[] = [
+  {
+    kind: "image",
+    slug: NANO_BANANA_21_SLUG,
+    modelId: "nano-banana-2.1",
+    name: "Nano Banana 2.1",
+    vendor: "Google",
+    accent: "rose",
+    badge: "Google · Новое поколение · Изображения",
+    h1Top: "Nano Banana 2.1 —",
+    h1Gradient: "новая нейросеть Google для картинок",
+    sub: "Новое поколение Nano Banana уже в GIPITI — рисует по описанию на русском, переносит товар в другую сцену и правит готовые изображения в качестве до 4K. Без VPN, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    ctaMain: "Попробовать Nano Banana 2.1",
+    metaTitle: "Nano Banana 2.1 — нейросеть Google для картинок | GIPITI",
+    metaDescription:
+      "Nano Banana 2.1 в GIPITI — новая модель Google: генерация и редактирование изображений на русском в 1K, 2K и 4K, десять форматов. Без VPN, оплата картами РФ.",
+    heroMedia: {
+      userMessage:
+        "Нарисуй мастерскую керамиста: гончарный круг, полки с вазами, солнечные лучи сквозь пыль, 16:9",
+      aiIntro: "Готово — **2K, 16:9**. Скажите, что поправить:",
+      aspect: "16:9",
+      resultCaption: "Мастерская керамиста · гончарный круг, лучи солнца",
+      resultMeta: "2K · 16:9",
+      sample: {
+        src: "/images/model-landings/nano-banana-2-1/pottery-studio.webp",
+        alt: "Мастерская керамиста с гончарным кругом и полками ваз в солнечных лучах — изображение, созданное Nano Banana 2.1 в GIPITI",
+        width: 1280,
+        height: 714,
+      },
+    },
+    benefits: [
+      {
+        icon: "sparkles",
+        title: "Следующее поколение Nano Banana",
+        text: "Google улучшила и генерацию, и редактирование по сравнению с прошлыми Nano Banana: модель увереннее ставит товар в новую сцену и правдоподобнее изображает реальные места и предметы.",
+      },
+      {
+        icon: "wand",
+        title: "Правки по вашей картинке",
+        text: "Прикрепите изображение и напишите, что изменить: заменить объект, сменить фон, перенести продукт в интерьер. Модель поправит то, о чём вы попросили.",
+      },
+      {
+        icon: "ratio",
+        title: "1K, 2K или 4K и десять форматов",
+        text: "Качество и соотношение сторон выбираются перед генерацией: квадрат для маркетплейса, 9:16 для сторис, 21:9 для широкого баннера.",
+      },
+      vpnBenefit,
+    ],
+    steps: buildImageSteps(
+      "Nano Banana 2.1",
+      "Что должно быть в кадре — или прикрепите изображение и скажите, что в нём поменять."
+    ),
+    audience: [
+      {
+        title: "Интернет-магазины",
+        text: "Товар в живой обстановке вместо белого фона — для карточек, баннеров и рассылок.",
+        userMessage:
+          "Поставь этот рюкзак на камень у горного озера, утренний туман 📎 backpack.jpg",
+        aiReply: "**Товар в новой сцене** · рюкзак у горного озера",
+        sample: {
+          src: "/images/model-landings/nano-banana-2-1/backpack-lake.webp",
+          alt: "Туристический рюкзак на камне у горного озера в утреннем тумане",
+          width: 900,
+          height: 502,
+        },
+      },
+      {
+        title: "Маркетологи и SMM",
+        text: "Обложки постов и креативы под сезонные акции — в нужном формате с первого раза.",
+        userMessage:
+          "Обложка поста про осеннее меню кофейни: латте с корицей, кленовые листья, тёплый свет, 16:9",
+        aiReply: "**Обложка 16:9** · латте и кленовые листья",
+        sample: {
+          src: "/images/model-landings/nano-banana-2-1/autumn-latte.webp",
+          alt: "Чашка латте с корицей среди осенних кленовых листьев в тёплом свете",
+          width: 900,
+          height: 502,
+        },
+      },
+      {
+        title: "Редакции и блогеры",
+        text: "Иллюстрации к материалам о реальных местах — без поиска по стокам и прав на фото.",
+        userMessage:
+          "Иллюстрация к статье о Байкале зимой: прозрачный лёд с трещинами, вдали горы, ясный полдень",
+        aiReply: "**Байкал зимой** · прозрачный лёд и горы",
+        sample: {
+          src: "/images/model-landings/nano-banana-2-1/baikal-ice.webp",
+          alt: "Прозрачный лёд Байкала с трещинами и горы на горизонте в ясный зимний день",
+          width: 900,
+          height: 502,
+        },
+      },
+    ],
+    faq: [
+      {
+        question: "Что такое Nano Banana 2.1?",
+        answer:
+          "Nano Banana 2.1 — модель Google для генерации и редактирования изображений, вышедшая в октябре 2026 года как преемник Nano Banana 2. В GIPITI она доступна без VPN, с промптом на русском и оплатой российскими картами.",
+      },
+      {
+        question:
+          "Чем Nano Banana 2.1 отличается от Nano Banana и Nano Banana Pro?",
+        answer:
+          "2.1 — самое новое поколение: Google улучшила генерацию и правки, особенно размещение товара в сцене и изображение реальных объектов. Nano Banana Pro по-прежнему хороша для сложных описаний и текста на картинке, а классическая Nano Banana — проверенный вариант для повседневных задач. Все три модели есть в GIPITI.",
+      },
+      {
+        question: "В каком качестве и формате можно получить картинку?",
+        answer:
+          "1K, 2K или 4K — качество выбирается в настройках чата перед генерацией. Там же одно из десяти соотношений сторон: от квадрата до 21:9.",
+      },
+      ...sharedMediaFaq,
+    ],
+    otherModels: buildChips([
+      {
+        name: "Nano Banana Pro",
+        tag: "Изображения",
+        slug: NANO_BANANA_PRO_SLUG,
+      },
+      { name: "Nano Banana", tag: "Изображения", slug: NANO_BANANA_SLUG },
+      {
+        name: "GPT Image 2.5 Sunburst",
+        tag: "Изображения",
+        slug: GPT_IMAGE_25_SUNBURST_SLUG,
+      },
+      { name: "Veo 3.1", tag: "Видео", slug: VEO_SLUG },
+    ]),
+  },
   {
     kind: "image",
     slug: NANO_BANANA_SLUG,
@@ -131,6 +258,11 @@ export const googleImageLandings: ModelLanding[] = [
     ],
     otherModels: buildChips([
       {
+        name: "Nano Banana 2.1",
+        tag: "Изображения",
+        slug: NANO_BANANA_21_SLUG,
+      },
+      {
         name: "Nano Banana Pro",
         tag: "Изображения",
         slug: NANO_BANANA_PRO_SLUG,
@@ -139,11 +271,6 @@ export const googleImageLandings: ModelLanding[] = [
         name: "Nano Banana Lite",
         tag: "Изображения",
         slug: NANO_BANANA_LITE_SLUG,
-      },
-      {
-        name: "GPT Image 2.5 Flare",
-        tag: "Изображения",
-        slug: GPT_IMAGE_25_FLARE_SLUG,
       },
       { name: "Veo 3.1", tag: "Видео", slug: VEO_SLUG },
     ]),
@@ -260,6 +387,11 @@ export const googleImageLandings: ModelLanding[] = [
       ...sharedMediaFaq,
     ],
     otherModels: buildChips([
+      {
+        name: "Nano Banana 2.1",
+        tag: "Изображения",
+        slug: NANO_BANANA_21_SLUG,
+      },
       { name: "Nano Banana", tag: "Изображения", slug: NANO_BANANA_SLUG },
       {
         name: "GPT Image 2.5 Sunburst",
@@ -267,7 +399,6 @@ export const googleImageLandings: ModelLanding[] = [
         slug: GPT_IMAGE_25_SUNBURST_SLUG,
       },
       { name: "Flux 2 Max", tag: "Изображения", slug: FLUX_SLUG },
-      { name: "GPT-6 Sol", tag: "Текст", slug: GPT6_SOL_SLUG },
     ]),
   },
   {
