@@ -272,22 +272,20 @@ export async function runTextChat(
         ctx.lastUsage.value = merged;
         writer.write({ type: "data-usage", data: merged });
 
-        console.info("------TOTAL USAGE", usageChargeUsd(merged));
+        const chargeUsd = usageChargeUsd(merged);
+        console.info("------TOTAL USAGE", chargeUsd);
 
-        // Charge only when usage was priced (resolved model + catalog present).
-        if (resolvedModelId && catalog) {
+        // Charge whenever the turn was priced. The gateway cost alone is enough:
+        // gating on the TokenLens catalog left every turn free on an instance
+        // whose models.dev fetch failed. A $0 total is already logged by
+        // mergeUsage / usageChargeUsd as [ALARM-USAGE].
+        if (chargeUsd > 0) {
           await chargeUsageSafe({
             userId: ctx.userId,
-            usdCost: usageChargeUsd(merged),
+            usdCost: chargeUsd,
             modelId: resolvedModelId,
             chatId: ctx.chatId,
             description: "Chat completion",
-          });
-        } else {
-          console.warn("[ALARM-USAGE]No resolvedModelId or catalog found", {
-            resolvedModelId,
-            catalog,
-            usage,
           });
         }
       } catch (err) {

@@ -66,9 +66,13 @@ type MergeUsageInput = {
   modelId: string | undefined;
   catalog: ModelCatalog | undefined;
   /**
-   * Provider cost the gateway reported for the text steps (USD). Used only
-   * when the TokenLens catalog has no price for the model, so a model missing
-   * from models.dev is not charged $0.
+   * Provider cost the gateway reported for the text steps (USD), from
+   * `sumGatewayCostUsd`. When present it is what gets billed: it is what the
+   * owner actually pays (cache reads, off-peak rates and real list prices
+   * included). TokenLens is only the fallback for turns without it. Probed
+   * 2026-10-29: TokenLens billed 2x the gateway cost on mistral-large-4 and
+   * deepseek-v4.1-flash-1017, ~0.57x on glm-5.3, and charged cache reads at
+   * the full input rate (5.8x on minimax-m3.1-flash).
    */
   gatewayCostUsd?: number;
 };
@@ -130,14 +134,18 @@ function resolveUsageSummary({
 }
 
 /**
- * Merge raw model usage with image-tool usage and (when both a resolved modelId
- * and a catalog are available) TokenLens cost enrichment.
+ * Merge raw model usage with image-tool usage and cost enrichment.
  *
- * - missing modelId or catalog → token-count merge only (no cost fields)
- * - otherwise → spread the TokenLens summary, merge the image accumulator's
- *   tokens into the token totals, and fold its provider cost into
+ * - missing modelId → token-count merge only (no cost fields)
+ * - otherwise → spread the TokenLens summary (when a catalog is available),
+ *   merge the image accumulator's tokens into the token totals, and set
  *   `costUSD.totalUSD` — the field both `usageChargeUsd` (billing) and the UI
- *   read. Without this the in-chat `generateImage` tool cost is never charged.
+ *   read — to the text cost (gateway cost when reported, else the TokenLens
+ *   price) plus the image accumulator's provider cost. Without the latter the
+ *   in-chat `generateImage` tool cost is never charged. A missing catalog (cold
+ *   instance whose models.dev fetch failed) no longer zeroes the charge: the
+ *   gateway and image-tool costs are still billed. The per-part
+ *   `inputUSD`/`outputUSD` stay TokenLens figures (absent without a catalog).
  */
 export function mergeUsage({
   usage,
@@ -151,7 +159,7 @@ export function mergeUsage({
   const mergedOutputTokens =
     (usage.outputTokens ?? 0) + accumulator.totalOutputTokens;
 
-  if (!(modelId && catalog)) {
+  if (!modelId) {
     return {
       ...usage,
       inputTokens: mergedInputTokens,
@@ -159,15 +167,18 @@ export function mergeUsage({
     } as AppUsage;
   }
 
-  const summary = resolveUsageSummary({ modelId, usage, catalog });
-  const catalogTotalUsd = summary.costUSD?.totalUSD;
-  if (!catalogTotalUsd && gatewayCostUsd) {
+  const summary = catalog
+    ? resolveUsageSummary({ modelId, usage, catalog })
+    : undefined;
+  const catalogTotalUsd = summary?.costUSD?.totalUSD;
+  // Gateway cost first (what the owner pays), TokenLens as the fallback.
+  const chatTotalUsd = gatewayCostUsd ?? catalogTotalUsd ?? 0;
+  if (gatewayCostUsd === undefined && !catalogTotalUsd) {
     console.warn(
-      "[ALARM-USAGE]TokenLens has no price for model, billing gateway cost",
-      { modelId, gatewayCostUsd }
+      "[ALARM-USAGE]No gateway cost and no TokenLens price, text billed $0",
+      { modelId, hasCatalog: catalog !== undefined }
     );
   }
-  const chatTotalUsd = catalogTotalUsd || gatewayCostUsd || 0;
 
   return {
     ...usage,
@@ -180,7 +191,7 @@ export function mergeUsage({
     // accumulated image cost must land here — the previous `inputCost` field
     // was read by nothing, so that cost was silently dropped from billing.
     costUSD: {
-      ...summary.costUSD,
+      ...summary?.costUSD,
       totalUSD: chatTotalUsd + accumulator.totalCost,
     },
   } as AppUsage;
