@@ -20,6 +20,7 @@ type MessagesProps = {
   setMessages: UseChatHelpers<ChatMessage>["setMessages"];
   regenerate: UseChatHelpers<ChatMessage>["regenerate"];
   isReadonly: boolean;
+  onStop: () => void;
 };
 
 function PureMessages({
@@ -30,6 +31,7 @@ function PureMessages({
   setMessages,
   regenerate,
   isReadonly,
+  onStop,
 }: MessagesProps) {
   const { currentModelId } = useModel();
   const {
@@ -106,6 +108,7 @@ function PureMessages({
                 isReadonly={isReadonly}
                 key={message.id}
                 message={message}
+                onStop={onStop}
                 regenerate={regenerate}
                 requiresScrollPadding={
                   hasSentMessage && index === messages.length - 1
@@ -164,6 +167,5 @@ export const Messages = memo(PureMessages, (prevProps, nextProps) => {
   if (prevProps.regenerate !== nextProps.regenerate) {
     return false;
   }
-
   return false;
 });

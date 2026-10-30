@@ -78,7 +78,7 @@ export type CustomUIDataTypes = {
   mediaGeneration: {
     documentId: string;
     mediaType: "image" | "video";
-    status: "generating" | "done" | "error";
+    status: "generating" | "done" | "error" | "stopped";
     prompt: string;
     modelId: string;
     url?: string;

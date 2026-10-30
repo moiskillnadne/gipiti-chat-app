@@ -20,12 +20,22 @@ import { type ChatMode, resolveChatMode } from "./_lib/resolve-mode";
 import { watchChatStop } from "./_lib/stop-signal";
 import { getStreamContext } from "./_lib/stream-context";
 import { createTurnAbort } from "./_lib/turn-abort";
-import { waitForSettlement, waitWithTimeout } from "./_lib/turn-lifecycle";
+import {
+  isTurnAborted,
+  mediaPersistWaitMs,
+  waitForSettlement,
+  waitWithTimeout,
+} from "./_lib/turn-lifecycle";
 
 export const maxDuration = 300;
 
 // Upper bound for waiting on a text turn's billing before persisting it.
 const SETTLEMENT_TIMEOUT_MS = 15_000;
+// A media turn waits for its handler (download, upload, save, charge) until
+// this long before the function deadline, leaving room to persist the message.
+// Capped by the deadline, not a short timeout: a video tail can take longer
+// than SETTLEMENT_TIMEOUT_MS, and the saved card cannot be corrected later.
+const MEDIA_PERSIST_MARGIN_MS = 10_000;
 // Upper bound for keeping the function alive for the stop watcher's cleanup.
 const STOP_WATCH_CLEANUP_TIMEOUT_MS = 5000;
 
@@ -36,8 +46,9 @@ const STREAM_HANDLERS: Record<ChatMode, StreamHandler> = {
 };
 
 export async function POST(request: Request) {
+  const turnStartedAt = Date.now();
   const turnAbort = createTurnAbort({
-    startedAt: Date.now(),
+    startedAt: turnStartedAt,
     maxDurationMs: maxDuration * 1000,
   });
 
@@ -69,6 +80,10 @@ export async function POST(request: Request) {
   };
   // Resolved when the turn is fully persisted (or failed before streaming).
   const { promise: turnDone, resolve: finishTurn } =
+    Promise.withResolvers<void>();
+  // Resolved when the mode handler has returned (or never ran). A cancelled
+  // response runs onFinish while a media handler is still saving and charging.
+  const { promise: handlerDone, resolve: finishHandler } =
     Promise.withResolvers<void>();
 
   try {
@@ -108,20 +123,19 @@ export async function POST(request: Request) {
     const mode = resolveChatMode(ctx.model);
     const runHandler = STREAM_HANDLERS[mode];
 
-    // Only text turns can be stopped; image/video handlers run to completion.
-    // Not awaited: subscribing to the stop channel must not delay the first
-    // token (the early-stop check inside still covers a stop that already landed).
-    if (mode === "text") {
-      stopWatch = watchChatStop({
-        userId: ctx.userId,
-        chatId: ctx.chatId,
-        turnId: ctx.turnId,
-        onStop: turnAbort.requestAbort,
-      });
-      after(() =>
-        waitWithTimeout(stopWatchClosed, STOP_WATCH_CLEANUP_TIMEOUT_MS)
-      );
-    } else {
+    // Every mode can be stopped. Not awaited: subscribing to the stop channel
+    // must not delay the first token (the early-stop check inside still covers
+    // a stop that already landed).
+    stopWatch = watchChatStop({
+      userId: ctx.userId,
+      chatId: ctx.chatId,
+      turnId: ctx.turnId,
+      onStop: turnAbort.requestAbort,
+    });
+    after(() =>
+      waitWithTimeout(stopWatchClosed, STOP_WATCH_CLEANUP_TIMEOUT_MS)
+    );
+    if (mode !== "text") {
       // Nothing bills these turns through the settlement; do not wait for it.
       ctx.turnSettlement.resolve();
     }
@@ -131,59 +145,78 @@ export async function POST(request: Request) {
     // and persisted in onFinish.
     if (!streamContext) {
       after(() => turnDone);
+      if (mode !== "text") {
+        // The charge tail of a media handler must not be cut off by a
+        // response that was cancelled under it.
+        after(() => handlerDone);
+      }
       // Uncapped on purpose: `maxDuration` bounds it, and a stopped turn must
       // be charged even when persisting did not wait for it.
       after(() => ctx.turnSettlement.promise);
     }
+
+    const waitForTurnEnd = async (): Promise<boolean> => {
+      if (mode === "text") {
+        return waitForSettlement(ctx.turnSettlement, SETTLEMENT_TIMEOUT_MS);
+      }
+      await waitWithTimeout(
+        handlerDone,
+        mediaPersistWaitMs({
+          startedAt: turnStartedAt,
+          maxDurationMs: maxDuration * 1000,
+          marginMs: MEDIA_PERSIST_MARGIN_MS,
+          now: Date.now(),
+        })
+      );
+      return true;
+    };
 
     const buildSseStream = () =>
       createUIMessageStream({
         execute: async ({ writer }) => {
           // Stopped before the handler ran (the stop beat the start of the
           // turn): no model call, no charge, nothing to persist.
-          if (mode === "text" && turnAbort.signal.aborted) {
+          if (turnAbort.signal.aborted) {
             ctx.turnOutcome = "skipped";
             ctx.turnSettlement.resolve();
+            finishHandler();
             return;
           }
-          // Send modelId immediately so the client shows the right provider icon.
-          writer.write({ type: "data-modelId", data: ctx.model });
-          // A resumed stream is read by a client that did not make the POST:
-          // this is how it learns which turn its Stop button must name.
-          writer.write({
-            type: "data-turnId",
-            data: ctx.turnId,
-            transient: true,
-          });
-          await runHandler(ctx, writer);
+          try {
+            // Send modelId immediately so the client shows the right provider icon.
+            writer.write({ type: "data-modelId", data: ctx.model });
+            // A resumed stream is read by a client that did not make the POST:
+            // this is how it learns which turn its Stop button must name.
+            writer.write({
+              type: "data-turnId",
+              data: ctx.turnId,
+              transient: true,
+            });
+            await runHandler(ctx, writer);
+          } finally {
+            finishHandler();
+          }
         },
         generateId: generateUUID,
         onFinish: async ({ messages, isAborted }) => {
           const finishedAt = new Date();
           try {
             // Disconnect cancels the response before streamText's `onAbort`
-            // runs, and the SDK does not await it anyway: wait for the turn to
-            // be billed (every terminal path of the handler resolves this)
-            // before persisting.
-            const settled =
-              mode !== "text" ||
-              (await waitForSettlement(
-                ctx.turnSettlement,
-                SETTLEMENT_TIMEOUT_MS
-              ));
+            // runs, and the SDK does not await it anyway. Text: wait for the
+            // turn to be billed (every terminal path of the handler resolves
+            // it). Media: wait for the handler to return, so its outcome and
+            // final card are known (it may still be saving and charging).
+            const isSettled = await waitForTurnEnd();
             if (ctx.turnOutcome === "skipped") {
               return;
             }
-            // Interrupted only if the stop path actually settled the turn (or
-            // the stream itself ended aborted). A stop that lands after the
-            // answer was complete leaves it a normal message. If billing is
-            // still running after the wait (a deferred stop outlasting it), a
-            // requested stop means the message is cut off all the same.
-            const aborted =
-              mode === "text" &&
-              (isAborted ||
-                ctx.turnOutcome === "aborted" ||
-                (!settled && turnAbort.requestedAt !== undefined));
+            const aborted = isTurnAborted({
+              isTextTurn: mode === "text",
+              isStreamAborted: isAborted,
+              turnOutcome: ctx.turnOutcome,
+              isSettled,
+              hasStopRequest: turnAbort.requestedAt !== undefined,
+            });
             await persistAssistantTurn(ctx, messages as ChatMessage[], mode, {
               aborted,
               // An interrupted answer ends where the user pressed Stop, so it
@@ -215,6 +248,7 @@ export async function POST(request: Request) {
   } catch (error) {
     turnAbort.dispose();
     closeStopWatch();
+    finishHandler();
     finishTurn();
     return handleChatError(error, request);
   }

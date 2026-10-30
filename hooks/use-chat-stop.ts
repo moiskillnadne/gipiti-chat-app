@@ -19,7 +19,7 @@ const resolveMethod = (input: RequestInfo | URL, init?: RequestInit): string =>
   ).toUpperCase();
 
 /**
- * Stop handling for text answers.
+ * Stop handling for chat turns (text answers and image/video generation).
  *
  * `useChat().stop()` only aborts the POST fetch. A resumed stream (GET
  * reconnect) is fetched without a signal and keeps going, and the server

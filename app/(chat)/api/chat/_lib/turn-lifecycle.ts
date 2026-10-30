@@ -2,9 +2,12 @@ import type { TurnAbort } from "./turn-abort";
 import type { AbortedTurnStep, InFlightStepTracker } from "./usage";
 
 /**
- * How a text turn ended, as far as billing is concerned:
- *  - `completed`: the normal `onFinish` path billed it;
- *  - `aborted`: the stop path billed it (the persisted message is interrupted);
+ * How a turn ended, as far as billing is concerned:
+ *  - `completed`: the normal `onFinish` path billed it (media: the handler
+ *    reached a terminal state with a result or a failure);
+ *  - `aborted`: a text turn's stop path billed it (the persisted message is
+ *    interrupted); a media turn's stop cut the provider call, so nothing was
+ *    billed and no interrupted mark is added (the card shows as stopped);
  *  - `errored`: the stream failed without a stop; the finished steps were billed;
  *  - `skipped`: stopped before any model request was made; nothing was billed.
  */
@@ -305,6 +308,27 @@ export async function waitWithTimeout(
 }
 
 /**
+ * How long persisting may wait for a media handler: until shortly before the
+ * function is killed. A cancelled response is already gone and the function is
+ * kept alive for the handler anyway, so waiting longer only makes the saved
+ * card reflect what the handler really did (it can't be corrected afterwards).
+ */
+export function mediaPersistWaitMs({
+  startedAt,
+  maxDurationMs,
+  marginMs,
+  now,
+}: {
+  startedAt: number;
+  maxDurationMs: number;
+  /** Time kept before the deadline for the persist itself. */
+  marginMs: number;
+  now: number;
+}): number {
+  return Math.max(0, startedAt + maxDurationMs - marginMs - now);
+}
+
+/**
  * Wait for a turn's settlement, but never longer than `timeoutMs`: persisting
  * the message (and finishing the request) matters more than a slow charge.
  * Resolves false on timeout.
@@ -314,4 +338,48 @@ export function waitForSettlement(
   timeoutMs: number
 ): Promise<boolean> {
   return waitWithTimeout(settlement.promise, timeoutMs);
+}
+
+type IsTurnAbortedInput = {
+  isTextTurn: boolean;
+  /** The UI stream itself ended aborted (`createUIMessageStream`'s `isAborted`). */
+  isStreamAborted: boolean;
+  turnOutcome: TurnOutcome | undefined;
+  /** The turn's settlement finished within the wait (text turns only). */
+  isSettled: boolean;
+  /** A user stop was requested for the turn. */
+  hasStopRequest: boolean;
+};
+
+/**
+ * Whether the persisted turn counts as stopped by the user.
+ *
+ * Text: interrupted only if the stop path actually settled the turn (or the
+ * stream itself ended aborted). A stop that lands after the answer was
+ * complete leaves it a normal message. If billing is still running after the
+ * wait (a deferred stop outlasting it), a requested stop means the message is
+ * cut off all the same.
+ *
+ * Media: the handler reports its own outcome; `completed` (a result or a
+ * failure was delivered) wins over a stop that arrived later. A requested stop
+ * with no completed outcome means the handler never got to finish (e.g. it
+ * threw), so the turn counts as stopped.
+ */
+export function isTurnAborted({
+  isTextTurn,
+  isStreamAborted,
+  turnOutcome,
+  isSettled,
+  hasStopRequest,
+}: IsTurnAbortedInput): boolean {
+  if (isTextTurn) {
+    return (
+      isStreamAborted ||
+      turnOutcome === "aborted" ||
+      (!isSettled && hasStopRequest)
+    );
+  }
+  return (
+    turnOutcome === "aborted" || (hasStopRequest && turnOutcome !== "completed")
+  );
 }

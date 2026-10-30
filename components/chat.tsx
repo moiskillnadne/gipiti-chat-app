@@ -22,14 +22,10 @@ import { useProjectRef } from "@/contexts/project-context";
 import { useWebSearchRef } from "@/contexts/web-search-context";
 import { useAutoResume } from "@/hooks/use-auto-resume";
 import { useChatStop } from "@/hooks/use-chat-stop";
-import {
-  isImageGenerationModel,
-  isVideoGenerationModel,
-} from "@/lib/ai/models";
 import type { Vote } from "@/lib/db/schema";
 import { ChatSDKError } from "@/lib/errors";
 import { useTranslations } from "@/lib/i18n/translate";
-import { markLastAssistantInterrupted } from "@/lib/messages/interrupted";
+import { markLastAssistantStopped } from "@/lib/messages/interrupted";
 import type { Attachment, ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
 import { fetcher, generateUUID } from "@/lib/utils";
@@ -162,13 +158,8 @@ export function Chat({
       }
     },
     onFinish: ({ isAbort }) => {
-      const modelId = modelIdRef.current;
-      if (
-        isAbort &&
-        !isImageGenerationModel(modelId) &&
-        !isVideoGenerationModel(modelId)
-      ) {
-        setMessages(markLastAssistantInterrupted);
+      if (isAbort) {
+        setMessages(markLastAssistantStopped);
       }
       mutate(unstable_serialize(getChatHistoryPaginationKey));
       // Refresh balance/spend so the composer spend banner re-evaluates its
@@ -273,6 +264,7 @@ export function Chat({
               chatId={id}
               isReadonly={isReadonly}
               messages={messages}
+              onStop={handleStop}
               regenerate={regenerate}
               setMessages={setMessages}
               status={status}

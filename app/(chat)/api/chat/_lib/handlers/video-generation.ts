@@ -13,6 +13,11 @@ import type { AppUsage } from "@/lib/usage";
 import { generateUUID } from "@/lib/utils";
 import { chargeUsageSafe } from "../charge";
 import type { ChatTurnContext, StreamWriter } from "../context";
+import {
+  createMediaPartWriter,
+  MEDIA_FILE_TYPES,
+  type MediaPartBase,
+} from "../media-part";
 
 const DEFAULT_VIDEO_ASPECT_RATIO = "16:9";
 // Re-emit the (reconciled) "generating" part on this cadence to keep the
@@ -99,37 +104,25 @@ export async function runVideoGeneration(
   const providerOptions = buildVideoProviderOptions(videoConfig, settings);
   const cardAspectRatio = normalizeAspectRatio(aspectRatio);
 
+  const mediaPartBase: MediaPartBase = {
+    documentId,
+    mediaType: "video",
+    prompt: userPrompt,
+    modelId: ctx.model,
+    aspectRatio: cardAspectRatio,
+  };
+  const writeMedia = createMediaPartWriter(ctx, writer, mediaPartBase);
+
   // Image-to-video models cannot generate without a seed image; surface the
   // error card instead of letting the gateway fail with a raw provider error.
   if (videoConfig.imageInput === "required" && !referenceImageUrl) {
-    writer.write({
-      id: documentId,
-      type: "data-mediaGeneration",
-      data: {
-        documentId,
-        mediaType: "video",
-        status: "error",
-        prompt: userPrompt,
-        modelId: ctx.model,
-        aspectRatio: cardAspectRatio,
-      },
-    });
+    writeMedia("error");
+    ctx.turnOutcome = "completed";
     return;
   }
 
   const writeGenerating = () => {
-    writer.write({
-      id: documentId,
-      type: "data-mediaGeneration",
-      data: {
-        documentId,
-        mediaType: "video",
-        status: "generating",
-        prompt: userPrompt,
-        modelId: ctx.model,
-        aspectRatio: cardAspectRatio,
-      },
-    });
+    writeMedia("generating");
   };
 
   // Drive the media-preview card and keep the connection alive during the long
@@ -139,6 +132,9 @@ export async function runVideoGeneration(
 
   let videoUrl: string | undefined;
   let costUsd = 0;
+  // A stop is honoured only while the provider is still working: once it has
+  // returned, the result is paid for and is delivered.
+  let isProviderResolved = false;
   try {
     const videoPrompt = referenceImageUrl
       ? { image: referenceImageUrl, text: userPrompt }
@@ -157,8 +153,10 @@ export async function runVideoGeneration(
         resolution: veoResolution as `${number}x${number}`,
       }),
       ...(providerOptions && { providerOptions }),
+      abortSignal: ctx.turnAbort.signal,
     });
 
+    isProviderResolved = true;
     clearInterval(keepAliveInterval);
 
     // Read the provider USD cost from gateway metadata, mirroring image
@@ -172,24 +170,33 @@ export async function runVideoGeneration(
       videoUrl = await uploadGeneratedVideo(result.video.uint8Array);
     }
   } catch (error) {
+    // Cleared first: a keep-alive tick after the final part would resurrect the
+    // card as "generating".
     clearInterval(keepAliveInterval);
-    console.error("Video generation failed:", { modelId: ctx.model, error });
-    writer.write({
-      id: documentId,
-      type: "data-mediaGeneration",
-      data: {
-        documentId,
-        mediaType: "video",
-        status: "error",
-        prompt: userPrompt,
+    if (ctx.turnAbort.signal.aborted && !isProviderResolved) {
+      console.info("[media-stop]", {
+        chatId: ctx.chatId,
         modelId: ctx.model,
-        aspectRatio: cardAspectRatio,
-      },
-    });
+        mediaType: "video",
+        elapsedMs: Date.now() - generationStartTime,
+      });
+      writeMedia("stopped");
+      ctx.turnOutcome = "aborted";
+      return;
+    }
+    console.error("Video generation failed:", { modelId: ctx.model, error });
+    writeMedia("error");
+    ctx.turnOutcome = "completed";
     return;
   }
 
+  ctx.turnOutcome = "completed";
+
   if (!videoUrl) {
+    console.error("Video generation returned no video:", {
+      modelId: ctx.model,
+    });
+    writeMedia("error");
     return;
   }
 
@@ -198,21 +205,15 @@ export async function runVideoGeneration(
   );
   const responseId = `vgen-${generateUUID()}`;
 
-  writer.write({
-    id: documentId,
-    type: "data-mediaGeneration",
-    data: {
-      documentId,
-      mediaType: "video",
-      status: "done",
-      prompt: userPrompt,
-      modelId: ctx.model,
-      url: videoUrl,
-      durationSeconds,
-      aspectRatio: cardAspectRatio,
-    },
+  writeMedia("done", {
+    url: videoUrl,
+    durationSeconds,
   });
-  writer.write({ type: "file", mediaType: "video/mp4", url: videoUrl });
+  writer.write({
+    type: "file",
+    mediaType: MEDIA_FILE_TYPES.video,
+    url: videoUrl,
+  });
 
   await saveDocument({
     id: documentId,

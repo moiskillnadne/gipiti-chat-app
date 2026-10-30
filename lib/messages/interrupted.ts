@@ -56,3 +56,55 @@ export function markLastAssistantInterrupted(
   }
   return [...messages.slice(0, -1), finalizeInterruptedMessage(last)];
 }
+
+const isGeneratingMediaPart = (part: ChatPart): boolean =>
+  part.type === "data-mediaGeneration" && part.data.status === "generating";
+
+/**
+ * Close the media cards of a message that never got their terminal state: a
+ * `generating` card becomes `stopped` (the user pressed Stop) or `error` (the
+ * turn died without a result). Same reference when there is nothing to close.
+ */
+export function finalizeMediaGenerationParts(
+  message: ChatMessage,
+  status: "stopped" | "error"
+): ChatMessage {
+  if (!message.parts.some(isGeneratingMediaPart)) {
+    return message;
+  }
+
+  return {
+    ...message,
+    parts: message.parts.map((part): ChatPart => {
+      if (part.type === "data-mediaGeneration" && isGeneratingMediaPart(part)) {
+        return { ...part, data: { ...part.data, status } };
+      }
+      return part;
+    }),
+  };
+}
+
+/**
+ * Client-side counterpart of a user stop for any turn kind. A media turn (the
+ * trailing assistant message has a media card) turns its generating cards into
+ * `stopped` ones and carries no interrupted line: the card is the marker.
+ * Anything else is a text turn and is marked interrupted. Decided by message
+ * content, not by the selected model. A trailing non-assistant message (or an
+ * empty list) is returned as-is, same reference.
+ */
+export function markLastAssistantStopped(
+  messages: ChatMessage[]
+): ChatMessage[] {
+  const last = messages.at(-1);
+  if (!last || last.role !== "assistant") {
+    return messages;
+  }
+
+  const isMediaTurn = last.parts.some(
+    (part) => part.type === "data-mediaGeneration"
+  );
+  const stopped = isMediaTurn
+    ? finalizeMediaGenerationParts(last, "stopped")
+    : finalizeInterruptedMessage(last);
+  return stopped === last ? messages : [...messages.slice(0, -1), stopped];
+}
