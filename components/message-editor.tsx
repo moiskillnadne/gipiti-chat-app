@@ -9,7 +9,9 @@ import {
   useRef,
   useState,
 } from "react";
+import { toast } from "sonner";
 import { deleteTrailingMessages } from "@/app/(chat)/actions";
+import { useTranslations } from "@/lib/i18n/translate";
 import type { ChatMessage } from "@/lib/types";
 import { getTextFromMessage } from "@/lib/utils";
 import { Button } from "./ui/button";
@@ -28,6 +30,7 @@ export function MessageEditor({
   setMessages,
   regenerate,
 }: MessageEditorProps) {
+  const t = useTranslations("common.toasts");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const [draftContent, setDraftContent] = useState<string>(
@@ -80,9 +83,16 @@ export function MessageEditor({
           onClick={async () => {
             setIsSubmitting(true);
 
-            await deleteTrailingMessages({
-              id: message.id,
-            });
+            try {
+              await deleteTrailingMessages({
+                id: message.id,
+              });
+            } catch {
+              // Keep the editor open so the user does not lose the draft.
+              toast.error(t("actionFailed"));
+              setIsSubmitting(false);
+              return;
+            }
 
             setMessages((messages) => {
               const index = messages.findIndex((m) => m.id === message.id);
