@@ -544,3 +544,34 @@ export function computeAbortedTurnUsage({
     gatewayCostUsd: totalUsd > 0 ? totalUsd : undefined,
   });
 }
+
+type ErroredTurnUsageInput = {
+  /** Steps that finished before the stream failed. */
+  steps: readonly AbortedTurnStep[];
+  accumulator: ImageGenerationUsageAccumulator;
+  modelId: string;
+  catalog: ModelCatalog | undefined;
+};
+
+/**
+ * Usage record for a turn whose stream failed (provider or network error, no
+ * user stop). The steps that finished are billed at the gateway-reported cost
+ * (TokenLens as the fallback), plus the image-tool cost already spent. The step
+ * that failed is never estimated: the user did not get its output.
+ */
+export function computeErroredTurnUsage({
+  steps,
+  accumulator,
+  modelId,
+  catalog,
+}: ErroredTurnUsageInput): AppUsage {
+  return mergeUsage({
+    usage: sumStepUsage(steps),
+    accumulator,
+    modelId,
+    catalog,
+    // No finished step means no text to pay for: price it at zero instead of
+    // asking TokenLens about an empty usage record.
+    gatewayCostUsd: steps.length > 0 ? sumGatewayCostUsd(steps) : 0,
+  });
+}

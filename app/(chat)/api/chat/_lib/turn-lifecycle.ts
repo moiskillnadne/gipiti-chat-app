@@ -5,9 +5,10 @@ import type { AbortedTurnStep, InFlightStepTracker } from "./usage";
  * How a text turn ended, as far as billing is concerned:
  *  - `completed`: the normal `onFinish` path billed it;
  *  - `aborted`: the stop path billed it (the persisted message is interrupted);
+ *  - `errored`: the stream failed without a stop; the finished steps were billed;
  *  - `skipped`: stopped before any model request was made; nothing was billed.
  */
-export type TurnOutcome = "completed" | "aborted" | "skipped";
+export type TurnOutcome = "completed" | "aborted" | "errored" | "skipped";
 
 /** Resolved once the turn is fully billed (or known not to be billed). */
 export type TurnSettlement = {
@@ -32,6 +33,11 @@ type AbortedBillingInput = {
   atStepBoundary: boolean;
 };
 
+type ErroredBillingInput = {
+  /** Steps that finished before the stream failed (a snapshot, safe to keep). */
+  steps: AbortedTurnStep[];
+};
+
 /**
  * Tools whose cost lands in the turn's accumulator only when they return. A
  * forced abort would settle the turn before that, leaving the cost unbilled.
@@ -47,12 +53,17 @@ type TurnLifecycleOptions = {
   settlement: TurnSettlement;
   /** Bill the stopped turn. Errors are caught and logged by the lifecycle. */
   billAborted: (input: AbortedBillingInput) => Promise<void>;
+  /**
+   * Bill a turn whose stream failed without a stop. Errors are caught and
+   * logged by the lifecycle.
+   */
+  billErrored: (input: ErroredBillingInput) => Promise<void>;
   onOutcome: (outcome: TurnOutcome) => void;
 };
 
 /**
  * The state machine around one `streamText` call: which of the terminal paths
- * (normal finish, stop, error) bills the turn, exactly once, and when the
+ * (normal finish, stop, stream error) bills the turn, exactly once, and when the
  * turn's settlement promise resolves.
  *
  * Wire `callbacks` into `streamText`, `onStreamError` into
@@ -63,6 +74,7 @@ export function createTurnLifecycle({
   tracker,
   settlement,
   billAborted,
+  billErrored,
   onOutcome,
 }: TurnLifecycleOptions) {
   // Our own record of finished steps. The SDK's `steps` array handed to
@@ -71,11 +83,13 @@ export function createTurnLifecycle({
   // this one changes in the same tick as the tracker, so snapshots of both
   // always agree about which step is finished and which one is running.
   const finishedSteps: AbortedTurnStep[] = [];
-  // Set by whichever of abort / normal completion bills the turn first.
+  // Set by whichever of abort / error / normal completion bills the turn first.
   let settled = false;
   let pendingBilling: Promise<void> | undefined;
   // The abort was released by the end of a step, not in the middle of one.
   let atStepBoundary = false;
+  // The stream reported an error while no stop was in effect.
+  let streamErrored = false;
 
   // A deferred stop must not run while tool calls are in flight.
   turnAbort.setAbortGate(() => tracker.pendingToolCalls() === 0);
@@ -83,26 +97,43 @@ export function createTurnLifecycle({
     LATE_BILLED_TOOLS.some((name) => tracker.hasPendingTool(name))
   );
 
-  const settleAborted = () => {
+  /** Claim the turn for `outcome` and bill it in the background, once. */
+  const settleOnce = (
+    outcome: "aborted" | "errored",
+    bill: () => Promise<void>
+  ) => {
     if (settled) {
       return;
     }
     settled = true;
-
-    // Snapshot synchronously and together, before any await.
-    const steps = [...finishedSteps];
-    const inFlightOutputText = tracker.outputText();
-    onOutcome("aborted");
+    onOutcome(outcome);
 
     pendingBilling = (async () => {
       try {
-        await billAborted({ steps, inFlightOutputText, atStepBoundary });
+        await bill();
       } catch (err) {
-        console.warn("[chat-stop] aborted settlement failed", err);
+        console.warn(`[chat-turn] ${outcome} settlement failed`, err);
       } finally {
         settlement.resolve();
       }
     })();
+  };
+
+  const settleAborted = () => {
+    // Snapshot synchronously and together, before any await.
+    const input = {
+      steps: [...finishedSteps],
+      inFlightOutputText: tracker.outputText(),
+      atStepBoundary,
+    };
+    settleOnce("aborted", () => billAborted(input));
+  };
+
+  // Only the finished steps: the step that failed is not estimated, the user
+  // did not get it.
+  const settleErrored = () => {
+    const input = { steps: [...finishedSteps] };
+    settleOnce("errored", () => billErrored(input));
   };
 
   // A deferral that timed out: the stream may be stuck behind a tool that never
@@ -138,14 +169,19 @@ export function createTurnLifecycle({
     settleAborted,
 
     /**
-     * Safety net for streams that error instead of aborting (an abort that
-     * reached the stream as a plain error): when the user had stopped the
-     * turn, bill it as stopped.
+     * Wire into `streamText({ onError })` and `consumeStream({ onError })`.
+     * When the user had stopped the turn, the error is an abort that reached
+     * the stream as a plain error: bill it as stopped. Otherwise the turn is
+     * billed as errored when the stream ends, unless `onFinish` billed it
+     * first: an error part does not always end the turn, and `onFinish` always
+     * completes before the stream ends.
      */
     onStreamError: () => {
       if (turnAbort.signal.aborted) {
         settleAborted();
+        return;
       }
+      streamErrored = true;
     },
 
     /**
@@ -177,8 +213,15 @@ export function createTurnLifecycle({
       settlement.resolve();
     },
 
-    /** The text stream finished consuming: no terminal path is left to run. */
+    /**
+     * The text stream finished consuming: no terminal path is left to run. A
+     * stream that failed without reaching `onFinish` or `onAbort` is billed
+     * here for its finished steps.
+     */
     streamEnded: async () => {
+      if (streamErrored) {
+        settleErrored();
+      }
       await pendingBilling;
       settlement.resolve();
     },

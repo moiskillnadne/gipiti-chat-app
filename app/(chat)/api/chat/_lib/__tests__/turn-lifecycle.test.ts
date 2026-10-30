@@ -21,6 +21,7 @@ import {
 } from "../turn-lifecycle";
 import {
   computeAbortedTurnUsage,
+  computeErroredTurnUsage,
   createInFlightStepTracker,
   usageChargeUsd,
 } from "../usage";
@@ -56,11 +57,17 @@ const until = (condition: () => boolean) =>
 function createControlledModel() {
   const controllers: ReadableStreamDefaultController<LanguageModelV3StreamPart>[] =
     [];
+  let nextRequestError: Error | undefined;
   const model = new MockLanguageModelV3({
     doStream: ({ abortSignal }) => {
       // A real fetch on an already aborted signal rejects at once.
       if (abortSignal?.aborted) {
         return Promise.reject(abortSignal.reason);
+      }
+      if (nextRequestError) {
+        const error = nextRequestError;
+        nextRequestError = undefined;
+        return Promise.reject(error);
       }
       const stream = new ReadableStream<LanguageModelV3StreamPart>({
         start(controller) {
@@ -89,7 +96,22 @@ function createControlledModel() {
       }
     }
   };
-  return { model, push, calls: () => controllers.length };
+  /** Error the newest model stream, like a dropped connection mid-response. */
+  const fail = async (error: Error) => {
+    await until(() => controllers.length > 0);
+    controllers.at(-1)?.error(error);
+  };
+  /** Make the next model request fail before it streams (e.g. an HTTP 500). */
+  const rejectNextRequest = (error: Error) => {
+    nextRequestError = error;
+  };
+  return {
+    model,
+    push,
+    fail,
+    rejectNextRequest,
+    calls: () => controllers.length,
+  };
 }
 
 const textStart = (): LanguageModelV3StreamPart => ({
@@ -103,6 +125,7 @@ const textDelta = (delta: string): LanguageModelV3StreamPart => ({
 });
 
 type BillAborted = Parameters<typeof createTurnLifecycle>[0]["billAborted"];
+type BillErrored = Parameters<typeof createTurnLifecycle>[0]["billErrored"];
 
 type Harness = ReturnType<typeof setup>;
 
@@ -112,6 +135,7 @@ function setup({
   abortControl,
   abortOptions,
   bill,
+  billError,
 }: {
   tools?: Parameters<typeof streamText>[0]["tools"];
   /** Replace the turn abort (e.g. to abort with a non-AbortError reason). */
@@ -119,13 +143,19 @@ function setup({
   abortOptions?: TurnAbortOptions;
   /** What billing does with the stopped turn (default: nothing). */
   bill?: BillAborted;
+  /** What billing does with a turn whose stream failed (default: nothing). */
+  billError?: BillErrored;
 } = {}) {
-  const { model, push, calls } = createControlledModel();
+  const { model, push, fail, rejectNextRequest, calls } =
+    createControlledModel();
   const turnAbort = abortControl ?? createTurnAbort(abortOptions);
   const tracker = createInFlightStepTracker();
   const settlement = createTurnSettlement();
   const outcomes: TurnOutcome[] = [];
   const billAborted = vi.fn<BillAborted>(bill ?? (() => Promise.resolve()));
+  const billErrored = vi.fn<BillErrored>(
+    billError ?? (() => Promise.resolve())
+  );
   const billCompleted = vi.fn();
 
   const lifecycle = createTurnLifecycle({
@@ -133,6 +163,7 @@ function setup({
     tracker,
     settlement,
     billAborted,
+    billErrored,
     onOutcome: (outcome) => outcomes.push(outcome),
   });
 
@@ -191,12 +222,15 @@ function setup({
 
   return {
     push,
+    fail,
+    rejectNextRequest,
     calls,
     turnAbort,
     tracker,
     settlement,
     outcomes,
     billAborted,
+    billErrored,
     billCompleted,
     lifecycle,
     partTypes,
@@ -294,16 +328,19 @@ describe("turn lifecycle with a real streamText", () => {
     expect(h.outcomes).toEqual(["completed"]);
   });
 
-  it("a stream that errors without a stop resolves the settlement and bills nothing", async () => {
+  it("an error part followed by a normal finish is billed once, by the completion path", async () => {
     const h = setup();
     await h.push(textStart(), textDelta("x"), {
       type: "error",
-      error: new Error("provider down"),
+      error: new Error("provider hiccup"),
     });
     await h.push(stopFinish);
     await h.finished();
 
+    expect(h.billCompleted).toHaveBeenCalledTimes(1);
+    expect(h.billErrored).not.toHaveBeenCalled();
     expect(h.billAborted).not.toHaveBeenCalled();
+    expect(h.outcomes).toEqual(["completed"]);
     expect(h.turnAbort.signal.aborted).toBe(false);
   });
 
@@ -580,6 +617,178 @@ describe("billing of a deferred stop", () => {
   });
 });
 
+describe("billing of a stream error (no stop)", () => {
+  const STEP_COST_USD = 0.5;
+  const IMAGE_COST_USD = 0.25;
+  const pricedToolStep: LanguageModelV3StreamPart = {
+    ...toolCallsFinish,
+    providerMetadata: { gateway: { cost: String(STEP_COST_USD) } },
+  };
+  const accumulator = () => ({
+    totalInputTokens: 0,
+    totalOutputTokens: 0,
+    totalCost: 0,
+    generationCount: 0,
+  });
+
+  /** Billing exactly as text-chat.ts does it, minus the DB. */
+  const realBilling = (
+    imageUsage: ReturnType<typeof accumulator>,
+    sink: { usage?: ReturnType<typeof computeErroredTurnUsage> }
+  ): BillErrored => {
+    return ({ steps }) => {
+      sink.usage = computeErroredTurnUsage({
+        steps,
+        accumulator: imageUsage,
+        modelId: "openai/gpt-4o",
+        catalog: undefined,
+      });
+      return Promise.resolve();
+    };
+  };
+
+  it("a dropped connection in step 2 bills step 1 and the image cost, once, without an estimate", async () => {
+    const imageUsage = accumulator();
+    const sink: { usage?: ReturnType<typeof computeErroredTurnUsage> } = {};
+    const drawImage = tool({
+      description: "image tool",
+      inputSchema: z.object({}),
+      execute: () => {
+        imageUsage.totalCost += IMAGE_COST_USD;
+        imageUsage.generationCount += 1;
+        return Promise.resolve("image.png");
+      },
+    });
+    const h = setup({
+      tools: { drawImage },
+      billError: realBilling(imageUsage, sink),
+    });
+    await h.push(
+      {
+        type: "tool-call",
+        toolCallId: "i",
+        toolName: "drawImage",
+        input: "{}",
+      },
+      pricedToolStep
+    );
+    await until(() => h.calls() === 2);
+    await h.push(textStart(), textDelta("b".repeat(4000)));
+    await waitForOutput(h, "b".repeat(4000));
+
+    await h.fail(new Error("socket hang up"));
+    await h.finished();
+
+    // Neither onFinish nor onAbort ran: only the error path billed the turn.
+    expect(h.billCompleted).not.toHaveBeenCalled();
+    expect(h.billAborted).not.toHaveBeenCalled();
+    expect(h.billErrored).toHaveBeenCalledTimes(1);
+    expect(h.billErrored.mock.calls[0]?.[0].steps).toHaveLength(1);
+    expect(h.outcomes).toEqual(["errored"]);
+    // Step 1 at its gateway cost plus the image; the 4000 chars of the failed
+    // step 2 (~1000 tokens) are not estimated.
+    expect(usageChargeUsd(sink.usage as never)).toBeCloseTo(
+      STEP_COST_USD + IMAGE_COST_USD
+    );
+    expect(sink.usage?.inputTokens).toBe(10);
+    expect(sink.usage?.outputTokens).toBe(5);
+    expect(h.turnAbort.signal.aborted).toBe(false);
+  });
+
+  it("a dropped connection in step 1 bills only the image already generated", async () => {
+    const imageUsage = accumulator();
+    const sink: { usage?: ReturnType<typeof computeErroredTurnUsage> } = {};
+    const drawImage = tool({
+      description: "image tool",
+      inputSchema: z.object({}),
+      execute: () => {
+        imageUsage.totalCost += IMAGE_COST_USD;
+        return Promise.resolve("image.png");
+      },
+    });
+    const h = setup({
+      tools: { drawImage },
+      billError: realBilling(imageUsage, sink),
+    });
+    await h.push(textStart(), textDelta("Here it is"), {
+      type: "tool-call",
+      toolCallId: "i",
+      toolName: "drawImage",
+      input: "{}",
+    });
+    // The tool runs as soon as its call arrives, before the step finishes.
+    await until(() => imageUsage.totalCost > 0);
+
+    await h.fail(new Error("socket hang up"));
+    await h.finished();
+
+    expect(h.billErrored).toHaveBeenCalledTimes(1);
+    expect(h.billErrored).toHaveBeenCalledWith({ steps: [] });
+    expect(usageChargeUsd(sink.usage as never)).toBeCloseTo(IMAGE_COST_USD);
+    expect(h.outcomes).toEqual(["errored"]);
+  });
+
+  it("a first request that fails settles the turn with nothing to bill", async () => {
+    const imageUsage = accumulator();
+    const sink: { usage?: ReturnType<typeof computeErroredTurnUsage> } = {};
+    // Earlier tests leave console.warn spied: start from a clean call list.
+    const warn = vi.spyOn(console, "warn").mockImplementation(vi.fn());
+    warn.mockClear();
+    const h = setup({ billError: realBilling(imageUsage, sink) });
+    h.rejectNextRequest(new Error("HTTP 500"));
+    await h.finished();
+
+    expect(h.billErrored).toHaveBeenCalledTimes(1);
+    expect(h.billErrored).toHaveBeenCalledWith({ steps: [] });
+    expect(sink.usage?.costUSD?.totalUSD).toBe(0);
+    // An empty turn is priced at zero, not reported as an unpriced model.
+    expect(warn).not.toHaveBeenCalledWith(
+      expect.stringContaining("[ALARM-USAGE]No gateway cost"),
+      expect.anything()
+    );
+    expect(h.outcomes).toEqual(["errored"]);
+  });
+
+  it("a failed step 2 request that still reaches onFinish is billed once, by the completion path", async () => {
+    const quick = tool({
+      description: "quick tool",
+      inputSchema: z.object({}),
+      execute: () => Promise.resolve("ok"),
+    });
+    const h = setup({ tools: { quick } });
+    await h.push({
+      type: "tool-call",
+      toolCallId: "q",
+      toolName: "quick",
+      input: "{}",
+    });
+    // Step 1's request is open: the failure applies to step 2's request.
+    h.rejectNextRequest(new Error("HTTP 500"));
+    await h.push(pricedToolStep);
+    await h.finished();
+
+    expect(h.billCompleted).toHaveBeenCalledTimes(1);
+    expect(h.billErrored).not.toHaveBeenCalled();
+    expect(h.billAborted).not.toHaveBeenCalled();
+    expect(h.outcomes).toEqual(["completed"]);
+  });
+
+  it("an error after a stop is billed as stopped, not as errored", async () => {
+    const controller = new AbortController();
+    const abortControl = { ...createTurnAbort(), signal: controller.signal };
+    const h = setup({ abortControl });
+    await h.push(textStart(), textDelta("partial"));
+    await waitForOutput(h, "partial");
+
+    controller.abort("user-stop");
+    await h.finished();
+
+    expect(h.billAborted).toHaveBeenCalledTimes(1);
+    expect(h.billErrored).not.toHaveBeenCalled();
+    expect(h.outcomes).toEqual(["aborted"]);
+  });
+});
+
 describe("forced abort of a hung tool", () => {
   it("settles the turn, bills it and closes the UI stream after the cap", async () => {
     const hung = tool({
@@ -671,15 +880,25 @@ describe("turn lifecycle callbacks", () => {
   const build = () => {
     const tracker = createInFlightStepTracker();
     const billAborted = vi.fn(() => Promise.resolve());
+    const billErrored = vi.fn<BillErrored>(() => Promise.resolve());
+    const onOutcome = vi.fn<(outcome: TurnOutcome) => void>();
     const settlement = createTurnSettlement();
     const lifecycle = createTurnLifecycle({
       turnAbort: createTurnAbort(),
       tracker,
       settlement,
       billAborted,
-      onOutcome: vi.fn(),
+      billErrored,
+      onOutcome,
     });
-    return { tracker, billAborted, settlement, lifecycle };
+    return {
+      tracker,
+      billAborted,
+      billErrored,
+      onOutcome,
+      settlement,
+      lifecycle,
+    };
   };
 
   it("snapshots finished steps and in-flight text together, immune to later pushes", () => {
@@ -733,6 +952,7 @@ describe("turn lifecycle callbacks", () => {
         tracker,
         settlement: createTurnSettlement(),
         billAborted,
+        billErrored: () => Promise.resolve(),
         onOutcome: vi.fn(),
       });
       turnAbort.requestAbort();
@@ -770,12 +990,93 @@ describe("turn lifecycle callbacks", () => {
       tracker,
       settlement,
       billAborted: () => Promise.reject(new Error("db down")),
+      billErrored: () => Promise.resolve(),
       onOutcome: vi.fn(),
     });
 
     lifecycle.settleAborted();
 
     await expect(settlement.promise).resolves.toBeUndefined();
+  });
+
+  describe("stream error without a stop", () => {
+    it("bills the finished steps once when the stream ends", async () => {
+      const { lifecycle, tracker, billErrored, onOutcome, settlement } =
+        build();
+      lifecycle.callbacks.onStepFinish(step(1) as never);
+      tracker.onChunk({ type: "text-delta", text: "cut off" });
+
+      lifecycle.onStreamError();
+      // Nothing is billed before the stream ends: onFinish may still run.
+      expect(billErrored).not.toHaveBeenCalled();
+      // streamText's onError and consumeStream's onError can both fire.
+      lifecycle.onStreamError();
+      await lifecycle.streamEnded();
+
+      expect(billErrored).toHaveBeenCalledTimes(1);
+      // The step that failed is not part of the bill.
+      expect(billErrored).toHaveBeenCalledWith({ steps: [step(1)] });
+      expect(onOutcome).toHaveBeenCalledWith("errored");
+      await expect(settlement.promise).resolves.toBeUndefined();
+    });
+
+    it("is not billed again when onFinish already billed the turn", async () => {
+      const { lifecycle, billErrored, onOutcome } = build();
+
+      lifecycle.onStreamError();
+      expect(lifecycle.beginFinish({ inputTokens: 10, outputTokens: 5 })).toBe(
+        true
+      );
+      lifecycle.completed();
+      await lifecycle.streamEnded();
+
+      expect(billErrored).not.toHaveBeenCalled();
+      expect(onOutcome.mock.calls).toEqual([["completed"]]);
+    });
+
+    it("refuses the normal and stop paths once settled as errored", async () => {
+      const { lifecycle, billAborted, billErrored } = build();
+
+      lifecycle.onStreamError();
+      await lifecycle.streamEnded();
+      lifecycle.settleAborted();
+
+      expect(lifecycle.beginFinish({ inputTokens: 10, outputTokens: 5 })).toBe(
+        false
+      );
+      expect(billAborted).not.toHaveBeenCalled();
+      expect(billErrored).toHaveBeenCalledTimes(1);
+    });
+
+    it("a stream that ends without an error is not billed as errored", async () => {
+      const { lifecycle, billErrored } = build();
+
+      await lifecycle.streamEnded();
+
+      expect(billErrored).not.toHaveBeenCalled();
+    });
+
+    it("resolves the settlement even when billing throws", async () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(vi.fn());
+      const settlement = createTurnSettlement();
+      const lifecycle = createTurnLifecycle({
+        turnAbort: createTurnAbort(),
+        tracker: createInFlightStepTracker(),
+        settlement,
+        billAborted: () => Promise.resolve(),
+        billErrored: () => Promise.reject(new Error("db down")),
+        onOutcome: vi.fn(),
+      });
+
+      lifecycle.onStreamError();
+      await lifecycle.streamEnded();
+
+      await expect(settlement.promise).resolves.toBeUndefined();
+      expect(warn).toHaveBeenCalledWith(
+        "[chat-turn] errored settlement failed",
+        expect.any(Error)
+      );
+    });
   });
 
   it("failed() resolves the settlement for a handler that threw", async () => {
