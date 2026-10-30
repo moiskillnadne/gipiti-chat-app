@@ -33,7 +33,10 @@ import {
 } from "@/lib/constants";
 import { chargeUsageSafe } from "../charge";
 import type { ChatTurnContext, StreamWriter } from "../context";
-import { createTurnLifecycle } from "../turn-lifecycle";
+import {
+  closeStreamOnForcedAbort,
+  createTurnLifecycle,
+} from "../turn-lifecycle";
 import {
   computeAbortedTurnUsage,
   createInFlightStepTracker,
@@ -290,13 +293,14 @@ async function streamTextTurn(
     onOutcome: (outcome) => {
       ctx.turnOutcome = outcome;
     },
-    billAborted: async ({ steps, inFlightOutputText }) => {
+    billAborted: async ({ steps, inFlightOutputText, atStepBoundary }) => {
       const catalog = await getTokenlensCatalog();
       const resolvedModelId = myProvider.languageModel(model).modelId;
       const merged = computeAbortedTurnUsage({
         steps,
         inFlightOutputText,
         promptText: extractPromptText(system, chatMessages),
+        atStepBoundary,
         accumulator: ctx.imageUsageAccumulator,
         modelId: resolvedModelId,
         catalog,
@@ -364,18 +368,9 @@ async function streamTextTurn(
       functionId: "stream-text",
     },
     onFinish: async ({ usage, totalUsage, steps }) => {
-      // A stop after at least one finished step still ends up here, with empty
-      // total usage: bill it through the abort path. A turn that completed
-      // before the stop landed has real usage and is charged normally.
-      // The lifecycle keeps the two paths from charging a turn twice.
-      const hasTotalUsage =
-        totalUsage.inputTokens !== undefined ||
-        totalUsage.outputTokens !== undefined;
-      if (ctx.turnAbort.signal.aborted && !hasTotalUsage) {
-        lifecycle.settleAborted();
-        return;
-      }
-      if (!lifecycle.claimCompletion()) {
+      // Stop path vs. normal charge is decided (and kept exclusive) by the
+      // lifecycle.
+      if (!lifecycle.beginFinish(totalUsage)) {
         return;
       }
 
@@ -440,6 +435,9 @@ async function streamTextTurn(
       console.warn("[chat-stream] stream settlement failed", error);
     });
   writer.merge(
-    result.toUIMessageStream({ sendReasoning: true, sendSources: true })
+    closeStreamOnForcedAbort(
+      result.toUIMessageStream({ sendReasoning: true, sendSources: true }),
+      ctx.turnAbort
+    )
   );
 }

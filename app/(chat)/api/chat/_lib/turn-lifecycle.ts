@@ -25,7 +25,15 @@ type AbortedBillingInput = {
   steps: AbortedTurnStep[];
   /** What the running step had generated when the stop landed. */
   inFlightOutputText: string;
+  /**
+   * The stop was released at the end of a step (a deferred stop): no further
+   * step was running, so nothing beyond `steps` should be estimated.
+   */
+  atStepBoundary: boolean;
 };
+
+/** The part of `streamText`'s `totalUsage` the finish decision looks at. */
+type FinishUsage = { inputTokens?: number; outputTokens?: number };
 
 type TurnLifecycleOptions = {
   turnAbort: TurnAbort;
@@ -60,6 +68,8 @@ export function createTurnLifecycle({
   // Set by whichever of abort / normal completion bills the turn first.
   let settled = false;
   let pendingBilling: Promise<void> | undefined;
+  // The abort was released by the end of a step, not in the middle of one.
+  let atStepBoundary = false;
 
   // A deferred stop must not run while tool calls are in flight.
   turnAbort.setAbortGate(() => tracker.pendingToolCalls() === 0);
@@ -77,7 +87,7 @@ export function createTurnLifecycle({
 
     pendingBilling = (async () => {
       try {
-        await billAborted({ steps, inFlightOutputText });
+        await billAborted({ steps, inFlightOutputText, atStepBoundary });
       } catch (err) {
         console.warn("[chat-stop] aborted settlement failed", err);
       } finally {
@@ -85,6 +95,10 @@ export function createTurnLifecycle({
       }
     })();
   };
+
+  // A deferral that timed out: the stream may be stuck behind a tool that never
+  // returns and then never reports the abort, so settle the turn right here.
+  turnAbort.onForcedAbort(settleAborted);
 
   return {
     /** Spread into `streamText({...})`. */
@@ -96,15 +110,17 @@ export function createTurnLifecycle({
         chunk: Parameters<typeof tracker.onChunk>[0];
       }) => {
         tracker.onChunk(chunk);
-        // A deferred stop may have been waiting for this tool result.
-        turnAbort.flush();
       },
       onStepFinish: (step: AbortedTurnStep) => {
         finishedSteps.push(step);
         tracker.reset();
-        // `onChunk` never reports a tool error: the end of the step is the
-        // other point where a deferred stop learns that the tools are done.
+        // A deferred stop is released only here, never on a tool result: the
+        // step then ends with its real usage recorded (aborting on the result
+        // would drop the finish-step and force an estimate), and a tool error,
+        // which `onChunk` never reports, is covered the same way.
+        const wasAborted = turnAbort.signal.aborted;
         turnAbort.flush();
+        atStepBoundary = !wasAborted && turnAbort.signal.aborted;
       },
       onAbort: () => settleAborted(),
     },
@@ -123,8 +139,22 @@ export function createTurnLifecycle({
       }
     },
 
-    /** Normal path: returns false when the stop path already billed the turn. */
-    claimCompletion: (): boolean => {
+    /**
+     * `streamText`'s `onFinish` decision. A stop after at least one finished
+     * step still ends up in `onFinish`, with empty total usage: that is billed
+     * through the stop path. A turn that completed before the stop landed has
+     * real usage and is charged normally. Returns true when the caller must
+     * bill the turn normally (and then call `completed`); false when the stop
+     * path handled it, or already billed it.
+     */
+    beginFinish: (totalUsage: FinishUsage): boolean => {
+      const hasTotalUsage =
+        totalUsage.inputTokens !== undefined ||
+        totalUsage.outputTokens !== undefined;
+      if (turnAbort.signal.aborted && !hasTotalUsage) {
+        settleAborted();
+        return false;
+      }
       if (settled) {
         return false;
       }
@@ -152,20 +182,84 @@ export function createTurnLifecycle({
 }
 
 /**
- * Wait for a turn's settlement, but never longer than `timeoutMs`: persisting
- * the message (and finishing the request) matters more than a slow charge.
+ * End `stream` when the stop is forced. A hung tool keeps `streamText` from
+ * ever closing its stream (it cannot even report the abort), and with it the
+ * UI stream whose `onFinish` persists the message. Closing the UI stream here
+ * lets the partial message be saved while the tool is left behind.
  */
-export async function waitForSettlement(
-  settlement: TurnSettlement,
+export function closeStreamOnForcedAbort<T>(
+  stream: ReadableStream<T>,
+  turnAbort: TurnAbort
+): ReadableStream<T> {
+  const reader = stream.getReader();
+  let closed = false;
+
+  return new ReadableStream<T>({
+    start(controller) {
+      turnAbort.onForcedAbort(() => {
+        if (closed) {
+          return;
+        }
+        closed = true;
+        reader.cancel().catch(() => {
+          // The source is abandoned either way.
+        });
+        controller.close();
+      });
+    },
+    async pull(controller) {
+      try {
+        const { done, value } = await reader.read();
+        if (closed) {
+          return;
+        }
+        if (done) {
+          closed = true;
+          controller.close();
+          return;
+        }
+        controller.enqueue(value);
+      } catch (error) {
+        if (!closed) {
+          closed = true;
+          controller.error(error);
+        }
+      }
+    },
+    cancel(reason) {
+      closed = true;
+      return reader.cancel(reason);
+    },
+  });
+}
+
+/**
+ * Wait for `promise`, but never longer than `timeoutMs`. Resolves true when the
+ * promise settled first, false on timeout.
+ */
+export async function waitWithTimeout(
+  promise: Promise<unknown>,
   timeoutMs: number
-): Promise<void> {
+): Promise<boolean> {
   let timer: ReturnType<typeof setTimeout> | undefined;
-  const timeout = new Promise<void>((resolve) => {
-    timer = setTimeout(resolve, timeoutMs);
+  const timeout = new Promise<false>((resolve) => {
+    timer = setTimeout(() => resolve(false), timeoutMs);
   });
   try {
-    await Promise.race([settlement.promise, timeout]);
+    return await Promise.race([promise.then(() => true), timeout]);
   } finally {
     clearTimeout(timer);
   }
+}
+
+/**
+ * Wait for a turn's settlement, but never longer than `timeoutMs`: persisting
+ * the message (and finishing the request) matters more than a slow charge.
+ * Resolves false on timeout.
+ */
+export function waitForSettlement(
+  settlement: TurnSettlement,
+  timeoutMs: number
+): Promise<boolean> {
+  return waitWithTimeout(settlement.promise, timeoutMs);
 }

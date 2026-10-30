@@ -80,11 +80,15 @@ export function Chat({
   // `stop` comes from useChat below; the hook is wired through a ref-backed
   // callback so the transport can be built before useChat returns.
   const stopRef = useRef<() => Promise<void>>(() => Promise.resolve());
-  const messagesRef = useRef<ChatMessage[]>(initialMessages);
-  const { handleStop, waitForPendingStop, fetchWithResumeAbort } = useChatStop({
+  const {
+    handleStop,
+    waitForPendingStop,
+    fetchWithResumeAbort,
+    beginTurn,
+    rememberTurn,
+  } = useChatStop({
     chatId: id,
     stop: () => stopRef.current(),
-    getMessages: () => messagesRef.current,
   });
 
   const {
@@ -108,6 +112,7 @@ export function Chat({
         await waitForPendingStop();
         const body = {
           id: request.id,
+          turnId: beginTurn(),
           message: request.messages.at(-1),
           selectedChatModel: modelIdRef.current,
           thinkingSetting: thinkingSettingRef.current,
@@ -133,6 +138,9 @@ export function Chat({
       setDataStream((ds) => (ds ? [...ds, dataPart] : []));
       if (dataPart.type === "data-usage") {
         setUsage(dataPart.data);
+      }
+      if (dataPart.type === "data-turnId") {
+        rememberTurn(dataPart.data);
       }
       if (dataPart.type === "data-imageGenerationFinish") {
         const generationId = dataPart.data.responseId;
@@ -206,7 +214,6 @@ export function Chat({
   });
 
   stopRef.current = stop;
-  messagesRef.current = messages;
 
   const searchParams = useSearchParams();
   const query = searchParams.get("query");

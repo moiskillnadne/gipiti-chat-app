@@ -433,6 +433,11 @@ type AbortedTurnUsageInput = {
   inFlightOutputText: string;
   /** Text sent to the model for the first step (system prompt + history). */
   promptText: string;
+  /**
+   * The stop took effect exactly when a step finished (a deferred stop released
+   * by `onStepFinish`): no further step was started, so none is estimated.
+   */
+  atStepBoundary?: boolean;
   accumulator: ImageGenerationUsageAccumulator;
   modelId: string;
   catalog: ModelCatalog | undefined;
@@ -448,6 +453,7 @@ export function computeAbortedTurnUsage({
   steps,
   inFlightOutputText,
   promptText,
+  atStepBoundary = false,
   accumulator,
   modelId,
   catalog,
@@ -463,9 +469,10 @@ export function computeAbortedTurnUsage({
   // The stop can land right after the model's final step (or after the turn
   // fully completed): then nothing was running and there is nothing to estimate.
   const hasRunningStep =
-    lastStep === undefined ||
-    inFlightOutputText !== "" ||
-    !TERMINAL_FINISH_REASONS.has(lastStep.finishReason ?? "");
+    !atStepBoundary &&
+    (lastStep === undefined ||
+      inFlightOutputText !== "" ||
+      !TERMINAL_FINISH_REASONS.has(lastStep.finishReason ?? ""));
 
   const runningInputTokens = (() => {
     if (!hasRunningStep) {

@@ -10,7 +10,23 @@
  * A stop request does not always abort at once. While tool calls are running
  * the abort is deferred (see `setAbortGate`): aborting mid-tool drops the tool
  * result that is about to arrive, yet its cost is already in the accumulator.
+ * The deferral is bounded: a tool that never returns would otherwise keep the
+ * turn (and its billing) alive until the function is killed.
  */
+
+/** Longest a stop may wait for running tools after it was requested. */
+export const DEFERRAL_CAP_MS = 45_000;
+/** The forced abort never lands later than this before the function deadline. */
+export const DEADLINE_MARGIN_MS = 30_000;
+
+export type TurnAbortOptions = {
+  /** When the turn began (epoch ms); anchors the function deadline. */
+  startedAt?: number;
+  /** The route's `maxDuration` in ms; without it only the cap applies. */
+  maxDurationMs?: number;
+  /** Override of `DEFERRAL_CAP_MS`. */
+  deferralCapMs?: number;
+};
 
 export type TurnAbort = {
   readonly signal: AbortSignal;
@@ -25,17 +41,60 @@ export type TurnAbort = {
   setAbortGate: (canAbortNow: () => boolean) => void;
   /** Perform a deferred abort if one is waiting and the gate is open. */
   flush: () => void;
+  /**
+   * Called when the deferral timed out and the abort was forced. The stream
+   * may be stuck behind a tool that never returns and then never reports the
+   * abort itself, so the owner must settle the turn from here.
+   */
+  onForcedAbort: (handler: () => void) => void;
+  /** Cancel the pending force timer (call when the turn is over). */
+  dispose: () => void;
 };
 
-export function createTurnAbort(): TurnAbort {
+export function createTurnAbort({
+  startedAt = Date.now(),
+  maxDurationMs,
+  deferralCapMs = DEFERRAL_CAP_MS,
+}: TurnAbortOptions = {}): TurnAbort {
   const controller = new AbortController();
   let requestedAt: Date | undefined;
   let canAbortNow: () => boolean = () => true;
+  let forceTimer: ReturnType<typeof setTimeout> | undefined;
+  const forcedHandlers: Array<() => void> = [];
+
+  const dispose = () => {
+    clearTimeout(forceTimer);
+    forceTimer = undefined;
+  };
 
   const abortNow = () => {
+    dispose();
     if (!controller.signal.aborted) {
       controller.abort(new DOMException("user-stop", "AbortError"));
     }
+  };
+
+  const startForceTimer = () => {
+    const now = Date.now();
+    const deadline =
+      maxDurationMs === undefined
+        ? Number.POSITIVE_INFINITY
+        : startedAt + maxDurationMs - DEADLINE_MARGIN_MS;
+    const delay = Math.max(0, Math.min(now + deferralCapMs, deadline) - now);
+
+    forceTimer = setTimeout(() => {
+      forceTimer = undefined;
+      if (controller.signal.aborted) {
+        return;
+      }
+      console.warn("[chat-stop] forced abort, tool still running");
+      abortNow();
+      for (const handler of forcedHandlers) {
+        handler();
+      }
+    }, delay);
+    // Never keep a serverless process / test runner alive just for this timer.
+    forceTimer.unref?.();
   };
 
   const flush = () => {
@@ -52,10 +111,17 @@ export function createTurnAbort(): TurnAbort {
     requestAbort() {
       requestedAt ??= new Date();
       flush();
+      if (!controller.signal.aborted && forceTimer === undefined) {
+        startForceTimer();
+      }
     },
     setAbortGate(gate) {
       canAbortNow = gate;
     },
     flush,
+    onForcedAbort(handler) {
+      forcedHandlers.push(handler);
+    },
+    dispose,
   };
 }

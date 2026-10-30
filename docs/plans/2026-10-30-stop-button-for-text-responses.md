@@ -38,29 +38,33 @@ One server `AbortController` per turn + a stop endpoint that reaches the produce
 - Redis pub/sub (+ key as a fallback for the early-stop race) when `REDIS_URL` is set — works across instances.
 - In-process registry as fast path (the only path without Redis).
 - Without Redis (no resume), `request.signal` is also linked: a dropped connection means stop.
-- Stop is matched to the TURN, not to the clock: key/channel `gipiti:chat-stop:${chatId}:${messageId}`, where `messageId`
-  is the last user message. The client sends `{ messageId }` (last user message of its `messages` at stop time) in the
-  stop POST body; the server watches the `message.id` of the chat POST. Both are the same message in every trigger:
-  new message, regenerate and edit all POST `messages.at(-1)` (a user message), a resumed stream belongs to the last
-  user message of the history. No timestamps, so clock skew / cold starts cannot drop an early stop, a late stop cannot
-  hit the next turn, and two tabs on one chat do not stop each other. The marker (`EX 60`) is deleted when the watching
-  turn ends, so regenerating the same user message right after a stop is not killed by it.
+- Stop is matched to the TURN, not to the clock and not to the user message (regenerate and edit re-send the same
+  user message): key/channel `gipiti:chat-stop:${userId}:${chatId}:${turnId}`. The client mints a `turnId` for every chat
+  POST (`prepareSendMessagesRequest`), sends it in the body (`turnId`, optional in the schema) and names it in the stop
+  POST (`{ turnId }`). The server watches `body.turnId ?? message.id` (old clients keep working). A resumed stream did
+  not make the POST, so the server writes a transient `data-turnId` part first and the client remembers it. The user
+  id in the key makes cross-user stops impossible. The marker (`EX 60`) is consumed when it fires and deleted when the
+  watching turn ends; with a local watcher the Redis round trip is skipped.
 - The watcher is started without awaiting the Redis subscription (off the time-to-first-token path); cleanup waits for
   a subscription still in flight, and the stored-marker check after subscribing covers an early stop.
 - Abort with `new DOMException("user-stop", "AbortError")`, never a string: a fetch aborted with a string rejects its
   body with that string, `streamText` errors the stream instead of aborting, and neither `onAbort` nor `onFinish`
   runs (nothing charged). Safety net: a stream error while the signal is aborted settles the turn as stopped.
 - Tool deferral: the stop goes through `ctx.turnAbort.requestAbort()`. While tool calls are pending (`tool-call` seen,
-  `tool-result` not yet; a tool error ends at the step finish) the abort is held, then performed from `onChunk` /
-  `onStepFinish`. Otherwise the tool result would be dropped while its cost (image generation) is already counted, and
-  parallel tools would leak cost after settlement.
+  `tool-result` not yet) the abort is held and released ONLY in `onStepFinish`: the step then ends with its real usage
+  (aborting on the tool result would drop the finish-step and force a char estimate), a tool error (never reported by
+  `onChunk`) is covered the same way, and the lifecycle marks the abort as `atStepBoundary` so no phantom next step is
+  estimated. The wait is bounded: after `min(45s after the stop, startedAt + maxDuration - 30s)` the abort is forced
+  (`[chat-stop] forced abort, tool still running`), the turn is settled from the timer (a hung tool never lets the
+  stream report the abort) and the UI stream is closed so the partial message is still saved.
 - Pre-abort skip: if the signal is already aborted before the handler would run (route `execute`, or the text handler
   right before `streamText`), nothing runs: no model call, no charge, no assistant message persisted.
 - Settlement: `ctx.turnSettlement` is created up front and resolved by the text handler on every terminal path (normal
   finish after its charge, stop settlement after its charge, stream end, handler throw). The route awaits it (capped
-  15s) before persisting and registers it in `after()`, so a disconnect without Redis (UI `onFinish` runs before
-  `onAbort`) is still charged. `ctx.turnOutcome` (`completed | aborted | skipped`) decides whether the message is marked
-  interrupted, so an answer that finished when Stop landed stays normal. An interrupted message gets
+  15s) before persisting and registers it in `after()` uncapped (`maxDuration` bounds it), so a disconnect without
+  Redis (UI `onFinish` runs before `onAbort`) is still charged. If the cap expires while a stop was requested, the
+  message is still persisted as interrupted. The stop watcher's cleanup never blocks `onFinish` (kept alive by `after()`).
+  `ctx.turnOutcome` (`completed | aborted | skipped`) decides whether the message is marked interrupted, so an answer that finished when Stop landed stays normal. An interrupted message gets
   `createdAt = stop request time` so it sorts before a message sent right after.
 
 Interrupted mark = data part `{ type: "data-interrupted", data: { reason: "user" } }` in `parts` — no migration.
@@ -74,15 +78,18 @@ while `submitted`); polling a DB flag (too many queries); turning off resumable 
 2. `lib/messages/interrupted.ts` (new) — `isInterruptedMessage`, `finalizeInterruptedMessage`
    (drop tool parts in `input-streaming`/`input-available`, `streaming` → `done`, append mark, idempotent),
    `markLastAssistantInterrupted`.
-3. `app/(chat)/api/chat/_lib/stop-signal.ts` (new) — `requestChatStop({ chatId, messageId })`,
-   `watchChatStop({ chatId, messageId, onStop, maxLifetimeMs })` → cleanup fn (sync return); in-process + Redis
-   (`redis` v5 `createClient` publisher + `duplicate()` subscriber, key/channel `gipiti:chat-stop:${chatId}:${messageId}`,
-   `EX 60`, deleted on cleanup). Errors logged, never thrown.
-4. `app/(chat)/api/chat/[id]/stop/route.ts` (new) — `POST { messageId }` (zod): auth, ownership check, `requestChatStop`, `204`.
+3. `app/(chat)/api/chat/_lib/stop-signal.ts` (new) — `requestChatStop({ userId, chatId, turnId })`,
+   `watchChatStop({ userId, chatId, turnId, onStop, maxLifetimeMs })` → cleanup fn (sync return); in-process + Redis
+   (`redis` v5 `createClient` publisher + `duplicate()` subscriber, key/channel `gipiti:chat-stop:${userId}:${chatId}:${turnId}`,
+   `EX 60`, consumed on fire, deleted on cleanup). Errors logged, never thrown.
+4. `app/(chat)/api/chat/[id]/stop/route.ts` (new) — `POST { turnId }` (zod): auth, ownership check, `requestChatStop`, `204`.
 5. `app/(chat)/api/chat/_lib/context.ts` — `turnAbort`, `turnSettlement`, `turnOutcome`.
-5a. `app/(chat)/api/chat/_lib/turn-abort.ts` (new) — `createTurnAbort()`: AbortError abort, tool-deferral gate, `requestedAt`.
+5a. `app/(chat)/api/chat/_lib/turn-abort.ts` (new) — `createTurnAbort()`: AbortError abort, tool-deferral gate with the forced-abort timer, `requestedAt`.
 5b. `app/(chat)/api/chat/_lib/turn-lifecycle.ts` (new) — which terminal path bills the turn (once), safety net, snapshot of
-   finished steps + in-flight text, settlement promise, `waitForSettlement`. Unit-tested with a real `streamText`.
+   finished steps + in-flight text, `beginFinish` (the `onFinish` decision), step-boundary flag, settlement promise,
+   `waitForSettlement`, `closeStreamOnForcedAbort`. Unit-tested with a real `streamText`.
+5c. `persist-assistant-turn.ts` + `turn-superseded.ts` — an interrupted answer is not persisted if its user message was
+   deleted/re-saved (edit) or a newer one exists (one query on the chat's latest user message; billing still happens).
 6. `app/(chat)/api/chat/_lib/prepare-chat-turn.ts` — accept and store the turn fields.
 7. `app/(chat)/api/chat/route.ts` — `turnAbort` (link `request.signal` only without stream context),
    watcher for text mode (not awaited), pre-abort skip, `onFinish` awaits the settlement then persists with
@@ -95,7 +102,7 @@ while `submitted`); polling a DB flag (too many queries); turning off resumable 
 10. `app/(chat)/api/chat/_lib/handlers/text-chat.ts` — `turnAbort.signal`, lifecycle callbacks (sync `onChunk` tracker incl.
     pending tool calls, `onStepFinish` reset, `onAbort` → settle once, `onError` / `consumeStream` safety net),
     `onFinish` guarded by the lifecycle; `ignoreIncompleteToolCalls: true`.
-11. `hooks/use-chat-stop.ts` (new) — `handleStop` (POST stop `{ messageId }` with `keepalive` + `stop()` + abort resume read),
+11. `hooks/use-chat-stop.ts` (new) — `beginTurn` / `rememberTurn` / `handleStop` (POST stop `{ turnId }` with `keepalive` + `stop()` + abort resume read),
     `waitForPendingStop` (capped ~3s), `fetchWithResumeAbort` (adds a signal to the GET reconnect).
 12. `components/chat.tsx` — use the hook; async `prepareSendMessagesRequest` awaits pending stop; client `onFinish`
     marks the last assistant message interrupted on `isAbort` (text models only); remove `console.log`s.
@@ -115,10 +122,11 @@ while `submitted`); polling a DB flag (too many queries); turning off resumable 
 
 ## Risks
 
-- Residual: a stop that reaches the server after its turn already ended leaves a marker for up to 60s; regenerating the
-  same user message in that window would be stopped at once. The client waits for a pending stop before the next send.
-- Stop during tools: the stop is delayed until the running tools return (can be tens of seconds for image generation);
-  the client is already stopped, only the server work and the final charge wait.
+- A stop that reaches the server after its turn ended leaves a marker for up to 60s, but it names a turn id that is never
+  reused, so it cannot hit a later turn (only an old client without `turnId`, falling back to the message id, could).
+- Stop during tools: the stop is delayed until the step with the running tools finishes (up to the 45s cap); the client
+  is already stopped, only the server work and the final charge wait. A tool that outlives the cap is left behind and its
+  cost, if any, is not charged.
 - Hidden reasoning (OpenAI o-series / GPT-5) is under-charged on stop: only visible reasoning summary is counted.
 - Input of the running step is estimated, image tokens not counted.
 - With Redis the server may save a few more words than the client showed (Redis round trip).
@@ -131,7 +139,8 @@ while `submitted`); polling a DB flag (too many queries); turning off resumable 
 - Unit tests: `lib/messages/__tests__/interrupted.test.ts`, `app/(chat)/api/chat/_lib/__tests__/usage.test.ts` (extend),
   `app/(chat)/api/chat/_lib/__tests__/stop-signal.test.ts` (in-process backend, fake timers),
   `app/(chat)/api/chat/_lib/__tests__/turn-lifecycle.test.ts` (real `streamText` + `MockLanguageModelV3`: stop mid-stream
-  charges once, string-reason safety net, tool deferral, parallel tools, step-finish snapshot).
+  charges once, stop in step 2, string-reason safety net, tool deferral with billed amounts (success / error), forced abort
+  with fake timers, parallel tools, step-finish snapshot), `turn-superseded.test.ts`.
 - `pnpm check:fast` while iterating, full `pnpm check` at the end.
 - Manual (with and without Redis, GPT / Claude thinking / Gemini): stop mid-text and mid-reasoning; reload shows partial
   text + label; `Transaction` has a partial amount; new message right after stop; stop after auto-resume; stop while

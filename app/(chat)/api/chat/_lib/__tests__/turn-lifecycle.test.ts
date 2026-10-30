@@ -2,18 +2,28 @@ import type {
   LanguageModelV3StreamPart,
   LanguageModelV3Usage,
 } from "@ai-sdk/provider";
-import { streamText, tool } from "ai";
+import { stepCountIs, streamText, tool } from "ai";
 import { MockLanguageModelV3 } from "ai/test";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
-import { createTurnAbort } from "../turn-abort";
 import {
+  createTurnAbort,
+  DEADLINE_MARGIN_MS,
+  DEFERRAL_CAP_MS,
+  type TurnAbortOptions,
+} from "../turn-abort";
+import {
+  closeStreamOnForcedAbort,
   createTurnLifecycle,
   createTurnSettlement,
   type TurnOutcome,
   waitForSettlement,
 } from "../turn-lifecycle";
-import { createInFlightStepTracker } from "../usage";
+import {
+  computeAbortedTurnUsage,
+  createInFlightStepTracker,
+  usageChargeUsd,
+} from "../usage";
 
 const USAGE: LanguageModelV3Usage = {
   inputTokens: { total: 10, noCache: 10, cacheRead: 0, cacheWrite: 0 },
@@ -48,6 +58,10 @@ function createControlledModel() {
     [];
   const model = new MockLanguageModelV3({
     doStream: ({ abortSignal }) => {
+      // A real fetch on an already aborted signal rejects at once.
+      if (abortSignal?.aborted) {
+        return Promise.reject(abortSignal.reason);
+      }
       const stream = new ReadableStream<LanguageModelV3StreamPart>({
         start(controller) {
           controllers.push(controller);
@@ -96,17 +110,22 @@ type Harness = ReturnType<typeof setup>;
 function setup({
   tools,
   abortControl,
+  abortOptions,
+  bill,
 }: {
   tools?: Parameters<typeof streamText>[0]["tools"];
   /** Replace the turn abort (e.g. to abort with a non-AbortError reason). */
   abortControl?: ReturnType<typeof createTurnAbort>;
+  abortOptions?: TurnAbortOptions;
+  /** What billing does with the stopped turn (default: nothing). */
+  bill?: BillAborted;
 } = {}) {
   const { model, push, calls } = createControlledModel();
-  const turnAbort = abortControl ?? createTurnAbort();
+  const turnAbort = abortControl ?? createTurnAbort(abortOptions);
   const tracker = createInFlightStepTracker();
   const settlement = createTurnSettlement();
   const outcomes: TurnOutcome[] = [];
-  const billAborted = vi.fn<BillAborted>(() => Promise.resolve());
+  const billAborted = vi.fn<BillAborted>(bill ?? (() => Promise.resolve()));
   const billCompleted = vi.fn();
 
   const lifecycle = createTurnLifecycle({
@@ -121,22 +140,39 @@ function setup({
     model,
     prompt: "hi",
     tools,
+    stopWhen: stepCountIs(5),
     abortSignal: turnAbort.signal,
     ...lifecycle.callbacks,
     onError: () => lifecycle.onStreamError(),
+    // Same decision as text-chat.ts: it lives in the lifecycle.
     onFinish: ({ totalUsage }) => {
-      const hasUsage = totalUsage.inputTokens !== undefined;
-      if (turnAbort.signal.aborted && !hasUsage) {
-        lifecycle.settleAborted();
-        return;
-      }
-      if (!lifecycle.claimCompletion()) {
+      if (!lifecycle.beginFinish(totalUsage)) {
         return;
       }
       billCompleted();
       lifecycle.completed();
     },
   });
+
+  // The UI stream the route persists from, closed on a forced abort.
+  const uiParts: string[] = [];
+  const uiDone = (async () => {
+    const reader = closeStreamOnForcedAbort(
+      result.toUIMessageStream(),
+      turnAbort
+    ).getReader();
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          return;
+        }
+        uiParts.push(value.type);
+      }
+    } catch (error) {
+      uiParts.push(`throw:${String(error)}`);
+    }
+  })();
 
   const consumed = Promise.resolve(
     result.consumeStream({ onError: () => lifecycle.onStreamError() })
@@ -164,7 +200,10 @@ function setup({
     billCompleted,
     lifecycle,
     partTypes,
-    finished: () => Promise.all([consumed, drained, settlement.promise]),
+    uiParts,
+    uiDone,
+    finished: () =>
+      Promise.all([consumed, drained, uiDone, settlement.promise]),
   };
 }
 
@@ -188,6 +227,7 @@ describe("turn lifecycle with a real streamText", () => {
     expect(h.billAborted).toHaveBeenCalledWith({
       steps: [],
       inFlightOutputText: "Hello wor",
+      atStepBoundary: false,
     });
     expect(h.billCompleted).not.toHaveBeenCalled();
     expect(h.outcomes).toEqual(["aborted"]);
@@ -225,6 +265,7 @@ describe("turn lifecycle with a real streamText", () => {
     expect(h.billAborted).toHaveBeenCalledWith({
       steps: [],
       inFlightOutputText: "partial",
+      atStepBoundary: false,
     });
     expect(h.outcomes).toEqual(["aborted"]);
   });
@@ -304,9 +345,12 @@ describe("turn lifecycle with a real streamText", () => {
       h.partTypes.indexOf("abort")
     );
     expect(h.billAborted).toHaveBeenCalledTimes(1);
-    expect(h.billAborted.mock.calls[0]?.[0].inFlightOutputText).toContain(
-      "Drawing"
-    );
+    // Released at the end of the step: the step is finished and recorded
+    // (real usage), nothing is left running.
+    const billed = h.billAborted.mock.calls[0]?.[0];
+    expect(billed?.steps).toHaveLength(1);
+    expect(billed?.inFlightOutputText).toBe("");
+    expect(billed?.atStepBoundary).toBe(true);
   });
 
   it("with parallel tool calls the stop waits for the last one", async () => {
@@ -372,6 +416,206 @@ describe("turn lifecycle with a real streamText", () => {
 
     expect(h.turnAbort.signal.aborted).toBe(true);
     expect(h.billAborted).toHaveBeenCalledTimes(1);
+    expect(h.billAborted.mock.calls[0]?.[0].atStepBoundary).toBe(true);
+  });
+
+  it("a stop in the middle of step 2 settles through the finish path with the finished step", async () => {
+    const quick = tool({
+      description: "quick tool",
+      inputSchema: z.object({}),
+      execute: () => Promise.resolve("ok"),
+    });
+    const h = setup({ tools: { quick } });
+    await h.push(
+      { type: "tool-call", toolCallId: "q", toolName: "quick", input: "{}" },
+      toolCallsFinish
+    );
+    // Step 2 starts and streams some text.
+    await until(() => h.calls() === 2);
+    await h.push(textStart(), textDelta("Part"));
+    await waitForOutput(h, "Part");
+
+    h.turnAbort.requestAbort();
+    await h.finished();
+
+    expect(h.billAborted).toHaveBeenCalledTimes(1);
+    const billed = h.billAborted.mock.calls[0]?.[0];
+    expect(billed?.steps).toHaveLength(1);
+    expect(billed?.inFlightOutputText).toBe("Part");
+    expect(billed?.atStepBoundary).toBe(false);
+    expect(h.billCompleted).not.toHaveBeenCalled();
+    expect(h.outcomes).toEqual(["aborted"]);
+  });
+});
+
+describe("billing of a deferred stop", () => {
+  const STEP_COST_USD = 0.5;
+  const IMAGE_COST_USD = 0.25;
+  const stepFinish: LanguageModelV3StreamPart = {
+    ...toolCallsFinish,
+    providerMetadata: { gateway: { cost: String(STEP_COST_USD) } },
+  };
+  const accumulator = () => ({
+    totalInputTokens: 0,
+    totalOutputTokens: 0,
+    totalCost: 0,
+    generationCount: 0,
+  });
+
+  /** Billing exactly as text-chat.ts does it, minus the DB. */
+  const realBilling = (
+    imageUsage: ReturnType<typeof accumulator>,
+    sink: { usage?: ReturnType<typeof computeAbortedTurnUsage> }
+  ): BillAborted => {
+    return (input) => {
+      sink.usage = computeAbortedTurnUsage({
+        ...input,
+        promptText: "x".repeat(4000),
+        accumulator: imageUsage,
+        modelId: "openai/gpt-4o",
+        catalog: undefined,
+      });
+      return Promise.resolve();
+    };
+  };
+
+  it("tool succeeds: the step's real usage and cost are billed, not an estimate", async () => {
+    const imageUsage = accumulator();
+    const sink: { usage?: ReturnType<typeof computeAbortedTurnUsage> } = {};
+    let release: (value: string) => void = vi.fn();
+    const slow = tool({
+      description: "slow tool",
+      inputSchema: z.object({}),
+      execute: () =>
+        new Promise<string>((resolve) => {
+          release = (value) => {
+            imageUsage.totalCost += IMAGE_COST_USD;
+            resolve(value);
+          };
+        }),
+    });
+    const h = setup({
+      tools: { slow },
+      bill: realBilling(imageUsage, sink),
+    });
+    await h.push(
+      textStart(),
+      textDelta("Drawing"),
+      { type: "tool-call", toolCallId: "t", toolName: "slow", input: "{}" },
+      stepFinish
+    );
+    await until(() => h.tracker.pendingToolCalls() === 1);
+    h.turnAbort.requestAbort();
+    release("done");
+    await h.finished();
+
+    const billed = h.billAborted.mock.calls[0]?.[0];
+    expect(billed?.atStepBoundary).toBe(true);
+    // The step finished with its real usage (the finish-step is not dropped).
+    expect(billed?.steps).toHaveLength(1);
+    expect(sink.usage?.inputTokens).toBe(10);
+    expect(sink.usage?.outputTokens).toBe(5);
+    expect(usageChargeUsd(sink.usage as never)).toBeCloseTo(
+      STEP_COST_USD + IMAGE_COST_USD
+    );
+    // The tool result reached the UI before the abort.
+    expect(h.uiParts).toContain("tool-output-available");
+  });
+
+  it("tool fails: only the finished step is billed, no phantom next step", async () => {
+    const imageUsage = accumulator();
+    const sink: { usage?: ReturnType<typeof computeAbortedTurnUsage> } = {};
+    let fail: () => void = vi.fn();
+    const broken = tool({
+      description: "broken tool",
+      inputSchema: z.object({}),
+      execute: () =>
+        new Promise<string>((_, reject) => {
+          fail = () => reject(new Error("tool failed"));
+        }),
+    });
+    const h = setup({
+      tools: { broken },
+      bill: realBilling(imageUsage, sink),
+    });
+    await h.push(
+      textStart(),
+      textDelta("Trying"),
+      { type: "tool-call", toolCallId: "t", toolName: "broken", input: "{}" },
+      stepFinish
+    );
+    await until(() => h.tracker.pendingToolCalls() === 1);
+    h.turnAbort.requestAbort();
+    fail();
+    await h.finished();
+
+    expect(h.billAborted.mock.calls[0]?.[0].atStepBoundary).toBe(true);
+    // Exactly the finished step: nothing is estimated for a request that
+    // never left the server (the prompt alone would be ~1000 tokens).
+    expect(sink.usage?.inputTokens).toBe(10);
+    expect(sink.usage?.outputTokens).toBe(5);
+    expect(usageChargeUsd(sink.usage as never)).toBeCloseTo(STEP_COST_USD);
+  });
+
+  it("a stop in the middle of a step still estimates the running step", async () => {
+    const imageUsage = accumulator();
+    const sink: { usage?: ReturnType<typeof computeAbortedTurnUsage> } = {};
+    const warn = vi.spyOn(console, "warn").mockImplementation(vi.fn());
+    const h = setup({ bill: realBilling(imageUsage, sink) });
+    await h.push(textStart(), textDelta("a".repeat(400)));
+    await waitForOutput(h, "a".repeat(400));
+    h.turnAbort.requestAbort();
+    await h.finished();
+
+    expect(h.billAborted.mock.calls[0]?.[0].atStepBoundary).toBe(false);
+    // Prompt (4000 chars) + 400 chars of output, estimated (it is unpriced
+    // here: no catalog, so the estimate shows up in the alarm only).
+    expect(warn).toHaveBeenCalledWith(
+      "[ALARM-USAGE] aborted step unpriced",
+      expect.objectContaining({
+        runningInputTokens: 1000,
+        runningOutputTokens: 100,
+      })
+    );
+  });
+});
+
+describe("forced abort of a hung tool", () => {
+  it("settles the turn, bills it and closes the UI stream after the cap", async () => {
+    const hung = tool({
+      description: "hung tool",
+      inputSchema: z.object({}),
+      execute: () => new Promise<string>(vi.fn()),
+    });
+    const warn = vi.spyOn(console, "warn").mockImplementation(vi.fn());
+    const h = setup({ tools: { hung } });
+    await h.push(
+      textStart(),
+      textDelta("Working"),
+      { type: "tool-call", toolCallId: "h", toolName: "hung", input: "{}" },
+      toolCallsFinish
+    );
+    await until(() => h.tracker.pendingToolCalls() === 1);
+
+    vi.useFakeTimers();
+    h.turnAbort.requestAbort();
+    await vi.advanceTimersByTimeAsync(DEFERRAL_CAP_MS - 1);
+    expect(h.turnAbort.signal.aborted).toBe(false);
+    expect(h.billAborted).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(2);
+    vi.useRealTimers();
+    await Promise.all([h.settlement.promise, h.uiDone]);
+
+    expect(h.turnAbort.signal.aborted).toBe(true);
+    expect(warn).toHaveBeenCalledWith(
+      "[chat-stop] forced abort, tool still running"
+    );
+    expect(h.billAborted).toHaveBeenCalledTimes(1);
+    expect(h.billAborted.mock.calls[0]?.[0].inFlightOutputText).toContain(
+      "Working"
+    );
+    expect(h.outcomes).toEqual(["aborted"]);
   });
 });
 
@@ -410,24 +654,67 @@ describe("turn lifecycle callbacks", () => {
     expect(billAborted).toHaveBeenCalledWith({
       steps: [step(1)],
       inFlightOutputText: "second step",
+      atStepBoundary: false,
     });
   });
 
-  it("claimCompletion is refused after the stop path settled", () => {
+  it("normal billing is refused after the stop path settled", () => {
     const { lifecycle } = build();
 
     lifecycle.settleAborted();
 
-    expect(lifecycle.claimCompletion()).toBe(false);
+    expect(lifecycle.beginFinish({ inputTokens: 10, outputTokens: 5 })).toBe(
+      false
+    );
   });
 
-  it("the stop path is refused after the completion path claimed the turn", () => {
+  it("the stop path is refused after normal billing claimed the turn", () => {
     const { lifecycle, billAborted } = build();
 
-    expect(lifecycle.claimCompletion()).toBe(true);
+    expect(lifecycle.beginFinish({ inputTokens: 10, outputTokens: 5 })).toBe(
+      true
+    );
     lifecycle.settleAborted();
 
     expect(billAborted).not.toHaveBeenCalled();
+  });
+
+  describe("beginFinish after a stop", () => {
+    const stopped = () => {
+      const tracker = createInFlightStepTracker();
+      const turnAbort = createTurnAbort();
+      const billAborted = vi.fn(() => Promise.resolve());
+      const lifecycle = createTurnLifecycle({
+        turnAbort,
+        tracker,
+        settlement: createTurnSettlement(),
+        billAborted,
+        onOutcome: vi.fn(),
+      });
+      turnAbort.requestAbort();
+      return { lifecycle, billAborted };
+    };
+
+    it("empty usage means the stop path bills the turn", () => {
+      const { lifecycle, billAborted } = stopped();
+
+      expect(lifecycle.beginFinish({})).toBe(false);
+      expect(billAborted).toHaveBeenCalledTimes(1);
+    });
+
+    it("output tokens alone are real usage: the turn finished, bill it normally", () => {
+      const { lifecycle, billAborted } = stopped();
+
+      expect(lifecycle.beginFinish({ outputTokens: 7 })).toBe(true);
+      expect(billAborted).not.toHaveBeenCalled();
+    });
+
+    it("input tokens alone are real usage too", () => {
+      const { lifecycle, billAborted } = stopped();
+
+      expect(lifecycle.beginFinish({ inputTokens: 7 })).toBe(true);
+      expect(billAborted).not.toHaveBeenCalled();
+    });
   });
 
   it("resolves the settlement even when billing throws", async () => {
@@ -481,6 +768,98 @@ describe("turn abort", () => {
     expect(turnAbort.signal.aborted).toBe(true);
   });
 
+  describe("deferral cap", () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    const closedGate = (options?: TurnAbortOptions) => {
+      const turnAbort = createTurnAbort(options);
+      turnAbort.setAbortGate(() => false);
+      const forced = vi.fn();
+      turnAbort.onForcedAbort(forced);
+      vi.spyOn(console, "warn").mockImplementation(vi.fn());
+      return { turnAbort, forced };
+    };
+
+    it("force-aborts DEFERRAL_CAP_MS after the stop request", () => {
+      vi.useFakeTimers();
+      const { turnAbort, forced } = closedGate({ startedAt: Date.now() });
+
+      turnAbort.requestAbort();
+      vi.advanceTimersByTime(DEFERRAL_CAP_MS - 1);
+      expect(turnAbort.signal.aborted).toBe(false);
+      vi.advanceTimersByTime(1);
+
+      expect(turnAbort.signal.aborted).toBe(true);
+      expect(forced).toHaveBeenCalledTimes(1);
+    });
+
+    it("never lands later than DEADLINE_MARGIN_MS before maxDuration", () => {
+      vi.useFakeTimers();
+      const startedAt = Date.now();
+      const maxDurationMs = 300_000;
+      // The turn has run for 240s: the deadline (270s) comes before the cap.
+      vi.advanceTimersByTime(240_000);
+      const { turnAbort } = closedGate({ startedAt, maxDurationMs });
+
+      turnAbort.requestAbort();
+      vi.advanceTimersByTime(maxDurationMs - DEADLINE_MARGIN_MS - 240_000);
+
+      expect(turnAbort.signal.aborted).toBe(true);
+    });
+
+    it("forces at once when the deadline has already passed", () => {
+      vi.useFakeTimers();
+      const startedAt = Date.now();
+      vi.advanceTimersByTime(280_000);
+      const { turnAbort } = closedGate({ startedAt, maxDurationMs: 300_000 });
+
+      turnAbort.requestAbort();
+      vi.advanceTimersByTime(0);
+
+      expect(turnAbort.signal.aborted).toBe(true);
+    });
+
+    it("does not force once the gate opened and the abort ran", () => {
+      vi.useFakeTimers();
+      const turnAbort = createTurnAbort();
+      let open = false;
+      turnAbort.setAbortGate(() => open);
+      const forced = vi.fn();
+      turnAbort.onForcedAbort(forced);
+
+      turnAbort.requestAbort();
+      open = true;
+      turnAbort.flush();
+      vi.advanceTimersByTime(DEFERRAL_CAP_MS * 2);
+
+      expect(turnAbort.signal.aborted).toBe(true);
+      expect(forced).not.toHaveBeenCalled();
+    });
+
+    it("dispose cancels the timer", () => {
+      vi.useFakeTimers();
+      const { turnAbort, forced } = closedGate();
+
+      turnAbort.requestAbort();
+      turnAbort.dispose();
+      vi.advanceTimersByTime(DEFERRAL_CAP_MS * 2);
+
+      expect(turnAbort.signal.aborted).toBe(false);
+      expect(forced).not.toHaveBeenCalled();
+    });
+
+    it("no timer when the abort is not deferred", () => {
+      vi.useFakeTimers();
+      const turnAbort = createTurnAbort();
+
+      turnAbort.requestAbort();
+
+      expect(vi.getTimerCount()).toBe(0);
+    });
+  });
+
   it("flush without a requested stop does nothing", () => {
     const turnAbort = createTurnAbort();
 
@@ -498,22 +877,23 @@ describe("waitForSettlement", () => {
 
     settlement.resolve();
 
-    await expect(waiting).resolves.toBeUndefined();
+    await expect(waiting).resolves.toBe(true);
   });
 
   it("gives up after the timeout", async () => {
     vi.useFakeTimers();
     const settlement = createTurnSettlement();
-    let done = false;
-    const waiting = waitForSettlement(settlement, 15_000).then(() => {
-      done = true;
+    let result: boolean | undefined;
+    const waiting = waitForSettlement(settlement, 15_000).then((settled) => {
+      result = settled;
     });
 
     await vi.advanceTimersByTimeAsync(14_999);
-    expect(done).toBe(false);
+    expect(result).toBeUndefined();
     await vi.advanceTimersByTimeAsync(2);
     await waiting;
 
-    expect(done).toBe(true);
+    // Timed out: the caller learns billing is still running.
+    expect(result).toBe(false);
   });
 });

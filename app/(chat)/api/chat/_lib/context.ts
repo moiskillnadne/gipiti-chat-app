@@ -30,6 +30,10 @@ export type ChatTurnContext = {
   chatId: string;
   streamId: string;
   message: ChatMessage;
+  /** `createdAt` stored with the user message; tells if the turn was superseded. */
+  userMessageCreatedAt: Date;
+  /** Identifies this turn for the stop signal: body `turnId`, else `message.id`. */
+  turnId: string;
   uiMessages: ChatMessage[];
   model: string;
   thinkingSetting: ThinkingSetting | undefined;

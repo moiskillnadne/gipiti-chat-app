@@ -65,6 +65,10 @@ const videoGenSettingSchema = z.object({
 
 export const postRequestBodySchema = z.object({
   id: z.string().uuid(),
+  // Per-send id the client uses to stop exactly this turn (regenerate and edit
+  // re-send the same user message, so the message id cannot tell turns apart).
+  // Optional so older clients keep working: the server then uses message.id.
+  turnId: z.string().uuid().optional(),
   message: z.object({
     id: z.string().uuid(),
     role: z.enum(["user"]),

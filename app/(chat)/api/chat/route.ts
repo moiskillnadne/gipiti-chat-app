@@ -20,12 +20,14 @@ import { type ChatMode, resolveChatMode } from "./_lib/resolve-mode";
 import { watchChatStop } from "./_lib/stop-signal";
 import { getStreamContext } from "./_lib/stream-context";
 import { createTurnAbort } from "./_lib/turn-abort";
-import { waitForSettlement } from "./_lib/turn-lifecycle";
+import { waitForSettlement, waitWithTimeout } from "./_lib/turn-lifecycle";
 
 export const maxDuration = 300;
 
 // Upper bound for waiting on a text turn's billing before persisting it.
 const SETTLEMENT_TIMEOUT_MS = 15_000;
+// Upper bound for keeping the function alive for the stop watcher's cleanup.
+const STOP_WATCH_CLEANUP_TIMEOUT_MS = 5000;
 
 const STREAM_HANDLERS: Record<ChatMode, StreamHandler> = {
   text: runTextChat,
@@ -34,7 +36,10 @@ const STREAM_HANDLERS: Record<ChatMode, StreamHandler> = {
 };
 
 export async function POST(request: Request) {
-  const turnAbort = createTurnAbort();
+  const turnAbort = createTurnAbort({
+    startedAt: Date.now(),
+    maxDurationMs: maxDuration * 1000,
+  });
 
   const parsed = await parseRequestBody(request);
   if (!parsed.ok) {
@@ -50,6 +55,19 @@ export async function POST(request: Request) {
   recordUserActivity(session.user.id);
 
   let stopWatch: ReturnType<typeof watchChatStop> | undefined;
+  // Resolved when the stop watcher is cleaned up (or there was none).
+  const { promise: stopWatchClosed, resolve: markStopWatchClosed } =
+    Promise.withResolvers<void>();
+  // Cleanup talks to Redis and must never hold up the stream or the error
+  // response: start it, and let `after()` keep the function alive for it.
+  const closeStopWatch = () => {
+    turnAbort.dispose();
+    if (!stopWatch) {
+      markStopWatchClosed();
+      return;
+    }
+    stopWatch().finally(markStopWatchClosed);
+  };
   // Resolved when the turn is fully persisted (or failed before streaming).
   const { promise: turnDone, resolve: finishTurn } =
     Promise.withResolvers<void>();
@@ -92,10 +110,14 @@ export async function POST(request: Request) {
     // token (the early-stop check inside still covers a stop that already landed).
     if (mode === "text") {
       stopWatch = watchChatStop({
+        userId: ctx.userId,
         chatId: ctx.chatId,
-        messageId: ctx.message.id,
+        turnId: ctx.turnId,
         onStop: turnAbort.requestAbort,
       });
+      after(() =>
+        waitWithTimeout(stopWatchClosed, STOP_WATCH_CLEANUP_TIMEOUT_MS)
+      );
     } else {
       // Nothing bills these turns through the settlement; do not wait for it.
       ctx.turnSettlement.resolve();
@@ -106,7 +128,9 @@ export async function POST(request: Request) {
     // and persisted in onFinish.
     if (!streamContext) {
       after(() => turnDone);
-      after(() => waitForSettlement(ctx.turnSettlement, SETTLEMENT_TIMEOUT_MS));
+      // Uncapped on purpose: `maxDuration` bounds it, and a stopped turn must
+      // be charged even when persisting did not wait for it.
+      after(() => ctx.turnSettlement.promise);
     }
 
     const buildSseStream = () =>
@@ -121,6 +145,13 @@ export async function POST(request: Request) {
           }
           // Send modelId immediately so the client shows the right provider icon.
           writer.write({ type: "data-modelId", data: ctx.model });
+          // A resumed stream is read by a client that did not make the POST:
+          // this is how it learns which turn its Stop button must name.
+          writer.write({
+            type: "data-turnId",
+            data: ctx.turnId,
+            transient: true,
+          });
           await runHandler(ctx, writer);
         },
         generateId: generateUUID,
@@ -131,20 +162,25 @@ export async function POST(request: Request) {
             // runs, and the SDK does not await it anyway: wait for the turn to
             // be billed (every terminal path of the handler resolves this)
             // before persisting.
-            if (mode === "text") {
-              await waitForSettlement(
+            const settled =
+              mode !== "text" ||
+              (await waitForSettlement(
                 ctx.turnSettlement,
                 SETTLEMENT_TIMEOUT_MS
-              );
-            }
+              ));
             if (ctx.turnOutcome === "skipped") {
               return;
             }
             // Interrupted only if the stop path actually settled the turn (or
             // the stream itself ended aborted). A stop that lands after the
-            // answer was complete leaves it a normal message.
+            // answer was complete leaves it a normal message. If billing is
+            // still running after the wait (a deferred stop outlasting it), a
+            // requested stop means the message is cut off all the same.
             const aborted =
-              mode === "text" && (isAborted || ctx.turnOutcome === "aborted");
+              mode === "text" &&
+              (isAborted ||
+                ctx.turnOutcome === "aborted" ||
+                (!settled && turnAbort.requestedAt !== undefined));
             await persistAssistantTurn(ctx, messages as ChatMessage[], mode, {
               aborted,
               // An interrupted answer ends where the user pressed Stop, so it
@@ -154,7 +190,7 @@ export async function POST(request: Request) {
                 : finishedAt,
             });
           } finally {
-            await stopWatch?.();
+            closeStopWatch();
             finishTurn();
           }
         },
@@ -174,7 +210,7 @@ export async function POST(request: Request) {
 
     return new Response(sseStream);
   } catch (error) {
-    await stopWatch?.();
+    closeStopWatch();
     finishTurn();
     return handleChatError(error, request);
   }

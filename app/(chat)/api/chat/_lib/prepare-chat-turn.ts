@@ -252,6 +252,7 @@ export async function prepareChatTurn(
 
   // Independent data-prep writes/reads in parallel.
   const streamId = generateUUID();
+  const newMessageCreatedAt = new Date();
   const [messagesFromDb] = await Promise.all([
     getMessagesByChatId({ id }),
     saveMessages({
@@ -262,13 +263,19 @@ export async function prepareChatTurn(
           role: "user",
           parts: message.parts,
           attachments: [],
-          createdAt: new Date(),
+          createdAt: newMessageCreatedAt,
           modelId: null,
         },
       ],
     }),
     createStreamId({ streamId, chatId: id }),
   ]);
+
+  // Regenerate re-sends a stored user message (the insert above is then a
+  // no-op), so its stored timestamp, not the new one, identifies it.
+  const userMessageCreatedAt =
+    messagesFromDb.find((stored) => stored.id === message.id)?.createdAt ??
+    newMessageCreatedAt;
 
   const uiMessages = sanitizeHistory([
     ...convertToUIMessages(messagesFromDb),
@@ -294,6 +301,8 @@ export async function prepareChatTurn(
     chatId: id,
     streamId,
     message,
+    userMessageCreatedAt,
+    turnId: body.turnId ?? message.id,
     uiMessages,
     model,
     thinkingSetting,

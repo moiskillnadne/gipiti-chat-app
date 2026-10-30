@@ -7,23 +7,23 @@ import { createClient } from "redis";
  * model call are usually different serverless invocations, so the signal goes
  * through three layers:
  *  1. in-process watchers — the only layer without Redis, and the fast path;
- *  2. Redis pub/sub on `gipiti:chat-stop:<chatId>:<messageId>` — reaches other
- *     instances;
+ *  2. Redis pub/sub on `gipiti:chat-stop:<userId>:<chatId>:<turnId>` — reaches
+ *     other instances;
  *  3. the same Redis key (`SET ... EX`) — read once right after subscribing, so
  *     a stop that landed before the producer subscribed is not lost.
  *
- * A stop is matched to the TURN, not to the clock: it names the user message
- * the turn answers. Both sides compute that id the same way — the client sends
- * the id of the last user message of its `messages` (for a new message that is
- * the message just sent, for regenerate/edit it is the user message being
- * answered, for a resumed stream it is the last user message in the history),
- * and the server watches the `message.id` the POST was made with, which is the
- * client's `messages.at(-1)` at send time, i.e. the same message. So clock skew
- * and slow cold starts cannot drop an early stop, a late stop cannot hit the
- * next turn (it has another user message), and two tabs on one chat do not
- * stop each other. The stop marker is deleted when the turn that watched it
- * ends, so regenerating the same user message right after a stop is not killed
- * by the old marker.
+ * A stop is matched to the TURN, not to the clock: the client generates a
+ * `turnId` for every chat POST, sends it in the body and uses it again in the
+ * stop request. The server watches `body.turnId`, falling back to the user
+ * message id for clients that send none. So clock skew and slow cold starts
+ * cannot drop an early stop, a late stop cannot hit the next turn (it has
+ * another id, even when regenerate/edit re-send the same user message), and
+ * two tabs on one chat do not stop each other. The user id is part of the key,
+ * so one user can never stop another user's turn. A marker is consumed when it
+ * fires and deleted when the watching turn ends.
+ *
+ * A resumed stream (after a reload) did not make the POST: the server tells the
+ * client the `turnId` in a transient stream part.
  *
  * Everything here is best effort: failures are logged, never thrown.
  */
@@ -52,10 +52,10 @@ const localStops = new Map<string, number>();
 let redisPromise: Promise<RedisPair | null> | undefined;
 let redisFailedAt = 0;
 
-type TurnRef = { chatId: string; messageId: string };
+type TurnRef = { userId: string; chatId: string; turnId: string };
 
-const stopKey = ({ chatId, messageId }: TurnRef) =>
-  `${KEY_PREFIX}${chatId}:${messageId}`;
+const stopKey = ({ userId, chatId, turnId }: TurnRef) =>
+  `${KEY_PREFIX}${userId}:${chatId}:${turnId}`;
 
 const REDIS_URL_PATTERN = /^rediss?:\/\//;
 
@@ -134,11 +134,20 @@ function getRedis(): Promise<RedisPair | null> {
 }
 
 /**
- * Ask the instance running the turn that answers `messageId` to abort.
- * Resolves once the signal has been handed to every available layer.
+ * Ask the instance running turn `turnId` to abort. Resolves once the signal has
+ * been handed to every available layer.
  */
 export async function requestChatStop(turn: TurnRef): Promise<void> {
   const key = stopKey(turn);
+
+  // The turn runs on this instance: nothing else needs to hear about it.
+  const local = [...(watchers.get(key) ?? [])];
+  if (local.length > 0) {
+    for (const watcher of local) {
+      watcher.trigger();
+    }
+    return;
+  }
 
   const now = Date.now();
   for (const [oldKey, requestedAt] of localStops) {
@@ -147,9 +156,6 @@ export async function requestChatStop(turn: TurnRef): Promise<void> {
     }
   }
   localStops.set(key, now);
-  for (const watcher of [...(watchers.get(key) ?? [])]) {
-    watcher.trigger();
-  }
 
   try {
     const redis = await getRedis();
@@ -170,8 +176,7 @@ type WatchChatStopArgs = TurnRef & {
 };
 
 /**
- * Call `onStop` (at most once) when a stop is requested for the turn that
- * answers `messageId`.
+ * Call `onStop` (at most once) when a stop is requested for turn `turnId`.
  *
  * Returns at once with a cleanup function (idempotent, never rejects) that the
  * caller must invoke when the turn ends. The Redis subscription is set up in
@@ -180,12 +185,13 @@ type WatchChatStopArgs = TurnRef & {
  * the subscription was live. Cleanup waits for a subscription still in flight.
  */
 export function watchChatStop({
+  userId,
   chatId,
-  messageId,
+  turnId,
   onStop,
   maxLifetimeMs = DEFAULT_MAX_LIFETIME_MS,
 }: WatchChatStopArgs): () => Promise<void> {
-  const key = stopKey({ chatId, messageId });
+  const key = stopKey({ userId, chatId, turnId });
   let stopped = false;
   let cleanedUp = false;
   let subscribed: RedisPair | undefined;
@@ -195,6 +201,13 @@ export function watchChatStop({
       return;
     }
     stopped = true;
+    // Consume the marker so nothing can fire again on it.
+    localStops.delete(key);
+    if (subscribed) {
+      subscribed.publisher.del(key).catch((error) => {
+        console.warn("[chat-stop] failed to consume marker", { chatId }, error);
+      });
+    }
     try {
       onStop();
     } catch (error) {

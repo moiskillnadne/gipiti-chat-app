@@ -5,9 +5,10 @@ import {
   watchChatStop,
 } from "../stop-signal";
 
+const USER = "user-1";
 const CHAT = "chat-1";
-const MESSAGE = "message-1";
-const TURN = { chatId: CHAT, messageId: MESSAGE };
+const TURN_ID = "turn-1";
+const TURN = { userId: USER, chatId: CHAT, turnId: TURN_ID };
 
 describe("stop-signal (in-process backend)", () => {
   beforeEach(() => {
@@ -71,12 +72,12 @@ describe("stop-signal (in-process backend)", () => {
     expect(onStop).not.toHaveBeenCalled();
   });
 
-  it("a stop for an earlier user message does not hit the next turn", async () => {
-    await requestChatStop({ chatId: CHAT, messageId: "message-0" });
+  it("a stop for an earlier turn does not hit the next turn", async () => {
+    await requestChatStop({ ...TURN, turnId: "turn-0" });
 
     const onStop = vi.fn();
     watchChatStop({ ...TURN, onStop });
-    await requestChatStop({ chatId: CHAT, messageId: "message-0" });
+    await requestChatStop({ ...TURN, turnId: "turn-0" });
 
     expect(onStop).not.toHaveBeenCalled();
   });
@@ -84,16 +85,68 @@ describe("stop-signal (in-process backend)", () => {
   it("two turns of one chat (two tabs) are stopped independently", async () => {
     const first = vi.fn();
     const second = vi.fn();
-    watchChatStop({ chatId: CHAT, messageId: "message-a", onStop: first });
-    watchChatStop({ chatId: CHAT, messageId: "message-b", onStop: second });
+    watchChatStop({ ...TURN, turnId: "turn-a", onStop: first });
+    watchChatStop({ ...TURN, turnId: "turn-b", onStop: second });
 
-    await requestChatStop({ chatId: CHAT, messageId: "message-a" });
+    await requestChatStop({ ...TURN, turnId: "turn-a" });
 
     expect(first).toHaveBeenCalledTimes(1);
     expect(second).not.toHaveBeenCalled();
   });
 
-  it("consumes the marker when the turn ends, so regenerate is not killed by it", async () => {
+  it("a regenerate (same user message, new turn id) is not stopped by the previous turn's stop, even while that turn is still alive", async () => {
+    // Turn 1 is stopped but still settling (a deferred tool, billing) when the
+    // user regenerates or edits: both POSTs carry the same user message.
+    const first = vi.fn();
+    watchChatStop({ ...TURN, onStop: first });
+    await requestChatStop(TURN);
+
+    const regenerated = vi.fn();
+    watchChatStop({ ...TURN, turnId: "turn-2", onStop: regenerated });
+
+    expect(first).toHaveBeenCalledTimes(1);
+    expect(regenerated).not.toHaveBeenCalled();
+
+    // The second turn can still be stopped on its own.
+    await requestChatStop({ ...TURN, turnId: "turn-2" });
+    expect(regenerated).toHaveBeenCalledTimes(1);
+  });
+
+  it("a stop that arrives after its turn ended does not touch a later turn", async () => {
+    const cleanup = watchChatStop({ ...TURN, onStop: vi.fn() });
+    await cleanup();
+    await requestChatStop(TURN);
+
+    const next = vi.fn();
+    watchChatStop({ ...TURN, turnId: "turn-2", onStop: next });
+
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it("consumes the marker when it fires", async () => {
+    // Stop lands before the watcher exists, the watcher fires and consumes it;
+    // a second watcher on the same id (a legacy client re-sending the message
+    // id) must not fire on the same marker.
+    await requestChatStop(TURN);
+    const first = vi.fn();
+    watchChatStop({ ...TURN, onStop: first });
+    const second = vi.fn();
+    watchChatStop({ ...TURN, onStop: second });
+
+    expect(first).toHaveBeenCalledTimes(1);
+    expect(second).not.toHaveBeenCalled();
+  });
+
+  it("never lets one user stop another user's turn", async () => {
+    const onStop = vi.fn();
+    watchChatStop({ ...TURN, onStop });
+
+    await requestChatStop({ ...TURN, userId: "user-2" });
+
+    expect(onStop).not.toHaveBeenCalled();
+  });
+
+  it("consumes the marker when the turn ends, so a repeat of the id is not killed by it", async () => {
     const firstTurn = vi.fn();
     const cleanup = watchChatStop({ ...TURN, onStop: firstTurn });
     await requestChatStop(TURN);
@@ -127,7 +180,7 @@ describe("stop-signal (in-process backend)", () => {
     const onStop = vi.fn();
     watchChatStop({ ...TURN, onStop });
 
-    await requestChatStop({ chatId: "other-chat", messageId: MESSAGE });
+    await requestChatStop({ ...TURN, chatId: "other-chat" });
 
     expect(onStop).not.toHaveBeenCalled();
   });

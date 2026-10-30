@@ -6,13 +6,13 @@ import { ChatSDKError } from "@/lib/errors";
 import { requestChatStop } from "../../_lib/stop-signal";
 
 const bodySchema = z.object({
-  /** The last user message of the client's `messages`: the turn to stop. */
-  messageId: z.string().uuid(),
+  /** The `turnId` the client sent with the chat POST (or got from the stream). */
+  turnId: z.string().uuid(),
 });
 
 /**
- * "Stop" button: ask whichever instance is generating the text answer to the
- * user message `messageId` to abort. The abort itself happens on that instance;
+ * "Stop" button: ask whichever instance is generating the text answer of turn
+ * `turnId` to abort. The abort itself happens on that instance;
  * this only delivers the signal, so it answers 204 as soon as the signal is
  * handed over.
  */
@@ -27,9 +27,9 @@ export async function POST(
     return new ChatSDKError("unauthorized:chat").toResponse();
   }
 
-  let messageId: string;
+  let turnId: string;
   try {
-    ({ messageId } = bodySchema.parse(await request.json()));
+    ({ turnId } = bodySchema.parse(await request.json()));
   } catch {
     return new ChatSDKError("bad_request:api").toResponse();
   }
@@ -42,13 +42,13 @@ export async function POST(
   }
 
   // A brand-new chat may not be saved yet when an early stop arrives (the
-  // first POST is still being prepared). The marker names two random UUIDs
-  // and can only abort that one turn, so it is safe to accept.
+  // first POST is still being prepared). The marker is keyed by the user and
+  // by two random UUIDs and can only abort that one turn, so it is safe to accept.
   if (chat && chat.userId !== session.user.id) {
     return new ChatSDKError("forbidden:chat").toResponse();
   }
 
-  await requestChatStop({ chatId, messageId });
+  await requestChatStop({ userId: session.user.id, chatId, turnId });
 
   return new Response(null, { status: 204 });
 }

@@ -1,8 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
-import type { ChatMessage } from "@/lib/types";
-import { fetchWithErrorHandlers } from "@/lib/utils";
+import { fetchWithErrorHandlers, generateUUID } from "@/lib/utils";
 
 // Upper bound for waiting on an in-flight stop request before the next send.
 const PENDING_STOP_TIMEOUT_MS = 3000;
@@ -12,11 +11,6 @@ type FetchFn = typeof fetchWithErrorHandlers;
 type UseChatStopOptions = {
   chatId: string;
   stop: () => Promise<void>;
-  /**
-   * Current messages of the chat. The stop names the turn by its last user
-   * message, the one the server was sent with the turn.
-   */
-  getMessages: () => ChatMessage[];
 };
 
 const resolveMethod = (input: RequestInfo | URL, init?: RequestInit): string =>
@@ -30,39 +24,50 @@ const resolveMethod = (input: RequestInfo | URL, init?: RequestInit): string =>
  * `useChat().stop()` only aborts the POST fetch. A resumed stream (GET
  * reconnect) is fetched without a signal and keeps going, and the server
  * producer is not told to abort. This hook:
- *  - tells the server to abort the turn (`POST /api/chat/:id/stop`) and names
- *    the turn by the id of the last user message in `messages`. The chat POST
- *    carries `messages.at(-1)` (a user message) both for a new message and for
- *    regenerate/edit, and a resumed stream belongs to the last user message of
- *    the history, so client and server always agree on this id,
+ *  - tells the server to abort the turn (`POST /api/chat/:id/stop`), naming
+ *    it by its `turnId`. Every chat POST gets a fresh one (`beginTurn`), so a
+ *    stop can never hit another send even when regenerate/edit re-send the
+ *    same user message. A resumed stream did not make the POST: the server
+ *    streams its turn id (`rememberTurn`),
  *  - stops the client,
  *  - aborts the resumed read through a controller injected by the fetch wrapper.
  */
-export function useChatStop({ chatId, stop, getMessages }: UseChatStopOptions) {
+export function useChatStop({ chatId, stop }: UseChatStopOptions) {
   const chatIdRef = useRef(chatId);
   const stopRef = useRef(stop);
-  const getMessagesRef = useRef(getMessages);
+  const turnIdRef = useRef<string | undefined>(undefined);
   const pendingStopRef = useRef<Promise<unknown> | null>(null);
   const resumeControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     chatIdRef.current = chatId;
     stopRef.current = stop;
-    getMessagesRef.current = getMessages;
-  }, [chatId, stop, getMessages]);
+  }, [chatId, stop]);
+
+  /** A new chat POST starts: mint the id of its turn. */
+  const beginTurn = useCallback(() => {
+    const turnId = generateUUID();
+    turnIdRef.current = turnId;
+    return turnId;
+  }, []);
+
+  /** The turn id announced by the server in the stream (resumed streams). */
+  const rememberTurn = useCallback((turnId: string) => {
+    turnIdRef.current = turnId;
+  }, []);
 
   const handleStop = useCallback(() => {
-    const messageId = getMessagesRef
-      .current()
-      .findLast((message) => message.role === "user")?.id;
+    // No id yet means no turn was started or announced on this client (a
+    // resumed stream whose first part has not arrived): nothing to name.
+    const turnId = turnIdRef.current;
 
-    if (messageId) {
+    if (turnId) {
       const request: Promise<unknown> = fetch(
         `/api/chat/${chatIdRef.current}/stop`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messageId }),
+          body: JSON.stringify({ turnId }),
           keepalive: true,
         }
       )
@@ -112,5 +117,11 @@ export function useChatStop({ chatId, stop, getMessages }: UseChatStopOptions) {
     });
   }, []);
 
-  return { handleStop, waitForPendingStop, fetchWithResumeAbort };
+  return {
+    handleStop,
+    waitForPendingStop,
+    fetchWithResumeAbort,
+    beginTurn,
+    rememberTurn,
+  };
 }
