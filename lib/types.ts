@@ -54,6 +54,8 @@ export type CustomUIDataTypes = {
   appendMessage: string;
   usage: AppUsage;
   modelId: string;
+  /** Marks an assistant message the user stopped mid-generation. */
+  interrupted: { reason: "user" };
   imageGenerationFinish: {
     responseId: string;
     imageUrl: string;

@@ -211,3 +211,295 @@ export function usageChargeUsd(usage: AppUsage): number {
 
   return totalUSD;
 }
+
+// --- Aborted turns (user pressed Stop) --------------------------------------
+//
+// On abort the AI SDK reports usage only for FINISHED steps; the running step
+// has no usage at all. We bill finished steps at their real cost and add an
+// estimate for what the running step produced up to the stop.
+
+const CYRILLIC_CHARS_PER_TOKEN = 2.5;
+const OTHER_CHARS_PER_TOKEN = 4;
+const CYRILLIC_FIRST = 0x04_00;
+const CYRILLIC_LAST = 0x04_ff;
+
+/**
+ * Rough token estimate from characters (no tokenizer is installed): Cyrillic
+ * costs ~2.5 chars/token, everything else ~4. Only used to bill the step that
+ * was cut off by a stop, never for completed steps.
+ */
+export function estimateTokens(text: string): number {
+  if (!text) {
+    return 0;
+  }
+
+  let cyrillic = 0;
+  let other = 0;
+  for (const char of text) {
+    const code = char.codePointAt(0) ?? 0;
+    if (code >= CYRILLIC_FIRST && code <= CYRILLIC_LAST) {
+      cyrillic += 1;
+    } else {
+      other += 1;
+    }
+  }
+
+  return Math.ceil(
+    cyrillic / CYRILLIC_CHARS_PER_TOKEN + other / OTHER_CHARS_PER_TOKEN
+  );
+}
+
+/** The subset of a `streamText` `onChunk` chunk the tracker reads. */
+type InFlightChunk = { type: string; text?: string; delta?: string };
+
+export type InFlightStepTracker = {
+  /** Feed every `onChunk` chunk. Synchronous: a returned promise pauses the stream. */
+  onChunk: (chunk: InFlightChunk) => void;
+  /** Forget the running step (call from `onStepFinish`). */
+  reset: () => void;
+  /** Everything the running step has generated so far (text, reasoning, tool input). */
+  outputText: () => string;
+};
+
+/**
+ * Accumulates what the currently running step has streamed so far, so that a
+ * stop in the middle of a step can still be billed for its output.
+ */
+export function createInFlightStepTracker(): InFlightStepTracker {
+  let pieces: string[] = [];
+
+  return {
+    onChunk(chunk) {
+      switch (chunk.type) {
+        case "text-delta":
+        case "reasoning-delta":
+          if (chunk.text) {
+            pieces.push(chunk.text);
+          }
+          break;
+        case "tool-input-delta":
+          if (chunk.delta) {
+            pieces.push(chunk.delta);
+          }
+          break;
+        default:
+          break;
+      }
+    },
+    reset() {
+      pieces = [];
+    },
+    outputText() {
+      return pieces.join("");
+    },
+  };
+}
+
+/**
+ * TokenLens price (USD) for a usage record, or undefined when the model has no
+ * price in the catalog (or there is no catalog at all).
+ */
+export function priceUsageUsd({
+  modelId,
+  usage,
+  catalog,
+}: {
+  modelId: string;
+  usage: LanguageModelUsage;
+  catalog: ModelCatalog | undefined;
+}): number | undefined {
+  if (!catalog) {
+    return;
+  }
+  const totalUsd = resolveUsageSummary({ modelId, usage, catalog }).costUSD
+    ?.totalUSD;
+  return totalUsd && totalUsd > 0 ? totalUsd : undefined;
+}
+
+/** The slice of a finished `StepResult` that abort billing needs. */
+export type AbortedTurnStep = {
+  usage: LanguageModelUsage;
+  finishReason?: string;
+  providerMetadata?: unknown;
+  toolResults?: readonly { output?: unknown }[];
+};
+
+const sumDefined = (
+  ...values: Array<number | undefined>
+): number | undefined =>
+  values.some((value) => value !== undefined)
+    ? values.reduce<number>((total, value) => total + (value ?? 0), 0)
+    : undefined;
+
+/** Sum the usage of finished steps into one `LanguageModelUsage`. */
+function sumStepUsage(steps: readonly AbortedTurnStep[]): LanguageModelUsage {
+  const total: LanguageModelUsage = {
+    inputTokens: undefined,
+    inputTokenDetails: {
+      noCacheTokens: undefined,
+      cacheReadTokens: undefined,
+      cacheWriteTokens: undefined,
+    },
+    outputTokens: undefined,
+    outputTokenDetails: { textTokens: undefined, reasoningTokens: undefined },
+    totalTokens: undefined,
+  };
+
+  for (const { usage } of steps) {
+    total.inputTokens = sumDefined(total.inputTokens, usage.inputTokens);
+    total.outputTokens = sumDefined(total.outputTokens, usage.outputTokens);
+    total.totalTokens = sumDefined(total.totalTokens, usage.totalTokens);
+    total.inputTokenDetails = {
+      noCacheTokens: sumDefined(
+        total.inputTokenDetails.noCacheTokens,
+        usage.inputTokenDetails?.noCacheTokens
+      ),
+      cacheReadTokens: sumDefined(
+        total.inputTokenDetails.cacheReadTokens,
+        usage.inputTokenDetails?.cacheReadTokens
+      ),
+      cacheWriteTokens: sumDefined(
+        total.inputTokenDetails.cacheWriteTokens,
+        usage.inputTokenDetails?.cacheWriteTokens
+      ),
+    };
+    total.outputTokenDetails = {
+      textTokens: sumDefined(
+        total.outputTokenDetails.textTokens,
+        usage.outputTokenDetails?.textTokens
+      ),
+      reasoningTokens: sumDefined(
+        total.outputTokenDetails.reasoningTokens,
+        usage.outputTokenDetails?.reasoningTokens
+      ),
+    };
+  }
+
+  total.reasoningTokens = total.outputTokenDetails.reasoningTokens;
+  total.cachedInputTokens = total.inputTokenDetails.cacheReadTokens;
+  return total;
+}
+
+/**
+ * A step that ended for one of these reasons was the model's last: no further
+ * step can have been running when the stop landed.
+ */
+const TERMINAL_FINISH_REASONS = new Set(["stop", "length", "content-filter"]);
+
+/** Rough token size of the tool outputs the next step would be fed. */
+function estimateToolResultTokens(step: AbortedTurnStep): number {
+  let tokens = 0;
+  for (const result of step.toolResults ?? []) {
+    try {
+      tokens += estimateTokens(JSON.stringify(result.output) ?? "");
+    } catch {
+      // Unserializable output: skip, this is only an estimate.
+    }
+  }
+  return tokens;
+}
+
+type AbortedTurnUsageInput = {
+  /** Steps that finished before the stop (`onAbort` / `onFinish` `steps`). */
+  steps: readonly AbortedTurnStep[];
+  /** Output generated by the step that was running when the stop landed. */
+  inFlightOutputText: string;
+  /** Text sent to the model for the first step (system prompt + history). */
+  promptText: string;
+  accumulator: ImageGenerationUsageAccumulator;
+  modelId: string;
+  catalog: ModelCatalog | undefined;
+};
+
+/**
+ * Usage record for a turn the user stopped. Finished steps are billed at the
+ * gateway-reported cost (TokenLens as the fallback); the running step is
+ * estimated from characters and priced with TokenLens. If the running step
+ * cannot be priced, only the finished steps are charged (and it is logged).
+ */
+export function computeAbortedTurnUsage({
+  steps,
+  inFlightOutputText,
+  promptText,
+  accumulator,
+  modelId,
+  catalog,
+}: AbortedTurnUsageInput): AppUsage {
+  const finishedUsage = sumStepUsage(steps);
+  const finishedUsd =
+    sumGatewayCostUsd(steps) ??
+    (steps.length > 0
+      ? priceUsageUsd({ modelId, usage: finishedUsage, catalog })
+      : undefined);
+
+  const lastStep = steps.at(-1);
+  // The stop can land right after the model's final step (or after the turn
+  // fully completed): then nothing was running and there is nothing to estimate.
+  const hasRunningStep =
+    lastStep === undefined ||
+    inFlightOutputText !== "" ||
+    !TERMINAL_FINISH_REASONS.has(lastStep.finishReason ?? "");
+
+  const runningInputTokens = (() => {
+    if (!hasRunningStep) {
+      return 0;
+    }
+    return lastStep
+      ? (lastStep.usage.inputTokens ?? 0) +
+          (lastStep.usage.outputTokens ?? 0) +
+          estimateToolResultTokens(lastStep)
+      : estimateTokens(promptText);
+  })();
+  const runningOutputTokens = estimateTokens(inFlightOutputText);
+  const runningUsage = {
+    inputTokens: runningInputTokens,
+    outputTokens: runningOutputTokens,
+    totalTokens: runningInputTokens + runningOutputTokens,
+    inputTokenDetails: {
+      noCacheTokens: runningInputTokens,
+      cacheReadTokens: undefined,
+      cacheWriteTokens: undefined,
+    },
+    outputTokenDetails: {
+      textTokens: runningOutputTokens,
+      reasoningTokens: undefined,
+    },
+  } satisfies LanguageModelUsage;
+  const runningUsd = hasRunningStep
+    ? priceUsageUsd({ modelId, usage: runningUsage, catalog })
+    : 0;
+
+  if (runningUsd === undefined) {
+    console.warn("[ALARM-USAGE] aborted step unpriced", {
+      modelId,
+      hasCatalog: catalog !== undefined,
+      finishedSteps: steps.length,
+      runningInputTokens,
+      runningOutputTokens,
+    });
+  }
+
+  const totalUsd = (finishedUsd ?? 0) + (runningUsd ?? 0);
+  // Token counts: finished steps exactly, plus the running step only when it
+  // was priced, so the displayed tokens match what was charged.
+  const usage: LanguageModelUsage =
+    runningUsd === undefined
+      ? finishedUsage
+      : {
+          ...finishedUsage,
+          inputTokens: (finishedUsage.inputTokens ?? 0) + runningInputTokens,
+          outputTokens: (finishedUsage.outputTokens ?? 0) + runningOutputTokens,
+          totalTokens:
+            (finishedUsage.totalTokens ?? 0) +
+            runningInputTokens +
+            runningOutputTokens,
+        };
+
+  return mergeUsage({
+    usage,
+    accumulator,
+    modelId,
+    catalog,
+    gatewayCostUsd: totalUsd > 0 ? totalUsd : undefined,
+  });
+}

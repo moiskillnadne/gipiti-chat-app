@@ -22,6 +22,7 @@ import { updateChatTitle } from "@/lib/db/query/chat/update-chat-title";
 import { getProjectById } from "@/lib/db/query/project/get-project-by-id";
 import { incrementProjectUsage } from "@/lib/db/query/project/increment-project-usage";
 import { ChatSDKError } from "@/lib/errors";
+import { isInterruptedMessage } from "@/lib/messages/interrupted";
 import type { ChatMessage } from "@/lib/types";
 import { convertToUIMessages, generateUUID } from "@/lib/utils";
 import { generateTitleFromUserMessage } from "../../../actions";
@@ -120,6 +121,9 @@ const stripThoughtSignature = (part: ChatPart): ChatPart => {
  *  3. Skip content-less assistant turns (e.g. a prior failed turn persisted as
  *     data-only) — they convert to empty content and the Gateway rejects them
  *     with "must include at least one parts field".
+ *  4. Turns the user stopped (`data-interrupted`) never keep reasoning (a
+ *     reasoning-only message is not valid assistant content) nor blank text
+ *     parts; the data parts themselves are ignored by `convertToModelMessages`.
  */
 function sanitizeHistory(messages: ChatMessage[]): ChatMessage[] {
   const sanitized: ChatMessage[] = [];
@@ -132,12 +136,16 @@ function sanitizeHistory(messages: ChatMessage[]): ChatMessage[] {
 
     const strippedParts = message.parts.map(stripThoughtSignature);
 
+    const interrupted = isInterruptedMessage(message);
     const withoutReasoning = strippedParts.filter(
-      (p) => p.type !== "reasoning"
+      (p) =>
+        p.type !== "reasoning" &&
+        !(interrupted && p.type === "text" && p.text.trim() === "")
     );
-    const parts = withoutReasoning.some((p) => p.type === "text")
-      ? withoutReasoning
-      : strippedParts;
+    const parts =
+      interrupted || withoutReasoning.some((p) => p.type === "text")
+        ? withoutReasoning
+        : strippedParts;
 
     if (!parts.some(isModelContentPart)) {
       continue;
@@ -162,7 +170,8 @@ function sanitizeHistory(messages: ChatMessage[]): ChatMessage[] {
 export async function prepareChatTurn(
   body: PostRequestBody,
   session: Session,
-  request: Request
+  request: Request,
+  turn: { startedAt: number; abortSignal: AbortSignal }
 ): Promise<ChatTurnContext> {
   const {
     id,
@@ -296,5 +305,8 @@ export async function prepareChatTurn(
     imageUsageAccumulator: createImageUsageAccumulator(),
     lastUsage: {},
     hasBalance,
+    startedAt: turn.startedAt,
+    abortSignal: turn.abortSignal,
+    abortSettlement: {},
   };
 }

@@ -52,7 +52,6 @@ type MultimodalInputProps = {
   stop: () => void;
   attachments: Attachment[];
   setAttachments: Dispatch<SetStateAction<Attachment[]>>;
-  setMessages: UseChatHelpers<ChatMessage>["setMessages"];
   sendMessage: UseChatHelpers<ChatMessage>["sendMessage"];
   className?: string;
   // Kept for backward compatibility with chat.tsx; usage UI is hidden in this redesign.
@@ -88,7 +87,6 @@ function PureMultimodalInput({
   stop,
   attachments,
   setAttachments,
-  setMessages,
   sendMessage,
   className,
 }: MultimodalInputProps) {
@@ -474,7 +472,6 @@ function PureMultimodalInput({
               onClick={(event) => {
                 event.preventDefault();
                 stop();
-                setMessages((messages) => messages);
               }}
               type="button"
             >

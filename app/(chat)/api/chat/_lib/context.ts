@@ -47,6 +47,12 @@ export type ChatTurnContext = {
    */
   lastUsage: { value?: AppUsage };
   hasBalance: boolean;
+  /** Server timestamp (ms) at which this turn began; gates stale stop signals. */
+  startedAt: number;
+  /** Aborted when the user stops the turn (or, without resume, disconnects). */
+  abortSignal: AbortSignal;
+  /** Set by the text handler when a turn is aborted; awaited before persisting. */
+  abortSettlement: { value?: Promise<void> };
 };
 
 /** A mode handler: runs inference for one turn, writing to the UI stream. */

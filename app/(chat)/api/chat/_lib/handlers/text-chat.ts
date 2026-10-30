@@ -34,6 +34,9 @@ import {
 import { chargeUsageSafe } from "../charge";
 import type { ChatTurnContext, StreamWriter } from "../context";
 import {
+  type AbortedTurnStep,
+  computeAbortedTurnUsage,
+  createInFlightStepTracker,
   getTokenlensCatalog,
   mergeUsage,
   sumGatewayCostUsd,
@@ -131,10 +134,41 @@ function isEmptyAssistantMessage(message: ModelMessage): boolean {
 }
 
 /**
+ * Flatten the text the model was sent (system prompt + message text, tool
+ * calls and results as JSON; files are skipped) so a stop during the first step
+ * can estimate that step's input tokens.
+ */
+function extractPromptText(system: string, messages: ModelMessage[]): string {
+  const chunks = [system];
+  for (const { content } of messages) {
+    if (typeof content === "string") {
+      chunks.push(content);
+      continue;
+    }
+    for (const part of content) {
+      if (part.type === "text" || part.type === "reasoning") {
+        chunks.push(part.text);
+      } else if (part.type === "tool-call") {
+        chunks.push(JSON.stringify(part.input) ?? "");
+      } else if (part.type === "tool-result") {
+        chunks.push(JSON.stringify(part.output) ?? "");
+      }
+    }
+  }
+  return chunks.join("\n");
+}
+
+/**
  * Run a standard text-chat turn via streamText: build the system prompt, expose
  * the tool set (gated by model capability + web-search toggle), stream the
  * reply, and on finish enrich usage via TokenLens and charge the cost. The
  * merged usage is stashed on ctx for last-context persistence.
+ *
+ * When the user stops the turn (`ctx.abortSignal`), the provider request is
+ * aborted and the turn is settled once by `settleAborted`: finished steps are
+ * charged at their real cost plus an estimate for the step that was running.
+ * The settlement promise is parked on `ctx.abortSettlement` because the SDK
+ * does not await `onAbort`; the route awaits it before persisting the message.
  */
 export async function runTextChat(
   ctx: ChatTurnContext,
@@ -160,9 +194,12 @@ export async function runTextChat(
   const messagesForModel = await attachTextContentForModel(
     await attachDocxContentForModel(ctx.uiMessages)
   );
-  const baseMessages = (await convertToModelMessages(messagesForModel)).filter(
-    (message) => !isEmptyAssistantMessage(message)
-  );
+  // A message the user stopped mid tool call must not replay the dangling call.
+  const baseMessages = (
+    await convertToModelMessages(messagesForModel, {
+      ignoreIncompleteToolCalls: true,
+    })
+  ).filter((message) => !isEmptyAssistantMessage(message));
   const contextMessage = buildContextMessage({
     requestHints: ctx.requestHints,
     projectContext: ctx.projectContext,
@@ -222,10 +259,64 @@ export async function runTextChat(
       }
     : undefined;
 
+  const system = systemPrompt({ selectedChatModel: model });
+  const tracker = createInFlightStepTracker();
+  // Set by whichever of onAbort / onFinish bills the turn first.
+  let settled = false;
+
+  const settleAborted = (steps: AbortedTurnStep[]) => {
+    if (settled) {
+      return;
+    }
+    settled = true;
+
+    // Snapshot synchronously: the tracker keeps no state past this point.
+    const inFlightOutputText = tracker.outputText();
+
+    ctx.abortSettlement.value = (async () => {
+      try {
+        const catalog = await getTokenlensCatalog();
+        const resolvedModelId = myProvider.languageModel(model).modelId;
+        const merged = computeAbortedTurnUsage({
+          steps,
+          inFlightOutputText,
+          promptText: extractPromptText(system, chatMessages),
+          accumulator: ctx.imageUsageAccumulator,
+          modelId: resolvedModelId,
+          catalog,
+        });
+        ctx.lastUsage.value = merged;
+
+        const chargeUsd = usageChargeUsd(merged);
+        if (chargeUsd > 0) {
+          await chargeUsageSafe({
+            userId: ctx.userId,
+            usdCost: chargeUsd,
+            modelId: resolvedModelId,
+            chatId: ctx.chatId,
+            description: "Chat completion (stopped)",
+          });
+        }
+        console.info("[chat-stop] aborted turn charged", {
+          chatId: ctx.chatId,
+          usd: chargeUsd,
+          steps: steps.length,
+        });
+      } catch (err) {
+        console.warn("[chat-stop] aborted settlement failed", err);
+      }
+    })();
+  };
+
   const result = streamText({
     model: myProvider.languageModel(model),
-    system: systemPrompt({ selectedChatModel: model }),
+    system,
     messages: chatMessages,
+    abortSignal: ctx.abortSignal,
+    // Must stay synchronous: a returned promise pauses the stream.
+    onChunk: ({ chunk }) => tracker.onChunk(chunk),
+    onStepFinish: () => tracker.reset(),
+    onAbort: ({ steps }) => settleAborted(steps),
     stopWhen: stepCountIs(stepLimit),
     ...(isReasoningModelId(model) &&
       isThinkingEnabled &&
@@ -258,7 +349,23 @@ export async function runTextChat(
       isEnabled: isProductionEnvironment,
       functionId: "stream-text",
     },
-    onFinish: async ({ usage, steps }) => {
+    onFinish: async ({ usage, totalUsage, steps }) => {
+      // A stop after at least one finished step still ends up here, with empty
+      // total usage: bill it through the abort path. A turn that completed
+      // before the stop landed has real usage and is charged normally.
+      // `settled` keeps onAbort and onFinish from charging a turn twice.
+      const hasTotalUsage =
+        totalUsage.inputTokens !== undefined ||
+        totalUsage.outputTokens !== undefined;
+      if (ctx.abortSignal.aborted && !hasTotalUsage) {
+        settleAborted(steps);
+        return;
+      }
+      if (settled) {
+        return;
+      }
+      settled = true;
+
       try {
         const catalog = await getTokenlensCatalog();
         const resolvedModelId = myProvider.languageModel(model).modelId;
