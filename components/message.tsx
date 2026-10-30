@@ -61,7 +61,7 @@ const getModelIdFromMessage = (message: ChatMessage): string | undefined => {
 const mediaStateFromToolPart = (
   state: string,
   hasUrl: boolean
-): MediaPreviewState => {
+): Exclude<MediaPreviewState, "stopped"> => {
   if (state === "output-error" || (state === "output-available" && !hasUrl)) {
     return "error";
   }
@@ -120,6 +120,7 @@ const PurePreviewMessage = ({
   requiresScrollPadding,
   isLastAssistantMessage,
   streamStartedAtMs,
+  onStop,
 }: {
   chatId: string;
   message: ChatMessage;
@@ -131,6 +132,7 @@ const PurePreviewMessage = ({
   requiresScrollPadding: boolean;
   isLastAssistantMessage: boolean;
   streamStartedAtMs: number | null;
+  onStop: () => void;
 }) => {
   const t = useTranslations("chat.messages");
   const tModels = useTranslations("modelList");
@@ -320,6 +322,11 @@ const PurePreviewMessage = ({
                     url ? () => downloadMedia(url, mediaType) : undefined
                   }
                   onRegenerate={isReadonly ? undefined : () => regenerate()}
+                  onStop={
+                    !isReadonly && isLoading && status === "generating"
+                      ? onStop
+                      : undefined
+                  }
                   prompt={prompt}
                   state={status}
                   url={url}
@@ -485,7 +492,6 @@ export const PreviewMessage = memo(
     if (prevProps.isLastAssistantMessage !== nextProps.isLastAssistantMessage) {
       return false;
     }
-
     return false;
   }
 );

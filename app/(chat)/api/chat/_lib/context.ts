@@ -9,6 +9,7 @@ import type { ProjectContextInput, RequestHints } from "@/lib/ai/prompts";
 import type { ImageGenerationUsageAccumulator } from "@/lib/ai/tools/generate-image";
 import type { ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
+import type { MediaGenerationPart } from "./media-part";
 import type { TurnAbort } from "./turn-abort";
 import type { TurnOutcome, TurnSettlement } from "./turn-lifecycle";
 
@@ -65,8 +66,19 @@ export type ChatTurnContext = {
    * because the SDK does not await `onAbort`.
    */
   turnSettlement: TurnSettlement;
-  /** How the turn ended; set by the text handler (or the route for a skipped turn). */
+  /**
+   * How the turn ended; set by the handler (the text handler, or an image/video
+   * handler: `aborted` when the stop cut the provider call, `completed` on its
+   * other terminal paths) or by the route for a skipped turn.
+   */
   turnOutcome?: TurnOutcome;
+  /**
+   * The last `data-mediaGeneration` part an image/video handler wrote. Without
+   * a resumable stream a stop or disconnect cancels the response while the
+   * handler is still finishing, so the message snapshot can lag behind it;
+   * persisting prefers this part so the card matches what was saved and charged.
+   */
+  finalMediaPart?: MediaGenerationPart;
 };
 
 /** A mode handler: runs inference for one turn, writing to the UI stream. */

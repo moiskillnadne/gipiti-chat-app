@@ -7,6 +7,7 @@ export const isRecraftModel = (modelId: string): boolean => {
 
 type RecraftImageOptions = {
   aspectRatio?: string;
+  abortSignal?: AbortSignal;
 };
 
 /** Plain text-to-image, or image(s) + instruction for an edit. */
@@ -30,6 +31,7 @@ export async function generateRecraftImage(
   const result = await generateImage({
     model: gateway.imageModel("recraft/recraft-v4.1-pro"),
     prompt,
+    abortSignal: options.abortSignal,
     ...(options.aspectRatio && {
       aspectRatio: options.aspectRatio as `${number}:${number}`,
     }),

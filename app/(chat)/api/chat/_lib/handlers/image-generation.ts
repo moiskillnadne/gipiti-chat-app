@@ -11,6 +11,11 @@ import { chargeUsageSafe } from "../charge";
 import type { ChatTurnContext, StreamWriter } from "../context";
 import { resolveImageProvider } from "../image/providers";
 import { ImageGenerationError } from "../image/types";
+import {
+  createMediaPartWriter,
+  MEDIA_FILE_TYPES,
+  type MediaPartBase,
+} from "../media-part";
 
 const DEFAULT_IMAGE_MEDIA_TYPE = "image/png";
 
@@ -30,30 +35,31 @@ export async function runImageGeneration(
   }
 
   const documentId = generateUUID();
+  const startedAt = Date.now();
   // Shape the preview card to the chosen format ("auto" → undefined → square).
   const aspectRatio = normalizeAspectRatio(ctx.imageGenSetting?.aspectRatio);
+  const mediaPartBase: MediaPartBase = {
+    documentId,
+    mediaType: "image",
+    prompt: userPrompt,
+    modelId: ctx.model,
+    aspectRatio,
+  };
+  const writeMedia = createMediaPartWriter(ctx, writer, mediaPartBase);
 
   // Drive the media-preview card: emit the "generating" lifecycle part up front.
-  // Reusing the same part `id` lets later writes (done/error) replace this one.
+  // Reusing the same part `id` lets later writes (done/error/stopped) replace it.
   const writeGenerating = () => {
-    writer.write({
-      id: documentId,
-      type: "data-mediaGeneration",
-      data: {
-        documentId,
-        mediaType: "image",
-        status: "generating",
-        prompt: userPrompt,
-        modelId: ctx.model,
-        aspectRatio,
-      },
-    });
+    writeMedia("generating");
   };
 
   writeGenerating();
 
   let result: Awaited<ReturnType<ReturnType<typeof resolveImageProvider>>>;
   let imageUrl: string | undefined;
+  // A stop is honoured only while the provider is still working: once it has
+  // returned, the result is paid for and is delivered.
+  let isProviderResolved = false;
   try {
     const provider = resolveImageProvider(ctx.model);
     result = await provider({
@@ -62,10 +68,12 @@ export async function runImageGeneration(
       settings: ctx.imageGenSetting,
       previousGenerationId: ctx.previousGenerationId,
       uiMessages: ctx.uiMessages,
+      abortSignal: ctx.turnAbort.signal,
       // Re-emit the (reconciled) generating part as the provider streams, which
       // keeps the connection flushing while the card stays in its loading state.
       onReasoning: writeGenerating,
     });
+    isProviderResolved = true;
 
     if (result.base64) {
       imageUrl = await uploadGeneratedImage(
@@ -75,44 +83,40 @@ export async function runImageGeneration(
       );
     }
   } catch (error) {
-    console.error("Image generation failed:", { modelId: ctx.model, error });
-    writer.write({
-      id: documentId,
-      type: "data-mediaGeneration",
-      data: {
-        documentId,
-        mediaType: "image",
-        status: "error",
-        prompt: userPrompt,
+    if (ctx.turnAbort.signal.aborted && !isProviderResolved) {
+      console.info("[media-stop]", {
+        chatId: ctx.chatId,
         modelId: ctx.model,
-        aspectRatio,
-        // Only ImageGenerationError carries a card-safe message (the model's
-        // own reply); internal errors stay generic on the card.
-        ...(error instanceof ImageGenerationError &&
-          error.userMessage && { errorMessage: error.userMessage }),
-      },
-    });
+        mediaType: "image",
+        elapsedMs: Date.now() - startedAt,
+      });
+      writeMedia("stopped");
+      ctx.turnOutcome = "aborted";
+      return;
+    }
+    console.error("Image generation failed:", { modelId: ctx.model, error });
+    // Only ImageGenerationError carries a card-safe message (the model's own
+    // reply); internal errors stay generic on the card.
+    writeMedia(
+      "error",
+      error instanceof ImageGenerationError && error.userMessage
+        ? { errorMessage: error.userMessage }
+        : {}
+    );
+    ctx.turnOutcome = "completed";
     return;
   }
 
+  ctx.turnOutcome = "completed";
+
   if (imageUrl) {
-    writer.write({
-      id: documentId,
-      type: "data-mediaGeneration",
-      data: {
-        documentId,
-        mediaType: "image",
-        status: "done",
-        prompt: userPrompt,
-        modelId: ctx.model,
-        url: imageUrl,
-        generationId: result.responseId,
-        aspectRatio,
-      },
+    writeMedia("done", {
+      url: imageUrl,
+      generationId: result.responseId,
     });
     writer.write({
       type: "file",
-      mediaType: DEFAULT_IMAGE_MEDIA_TYPE,
+      mediaType: MEDIA_FILE_TYPES.image,
       url: imageUrl,
     });
 
@@ -131,18 +135,7 @@ export async function runImageGeneration(
       modelId: ctx.model,
       hasBase64: Boolean(result.base64),
     });
-    writer.write({
-      id: documentId,
-      type: "data-mediaGeneration",
-      data: {
-        documentId,
-        mediaType: "image",
-        status: "error",
-        prompt: userPrompt,
-        modelId: ctx.model,
-        aspectRatio,
-      },
-    });
+    writeMedia("error");
   }
 
   // Fold image usage into the shared accumulator (mirrors prior behavior:
@@ -156,6 +149,12 @@ export async function runImageGeneration(
     ctx.imageUsageAccumulator.totalOutputTokens += outputTokens;
     ctx.imageUsageAccumulator.totalCost += result.costUsd;
     ctx.imageUsageAccumulator.generationCount += 1;
+  }
+
+  if (imageUrl && result.costUsd <= 0) {
+    console.warn(
+      `Gateway returned no image cost for model "${ctx.model}"; skipping charge`
+    );
   }
 
   await chargeUsageSafe(

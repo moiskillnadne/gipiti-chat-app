@@ -1,7 +1,8 @@
 import { createClient } from "redis";
 
 /**
- * Cross-instance "user pressed Stop" signal for a streaming text turn.
+ * Cross-instance "user pressed Stop" signal for a streaming chat turn (text,
+ * image or video).
  *
  * The stop request (`POST /api/chat/[id]/stop`) and the instance that runs the
  * model call are usually different serverless invocations, so the signal goes

@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import type { ChatMessage } from "@/lib/types";
 import {
   finalizeInterruptedMessage,
+  finalizeMediaGenerationParts,
   isInterruptedMessage,
   markLastAssistantInterrupted,
+  markLastAssistantStopped,
 } from "../interrupted";
 
 const assistant = (parts: unknown[]): ChatMessage =>
@@ -127,5 +129,110 @@ describe("markLastAssistantInterrupted", () => {
     const messages: ChatMessage[] = [];
 
     expect(markLastAssistantInterrupted(messages)).toBe(messages);
+  });
+});
+
+const mediaCard = (status: string) => ({
+  type: "data-mediaGeneration",
+  id: "doc-1",
+  data: {
+    documentId: "doc-1",
+    mediaType: "image",
+    status,
+    prompt: "a fox",
+    modelId: "image-model",
+  },
+});
+
+describe("finalizeMediaGenerationParts", () => {
+  it("turns a generating card into a stopped one, keeping its id and data", () => {
+    const message = assistant([mediaCard("generating")]);
+
+    const result = finalizeMediaGenerationParts(message, "stopped");
+
+    expect(result.parts).toEqual([mediaCard("stopped")]);
+  });
+
+  it("turns a dangling generating card into an error one", () => {
+    const result = finalizeMediaGenerationParts(
+      assistant([mediaCard("generating")]),
+      "error"
+    );
+
+    expect(result.parts).toEqual([mediaCard("error")]);
+  });
+
+  it("leaves finished cards and other parts alone", () => {
+    const message = assistant([
+      { type: "text", text: "hi" },
+      mediaCard("done"),
+      mediaCard("generating"),
+    ]);
+
+    const result = finalizeMediaGenerationParts(message, "stopped");
+
+    expect(result.parts).toEqual([
+      { type: "text", text: "hi" },
+      mediaCard("done"),
+      mediaCard("stopped"),
+    ]);
+  });
+
+  it("returns the same reference when nothing is generating", () => {
+    const message = assistant([mediaCard("done")]);
+
+    expect(finalizeMediaGenerationParts(message, "stopped")).toBe(message);
+  });
+
+  it("does not add the interrupted mark", () => {
+    const result = finalizeMediaGenerationParts(
+      assistant([mediaCard("generating")]),
+      "stopped"
+    );
+
+    expect(isInterruptedMessage(result)).toBe(false);
+  });
+});
+
+describe("markLastAssistantStopped", () => {
+  it("stops the generating card of a media turn without the interrupted mark", () => {
+    const messages = [user("draw a fox"), assistant([mediaCard("generating")])];
+
+    const result = markLastAssistantStopped(messages);
+
+    expect(result[0]).toBe(messages[0]);
+    expect(result[1].parts).toEqual([mediaCard("stopped")]);
+  });
+
+  it("returns the same reference for a media turn that already finished", () => {
+    const messages = [user("draw a fox"), assistant([mediaCard("done")])];
+
+    expect(markLastAssistantStopped(messages)).toBe(messages);
+  });
+
+  it("marks a text turn as interrupted", () => {
+    const messages = [
+      user("hi"),
+      assistant([{ type: "text", text: "partial", state: "streaming" }]),
+    ];
+
+    const result = markLastAssistantStopped(messages);
+
+    expect(result[1].parts).toEqual([
+      { type: "text", text: "partial", state: "done" },
+      MARK,
+    ]);
+  });
+
+  it("returns the same reference when the last message is the user's", () => {
+    const messages = [assistant([mediaCard("generating")]), user("next")];
+
+    expect(markLastAssistantStopped(messages)).toBe(messages);
+  });
+
+  it("returns the same reference for an empty list", () => {
+    const messages: ChatMessage[] = [];
+
+    expect(markLastAssistantStopped(messages)).toBe(messages);
   });
 });

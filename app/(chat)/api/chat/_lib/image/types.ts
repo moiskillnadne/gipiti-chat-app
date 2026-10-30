@@ -18,6 +18,8 @@ export type ImageGenInput = {
   settings: ImageGenSetting | undefined;
   previousGenerationId?: string;
   uiMessages: ChatMessage[];
+  /** Aborted when the user stops the turn; forwarded to every provider call. */
+  abortSignal: AbortSignal;
   /** Forward a status or reasoning line to the UI stream (reasoning-delta). */
   onReasoning: (text: string) => void;
 };

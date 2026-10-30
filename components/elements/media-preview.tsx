@@ -8,13 +8,27 @@ import {
   RefreshCwIcon,
   VideoIcon,
 } from "lucide-react";
-import { type CSSProperties, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "@/lib/i18n/translate";
 import { parseAspectRatio } from "@/lib/media/aspect-ratio";
 import { cn } from "@/lib/utils";
 import { useMediaLightbox } from "./media-lightbox-provider";
+import {
+  CARD_FRAME,
+  CARD_FRAME_PORTRAIT,
+  type CardShape,
+  FROSTED,
+  MEDIA_AREA,
+} from "./media-preview-styles";
+import { MediaStopButton } from "./media-stop-button";
+import { MediaStoppedCard } from "./media-stopped-card";
 
-export type MediaPreviewState = "queued" | "generating" | "done" | "error";
+export type MediaPreviewState =
+  | "queued"
+  | "generating"
+  | "done"
+  | "error"
+  | "stopped";
 export type MediaPreviewMediaType = "image" | "video";
 
 type MediaPreviewProps = {
@@ -31,14 +45,8 @@ type MediaPreviewProps = {
   aspectRatio?: string;
   onRegenerate?: () => void;
   onDownload?: () => void;
-};
-
-/** Card sizing derived from the chosen format (square fallback). */
-type CardShape = {
-  /** Inline style overriding the default aspect-square media area. */
-  mediaStyle?: CSSProperties;
-  /** True for portrait formats — the card narrows to limit its height. */
-  isPortrait: boolean;
+  /** Stops the in-flight generation; the stop button renders only when set. */
+  onStop?: () => void;
 };
 
 const cardShapeFromAspect = (token?: string): CardShape => {
@@ -52,14 +60,6 @@ const cardShapeFromAspect = (token?: string): CardShape => {
     isPortrait: height > width,
   };
 };
-
-const CARD_FRAME =
-  "relative w-full max-w-[392px] overflow-hidden rounded-lg border border-rule bg-card shadow-md";
-// Portrait formats narrow the card so tall ratios don't dominate the thread.
-const CARD_FRAME_PORTRAIT = "max-w-[294px]";
-const MEDIA_AREA = "relative aspect-square w-full overflow-hidden bg-paper-2";
-const FROSTED =
-  "bg-white/75 shadow-[inset_0_0_0_1px_rgba(255,255,255,.7),0_1px_4px_rgba(20,22,26,.12)] backdrop-blur-md backdrop-saturate-150";
 
 const MediaGlyph = ({
   mediaType,
@@ -261,11 +261,13 @@ const GeneratingCard = ({
   modelLabel,
   elapsedLabel,
   shape,
+  onStop,
 }: {
   mediaType: MediaPreviewMediaType;
   modelLabel?: string;
   elapsedLabel?: string;
   shape: CardShape;
+  onStop?: () => void;
 }) => {
   const t = useTranslations("chat.media");
   const elapsed = useElapsedLabel(elapsedLabel);
@@ -285,6 +287,7 @@ const GeneratingCard = ({
               : t("generatingVideo")}
           </div>
         </div>
+        {onStop && <MediaStopButton onStop={onStop} />}
       </div>
     </div>
   );
@@ -424,6 +427,7 @@ export const MediaPreview = ({
   aspectRatio,
   onRegenerate,
   onDownload,
+  onStop,
 }: MediaPreviewProps) => {
   const t = useTranslations("chat.media");
   const lightbox = useMediaLightbox();
@@ -439,6 +443,17 @@ export const MediaPreview = ({
         elapsedLabel={elapsedLabel}
         mediaType={mediaType}
         modelLabel={modelLabel}
+        onStop={onStop}
+        shape={shape}
+      />
+    );
+  }
+
+  if (state === "stopped") {
+    return (
+      <MediaStoppedCard
+        mediaType={mediaType}
+        onRegenerate={onRegenerate}
         shape={shape}
       />
     );

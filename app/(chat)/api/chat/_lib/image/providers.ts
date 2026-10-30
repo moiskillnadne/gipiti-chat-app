@@ -90,8 +90,11 @@ const toImageGenerationError = (
 };
 
 /** Download a previously generated image as raw bytes for edit input. */
-async function fetchImageBytes(url: string): Promise<Uint8Array> {
-  const response = await fetch(url);
+async function fetchImageBytes(
+  url: string,
+  abortSignal: AbortSignal
+): Promise<Uint8Array> {
+  const response = await fetch(url, { signal: abortSignal });
   if (!response.ok) {
     throw new Error(`Failed to download image: ${response.statusText}`);
   }
@@ -112,6 +115,7 @@ type ImageEditPrompt = string | { images: Uint8Array[]; text: string };
 async function runImageEdit<TResult>(
   text: string,
   latestImageUrl: string | undefined,
+  abortSignal: AbortSignal,
   run: (prompt: ImageEditPrompt) => Promise<TResult>
 ): Promise<TResult> {
   if (!latestImageUrl) {
@@ -119,13 +123,18 @@ async function runImageEdit<TResult>(
   }
 
   const editPrompt: ImageEditPrompt = {
-    images: [await fetchImageBytes(latestImageUrl)],
+    images: [await fetchImageBytes(latestImageUrl, abortSignal)],
     text,
   };
 
   try {
     return await run(editPrompt);
   } catch (error) {
+    // A stop is not an unsupported edit: falling back would start a second
+    // generation the user just cancelled.
+    if (abortSignal.aborted) {
+      throw error;
+    }
     console.warn(
       "Image edit failed (model likely lacks image-input support); falling back to text-to-image",
       error
@@ -167,6 +176,7 @@ const openaiImageProvider: ImageProvider = async ({
   settings,
   previousGenerationId,
   uiMessages,
+  abortSignal,
   onReasoning,
 }): Promise<ImageGenResult> => {
   // Prefer the most recent image in the conversation (a freshly attached image
@@ -198,12 +208,16 @@ const openaiImageProvider: ImageProvider = async ({
 
   try {
     const generationPrompt = previousImageUrl
-      ? { images: [await fetchImageBytes(previousImageUrl)], text: prompt }
+      ? {
+          images: [await fetchImageBytes(previousImageUrl, abortSignal)],
+          text: prompt,
+        }
       : prompt;
 
     const result = await sdkGenerateImage({
       model: gateway.imageModel(getOpenAIImageGatewayModelId(modelId)),
       prompt: generationPrompt,
+      abortSignal,
       ...(size && { size: size as `${number}x${number}` }),
       ...(providerOptions && { providerOptions }),
     });
@@ -243,6 +257,7 @@ const recraftImageProvider: ImageProvider = async ({
   prompt,
   settings,
   uiMessages,
+  abortSignal,
   onReasoning,
 }): Promise<ImageGenResult> => {
   const latestImageUrl = resolveLatestImageUrl(uiMessages);
@@ -252,10 +267,15 @@ const recraftImageProvider: ImageProvider = async ({
       : "Generating image with Recraft..."
   );
 
-  const recraft = await runImageEdit(prompt, latestImageUrl, (imagePrompt) =>
-    generateRecraftImage(imagePrompt, {
-      aspectRatio: settings?.aspectRatio,
-    })
+  const recraft = await runImageEdit(
+    prompt,
+    latestImageUrl,
+    abortSignal,
+    (imagePrompt) =>
+      generateRecraftImage(imagePrompt, {
+        aspectRatio: settings?.aspectRatio,
+        abortSignal,
+      })
   );
 
   return {
@@ -330,6 +350,7 @@ const dedicatedImageProvider: ImageProvider = async ({
   prompt,
   settings,
   uiMessages,
+  abortSignal,
   onReasoning,
 }): Promise<ImageGenResult> => {
   const gatewayModelId = getDedicatedImageGatewayModelId(modelId);
@@ -341,12 +362,17 @@ const dedicatedImageProvider: ImageProvider = async ({
     settings?.aspectRatio
   );
 
-  const result = await runImageEdit(prompt, latestImageUrl, (imagePrompt) =>
-    sdkGenerateImage({
-      model: gateway.imageModel(gatewayModelId),
-      prompt: imagePrompt,
-      ...shapeParams,
-    })
+  const result = await runImageEdit(
+    prompt,
+    latestImageUrl,
+    abortSignal,
+    (imagePrompt) =>
+      sdkGenerateImage({
+        model: gateway.imageModel(gatewayModelId),
+        prompt: imagePrompt,
+        abortSignal,
+        ...shapeParams,
+      })
   );
 
   const gatewayCost = (
@@ -373,6 +399,7 @@ const multimodalImageProvider: ImageProvider = async ({
   prompt,
   settings,
   uiMessages,
+  abortSignal,
   onReasoning,
 }): Promise<ImageGenResult> => {
   // Gemini ("Nano Banana") only treats an image as an edit base when it rides on
@@ -420,6 +447,7 @@ const multimodalImageProvider: ImageProvider = async ({
     system: MULTIMODAL_IMAGE_SYSTEM_PROMPT,
     messages,
     providerOptions: mergedProviderOptions,
+    abortSignal,
   });
 
   let base64: string | undefined;
@@ -430,6 +458,7 @@ const multimodalImageProvider: ImageProvider = async ({
   let streamError: unknown;
   let finishReason: string | undefined;
   let textPreview = "";
+  let hasFinishedStep = false;
   const deltaCounts: Record<string, number> = {};
 
   for await (const delta of result.fullStream) {
@@ -466,6 +495,7 @@ const multimodalImageProvider: ImageProvider = async ({
     }
 
     if (delta.type === "finish-step") {
+      hasFinishedStep = true;
       const metadata = await result.providerMetadata;
       if (metadata) {
         // The gateway namespaces Google usage under "vertex" (its serving
@@ -496,6 +526,14 @@ const multimodalImageProvider: ImageProvider = async ({
         }
       }
     }
+  }
+
+  // An aborted streamText ends its stream quietly instead of throwing, and its
+  // pull loop drops the chunk read after the abort. A file without the
+  // finish-step that carries the cost would be delivered and charged $0, so it
+  // counts as a stop too; a stream that finished its step is paid for.
+  if (abortSignal.aborted && (!base64 || !hasFinishedStep)) {
+    throw abortSignal.reason;
   }
 
   if (streamError !== undefined) {

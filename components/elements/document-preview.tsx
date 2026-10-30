@@ -77,7 +77,7 @@ export const DOCUMENT_FORMAT_LABELS: Record<DocumentFormat, FormatLabels> = {
 
 type DocumentPreviewProps = {
   format: DocumentFormat;
-  state: MediaPreviewState;
+  state: Exclude<MediaPreviewState, "stopped">;
   title?: string;
   url?: string;
   onDownload?: () => void;
