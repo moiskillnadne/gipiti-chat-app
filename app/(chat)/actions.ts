@@ -1,8 +1,8 @@
 "use server";
 
-import type { GatewayProviderOptions } from "@ai-sdk/gateway";
-import { generateText, type UIMessage } from "ai";
 import { cookies } from "next/headers";
+import { z } from "zod";
+import { auth } from "@/app/(auth)/auth";
 import {
   IMAGE_ASPECT_COOKIE_PREFIX,
   IMAGE_QUALITY_COOKIE_PREFIX,
@@ -13,9 +13,8 @@ import {
   VIDEO_MODE_COOKIE_PREFIX,
   VIDEO_RESOLUTION_COOKIE_PREFIX,
 } from "@/lib/ai/models";
-import { myProvider } from "@/lib/ai/providers";
-import { deleteMessagesByChatIdAfterTimestamp } from "@/lib/db/query/chat/delete-messages-by-chat-id-after-timestamp";
-import { getMessageById } from "@/lib/db/query/chat/get-message-by-id";
+import { deleteTrailingMessagesForUser } from "@/lib/chat/delete-trailing-messages";
+import { ChatSDKError } from "@/lib/errors";
 
 export async function saveChatModelAsCookie(model: string) {
   const cookieStore = await cookies();
@@ -76,30 +75,6 @@ export async function saveWebSearchEnabledAsCookie(enabled: boolean) {
   cookieStore.set("web-search-enabled", enabled ? "1" : "0");
 }
 
-export async function generateTitleFromUserMessage({
-  message,
-}: {
-  message: UIMessage;
-}) {
-  const { text: title } = await generateText({
-    model: myProvider.languageModel("title-model"),
-    system: `\n
-    - you will generate a short title based on the first message a user begins a conversation with
-    - ensure it is not more than 80 characters long
-    - the title should be a summary of the user's message
-    - do not use quotes or colons
-    - IMPORTANT: Generate the title in the same language as the user's message`,
-    prompt: JSON.stringify(message),
-    providerOptions: {
-      gateway: {
-        models: ["openai/gpt-5.4-nano", "anthropic/claude-haiku-4.5"],
-      } satisfies GatewayProviderOptions,
-    },
-  });
-
-  return title;
-}
-
 export async function saveProjectAsCookie(projectId: string | null) {
   const cookieStore = await cookies();
   if (projectId) {
@@ -109,11 +84,23 @@ export async function saveProjectAsCookie(projectId: string | null) {
   }
 }
 
+// Server actions are public endpoints: check the session and ownership here,
+// never trust the caller.
 export async function deleteTrailingMessages({ id }: { id: string }) {
-  const [message] = await getMessageById({ id });
+  const session = await auth();
 
-  await deleteMessagesByChatIdAfterTimestamp({
-    chatId: message.chatId,
-    timestamp: message.createdAt,
+  if (!session?.user?.id) {
+    throw new ChatSDKError("unauthorized:chat");
+  }
+
+  const messageId = z.string().uuid().safeParse(id);
+
+  if (!messageId.success) {
+    throw new ChatSDKError("bad_request:chat");
+  }
+
+  await deleteTrailingMessagesForUser({
+    messageId: messageId.data,
+    userId: session.user.id,
   });
 }

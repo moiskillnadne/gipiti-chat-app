@@ -1,6 +1,7 @@
 import { geolocation } from "@vercel/functions";
 import { after } from "next/server";
 import type { Session } from "next-auth";
+import { generateTitleFromUserMessage } from "@/lib/ai/generate-chat-title";
 import {
   DEFAULT_CHAT_MODEL,
   isVisibleInUI,
@@ -24,7 +25,6 @@ import { incrementProjectUsage } from "@/lib/db/query/project/increment-project-
 import { ChatSDKError } from "@/lib/errors";
 import type { ChatMessage } from "@/lib/types";
 import { convertToUIMessages, generateUUID } from "@/lib/utils";
-import { generateTitleFromUserMessage } from "../../../actions";
 import type { PostRequestBody } from "../schema";
 import type { ChatTurnContext } from "./context";
 
