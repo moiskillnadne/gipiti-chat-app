@@ -7,7 +7,7 @@
 
 import { buildChips, buildVideoSteps, sharedMediaFaq } from "./media-shared";
 import {
-  FLUX_SLUG,
+  FLUX_3_IMAGE_SLUG,
   FLUX_VIDEO_SLUG,
   KLING_30_SLUG,
   SEEDANCE_25_SLUG,
@@ -103,7 +103,7 @@ export const bflVideoLandings: ModelLanding[] = [
       { name: "Veo 3.1", tag: "Видео", slug: VEO_SLUG },
       { name: "Seedance 2.5", tag: "Видео", slug: SEEDANCE_25_SLUG },
       { name: "Kling 3.0", tag: "Видео", slug: KLING_30_SLUG },
-      { name: "Flux 2 Max", tag: "Изображения", slug: FLUX_SLUG },
+      { name: "Flux 3 Image", tag: "Изображения", slug: FLUX_3_IMAGE_SLUG },
     ]),
   },
 ];

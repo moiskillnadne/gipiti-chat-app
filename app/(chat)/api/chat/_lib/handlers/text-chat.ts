@@ -33,7 +33,12 @@ import {
 } from "@/lib/constants";
 import { chargeUsageSafe } from "../charge";
 import type { ChatTurnContext, StreamWriter } from "../context";
-import { getTokenlensCatalog, mergeUsage, usageChargeUsd } from "../usage";
+import {
+  getTokenlensCatalog,
+  mergeUsage,
+  sumGatewayCostUsd,
+  usageChargeUsd,
+} from "../usage";
 
 const FINAL_ANSWER_REMINDER =
   "Please provide your final answer now based on the information you've gathered. Do not call any more tools.";
@@ -253,7 +258,7 @@ export async function runTextChat(
       isEnabled: isProductionEnvironment,
       functionId: "stream-text",
     },
-    onFinish: async ({ usage }) => {
+    onFinish: async ({ usage, steps }) => {
       try {
         const catalog = await getTokenlensCatalog();
         const resolvedModelId = myProvider.languageModel(model).modelId;
@@ -262,26 +267,25 @@ export async function runTextChat(
           accumulator: ctx.imageUsageAccumulator,
           modelId: resolvedModelId,
           catalog,
+          gatewayCostUsd: sumGatewayCostUsd(steps),
         });
         ctx.lastUsage.value = merged;
         writer.write({ type: "data-usage", data: merged });
 
-        console.info("------TOTAL USAGE", usageChargeUsd(merged));
+        const chargeUsd = usageChargeUsd(merged);
+        console.info("------TOTAL USAGE", chargeUsd);
 
-        // Charge only when usage was priced (resolved model + catalog present).
-        if (resolvedModelId && catalog) {
+        // Charge whenever the turn was priced. The gateway cost alone is enough:
+        // gating on the TokenLens catalog left every turn free on an instance
+        // whose models.dev fetch failed. A $0 total is already logged by
+        // mergeUsage / usageChargeUsd as [ALARM-USAGE].
+        if (chargeUsd > 0) {
           await chargeUsageSafe({
             userId: ctx.userId,
-            usdCost: usageChargeUsd(merged),
+            usdCost: chargeUsd,
             modelId: resolvedModelId,
             chatId: ctx.chatId,
             description: "Chat completion",
-          });
-        } else {
-          console.warn("[ALARM-USAGE]No resolvedModelId or catalog found", {
-            resolvedModelId,
-            catalog,
-            usage,
           });
         }
       } catch (err) {

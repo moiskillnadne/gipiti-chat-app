@@ -52,11 +52,11 @@ export const catalogSections: CatalogSection[] = [
     typePage: {
       h1Top: "Нейросети для работы",
       h1Gradient: "с текстом на русском",
-      sub: "GPT-6, Claude Opus 5.5, Gemini 3.8 Flash, Grok 4.7, Qwen 3.8 Max, DeepSeek V4 и другие — пишите тексты, анализируйте документы и решайте рабочие задачи на русском языке. Без VPN, оплата российскими картами.",
+      sub: "GPT-6.1, Claude Opus 5.5, Gemini 4 Argon, Grok 4.7, Kimi K3.1 Pro, Qwen 3.8, Meta Muse, Mistral Large 4, DeepSeek V4 и другие — пишите тексты, анализируйте документы и решайте рабочие задачи на русском языке. Без VPN, оплата российскими картами.",
       metaTitle:
         "Нейросети для работы с текстом — GPT-6, Claude, Gemini, Grok, Qwen | GIPITI",
       metaDescription:
-        "Лучшие текстовые AI-модели в одном чате: GPT-6, Claude Opus 5.5, Gemini 3.8 Flash, Grok 4.7, Qwen 3.8 Max, Kimi K3 и DeepSeek V4. Без VPN, на русском, оплата российскими картами.",
+        "Текстовые AI-модели в одном чате: GPT-6.1, Claude Opus 5.5, Gemini 4 Argon, Grok 4.7, Kimi K3.1 Pro, Meta Muse и Mistral Large 4. Без VPN, оплата картами РФ.",
     },
   },
   {
@@ -68,7 +68,7 @@ export const catalogSections: CatalogSection[] = [
     typePage: {
       h1Top: "Нейросети для генерации",
       h1Gradient: "изображений на русском",
-      sub: "Nano Banana, GPT Image 2.5, Flux, Seedream 5.0 Pro, Grok Imagine 2.0 и Recraft — создавайте и редактируйте изображения по описанию на русском языке. Без VPN, оплата российскими картами.",
+      sub: "Nano Banana 2.1, GPT Image 2.5, Flux 3 Image, Seedream 5.0 Pro, MAI-Image 2.6, Grok Imagine 2.0 и Recraft — создавайте и редактируйте изображения по описанию на русском языке. Без VPN, оплата российскими картами.",
       metaTitle:
         "Нейросети для генерации изображений — Nano Banana, GPT Image, Flux, Seedream | GIPITI",
       metaDescription:
@@ -84,11 +84,11 @@ export const catalogSections: CatalogSection[] = [
     typePage: {
       h1Top: "Нейросети для генерации",
       h1Gradient: "видео на русском",
-      sub: "Veo 3.1, Kling 3.0, Seedance 2.5 и Flux 3 Video — создавайте видеоролики по текстовому описанию или из готового изображения. Без VPN, оплата российскими картами.",
+      sub: "Veo 3.1, Kling 3.0, Seedance 2.5, Wan 3.0, Grok Imagine Video 1.5 и Flux 3 Video — создавайте видеоролики по текстовому описанию или из готового изображения. Без VPN, оплата российскими картами.",
       metaTitle:
         "Нейросети для генерации видео — Veo 3.1, Kling 3.0, Seedance 2.5, Flux 3 | GIPITI",
       metaDescription:
-        "Генерация видео по текстовому промпту или из изображения: Veo 3.1 со звуком, Kling 3.0, Seedance 2.5 и Flux 3 Video. Без VPN, на русском, оплата российскими картами.",
+        "Видео по промпту или из картинки: Veo 3.1 со звуком, Wan 3.0 со звуком, Kling 3.0, Seedance 2.5 и Grok Imagine Video. Без VPN, на русском.",
     },
   },
   {
@@ -117,6 +117,17 @@ export const catalogModels: CatalogModel[] = [
     category: "text",
     description:
       "Обновлённый флагман GPT-6: сложный код, агентные задачи и контекст на миллион токенов по прежней цене.",
+    tag: "Новинка",
+    hue: 250,
+  },
+  {
+    modelId: "gpt-6.1-terra",
+    name: "GPT-6.1 Terra",
+    vendor: "OpenAI",
+    provider: "openai",
+    category: "text",
+    description:
+      "Быстрая и экономичная модель OpenAI: живые тексты, разбор изображений и контекст около миллиона токенов.",
     tag: "Новинка",
     hue: 250,
   },
@@ -279,6 +290,17 @@ export const catalogModels: CatalogModel[] = [
     hue: 30,
   },
   {
+    modelId: "gemini-4-argon",
+    name: "Gemini 4 Argon",
+    vendor: "Google",
+    provider: "google",
+    category: "text",
+    description:
+      "Модель Google линейки Gemini 4: код, агентные задачи и рассуждения с контекстом на миллион токенов.",
+    tag: "Новинка",
+    hue: 210,
+  },
+  {
     modelId: "gemini-3.1-pro",
     name: "Gemini 3.1 Pro",
     vendor: "Google",
@@ -381,6 +403,17 @@ export const catalogModels: CatalogModel[] = [
     hue: 0,
   },
   {
+    modelId: "deepseek-v4.1-flash-1017",
+    name: "DeepSeek V4.1 Flash 1017",
+    vendor: "DeepSeek",
+    provider: "deepseek",
+    category: "text",
+    description:
+      "Октябрьское обновление быстрой модели DeepSeek: точнее в рассуждениях, коде и изображениях, ответы короче.",
+    tag: "Новинка",
+    hue: 250,
+  },
+  {
     modelId: "deepseek-v4.1-flash",
     name: "DeepSeek V4.1 Flash",
     vendor: "DeepSeek",
@@ -412,6 +445,17 @@ export const catalogModels: CatalogModel[] = [
     hue: 250,
   },
   {
+    modelId: "kimi-k3.1-pro",
+    name: "Kimi K3.1 Pro",
+    vendor: "Moonshot AI",
+    provider: "moonshotai",
+    category: "text",
+    description:
+      "Флагман Moonshot AI: рассуждает перед каждым ответом, понимает изображения и держит около миллиона токенов.",
+    tag: "Новинка",
+    hue: 295,
+  },
+  {
     modelId: "kimi-k3-fast",
     name: "Kimi K3 Fast",
     vendor: "Moonshot AI",
@@ -421,6 +465,17 @@ export const catalogModels: CatalogModel[] = [
       "Быстрый флагман Moonshot AI: длинные задачи по программированию и контекст до миллиона токенов.",
     tag: "Новинка",
     hue: 295,
+  },
+  {
+    modelId: "qwen3.8-max-prime",
+    name: "Qwen 3.8 Max Prime",
+    vendor: "Alibaba",
+    provider: "alibaba",
+    category: "text",
+    description:
+      "Производительная версия флагмана Qwen: контекст на миллион токенов и ответы до 131 тысячи токенов.",
+    tag: "Новинка",
+    hue: 65,
   },
   {
     modelId: "qwen3.8-max",
@@ -434,15 +489,91 @@ export const catalogModels: CatalogModel[] = [
     hue: 65,
   },
   {
+    modelId: "qwen3.8-flash",
+    name: "Qwen 3.8 Flash",
+    vendor: "Alibaba",
+    provider: "alibaba",
+    category: "text",
+    description:
+      "Быстрая модель Qwen нового поколения: рассуждения, изображения и контекст около миллиона токенов по низкой цене.",
+    tag: "Новинка",
+    hue: 65,
+  },
+  {
     modelId: "qwen3.7-flash",
     name: "Qwen 3.7 Flash",
     vendor: "Alibaba",
     provider: "alibaba",
     category: "text",
     description:
-      "Быстрая мультимодальная модель Alibaba: текст, изображения и агентные сценарии по низкой цене.",
-    tag: "Новинка",
+      "Быстрая мультимодальная модель Alibaba прошлого поколения: текст, изображения и агентные сценарии по низкой цене.",
     hue: 65,
+  },
+  {
+    modelId: "muse-wonder-1.0",
+    name: "Muse Wonder 1.0",
+    vendor: "Meta",
+    provider: "meta",
+    category: "text",
+    description:
+      "Передовая рассуждающая модель Meta для сложных многошаговых задач и контекста около миллиона токенов.",
+    tag: "Новинка",
+    hue: 230,
+  },
+  {
+    modelId: "muse-spark-1.3",
+    name: "Muse Spark 1.3",
+    vendor: "Meta",
+    provider: "meta",
+    category: "text",
+    description:
+      "Мультимодальная модель Meta: читает фото и скриншоты, рассуждает и тратит меньше токенов, чем версия 1.2.",
+    tag: "Новинка",
+    hue: 230,
+  },
+  {
+    modelId: "mistral-large-4",
+    name: "Mistral Large 4",
+    vendor: "Mistral AI",
+    provider: "mistral",
+    category: "text",
+    description:
+      "Открытый мультимодальный флагман Mistral AI: рассуждения, текст и изображения любых пропорций.",
+    tag: "Новинка",
+    hue: 40,
+  },
+  {
+    modelId: "glm-5.3",
+    name: "GLM-5.3",
+    vendor: "Z.ai",
+    provider: "zai",
+    category: "text",
+    description:
+      "Модель Z.ai для сложной разработки, многошаговых агентных задач и поиска уязвимостей в коде.",
+    tag: "Новинка",
+    hue: 150,
+  },
+  {
+    modelId: "minimax-m3.1-flash",
+    name: "MiniMax M3.1 Flash",
+    vendor: "MiniMax",
+    provider: "minimax",
+    category: "text",
+    description:
+      "Недорогая рассуждающая модель MiniMax: код, агентные задачи и понимание изображений.",
+    tag: "Новинка",
+    hue: 340,
+  },
+  {
+    modelId: "mimo-v2.6-pro",
+    name: "MiMo v2.6 Pro",
+    vendor: "Xiaomi",
+    provider: "xiaomi",
+    category: "text",
+    description:
+      "Флагман Xiaomi: пошаговые рассуждения, понимание изображений и контекст около миллиона токенов.",
+    tag: "Новинка",
+    hue: 15,
   },
   {
     modelId: "sonar",
@@ -455,26 +586,6 @@ export const catalogModels: CatalogModel[] = [
     hue: 185,
   },
   {
-    modelId: "sonar-pro",
-    name: "Sonar Pro",
-    vendor: "Perplexity",
-    provider: "perplexity",
-    category: "text",
-    description:
-      "Продвинутый поиск Perplexity: сложные запросы, подробные ответы с источниками.",
-    hue: 185,
-  },
-  {
-    modelId: "sonar-reasoning-pro",
-    name: "Sonar Reasoning Pro",
-    vendor: "Perplexity",
-    provider: "perplexity",
-    category: "text",
-    description:
-      "Рассуждающая модель с поиском: пошаговый анализ и ответы со ссылками на источники.",
-    hue: 185,
-  },
-  {
     modelId: "gemini-3.1-flash-image",
     name: "Nano Banana",
     vendor: "Google",
@@ -483,6 +594,17 @@ export const catalogModels: CatalogModel[] = [
     description:
       "Генерация и редактирование изображений по-русски: фон, стиль, персонажи.",
     tag: "Популярная",
+    hue: 90,
+  },
+  {
+    modelId: "nano-banana-2.1",
+    name: "Nano Banana 2.1",
+    vendor: "Google",
+    provider: "google",
+    category: "images",
+    description:
+      "Новое поколение Nano Banana: генерация и точечное редактирование изображений в 1K, 2K и 4K.",
+    tag: "Новинка",
     hue: 90,
   },
   {
@@ -537,6 +659,17 @@ export const catalogModels: CatalogModel[] = [
     description:
       "Проверенная модель OpenAI прошлого поколения: фотореализм и точное редактирование.",
     hue: 250,
+  },
+  {
+    modelId: "flux-3-image",
+    name: "Flux 3 Image",
+    vendor: "BFL",
+    provider: "bfl",
+    category: "images",
+    description:
+      "Новый флагман Black Forest Labs: генерация и точечное редактирование изображений в одной модели.",
+    tag: "Новинка",
+    hue: 315,
   },
   {
     modelId: "flux-2-max",
@@ -609,6 +742,28 @@ export const catalogModels: CatalogModel[] = [
     hue: 200,
   },
   {
+    modelId: "mai-image-2.6",
+    name: "MAI-Image 2.6",
+    vendor: "Microsoft",
+    provider: "microsoft",
+    category: "images",
+    description:
+      "Модель Microsoft AI с упором на качество: генерация и точное редактирование объектов, надписей и композиции.",
+    tag: "Новинка",
+    hue: 120,
+  },
+  {
+    modelId: "mai-image-2.6-flash",
+    name: "MAI-Image 2.6 Flash",
+    vendor: "Microsoft",
+    provider: "microsoft",
+    category: "images",
+    description:
+      "Быстрая и более дешёвая версия MAI-Image 2.6: те же генерация и правки изображений.",
+    tag: "Новинка",
+    hue: 120,
+  },
+  {
     modelId: "veo-3.1",
     name: "Veo 3.1",
     vendor: "Google",
@@ -631,12 +786,24 @@ export const catalogModels: CatalogModel[] = [
     hue: 315,
   },
   {
+    modelId: "wan-v3.0-video",
+    name: "Wan 3.0",
+    vendor: "Alibaba",
+    provider: "alibaba",
+    category: "video",
+    description:
+      "Видеомодель Alibaba: ролики со звуком по текстовому описанию, пять форматов кадра.",
+    tag: "Новинка",
+    hue: 65,
+  },
+  {
     modelId: "grok-imagine-video",
     name: "Grok Imagine Video",
     vendor: "xAI",
     provider: "xai",
     category: "video",
-    description: "Короткие видеоролики по промпту или из готового изображения.",
+    description:
+      "Версия 1.5: оживляет готовое изображение в короткий ролик со звуком.",
     hue: 0,
   },
   {

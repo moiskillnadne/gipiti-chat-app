@@ -28,7 +28,13 @@ export type ModelProvider =
   | "deepseek"
   | "perplexity"
   | "moonshotai"
-  | "alibaba";
+  | "alibaba"
+  | "meta"
+  | "mistral"
+  | "zai"
+  | "minimax"
+  | "xiaomi"
+  | "microsoft";
 
 export type ThinkingEffortConfig = {
   type: "effort";
@@ -432,6 +438,37 @@ const FLUX_VIDEO_GEN_SECTIONS = {
   },
 } satisfies Partial<VideoGenConfig>;
 
+// Wan 3.0: up to 30s clips with native audio. Ratios 16:9/9:16/1:1/4:3/3:4
+// (Replicate/OpenRouter docs, not the Vercel page) and whole-second durations
+// 2-30s (Vercel changelog + fal) — checked 2026-10.
+// Probed 2026-10-29 with the exact request the app sends (prompt only, 9:16,
+// 5s, no resolution): the clip came back 1080x1920 with audio, i.e. aspectRatio
+// is honoured and the gateway defaults to 1080p at $0.20/s ($1.00 per 5s), and
+// generation took 130s. Only 5s is offered: a 10s clip at that default would
+// cost $2.00 and likely take ~250s in a 300s function that charges only after
+// the upload, so a timeout would leave the gateway bill uncharged. Add 10s+
+// only after timing it on prod, or after pinning a lower tier. A lowercase
+// top-level resolution "480p" was ignored (gateway warning: "wan3 models only
+// support the 480P, 720P, 1080P resolution tiers"); the uppercase token is
+// unverified. Resolution is not exposed: the video handler only forwards a
+// resolution token for google/veo and xai, so a picker here would do nothing.
+const WAN_VIDEO_GEN_SECTIONS = {
+  aspectRatio: {
+    options: [
+      VIDEO_ASPECT_OPTIONS["16:9"],
+      VIDEO_ASPECT_OPTIONS["9:16"],
+      VIDEO_ASPECT_OPTIONS["1:1"],
+      VIDEO_ASPECT_OPTIONS["4:3"],
+      VIDEO_ASPECT_OPTIONS["3:4"],
+    ],
+    default: "16:9",
+  },
+  duration: {
+    options: [5].map(videoDurationOption),
+    default: "5",
+  },
+} satisfies Partial<VideoGenConfig>;
+
 const GPT5_THINKING_CONFIG: ThinkingEffortConfig = {
   type: "effort",
   values: ["auto", "none", "medium", "high"] as const,
@@ -504,6 +541,22 @@ export const chatModels: ChatModel[] = [
       attachments: true,
     },
     showInUI: true,
+  },
+  {
+    id: "gpt-6.1-terra",
+    name: "gpt61Terra.name",
+    description: "gpt61Terra.description",
+    provider: "openai",
+    capabilities: {
+      reasoning: true,
+      // Vision only: PDF support is unconfirmed (image input is). The effort picker
+      // keeps "none" because secondary sources say Terra supports it (unlike
+      // Sol/Astra) — probe that "none" really cuts reasoning tokens, else switch to
+      // GPT6_ALWAYS_REASONING_THINKING_CONFIG.
+      attachments: true,
+    },
+    showInUI: true,
+    thinkingConfig: GPT5_THINKING_CONFIG,
   },
   {
     id: "gpt-6.1-sol",
@@ -634,6 +687,18 @@ export const chatModels: ChatModel[] = [
     thinkingConfig: GPT5_THINKING_CONFIG,
   },
   {
+    id: "gemini-4-argon",
+    name: "gemini4Argon.name",
+    description: "gemini4Argon.description",
+    provider: "google",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+    thinkingConfig: GEMINI31_THINKING_CONFIG,
+  },
+  {
     id: "gemini-3.1-pro",
     name: "gemini31Pro.name",
     description: "gemini31Pro.description",
@@ -704,6 +769,30 @@ export const chatModels: ChatModel[] = [
     },
     showInUI: true,
     thinkingConfig: GEMINI31_THINKING_CONFIG,
+  },
+  {
+    id: "nano-banana-2.1",
+    name: "nanoBanana21.name",
+    description: "nanoBanana21.description",
+    provider: "google",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+      imageGeneration: true,
+    },
+    showInUI: true,
+    // Served as a language model (generateText/streamText + result.files),
+    // like gemini-3.1-flash-image. Outputs 1K/2K/4K only — no 512 tier.
+    providerOptions: {
+      google: {
+        mediaResolution: "MEDIA_RESOLUTION_HIGH",
+        imageConfig: {
+          imageSize: "2K",
+          aspectRatio: "16:9",
+        },
+      } satisfies GoogleGenerativeAIProviderOptions,
+    },
+    imageGenConfig: GOOGLE_IMAGE_GEN_CONFIG,
   },
   {
     id: "gemini-3-pro-image",
@@ -964,6 +1053,19 @@ export const chatModels: ChatModel[] = [
     thinkingConfig: OPUS_THINKING_CONFIG,
   },
   {
+    id: "deepseek-v4.1-flash-1017",
+    name: "deepseekV41Flash1017.name",
+    description: "deepseekV41Flash1017.description",
+    provider: "deepseek",
+    capabilities: {
+      reasoning: true,
+      // Vision only: the gateway drops PDF parts on DeepSeek V4.1 Flash (verified
+      // 2026-09-13); this dated snapshot is assumed to behave the same.
+      attachments: true,
+    },
+    showInUI: true,
+  },
+  {
     id: "deepseek-v4.1-flash",
     name: "deepseekV41Flash.name",
     description: "deepseekV41Flash.description",
@@ -997,12 +1099,38 @@ export const chatModels: ChatModel[] = [
     showInUI: true,
   },
   {
+    id: "kimi-k3.1-pro",
+    name: "kimiK31Pro.name",
+    description: "kimiK31Pro.description",
+    provider: "moonshotai",
+    capabilities: {
+      reasoning: true,
+      // Vision only: PDF support is unconfirmed — the gateway silently drops PDF
+      // parts for models without it (same as the Alibaba/Moonshot models).
+      attachments: true,
+    },
+    showInUI: true,
+  },
+  {
     id: "kimi-k3-fast",
     name: "kimiK3Fast.name",
     description: "kimiK3Fast.description",
     provider: "moonshotai",
     capabilities: {
       reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+  },
+  {
+    id: "qwen3.8-max-prime",
+    name: "qwen38MaxPrime.name",
+    description: "qwen38MaxPrime.description",
+    provider: "alibaba",
+    capabilities: {
+      reasoning: true,
+      // Vision only: PDF support is unconfirmed — the gateway silently drops PDF
+      // parts for models without it (same as the Alibaba/Moonshot models).
       attachments: true,
     },
     showInUI: true,
@@ -1019,12 +1147,100 @@ export const chatModels: ChatModel[] = [
     showInUI: true,
   },
   {
+    id: "qwen3.8-flash",
+    name: "qwen38Flash.name",
+    description: "qwen38Flash.description",
+    provider: "alibaba",
+    capabilities: {
+      reasoning: true,
+      // Vision only: PDF support is unconfirmed — the gateway silently drops PDF
+      // parts for models without it (same as the Alibaba/Moonshot models).
+      attachments: true,
+    },
+    showInUI: true,
+  },
+  {
     id: "qwen3.7-flash",
     name: "qwen37Flash.name",
     description: "qwen37Flash.description",
     provider: "alibaba",
     capabilities: {
       reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+  },
+  {
+    id: "muse-wonder-1.0",
+    name: "museWonder10.name",
+    description: "museWonder10.description",
+    provider: "meta",
+    capabilities: {
+      reasoning: true,
+      // Image input confirmed; PDF input is claimed by the Vercel changelog only
+      // via a mirror (secondary source).
+      attachments: true,
+    },
+    showInUI: true,
+  },
+  {
+    id: "muse-spark-1.3",
+    name: "museSpark13.name",
+    description: "museSpark13.description",
+    provider: "meta",
+    capabilities: {
+      reasoning: true,
+      // Vision only: PDF support is unconfirmed (Vercel lists no capability
+      // metadata for this model).
+      attachments: true,
+    },
+    showInUI: true,
+  },
+  {
+    id: "mistral-large-4",
+    name: "mistralLarge4.name",
+    description: "mistralLarge4.description",
+    provider: "mistral",
+    capabilities: {
+      reasoning: true,
+      // Text + image input; PDF support is unconfirmed.
+      attachments: true,
+    },
+    showInUI: true,
+  },
+  {
+    id: "glm-5.3",
+    name: "glm53.name",
+    description: "glm53.description",
+    provider: "zai",
+    capabilities: {
+      // Text-only model (no image or PDF input) — no attachments.
+      reasoning: true,
+    },
+    showInUI: true,
+  },
+  {
+    id: "minimax-m3.1-flash",
+    name: "minimaxM31Flash.name",
+    description: "minimaxM31Flash.description",
+    provider: "minimax",
+    capabilities: {
+      reasoning: true,
+      // Vision only: PDF support is unconfirmed — the gateway silently drops PDF
+      // parts for models without it (same as the Alibaba/Moonshot models).
+      attachments: true,
+    },
+    showInUI: true,
+  },
+  {
+    id: "mimo-v2.6-pro",
+    name: "mimoV26Pro.name",
+    description: "mimoV26Pro.description",
+    provider: "xiaomi",
+    capabilities: {
+      reasoning: true,
+      // Vision only: PDF support is unconfirmed — the gateway silently drops PDF
+      // parts for models without it (same as the Alibaba/Moonshot models).
       attachments: true,
     },
     showInUI: true,
@@ -1049,7 +1265,11 @@ export const chatModels: ChatModel[] = [
       attachments: true,
       toolCalling: false,
     },
-    showInUI: true,
+    // Hidden: perplexity/sonar-pro was removed from the gateway catalog (the
+    // gateway routes it to plain Sonar), so providers.ts aliases this id to
+    // perplexity/sonar (probed 2026-10-29). Kept registered for old
+    // chats/cookies.
+    showInUI: false,
   },
   {
     id: "sonar-reasoning-pro",
@@ -1060,7 +1280,11 @@ export const chatModels: ChatModel[] = [
       reasoning: true,
       toolCalling: false,
     },
-    showInUI: true,
+    // Hidden for the same reason as sonar-pro: aliased to perplexity/sonar in
+    // providers.ts. `reasoning` only selects nativeReasoningPrompt; with no
+    // thinkingConfig no reasoningEffort is sent, and plain Sonar accepted that
+    // request (probed 2026-10-29).
+    showInUI: false,
   },
   {
     id: "veo-3.1",
@@ -1107,8 +1331,11 @@ export const chatModels: ChatModel[] = [
     },
     showInUI: true,
     videoGenConfig: {
-      gatewayModelId: "xai/grok-imagine-video-1.5-preview",
+      gatewayModelId: "spacexai/grok-imagine-video-1.5",
       durationSeconds: 8,
+      // Text-to-video works on this id despite Vercel's docs calling it
+      // image-to-video only: a prompt-only 16:9 4 s clip came back 1280x720
+      // with audio (probed 2026-10-29). A seed image stays optional.
       imageInput: "optional",
       ...GROK_VIDEO_GEN_SECTIONS,
     },
@@ -1230,6 +1457,25 @@ export const chatModels: ChatModel[] = [
     },
   },
   {
+    id: "wan-v3.0-video",
+    name: "wanV30Video.name",
+    description: "wanV30Video.description",
+    provider: "alibaba",
+    capabilities: {
+      videoGeneration: true,
+    },
+    showInUI: true,
+    videoGenConfig: {
+      gatewayModelId: "alibaba/wan-v3.0-video",
+      durationSeconds: 5,
+      // Text-to-video only for now: the Vercel changelog documents image
+      // inputs as inputReferences, which the video handler does not send (it
+      // seeds from prompt.image), so an attachment could be silently ignored.
+      imageInput: "unsupported",
+      ...WAN_VIDEO_GEN_SECTIONS,
+    },
+  },
+  {
     id: "flux-3-video",
     name: "flux3Video.name",
     description: "flux3Video.description",
@@ -1245,6 +1491,21 @@ export const chatModels: ChatModel[] = [
       imageInput: "optional",
       ...FLUX_VIDEO_GEN_SECTIONS,
     },
+  },
+  {
+    id: "flux-3-image",
+    name: "flux3Image.name",
+    description: "flux3Image.description",
+    provider: "bfl",
+    capabilities: {
+      // Text-to-image and editing in one model (Vercel changelog).
+      attachments: true,
+      imageGeneration: true,
+    },
+    showInUI: true,
+    // No imageGenConfig: sources disagree on whether the gateway honours
+    // aspectRatio/resolution for FLUX 3 (BFL takes free width/height), and the
+    // gateway silently drops unknown params — same placebo risk as flux-2-max.
   },
   {
     id: "flux-2-max",
@@ -1317,6 +1578,32 @@ export const chatModels: ChatModel[] = [
     showInUI: true,
     imageGenConfig: BYTEDANCE_IMAGE_GEN_CONFIG,
   },
+  // MAI-Image: generation plus editing from reference images (Vercel
+  // changelog). No imageGenConfig: the aspect ratio is derived dynamically
+  // from the prompt and inputs and output tops out near 1.5K, so a ratio or
+  // quality picker could be a placebo.
+  {
+    id: "mai-image-2.6",
+    name: "maiImage26.name",
+    description: "maiImage26.description",
+    provider: "microsoft",
+    capabilities: {
+      attachments: true,
+      imageGeneration: true,
+    },
+    showInUI: true,
+  },
+  {
+    id: "mai-image-2.6-flash",
+    name: "maiImage26Flash.name",
+    description: "maiImage26Flash.description",
+    provider: "microsoft",
+    capabilities: {
+      attachments: true,
+      imageGeneration: true,
+    },
+    showInUI: true,
+  },
 ];
 
 export const chatModelIds = chatModels.map((model) => model.id);
@@ -1337,12 +1624,13 @@ export const isReasoningModelId = (modelId: string) =>
 /**
  * True when this model is wrapped with `extractReasoningMiddleware({tagName:"think"})`
  * in `lib/ai/providers.ts` and therefore needs the system prompt to instruct
- * `<think></think>` tag emission. Only OpenAI gpt-5.x is wrapped today.
+ * `<think></think>` tag emission. Only OpenAI models are wrapped for that.
  *
- * Exception: sonar-reasoning-pro is also wrapped in providers.ts, but
- * Perplexity emits `<think>` tags on its own — the middleware strips them
- * without any prompt instruction, so it intentionally stays false here and
- * receives `nativeReasoningPrompt`.
+ * Exception: minimax-m3.1-flash is also wrapped in providers.ts as a no-op
+ * guard (it streamed native reasoning, no tags, when probed 2026-10-29). It is
+ * never told to emit `<think>` tags, so it intentionally stays false here and
+ * receives `nativeReasoningPrompt`. sonar-reasoning-pro is no longer wrapped:
+ * it is aliased to plain perplexity/sonar, which emits no tags.
  *
  * Native-reasoning models (Anthropic extended thinking, grok-4.x, and Gemini 3
  * with `includeThoughts`) must NOT receive that instruction — they'd echo literal
@@ -1397,19 +1685,25 @@ export const isVideoGenerationModel = (modelId: string) =>
 type DedicatedImageModelId =
   | "grok-imagine-image"
   | "grok-imagine-image-2.0"
+  | "flux-3-image"
   | "flux-2-max"
   | "flux-kontext-max"
   | "recraft-v4.1-pro"
   | "seedream-5.0-pro"
   | "seedream-5.0-lite"
-  | "seedream-4.5";
+  | "seedream-4.5"
+  | "mai-image-2.6"
+  | "mai-image-2.6-flash";
 
-// The gateway serves xAI under the "spacexai" namespace and keeps "xai/*" as an
-// alias (verified 2026-08-22); the alias is used here so every xAI id in the
-// repo — including the video handler's providerOptions prefix check — matches.
+// The gateway serves xAI under the canonical "spacexai" namespace; the old
+// "xai/*" ids are only redirects, so ids here use "spacexai/*" (the Grok text
+// and video ids moved too).
 const DEDICATED_IMAGE_GATEWAY_MAP: Record<DedicatedImageModelId, string> = {
-  "grok-imagine-image": "xai/grok-imagine-image",
-  "grok-imagine-image-2.0": "xai/grok-imagine-image-2.0",
+  "grok-imagine-image": "spacexai/grok-imagine-image",
+  "grok-imagine-image-2.0": "spacexai/grok-imagine-image-2.0",
+  "flux-3-image": "bfl/flux-3-image",
+  "mai-image-2.6": "microsoft/mai-image-2.6",
+  "mai-image-2.6-flash": "microsoft/mai-image-2.6-flash",
   "flux-2-max": "bfl/flux-2-max",
   "flux-kontext-max": "bfl/flux-kontext-max",
   "recraft-v4.1-pro": "recraft/recraft-v4.1-pro",
@@ -1506,6 +1800,7 @@ export type ReasoningSummary = (typeof REASONING_SUMMARY)[number];
 export const DEFAULT_REASONING_SUMMARY: ReasoningSummary = "auto";
 
 export const openaiModelIds = [
+  "gpt-6.1-terra",
   "gpt-6.1-sol",
   "gpt-6-astra",
   "gpt-6-sol",
@@ -1541,6 +1836,7 @@ export const getOpenAIProviderOptions = (
 };
 
 export const googleModelIds = [
+  "gemini-4-argon",
   "gemini-3.1-pro",
   "gemini-3.8-flash",
   "gemini-3.7-flash",

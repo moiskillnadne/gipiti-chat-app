@@ -9,10 +9,16 @@ import {
   LogoDeepseek,
   LogoGoogle,
   LogoKling,
+  LogoMeta,
+  LogoMicrosoft,
+  LogoMinimax,
+  LogoMistral,
   LogoMoonshot,
   LogoOpenAI,
   LogoPerplexity,
   LogoXai,
+  LogoXiaomi,
+  LogoZai,
 } from "./icons/logos";
 
 type AssistantIconProps = {
@@ -35,6 +41,12 @@ const providerIconMap: Partial<Record<ModelProvider, FC<IconComponentProps>>> =
     perplexity: LogoPerplexity,
     moonshotai: LogoMoonshot,
     alibaba: LogoAlibaba,
+    meta: LogoMeta,
+    mistral: LogoMistral,
+    zai: LogoZai,
+    minimax: LogoMinimax,
+    xiaomi: LogoXiaomi,
+    microsoft: LogoMicrosoft,
   };
 
 export const AssistantIcon = ({

@@ -28,7 +28,15 @@ const buildVideoProviderOptions = (
   config: VideoGenConfig,
   settings: VideoGenSetting | undefined
 ): Record<string, Record<string, string>> | undefined => {
-  if (config.gatewayModelId.startsWith("xai/") && settings?.resolution) {
+  if (
+    (config.gatewayModelId.startsWith("xai/") ||
+      config.gatewayModelId.startsWith("spacexai/")) &&
+    settings?.resolution
+  ) {
+    // spacexai/ ids still read resolution from the "xai" namespace: with
+    // { xai: { resolution } } alone, grok-imagine-video-1.5 returned 848x480
+    // billed $0.08/s for "480p" and 1280x720 billed $0.14/s for "720p"
+    // (probed 2026-10-29).
     return { xai: { resolution: settings.resolution } };
   }
   if (config.gatewayModelId.startsWith("klingai/") && settings?.mode) {

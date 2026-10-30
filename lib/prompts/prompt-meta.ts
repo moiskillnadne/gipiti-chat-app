@@ -70,6 +70,12 @@ const PROVIDER_COLORS: Record<ModelProvider, string> = {
   perplexity: "oklch(0.6 0.11 200)",
   moonshotai: "oklch(0.55 0.15 295)",
   alibaba: "oklch(0.62 0.15 65)",
+  meta: "oklch(0.58 0.16 330)",
+  mistral: "oklch(0.72 0.14 90)",
+  zai: "oklch(0.6 0.14 140)",
+  minimax: "oklch(0.58 0.17 25)",
+  xiaomi: "oklch(0.6 0.04 60)",
+  microsoft: "oklch(0.55 0.1 235)",
 };
 
 const FALLBACK_PROVIDER_COLOR = "var(--ink-4)";

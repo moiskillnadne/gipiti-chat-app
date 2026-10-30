@@ -1,21 +1,24 @@
 /**
- * Landings for DeepSeek V4.1 Flash, V4 Pro and V4 Flash.
+ * Landings for DeepSeek V4.1 Flash 1017, V4.1 Flash, V4 Pro and V4 Flash.
  *
  * Note: V4 Pro and V4 Flash have no attachments capability in the registry,
  * so their copy deliberately avoids "upload a document" claims — users paste
- * text instead. V4.1 Flash reads images (photos, screenshots) but the gateway
- * drops PDF parts for it, so its copy claims photos only. The shared documents
+ * text instead. The V4.1 Flash models read images (photos, screenshots) but the
+ * gateway drops PDF parts for them, so their copy claims photos only. The shared documents
  * FAQ is replaced with a context-size or attachments one on every landing.
  */
 
 import {
   buildSteps,
+  DEEPSEEK_41_FLASH_1017_SLUG,
   DEEPSEEK_41_FLASH_SLUG,
   DEEPSEEK_FLASH_SLUG,
   DEEPSEEK_SLUG,
   GEMINI_38_FLASH_SLUG,
   GPT6_LUNA_SLUG,
+  GPT61_TERRA_SLUG,
   priceFaq,
+  QWEN_38_FLASH_SLUG,
   SONAR_SLUG,
   SONNET_SLUG,
   studentsAudience,
@@ -33,11 +36,11 @@ const attachmentsFaq: LandingFaqItem = {
     "Модели DeepSeek работают без вложений — вставьте текст прямо в чат. Если нужно прочитать PDF, Word или таблицу целиком, выберите GPT-6, Claude или Gemini: они доступны в той же подписке.",
 };
 
-/** V4.1 Flash takes photos and screenshots, but no PDF/Word/tables. */
+/** V4.1 Flash takes images plus Word/CSV (inlined as text), but no PDF. */
 const photosOnlyFaq: LandingFaqItem = {
   question: "Можно ли загрузить документ в DeepSeek V4.1 Flash?",
   answer:
-    "Модель читает изображения — прикрепите фото, скриншот или снимок страницы. PDF, Word и таблицы она пока не принимает: вставьте текст прямо в чат или выберите GPT-6, Claude или Gemini — они доступны в той же подписке.",
+    "Модель читает изображения — прикрепите фото, скриншот или снимок страницы — а также файлы Word и таблицы CSV. PDF она пока не принимает: для таких документов выберите GPT-6, Claude или Gemini — они доступны в той же подписке.",
 };
 
 const contextFaq: LandingFaqItem = {
@@ -47,6 +50,119 @@ const contextFaq: LandingFaqItem = {
 };
 
 export const deepseekLandings: ModelLanding[] = [
+  {
+    kind: "text",
+    slug: DEEPSEEK_41_FLASH_1017_SLUG,
+    modelId: "deepseek-v4.1-flash-1017",
+    name: "DeepSeek V4.1 Flash 1017",
+    vendor: "DeepSeek",
+    accent: "blue",
+    badge: "DeepSeek · Обновление от 17 октября · Текст",
+    h1Top: "DeepSeek V4.1 Flash 1017 —",
+    h1Gradient: "обновлённая быстрая модель DeepSeek",
+    sub: "Октябрьское обновление DeepSeek V4.1 Flash уже в GIPITI — сильнее в рассуждениях, коде и разборе изображений, а задачи решает быстрее и короче. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    ctaMain: "Попробовать V4.1 Flash 1017",
+    metaTitle: "DeepSeek V4.1 Flash 1017 на русском без VPN | GIPITI",
+    metaDescription:
+      "DeepSeek V4.1 Flash 1017 в GIPITI — октябрьское обновление быстрой модели DeepSeek: рассуждения, код и фото по низкой цене. Без VPN, оплата картами РФ.",
+    heroChat: {
+      userMessage:
+        "Сборка падает после обновления зависимостей — вот скриншот лога 📷 build.png",
+      aiIntro: "Коротко: **конфликт версий**, чинится в два шага:",
+      aiBullets: [
+        "**Причина** — плагин сборки требует новую мажорную версию компилятора",
+        "**Шаг 1** — закрепите плагин на предыдущей версии в package.json",
+        "**Шаг 2** — после обновления компилятора верните актуальную",
+      ],
+    },
+    benefits: [
+      {
+        icon: "sparkles",
+        title: "Умнее прежней версии",
+        text: "Снимок от 17 октября улучшен в рассуждениях, программировании, агентных задачах и понимании изображений по сравнению с предыдущей V4.1 Flash.",
+      },
+      {
+        icon: "zap",
+        title: "Короче и по делу",
+        text: "Модель решает задачи быстрее и с более короткими ответами — меньше воды и ожидания, а значит, и расход баланса ниже.",
+      },
+      {
+        icon: "image",
+        title: "Фото и скриншоты",
+        text: "Прикрепите снимок ошибки, график или фото страницы — модель разберёт изображение и объяснит, что на нём.",
+      },
+      vpnBenefit,
+    ],
+    steps: buildSteps(
+      "DeepSeek V4.1 Flash 1017",
+      "Текстом на русском — или прикрепите фото или скриншот."
+    ),
+    audience: [
+      {
+        title: "Разработчики",
+        text: "Логи, стектрейсы и мелкие правки — быстрый точный разбор без длинных лекций.",
+        userMessage: "Почему этот цикл съедает память? Вставил функцию",
+        aiReply:
+          "Внутри цикла создаётся **новый обработчик событий** и ни разу не снимается — вынесите его наружу…",
+      },
+      {
+        title: "Автоматизация и агенты",
+        text: "Многошаговые сценарии, где важны скорость, аккуратность и низкая цена каждого шага.",
+        userMessage: "Разбей заявку клиента на поля: имя, город, товар, срок",
+        aiReply:
+          "**Имя:** Ирина · **Город:** Казань · **Товар:** диван «Осло» · **Срок:** до 15 ноября",
+      },
+      {
+        title: "Студенты",
+        text: "Сфотографируйте задачу или график из учебника — модель покажет ход решения.",
+        userMessage:
+          "Что показывает этот график и какой вывод сделать? 📷 grafik.jpg",
+        aiReply:
+          "По графику спрос **падает быстрее**, чем растёт цена, — значит, спрос эластичный…",
+      },
+    ],
+    faq: [
+      {
+        question: "Что такое DeepSeek V4.1 Flash 1017?",
+        answer:
+          "Это снимок быстрой модели DeepSeek V4.1 Flash от 17 октября 2026 года — цифры 1017 в названии обозначают дату. Он рассуждает перед ответом, понимает изображения и работает с контекстом около миллиона токенов. В GIPITI доступен без VPN и на русском.",
+      },
+      {
+        question: "Чем версия 1017 отличается от обычной V4.1 Flash?",
+        answer:
+          "По описанию в каталоге Vercel AI Gateway, обновление лучше справляется с рассуждениями, кодом, агентными задачами и изображениями, а задачи решает быстрее и с более короткими ответами. Предыдущая V4.1 Flash остаётся в GIPITI — можно сравнить обе.",
+      },
+      {
+        question: "Можно ли загрузить документ?",
+        answer:
+          "Модель читает изображения — фото, скриншоты, снимки страниц — а также файлы Word и таблицы CSV. PDF она не принимает: для таких документов выберите Gemini, GPT-6 или Claude.",
+      },
+      vpnFaq,
+      priceFaq,
+    ],
+    otherModels: [
+      {
+        name: "DeepSeek V4.1 Flash",
+        tag: "Текст",
+        href: `/models/${DEEPSEEK_41_FLASH_SLUG}`,
+      },
+      {
+        name: "DeepSeek V4 Pro",
+        tag: "Текст",
+        href: `/models/${DEEPSEEK_SLUG}`,
+      },
+      {
+        name: "Qwen 3.8 Flash",
+        tag: "Текст",
+        href: `/models/${QWEN_38_FLASH_SLUG}`,
+      },
+      {
+        name: "GPT-6.1 Terra",
+        tag: "Текст",
+        href: `/models/${GPT61_TERRA_SLUG}`,
+      },
+    ],
+  },
   {
     kind: "text",
     slug: DEEPSEEK_41_FLASH_SLUG,
@@ -139,9 +255,9 @@ export const deepseekLandings: ModelLanding[] = [
         href: `/models/${DEEPSEEK_SLUG}`,
       },
       {
-        name: "DeepSeek V4 Flash",
+        name: "DeepSeek V4.1 Flash 1017",
         tag: "Текст",
-        href: `/models/${DEEPSEEK_FLASH_SLUG}`,
+        href: `/models/${DEEPSEEK_41_FLASH_1017_SLUG}`,
       },
       {
         name: "Gemini 3.8 Flash",

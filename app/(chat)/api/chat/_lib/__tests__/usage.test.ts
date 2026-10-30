@@ -14,6 +14,10 @@ vi.mock("tokenlens/helpers", () => ({
     // Reproduce the models.dev "vercel" mirror collision: the slash-form
     // gateway id matches a mirror entry without cost data, while the
     // canonical provider:model form resolves to the real pricing.
+    // A model missing from the catalog under both id forms: no cost at all.
+    if (modelId.startsWith("unknown")) {
+      return { costUSD: {} };
+    }
     if (modelId === "perplexity/sonar") {
       return { costUSD: {} };
     }
@@ -37,7 +41,9 @@ vi.mock("tokenlens/helpers", () => ({
 }));
 
 // Imported after the mock is registered so usage.ts picks up the mocked getUsage.
-const { mergeUsage, usageChargeUsd } = await import("../usage");
+const { mergeUsage, sumGatewayCostUsd, usageChargeUsd } = await import(
+  "../usage"
+);
 
 const FAKE_CATALOG = {} as ModelCatalog;
 const MODEL_ID = "gpt-5.4-mini";
@@ -124,7 +130,113 @@ describe("mergeUsage", () => {
     expect(usageChargeUsd(merged)).toBeCloseTo(SONAR_TOTAL_USD);
   });
 
-  it("returns a token-only merge with no cost when modelId/catalog are absent", () => {
+  it("bills the gateway cost when the catalog has no price for the model", () => {
+    const merged = mergeUsage({
+      usage: buildUsage(),
+      accumulator: buildAccumulator(),
+      modelId: "unknown/not-in-catalog",
+      catalog: FAKE_CATALOG,
+      gatewayCostUsd: 0.07,
+    });
+
+    expect(usageChargeUsd(merged)).toBeCloseTo(0.07);
+  });
+
+  it("bills the gateway cost over the catalog price when both exist", () => {
+    const merged = mergeUsage({
+      usage: buildUsage(),
+      accumulator: buildAccumulator(),
+      modelId: MODEL_ID,
+      catalog: FAKE_CATALOG,
+      gatewayCostUsd: 0.035,
+    });
+
+    expect(usageChargeUsd(merged)).toBeCloseTo(0.035);
+  });
+
+  it("bills the gateway cost even when it is below the catalog price", () => {
+    const merged = mergeUsage({
+      usage: buildUsage(),
+      accumulator: buildAccumulator(),
+      modelId: MODEL_ID,
+      catalog: FAKE_CATALOG,
+      gatewayCostUsd: 0.005,
+    });
+
+    expect(usageChargeUsd(merged)).toBeCloseTo(0.005);
+  });
+
+  it("falls back to the catalog price when the gateway reported no cost", () => {
+    const merged = mergeUsage({
+      usage: buildUsage(),
+      accumulator: buildAccumulator(),
+      modelId: MODEL_ID,
+      catalog: FAKE_CATALOG,
+      gatewayCostUsd: undefined,
+    });
+
+    expect(usageChargeUsd(merged)).toBeCloseTo(CHAT_TOTAL_USD);
+  });
+
+  it("bills $0 for the text when neither the gateway nor the catalog has a cost", () => {
+    const merged = mergeUsage({
+      usage: buildUsage(),
+      accumulator: buildAccumulator(),
+      modelId: "unknown/not-in-catalog",
+      catalog: FAKE_CATALOG,
+    });
+
+    expect(usageChargeUsd(merged)).toBe(0);
+  });
+
+  it("adds the image-tool cost on top of the gateway text cost", () => {
+    const merged = mergeUsage({
+      usage: buildUsage(),
+      accumulator: buildAccumulator({ totalCost: 0.04, generationCount: 1 }),
+      modelId: MODEL_ID,
+      catalog: FAKE_CATALOG,
+      gatewayCostUsd: 0.01,
+    });
+
+    expect(usageChargeUsd(merged)).toBeCloseTo(0.05);
+  });
+
+  it("sums per-step gateway costs and ignores steps without one", () => {
+    expect(
+      sumGatewayCostUsd([
+        { providerMetadata: { gateway: { cost: "0.01" } } },
+        { providerMetadata: undefined },
+        { providerMetadata: { gateway: { cost: "0.02" } } },
+      ])
+    ).toBeCloseTo(0.03);
+    expect(sumGatewayCostUsd([{ providerMetadata: {} }])).toBeUndefined();
+  });
+
+  it("bills the gateway and image-tool costs when the TokenLens catalog is unavailable", () => {
+    const merged = mergeUsage({
+      usage: buildUsage(),
+      accumulator: buildAccumulator({ totalCost: 0.04, generationCount: 1 }),
+      modelId: MODEL_ID,
+      catalog: undefined,
+      gatewayCostUsd: 0.01,
+    });
+
+    expect(usageChargeUsd(merged)).toBeCloseTo(0.05);
+    expect(merged.modelId).toBe(MODEL_ID);
+  });
+
+  it("bills $0 without a catalog when the gateway reported no cost", () => {
+    const merged = mergeUsage({
+      usage: buildUsage(),
+      accumulator: buildAccumulator(),
+      modelId: MODEL_ID,
+      catalog: undefined,
+    });
+
+    expect(usageChargeUsd(merged)).toBe(0);
+  });
+
+  it("returns a token-only merge with no cost when modelId is absent", () => {
     const merged = mergeUsage({
       usage: buildUsage(),
       accumulator: buildAccumulator({ totalCost: 0.05 }),

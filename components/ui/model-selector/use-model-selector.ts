@@ -34,6 +34,12 @@ const PROVIDER_ORDER: ModelProvider[] = [
   "perplexity",
   "moonshotai",
   "alibaba",
+  "meta",
+  "mistral",
+  "zai",
+  "minimax",
+  "xiaomi",
+  "microsoft",
 ];
 
 const CAPABILITY_BUCKET_ORDER: ModelCapabilityKey[] = [

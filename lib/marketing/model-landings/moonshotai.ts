@@ -1,21 +1,143 @@
-/** Landing for the Moonshot AI text model: Kimi K3 Fast. */
+/** Landings for the Moonshot AI text models: Kimi K3.1 Pro and Kimi K3 Fast. */
 
 import {
   buildSteps,
   DEEPSEEK_SLUG,
   documentsBenefit,
+  GEMINI_4_ARGON_SLUG,
   GEMINI_38_FLASH_SLUG,
   GPT6_SOL_SLUG,
-  GROK_47_SLUG,
   KIMI_K3_FAST_SLUG,
+  KIMI_K31_PRO_SLUG,
+  priceFaq,
+  QWEN_38_MAX_PRIME_SLUG,
   QWEN_38_MAX_SLUG,
   sharedFaq,
   studentsAudience,
   vpnBenefit,
+  vpnFaq,
 } from "./shared";
 import type { ModelLanding } from "./types";
 
 export const moonshotaiLandings: ModelLanding[] = [
+  {
+    kind: "text",
+    slug: KIMI_K31_PRO_SLUG,
+    modelId: "kimi-k3.1-pro",
+    name: "Kimi K3.1 Pro",
+    vendor: "Moonshot AI",
+    accent: "violet",
+    badge: "Moonshot AI · Флагман · Текст",
+    h1Top: "Kimi K3.1 Pro —",
+    h1Gradient: "рассуждающий флагман Moonshot AI",
+    sub: "Флагманская мультимодальная модель Moonshot AI уже в GIPITI — обдумывает каждый запрос, понимает изображения и держит в памяти около миллиона токенов. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    ctaMain: "Попробовать Kimi K3.1 Pro",
+    metaTitle: "Kimi K3.1 Pro — нейросеть Moonshot AI без VPN | GIPITI",
+    metaDescription:
+      "Kimi K3.1 Pro в GIPITI — флагман Moonshot AI: рассуждения перед каждым ответом, изображения и контекст около 1 млн токенов. Без VPN, оплата картами РФ.",
+    heroChat: {
+      userMessage:
+        "Почему тест иногда падает на CI, а локально всегда зелёный? Вставил тест и код сервиса",
+      aiIntro: "Продумал оба сценария. Причина — **гонка за общий ресурс**:",
+      aiBullets: [
+        "**На CI** тесты идут параллельно и делят одну временную папку",
+        "**Локально** они запускаются по очереди, поэтому конфликта нет",
+        "**Исправление** — своя временная папка на каждый тест через фикстуру",
+      ],
+    },
+    benefits: [
+      {
+        icon: "sparkles",
+        title: "Рассуждает перед каждым ответом",
+        text: "У K3.1 Pro режим размышлений включён всегда: модель разбирает задачу по шагам и только потом отвечает — меньше поспешных выводов в коде, логике и расчётах.",
+      },
+      {
+        icon: "layers",
+        title: "Около миллиона токенов",
+        text: "Длинный проект, переписка за год или пачка регламентов — модель обсуждает материал целиком и связывает детали из разных частей.",
+      },
+      {
+        icon: "image",
+        title: "Видит изображения",
+        text: "Прикрепите схему архитектуры, скриншот интерфейса или фото страницы — Kimi учтёт картинку в своих рассуждениях.",
+      },
+      vpnBenefit,
+    ],
+    steps: buildSteps(
+      "Kimi K3.1 Pro",
+      "Текстом на русском — или прикрепите изображение, код или файл Word."
+    ),
+    audience: [
+      {
+        title: "Разработчики",
+        text: "Трудные баги, архитектурные решения и ревью — там, где нужна не скорость, а продуманность.",
+        userMessage:
+          "Какую схему кэширования выбрать для каталога на 2 млн товаров?",
+        aiReply:
+          "Сравнил три варианта. Для вашей нагрузки лучше **кэш на чтение с инвалидацией по событию** — вот почему…",
+      },
+      {
+        title: "Инженеры и архитекторы",
+        text: "Разбор схем, диаграмм и технических документов со всеми взаимосвязями.",
+        userMessage: "Где на этой схеме единая точка отказа? 📷 arch.png",
+        aiReply:
+          "Таких точек **две**: брокер сообщений без реплики и общий сервис авторизации…",
+      },
+      {
+        title: "Исследователи",
+        text: "Длинные цепочки рассуждений, проверка гипотез и работа с большими объёмами текста.",
+        userMessage: "Есть ли противоречия между этими пятью статьями?",
+        aiReply:
+          "Да, в **оценке эффекта**: две работы считают его по медиане, три — по среднему, отсюда разница…",
+      },
+    ],
+    faq: [
+      {
+        question: "Что такое Kimi K3.1 Pro?",
+        answer:
+          "Kimi K3.1 Pro — флагманская мультимодальная модель Moonshot AI, вышедшая 23 октября 2026 года. Она всегда рассуждает перед ответом, понимает изображения и работает с контекстом около миллиона токенов. В GIPITI доступна без VPN, на русском и с оплатой российскими картами.",
+      },
+      {
+        question: "Чем Kimi K3.1 Pro отличается от Kimi K3 Fast?",
+        answer:
+          "K3 Fast — быстрая версия флагмана K3 для задач, где важна скорость. K3.1 Pro — флагман следующей версии, который продумывает каждый запрос: ответ приходит дольше, но получается взвешеннее. Обе модели доступны в GIPITI.",
+      },
+      {
+        question: "Можно ли отключить рассуждения?",
+        answer:
+          "Нет — у Kimi K3.1 Pro размышление встроено и работает всегда. Если важнее скорость и цена, выберите быструю модель — например, Qwen 3.8 Flash или DeepSeek V4.1 Flash: они тоже рассуждают, но отвечают быстрее и дешевле.",
+      },
+      {
+        question: "Можно ли прикреплять файлы?",
+        answer:
+          "Да, изображения и файлы Word — модель прочитает их прямо в чате. PDF лучше отправлять в Gemini, GPT-6 или Claude: они разбирают такие документы напрямую.",
+      },
+      vpnFaq,
+      priceFaq,
+    ],
+    otherModels: [
+      {
+        name: "Kimi K3 Fast",
+        tag: "Текст",
+        href: `/models/${KIMI_K3_FAST_SLUG}`,
+      },
+      {
+        name: "Qwen 3.8 Max Prime",
+        tag: "Текст",
+        href: `/models/${QWEN_38_MAX_PRIME_SLUG}`,
+      },
+      {
+        name: "DeepSeek V4 Pro",
+        tag: "Текст",
+        href: `/models/${DEEPSEEK_SLUG}`,
+      },
+      {
+        name: "Gemini 4 Argon",
+        tag: "Текст",
+        href: `/models/${GEMINI_4_ARGON_SLUG}`,
+      },
+    ],
+  },
   {
     kind: "text",
     slug: KIMI_K3_FAST_SLUG,
@@ -105,7 +227,11 @@ export const moonshotaiLandings: ModelLanding[] = [
         href: `/models/${DEEPSEEK_SLUG}`,
       },
       { name: "GPT-6 Sol", tag: "Текст", href: `/models/${GPT6_SOL_SLUG}` },
-      { name: "Grok 4.7", tag: "Текст", href: `/models/${GROK_47_SLUG}` },
+      {
+        name: "Kimi K3.1 Pro",
+        tag: "Текст",
+        href: `/models/${KIMI_K31_PRO_SLUG}`,
+      },
       {
         name: "Gemini 3.8 Flash",
         tag: "Текст",

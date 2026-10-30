@@ -9,11 +9,17 @@ import BytedanceSvg from "./logos/bytedance.svg";
 import DeepseekSvg from "./logos/deepseek.svg";
 import GoogleSvg from "./logos/google.svg";
 import KlingSvg from "./logos/klingai.svg";
+import MetaSvg from "./logos/meta.svg";
+import MicrosoftSvg from "./logos/microsoft.svg";
+import MinimaxSvg from "./logos/minimax.svg";
+import MistralSvg from "./logos/mistral.svg";
 import MoonshotSvg from "./logos/moonshotai.svg";
 import OpenAiSvg from "./logos/openai.svg";
 import PerplexitySvg from "./logos/perplexity.svg";
 import RecraftSvg from "./logos/recraft.svg";
 import XaiSvg from "./logos/xai.svg";
+import XiaomiSvg from "./logos/xiaomi.svg";
+import ZaiSvg from "./logos/zai.svg";
 
 export type LogoProps = {
   size?: number;
@@ -67,6 +73,30 @@ export const LogoAlibaba: FC<LogoProps> = ({ size = 16 }) => (
   <AlibabaSvg height={size} width={size} />
 );
 
+export const LogoMeta: FC<LogoProps> = ({ size = 16 }) => (
+  <MetaSvg height={size} width={size} />
+);
+
+export const LogoMistral: FC<LogoProps> = ({ size = 16 }) => (
+  <MistralSvg height={size} width={size} />
+);
+
+export const LogoZai: FC<LogoProps> = ({ size = 16 }) => (
+  <ZaiSvg height={size} width={size} />
+);
+
+export const LogoMinimax: FC<LogoProps> = ({ size = 16 }) => (
+  <MinimaxSvg height={size} width={size} />
+);
+
+export const LogoXiaomi: FC<LogoProps> = ({ size = 16 }) => (
+  <XiaomiSvg height={size} width={size} />
+);
+
+export const LogoMicrosoft: FC<LogoProps> = ({ size = 16 }) => (
+  <MicrosoftSvg height={size} width={size} />
+);
+
 /** Provider id (lib/ai/models.ts) → brand logo component. */
 export const providerLogos: Record<ModelProvider, FC<LogoProps>> = {
   openai: LogoOpenAI,
@@ -81,4 +111,10 @@ export const providerLogos: Record<ModelProvider, FC<LogoProps>> = {
   perplexity: LogoPerplexity,
   moonshotai: LogoMoonshot,
   alibaba: LogoAlibaba,
+  meta: LogoMeta,
+  mistral: LogoMistral,
+  zai: LogoZai,
+  minimax: LogoMinimax,
+  xiaomi: LogoXiaomi,
+  microsoft: LogoMicrosoft,
 };

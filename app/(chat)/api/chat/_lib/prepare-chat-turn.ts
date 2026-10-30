@@ -3,9 +3,7 @@ import { after } from "next/server";
 import type { Session } from "next-auth";
 import {
   DEFAULT_CHAT_MODEL,
-  isReasoningModelId,
   isVisibleInUI,
-  supportsAttachments,
   supportsToolCalling,
   validateImageGenSetting,
   validateThinkingSetting,
@@ -188,12 +186,11 @@ export async function prepareChatTurn(
   const imageGenSetting = validateImageGenSetting(model, rawImageGenSetting);
   const videoGenSetting = validateVideoGenSetting(model, rawVideoGenSetting);
 
-  // Models without function calling (Perplexity Sonar) and reasoning-only
-  // models without attachments run without tools, which lowers the step
-  // budget. These flags feed the step-limit calculation only.
-  const toolsDisabled =
-    !supportsToolCalling(model) ||
-    (isReasoningModelId(model) && !supportsAttachments(model));
+  // Models without function calling (Perplexity Sonar) run without tools,
+  // which lowers the step budget. Text-only reasoning models (GLM, DeepSeek V4)
+  // still get the full tool set in text-chat.ts, so they keep their budget.
+  // This flag feeds the step-limit calculation only.
+  const toolsDisabled = !supportsToolCalling(model);
   const stepLimit = calculateOptimalStepLimit({
     modelId: model,
     thinkingSetting,

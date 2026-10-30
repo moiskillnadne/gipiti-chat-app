@@ -9,15 +9,20 @@ export const myProvider = customProvider({
   languageModels: {
     // xAI grok-4.x streams reasoning natively (not <think> tags), so no
     // extractReasoningMiddleware wrapper here.
-    // grok-4.7 uses the gateway's canonical "spacexai/" id rather than the
-    // "xai/" alias: TokenLens prices the alias from models.dev's xai entry
-    // ($2/$6 per 1M), while the gateway bills grok-4.7 at $1.2/$3.6 — only the
-    // "spacexai/" id resolves to the gateway's real price.
+    // All Grok text models use the gateway's canonical "spacexai/" id rather
+    // than the "xai/" alias (kept by the gateway only as a redirect): TokenLens
+    // prices the alias from models.dev's xai entry ($2/$6 per 1M), while the
+    // gateway bills grok-4.7 at $1.2/$3.6 — only the "spacexai/" id resolves to
+    // the gateway's real price.
     "grok-4.7": gateway.languageModel("spacexai/grok-4.7"),
-    "grok-4.6": gateway.languageModel("xai/grok-4.6"),
-    "grok-4.5": gateway.languageModel("xai/grok-4.5"),
-    "grok-4.3": gateway.languageModel("xai/grok-4.3"),
+    "grok-4.6": gateway.languageModel("spacexai/grok-4.6"),
+    "grok-4.5": gateway.languageModel("spacexai/grok-4.5"),
+    "grok-4.3": gateway.languageModel("spacexai/grok-4.3"),
     "title-model": gateway.languageModel("google/gemini-3.1-flash-lite"),
+    "gpt-6.1-terra": wrapLanguageModel({
+      model: gateway.languageModel("openai/gpt-6.1-terra"),
+      middleware: extractReasoningMiddleware({ tagName: "think" }),
+    }),
     "gpt-6.1-sol": wrapLanguageModel({
       model: gateway.languageModel("openai/gpt-6.1-sol"),
       middleware: extractReasoningMiddleware({ tagName: "think" }),
@@ -67,6 +72,7 @@ export const myProvider = customProvider({
     // above. Wrapping it mangles the thoughtSignature on persisted assistant
     // turns and breaks multi-turn tool-call continuations (400 "Corrupted
     // thought signature").
+    "gemini-4-argon": gateway.languageModel("google/gemini-4-argon"),
     "gemini-3.1-pro": gateway.languageModel("google/gemini-3.1-pro-preview"),
     "gemini-3.8-flash": gateway.languageModel("google/gemini-3.8-flash"),
     "gemini-3.7-flash": gateway.languageModel("google/gemini-3.7-flash"),
@@ -75,6 +81,7 @@ export const myProvider = customProvider({
     "gemini-3.5-flash-lite": gateway.languageModel(
       "google/gemini-3.5-flash-lite"
     ),
+    "nano-banana-2.1": gateway.languageModel("google/gemini-nano-banana-2.1"),
     "gemini-3-pro-image": gateway.languageModel("google/gemini-3-pro-image"),
     "gemini-3.1-flash-image": gateway.languageModel(
       "google/gemini-3.1-flash-image"
@@ -94,6 +101,9 @@ export const myProvider = customProvider({
     // DeepSeek streams reasoning natively (reasoning_content, normalized by
     // the Gateway to reasoning parts) — no extractReasoningMiddleware wrapper,
     // same as grok-4.3 above.
+    "deepseek-v4.1-flash-1017": gateway.languageModel(
+      "deepseek/deepseek-v4.1-flash-1017"
+    ),
     "deepseek-v4.1-flash": gateway.languageModel(
       "deepseek/deepseek-v4.1-flash"
     ),
@@ -102,18 +112,41 @@ export const myProvider = customProvider({
     // Moonshot and Alibaba stream reasoning natively too (reasoning_content,
     // normalized by the Gateway) — verified against the live gateway, no
     // <think> tags in the text stream, so no middleware wrapper.
+    "kimi-k3.1-pro": gateway.languageModel("moonshotai/kimi-k3.1-pro"),
     "kimi-k3-fast": gateway.languageModel("moonshotai/kimi-k3-fast"),
+    "qwen3.8-max-prime": gateway.languageModel("alibaba/qwen3.8-max-prime"),
     "qwen3.8-max": gateway.languageModel("alibaba/qwen3.8-max"),
+    "qwen3.8-flash": gateway.languageModel("alibaba/qwen3.8-flash"),
     "qwen3.7-flash": gateway.languageModel("alibaba/qwen3.7-flash"),
-    sonar: gateway.languageModel("perplexity/sonar"),
-    "sonar-pro": gateway.languageModel("perplexity/sonar-pro"),
-    // Perplexity puts CoT as literal <think> tags inside the text stream (no
-    // native reasoning parts), so strip them into reasoning parts here. The
-    // model emits the tags unprompted — usesReasoningTagMiddleware in models.ts
-    // stays false for it (no <think> instruction in the system prompt).
-    "sonar-reasoning-pro": wrapLanguageModel({
-      model: gateway.languageModel("perplexity/sonar-reasoning-pro"),
+    // Mistral, Z.ai and Xiaomi stream reasoning natively through the gateway
+    // (reasoning parts, no <think> tags in the text); Meta Muse keeps its
+    // reasoning hidden (reasoning tokens billed, no reasoning text). Probed
+    // 2026-10-29, so no extractReasoningMiddleware wrapper.
+    "muse-wonder-1.0": gateway.languageModel("meta/muse-wonder-1.0"),
+    "muse-spark-1.3": gateway.languageModel("meta/muse-spark-1.3"),
+    "mistral-large-4": gateway.languageModel("mistral/mistral-large-4"),
+    "glm-5.3": gateway.languageModel("zai/glm-5.3"),
+    // MiniMax M3.1 Flash streamed native reasoning parts with no <think> tags
+    // in the text (probed 2026-10-29, unwrapped). The wrapper is kept as a
+    // no-op guard in case a MiniMax route starts emitting literal tags; the
+    // model is never told to emit them — usesReasoningTagMiddleware in
+    // models.ts stays false for it.
+    "minimax-m3.1-flash": wrapLanguageModel({
+      model: gateway.languageModel("minimax/minimax-m3.1-flash"),
       middleware: extractReasoningMiddleware({ tagName: "think" }),
     }),
+    "mimo-v2.6-pro": gateway.languageModel("xiaomi/mimo-v2.6-pro"),
+    sonar: gateway.languageModel("perplexity/sonar"),
+    // sonar-pro and sonar-reasoning-pro are hidden from the picker but stay
+    // registered so old chats and saved model cookies still resolve. Both ids
+    // were removed from the gateway catalog; the gateway still accepts them but
+    // routes them to perplexity/sonar (routing.canonicalSlug, probed
+    // 2026-10-29). Alias them to perplexity/sonar here so they keep working if
+    // the gateway drops the redirect, and so TokenLens prices these turns at
+    // Sonar's rate instead of the retired Pro rates ($3/$15 and $2/$8 per 1M).
+    // Plain Sonar emitted no <think> tags in the same probe, so no
+    // extractReasoningMiddleware wrapper.
+    "sonar-pro": gateway.languageModel("perplexity/sonar"),
+    "sonar-reasoning-pro": gateway.languageModel("perplexity/sonar"),
   },
 });

@@ -1,6 +1,6 @@
 /**
- * Landings for the OpenAI chat line: the GPT-6 series (6.1 Sol, Astra, Sol,
- * Luna), the previous GPT-5.6 series (Sol, Terra, Luna) and GPT-5.5. The code
+ * Landings for the OpenAI chat line: the GPT-6 series (6.1 Sol, 6.1 Terra,
+ * Astra, Sol, Luna), the previous GPT-5.6 series (Sol, Terra, Luna) and GPT-5.5. The code
  * model lives in `code.ts`.
  */
 
@@ -10,20 +10,25 @@ import {
   CODEX_SLUG,
   crossLandingChips,
   documentsBenefit,
+  GEMINI_4_ARGON_SLUG,
   GPT6_ASTRA_SLUG,
   GPT6_LUNA_SLUG,
   GPT6_SOL_SLUG,
   GPT55_SLUG,
   GPT61_SOL_SLUG,
+  GPT61_TERRA_SLUG,
   LUNA_SLUG,
   lawyersAudience,
   OPUS_48_SLUG,
+  priceFaq,
   SOL_SLUG,
+  SONNET_55_SLUG,
   sharedFaq,
   studentsAudience,
   supportAudience,
   TERRA_SLUG,
   vpnBenefit,
+  vpnFaq,
   writingBenefit,
 } from "./shared";
 import type { ModelLanding } from "./types";
@@ -105,8 +110,123 @@ export const openaiLandings: ModelLanding[] = [
     ],
     otherModels: [
       { name: "GPT-6 Astra", tag: "Текст", href: `/models/${GPT6_ASTRA_SLUG}` },
-      { name: "GPT-6 Sol", tag: "Текст", href: `/models/${GPT6_SOL_SLUG}` },
+      {
+        name: "GPT-6.1 Terra",
+        tag: "Текст",
+        href: `/models/${GPT61_TERRA_SLUG}`,
+      },
       ...crossLandingChips,
+    ],
+  },
+  {
+    kind: "text",
+    slug: GPT61_TERRA_SLUG,
+    modelId: "gpt-6.1-terra",
+    name: "GPT-6.1 Terra",
+    vendor: "OpenAI",
+    accent: "teal",
+    badge: "OpenAI · Новинка · Текст",
+    h1Top: "GPT-6.1 Terra —",
+    h1Gradient: "быстрая и экономичная модель OpenAI",
+    sub: "Свежая модель OpenAI, вышедшая 26 октября, уже в GIPITI — быстрые ответы, понимание изображений и естественный живой текст по доступной цене. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    ctaMain: "Попробовать GPT-6.1 Terra",
+    metaTitle: "GPT-6.1 Terra — нейросеть OpenAI на русском без VPN | GIPITI",
+    metaDescription:
+      "GPT-6.1 Terra в GIPITI — новая быстрая модель OpenAI: тексты, анализ изображений и контекст около 1 млн токенов. Без VPN, на русском, оплата картами РФ.",
+    heroChat: {
+      userMessage:
+        "Вот фото доски после планёрки — перепиши в аккуратный список задач с ответственными 📷 doska.jpg",
+      aiIntro: "Разобрал почерк и стрелки. Получилось **пять задач**:",
+      aiBullets: [
+        "**Лендинг акции** — Марина, до пятницы",
+        "**Выгрузка для бухгалтерии** — Олег, сегодня",
+        "**Созвон с подрядчиком** — без ответственного, стоит уточнить",
+      ],
+    },
+    benefits: [
+      {
+        icon: "zap",
+        title: "Быстрая и экономичная",
+        text: "Terra — быстрая и эффективная модель поколения GPT-6.1: отвечает без задержек и стоит заметно дешевле флагманов, поэтому подходит для ежедневной работы и длинной переписки.",
+      },
+      {
+        icon: "image",
+        title: "Понимает изображения",
+        text: "OpenAI отдельно выделяет у Terra визуальные рассуждения: модель читает скриншоты, фото документов, графики и рукописные заметки.",
+      },
+      {
+        icon: "pen",
+        title: "Естественный текст",
+        text: "Письма, посты и описания звучат по-человечески — без канцелярита и шаблонных оборотов, в том тоне, который вы зададите.",
+      },
+      vpnBenefit,
+    ],
+    steps: buildSteps(
+      "GPT-6.1 Terra",
+      "Текстом на русском — или прикрепите фото, скриншот или файл Word."
+    ),
+    audience: [
+      {
+        title: "Маркетологи и SMM",
+        text: "Посты, рассылки и описания в едином голосе бренда — быстро и без шаблонности.",
+        userMessage:
+          "Напиши три варианта анонса распродажи для Telegram: дерзкий, тёплый и деловой",
+        aiReply:
+          "**Дерзкий:** «Цены упали так низко, что мы сами удивились. Только до воскресенья…»",
+      },
+      {
+        title: "Офисная работа",
+        text: "Фото, сканы и скриншоты превращаются в таблицы, списки и аккуратные письма.",
+        userMessage:
+          "Перенеси данные с этого чека в таблицу расходов 📷 chek.jpg",
+        aiReply:
+          "Готово: **7 позиций** на 4 380 ₽. Доставку вынес отдельной строкой, НДС посчитал…",
+      },
+      {
+        title: "Поддержка клиентов",
+        text: "Вежливые ответы по делу — даже когда клиент прислал только скриншот ошибки.",
+        userMessage: "Клиент прислал скрин — объясни, что ему ответить 📷",
+        aiReply:
+          "На экране **истёкшая сессия**. Ответьте так: «Здравствуйте! Похоже, вход устарел — выйдите и войдите снова…»",
+      },
+    ],
+    faq: [
+      {
+        question: "Что такое GPT-6.1 Terra?",
+        answer:
+          "GPT-6.1 Terra — модель OpenAI, представленная 26 октября 2026 года. Это быстрая и экономичная модель поколения GPT-6.1 с упором на визуальные рассуждения и естественный текст, контекстом около 1,05 млн токенов и ответами до 128 тысяч токенов. В GIPITI она доступна без VPN и на русском.",
+      },
+      {
+        question: "Чем GPT-6.1 Terra отличается от GPT-6.1 Sol?",
+        answer:
+          "Sol — флагман для самых сложных задач: большой код, глубокая аналитика, длинные агентные сценарии. Terra — более быстрая и экономичная модель для повседневной работы: переписка, тексты, разбор изображений. Обе доступны в одном чате — переключайтесь в один клик.",
+      },
+      {
+        question: "Чем GPT-6.1 Terra отличается от GPT-5.6 Terra?",
+        answer:
+          "Это новое поколение той же линейки: по данным прессы, GPT-6.1 Terra примерно вдвое дешевле предшественника, а по цифрам OpenAI при максимальном уровне рассуждений она решает 50,3% задач против 21,5% у GPT-5.6 Terra. Контекст у GPT-6.1 Terra — около миллиона токенов, ответ — до 128 тысяч. GPT-5.6 Terra остаётся в GIPITI — сравните версии на своей задаче.",
+      },
+      {
+        question: "Какие файлы можно прикрепить?",
+        answer:
+          "Фотографии, скриншоты, графики и файлы Word — модель прочитает их прямо в чате. Для больших PDF-документов надёжнее выбрать Gemini 4 Argon или Claude.",
+      },
+      vpnFaq,
+      priceFaq,
+    ],
+    otherModels: [
+      { name: "GPT-6.1 Sol", tag: "Текст", href: `/models/${GPT61_SOL_SLUG}` },
+      { name: "GPT-5.6 Terra", tag: "Текст", href: `/models/${TERRA_SLUG}` },
+      {
+        name: "Gemini 4 Argon",
+        tag: "Текст",
+        href: `/models/${GEMINI_4_ARGON_SLUG}`,
+      },
+      {
+        name: "Claude Sonnet 5.5",
+        tag: "Текст",
+        href: `/models/${SONNET_55_SLUG}`,
+      },
     ],
   },
   {
