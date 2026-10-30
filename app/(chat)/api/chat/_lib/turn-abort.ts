@@ -11,7 +11,9 @@
  * the abort is deferred (see `setAbortGate`): aborting mid-tool drops the tool
  * result that is about to arrive, yet its cost is already in the accumulator.
  * The deferral is bounded: a tool that never returns would otherwise keep the
- * turn (and its billing) alive until the function is killed.
+ * turn (and its billing) alive until the function is killed. Forcing settles
+ * the turn at once, so a tool whose cost is only known when it returns (image
+ * generation) is given until the function deadline instead of the short cap.
  */
 
 /** Longest a stop may wait for running tools after it was requested. */
@@ -47,6 +49,12 @@ export type TurnAbort = {
    * abort itself, so the owner must settle the turn from here.
    */
   onForcedAbort: (handler: () => void) => void;
+  /**
+   * Install the check for "a tool whose cost is booked only when it returns is
+   * running". While it holds, the forced abort waits for the function deadline
+   * instead of the deferral cap.
+   */
+  setLongToolCheck: (isLongToolRunning: () => boolean) => void;
   /** Cancel the pending force timer (call when the turn is over). */
   dispose: () => void;
 };
@@ -59,6 +67,7 @@ export function createTurnAbort({
   const controller = new AbortController();
   let requestedAt: Date | undefined;
   let canAbortNow: () => boolean = () => true;
+  let isLongToolRunning: () => boolean = () => false;
   let forceTimer: ReturnType<typeof setTimeout> | undefined;
   const forcedHandlers: Array<() => void> = [];
 
@@ -74,17 +83,25 @@ export function createTurnAbort({
     }
   };
 
-  const startForceTimer = () => {
-    const now = Date.now();
-    const deadline =
-      maxDurationMs === undefined
-        ? Number.POSITIVE_INFINITY
-        : startedAt + maxDurationMs - DEADLINE_MARGIN_MS;
-    const delay = Math.max(0, Math.min(now + deferralCapMs, deadline) - now);
+  const deadline =
+    maxDurationMs === undefined
+      ? Number.POSITIVE_INFINITY
+      : startedAt + maxDurationMs - DEADLINE_MARGIN_MS;
 
+  const scheduleForce = (forceAt: number) => {
+    const delay = Math.max(0, forceAt - Date.now());
+    // No deadline known and a long tool running: nothing to wait for.
+    if (!Number.isFinite(delay)) {
+      return;
+    }
     forceTimer = setTimeout(() => {
       forceTimer = undefined;
       if (controller.signal.aborted) {
+        return;
+      }
+      // The long tool may have started after the timer was set.
+      if (isLongToolRunning() && Date.now() < deadline) {
+        scheduleForce(deadline);
         return;
       }
       console.warn("[chat-stop] forced abort, tool still running");
@@ -95,6 +112,14 @@ export function createTurnAbort({
     }, delay);
     // Never keep a serverless process / test runner alive just for this timer.
     forceTimer.unref?.();
+  };
+
+  const startForceTimer = () => {
+    scheduleForce(
+      isLongToolRunning()
+        ? deadline
+        : Math.min(Date.now() + deferralCapMs, deadline)
+    );
   };
 
   const flush = () => {
@@ -119,6 +144,9 @@ export function createTurnAbort({
       canAbortNow = gate;
     },
     flush,
+    setLongToolCheck(check) {
+      isLongToolRunning = check;
+    },
     onForcedAbort(handler) {
       forcedHandlers.push(handler);
     },

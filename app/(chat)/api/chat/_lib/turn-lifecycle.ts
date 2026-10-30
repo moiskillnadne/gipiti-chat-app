@@ -32,6 +32,12 @@ type AbortedBillingInput = {
   atStepBoundary: boolean;
 };
 
+/**
+ * Tools whose cost lands in the turn's accumulator only when they return. A
+ * forced abort would settle the turn before that, leaving the cost unbilled.
+ */
+const LATE_BILLED_TOOLS = ["generateImage"];
+
 /** The part of `streamText`'s `totalUsage` the finish decision looks at. */
 type FinishUsage = { inputTokens?: number; outputTokens?: number };
 
@@ -73,6 +79,9 @@ export function createTurnLifecycle({
 
   // A deferred stop must not run while tool calls are in flight.
   turnAbort.setAbortGate(() => tracker.pendingToolCalls() === 0);
+  turnAbort.setLongToolCheck(() =>
+    LATE_BILLED_TOOLS.some((name) => tracker.hasPendingTool(name))
+  );
 
   const settleAborted = () => {
     if (settled) {

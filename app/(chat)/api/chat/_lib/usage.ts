@@ -255,6 +255,7 @@ type InFlightChunk = {
   text?: string;
   delta?: string;
   toolCallId?: string;
+  toolName?: string;
 };
 
 export type InFlightStepTracker = {
@@ -268,6 +269,8 @@ export type InFlightStepTracker = {
    * pending until the step finishes (`reset`).
    */
   pendingToolCalls: () => number;
+  /** True while a call to the tool `name` is pending. */
+  hasPendingTool: (name: string) => boolean;
   /** Everything the running step has generated so far (text, reasoning, tool input). */
   outputText: () => string;
 };
@@ -278,14 +281,15 @@ export type InFlightStepTracker = {
  */
 export function createInFlightStepTracker(): InFlightStepTracker {
   let pieces: string[] = [];
-  const pendingTools = new Set<string>();
+  // toolCallId -> toolName
+  const pendingTools = new Map<string, string>();
 
   return {
     onChunk(chunk) {
       switch (chunk.type) {
         case "tool-call":
           if (chunk.toolCallId) {
-            pendingTools.add(chunk.toolCallId);
+            pendingTools.set(chunk.toolCallId, chunk.toolName ?? "");
           }
           break;
         case "tool-result":
@@ -315,6 +319,9 @@ export function createInFlightStepTracker(): InFlightStepTracker {
     },
     pendingToolCalls() {
       return pendingTools.size;
+    },
+    hasPendingTool(name) {
+      return [...pendingTools.values()].includes(name);
     },
     outputText() {
       return pieces.join("");

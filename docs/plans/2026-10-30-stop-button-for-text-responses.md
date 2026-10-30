@@ -1,6 +1,6 @@
 ---
 date: 2026-10-30
-status: in-progress
+status: done
 branch: claude/peaceful-bell-9pifw3
 issue: GIPITI-104
 ---
@@ -56,7 +56,10 @@ One server `AbortController` per turn + a stop endpoint that reaches the produce
   `onChunk`) is covered the same way, and the lifecycle marks the abort as `atStepBoundary` so no phantom next step is
   estimated. The wait is bounded: after `min(45s after the stop, startedAt + maxDuration - 30s)` the abort is forced
   (`[chat-stop] forced abort, tool still running`), the turn is settled from the timer (a hung tool never lets the
-  stream report the abort) and the UI stream is closed so the partial message is still saved.
+  stream report the abort) and the UI stream is closed so the partial message is still saved. While a `generateImage`
+  call is pending (the tracker knows tool names) only the function deadline forces, because its cost is booked when
+  it returns and settlement would leave it unbilled. The timer ends with the settlement (not with the stop watcher), so
+  a hung tool is still settled after the 15s persist-time wait expired.
 - Pre-abort skip: if the signal is already aborted before the handler would run (route `execute`, or the text handler
   right before `streamText`), nothing runs: no model call, no charge, no assistant message persisted.
 - Settlement: `ctx.turnSettlement` is created up front and resolved by the text handler on every terminal path (normal
@@ -66,6 +69,9 @@ One server `AbortController` per turn + a stop endpoint that reaches the produce
   message is still persisted as interrupted. The stop watcher's cleanup never blocks `onFinish` (kept alive by `after()`).
   `ctx.turnOutcome` (`completed | aborted | skipped`) decides whether the message is marked interrupted, so an answer that finished when Stop landed stays normal. An interrupted message gets
   `createdAt = stop request time` so it sorts before a message sent right after.
+- Stale answers: an interrupted answer is not persisted if the turn's OWN user message (looked up by id) is gone (edit of
+  an earlier message) or was re-saved with another `createdAt` (edit of the last one). A next message sent before the
+  save is irrelevant: the answer sorts before it.
 
 Interrupted mark = data part `{ type: "data-interrupted", data: { reason: "user" } }` in `parts` — no migration.
 
@@ -88,8 +94,9 @@ while `submitted`); polling a DB flag (too many queries); turning off resumable 
 5b. `app/(chat)/api/chat/_lib/turn-lifecycle.ts` (new) — which terminal path bills the turn (once), safety net, snapshot of
    finished steps + in-flight text, `beginFinish` (the `onFinish` decision), step-boundary flag, settlement promise,
    `waitForSettlement`, `closeStreamOnForcedAbort`. Unit-tested with a real `streamText`.
-5c. `persist-assistant-turn.ts` + `turn-superseded.ts` — an interrupted answer is not persisted if its user message was
-   deleted/re-saved (edit) or a newer one exists (one query on the chat's latest user message; billing still happens).
+5c. `persist-assistant-turn.ts` + `turn-superseded.ts` — an interrupted answer is not persisted if its own user message
+   was deleted/re-saved (edit); one `getMessageById` query, billing still happens.
+5d. `_lib/stop-body.ts` — stop body `{ turnId } | { messageId }` (legacy cached clients), `turnId ?? messageId`.
 6. `app/(chat)/api/chat/_lib/prepare-chat-turn.ts` — accept and store the turn fields.
 7. `app/(chat)/api/chat/route.ts` — `turnAbort` (link `request.signal` only without stream context),
    watcher for text mode (not awaited), pre-abort skip, `onFinish` awaits the settlement then persists with
@@ -140,7 +147,7 @@ while `submitted`); polling a DB flag (too many queries); turning off resumable 
   `app/(chat)/api/chat/_lib/__tests__/stop-signal.test.ts` (in-process backend, fake timers),
   `app/(chat)/api/chat/_lib/__tests__/turn-lifecycle.test.ts` (real `streamText` + `MockLanguageModelV3`: stop mid-stream
   charges once, stop in step 2, string-reason safety net, tool deferral with billed amounts (success / error), forced abort
-  with fake timers, parallel tools, step-finish snapshot), `turn-superseded.test.ts`.
+  with fake timers, parallel tools, step-finish snapshot), `turn-superseded.test.ts`, `stop-body.test.ts`.
 - `pnpm check:fast` while iterating, full `pnpm check` at the end.
 - Manual (with and without Redis, GPT / Claude thinking / Gemini): stop mid-text and mid-reasoning; reload shows partial
   text + label; `Transaction` has a partial amount; new message right after stop; stop after auto-resume; stop while

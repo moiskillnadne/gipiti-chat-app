@@ -1,5 +1,5 @@
 import { ensureMessageHasTextPart } from "@/lib/ai/message-validator";
-import { getLatestUserMessageByChatId } from "@/lib/db/query/chat/get-latest-user-message-by-chat-id";
+import { getMessageById } from "@/lib/db/query/chat/get-message-by-id";
 import { saveMessages } from "@/lib/db/query/chat/save-messages";
 import { updateChatLastContextById } from "@/lib/db/query/chat/update-chat-last-context-by-id";
 import { finalizeInterruptedMessage } from "@/lib/messages/interrupted";
@@ -18,17 +18,16 @@ export type PersistAssistantTurnOptions = {
 /**
  * An interrupted answer can be saved long after the stop (it waits for a
  * deferred tool and for billing), by which time the user may have edited the
- * message it answers (the edit deletes the message and what follows) or sent a
- * newer one. Saving it then would resurrect a stale answer after a reload.
- * Fails open: if the check itself fails the answer is saved.
+ * message it answers (the edit deletes it and what follows, then re-sends it).
+ * Saving it then would resurrect a stale answer after a reload. A message sent
+ * after the stop does not matter: the answer sorts before it. Looks up the
+ * turn's own user message by id. Fails open: if the check fails the answer is
+ * saved.
  */
 async function isSuperseded(ctx: ChatTurnContext): Promise<boolean> {
   try {
-    const latest = await getLatestUserMessageByChatId({ chatId: ctx.chatId });
-    return isTurnSuperseded(
-      { id: ctx.message.id, createdAt: ctx.userMessageCreatedAt },
-      latest
-    );
+    const [stored] = await getMessageById({ id: ctx.message.id });
+    return isTurnSuperseded(ctx.userMessageCreatedAt, stored);
   } catch (err) {
     console.warn("[chat-stop] superseded check failed", ctx.chatId, err);
     return false;

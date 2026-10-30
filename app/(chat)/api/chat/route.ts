@@ -61,7 +61,6 @@ export async function POST(request: Request) {
   // Cleanup talks to Redis and must never hold up the stream or the error
   // response: start it, and let `after()` keep the function alive for it.
   const closeStopWatch = () => {
-    turnAbort.dispose();
     if (!stopWatch) {
       markStopWatchClosed();
       return;
@@ -94,6 +93,10 @@ export async function POST(request: Request) {
     const ctx = await prepareChatTurn(parsed.body, session, request, {
       turnAbort,
     });
+
+    // The force timer must outlive the persist-time wait for billing (a hung
+    // tool is only settled by it): it ends with the settlement, not before.
+    ctx.turnSettlement.promise.finally(() => turnAbort.dispose());
 
     // Balance is enforced after the user message is saved so the client never
     // 404s on a freshly created chat.
@@ -210,6 +213,7 @@ export async function POST(request: Request) {
 
     return new Response(sseStream);
   } catch (error) {
+    turnAbort.dispose();
     closeStopWatch();
     finishTurn();
     return handleChatError(error, request);

@@ -311,6 +311,25 @@ describe("createInFlightStepTracker", () => {
     expect(tracker.pendingToolCalls()).toBe(0);
   });
 
+  it("knows which tool a pending call belongs to", () => {
+    const tracker = createInFlightStepTracker();
+    tracker.onChunk({
+      type: "tool-call",
+      toolCallId: "a",
+      toolName: "generateImage",
+    });
+    tracker.onChunk({
+      type: "tool-call",
+      toolCallId: "b",
+      toolName: "webSearch",
+    });
+
+    expect(tracker.hasPendingTool("generateImage")).toBe(true);
+    tracker.onChunk({ type: "tool-result", toolCallId: "a" });
+    expect(tracker.hasPendingTool("generateImage")).toBe(false);
+    expect(tracker.hasPendingTool("webSearch")).toBe(true);
+  });
+
   it("forgets pending tool calls on reset", () => {
     const tracker = createInFlightStepTracker();
     tracker.onChunk({ type: "tool-call", toolCallId: "a" });

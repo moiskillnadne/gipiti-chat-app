@@ -1,14 +1,9 @@
-import { z } from "zod";
 import { auth } from "@/app/(auth)/auth";
 import { getChatById } from "@/lib/db/query/chat/get-chat-by-id";
 import type { Chat } from "@/lib/db/schema";
 import { ChatSDKError } from "@/lib/errors";
+import { stopBodySchema } from "../../_lib/stop-body";
 import { requestChatStop } from "../../_lib/stop-signal";
-
-const bodySchema = z.object({
-  /** The `turnId` the client sent with the chat POST (or got from the stream). */
-  turnId: z.string().uuid(),
-});
 
 /**
  * "Stop" button: ask whichever instance is generating the text answer of turn
@@ -29,7 +24,7 @@ export async function POST(
 
   let turnId: string;
   try {
-    ({ turnId } = bodySchema.parse(await request.json()));
+    ({ turnId } = stopBodySchema.parse(await request.json()));
   } catch {
     return new ChatSDKError("bad_request:api").toResponse();
   }

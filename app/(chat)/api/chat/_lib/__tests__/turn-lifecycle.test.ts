@@ -619,6 +619,50 @@ describe("forced abort of a hung tool", () => {
   });
 });
 
+describe("forced abort with a pending image generation", () => {
+  it("waits for the function deadline, not the 45s cap, so the image cost can land", async () => {
+    const generateImage = tool({
+      description: "slow image tool",
+      inputSchema: z.object({}),
+      execute: () => new Promise<string>(vi.fn()),
+    });
+    vi.spyOn(console, "warn").mockImplementation(vi.fn());
+    const startedAt = Date.now();
+    const maxDurationMs = 300_000;
+    const h = setup({
+      tools: { generateImage },
+      abortOptions: { startedAt, maxDurationMs },
+    });
+    await h.push(
+      textStart(),
+      textDelta("Drawing"),
+      {
+        type: "tool-call",
+        toolCallId: "i",
+        toolName: "generateImage",
+        input: "{}",
+      },
+      toolCallsFinish
+    );
+    await until(() => h.tracker.hasPendingTool("generateImage"));
+
+    vi.useFakeTimers();
+    h.turnAbort.requestAbort();
+    await vi.advanceTimersByTimeAsync(DEFERRAL_CAP_MS * 2);
+    expect(h.turnAbort.signal.aborted).toBe(false);
+    expect(h.billAborted).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(
+      maxDurationMs - DEADLINE_MARGIN_MS - DEFERRAL_CAP_MS * 2 + 1
+    );
+    vi.useRealTimers();
+    await h.settlement.promise;
+
+    expect(h.turnAbort.signal.aborted).toBe(true);
+    expect(h.billAborted).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe("turn lifecycle callbacks", () => {
   const step = (inputTokens: number) => ({
     usage: { inputTokens, outputTokens: 1, totalTokens: inputTokens + 1 },
@@ -817,6 +861,60 @@ describe("turn abort", () => {
 
       turnAbort.requestAbort();
       vi.advanceTimersByTime(0);
+
+      expect(turnAbort.signal.aborted).toBe(true);
+    });
+
+    it("waits for the deadline instead of the cap while a long tool runs", () => {
+      vi.useFakeTimers();
+      const startedAt = Date.now();
+      const maxDurationMs = 300_000;
+      let longTool = true;
+      const { turnAbort, forced } = closedGate({ startedAt, maxDurationMs });
+      turnAbort.setLongToolCheck(() => longTool);
+
+      turnAbort.requestAbort();
+      vi.advanceTimersByTime(DEFERRAL_CAP_MS * 2);
+      expect(turnAbort.signal.aborted).toBe(false);
+
+      vi.advanceTimersByTime(
+        maxDurationMs - DEADLINE_MARGIN_MS - DEFERRAL_CAP_MS * 2 - 1
+      );
+      expect(turnAbort.signal.aborted).toBe(false);
+      vi.advanceTimersByTime(1);
+
+      expect(turnAbort.signal.aborted).toBe(true);
+      expect(forced).toHaveBeenCalledTimes(1);
+      longTool = false;
+    });
+
+    it("re-checks at the cap: a long tool that started later still defers the force", () => {
+      vi.useFakeTimers();
+      const startedAt = Date.now();
+      const maxDurationMs = 300_000;
+      let longTool = false;
+      const { turnAbort } = closedGate({ startedAt, maxDurationMs });
+      turnAbort.setLongToolCheck(() => longTool);
+
+      turnAbort.requestAbort();
+      longTool = true;
+      vi.advanceTimersByTime(DEFERRAL_CAP_MS + 1);
+
+      expect(turnAbort.signal.aborted).toBe(false);
+      vi.advanceTimersByTime(maxDurationMs);
+      expect(turnAbort.signal.aborted).toBe(true);
+    });
+
+    it("other tools keep the short cap", () => {
+      vi.useFakeTimers();
+      const { turnAbort } = closedGate({
+        startedAt: Date.now(),
+        maxDurationMs: 300_000,
+      });
+      turnAbort.setLongToolCheck(() => false);
+
+      turnAbort.requestAbort();
+      vi.advanceTimersByTime(DEFERRAL_CAP_MS);
 
       expect(turnAbort.signal.aborted).toBe(true);
     });
