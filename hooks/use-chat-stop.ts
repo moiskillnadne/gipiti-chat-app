@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
+import type { ChatMessage } from "@/lib/types";
 import { fetchWithErrorHandlers } from "@/lib/utils";
 
 // Upper bound for waiting on an in-flight stop request before the next send.
@@ -11,6 +12,11 @@ type FetchFn = typeof fetchWithErrorHandlers;
 type UseChatStopOptions = {
   chatId: string;
   stop: () => Promise<void>;
+  /**
+   * Current messages of the chat. The stop names the turn by its last user
+   * message, the one the server was sent with the turn.
+   */
+  getMessages: () => ChatMessage[];
 };
 
 const resolveMethod = (input: RequestInfo | URL, init?: RequestInit): string =>
@@ -24,38 +30,52 @@ const resolveMethod = (input: RequestInfo | URL, init?: RequestInit): string =>
  * `useChat().stop()` only aborts the POST fetch. A resumed stream (GET
  * reconnect) is fetched without a signal and keeps going, and the server
  * producer is not told to abort. This hook:
- *  - tells the server to abort the turn (`POST /api/chat/:id/stop`),
+ *  - tells the server to abort the turn (`POST /api/chat/:id/stop`) and names
+ *    the turn by the id of the last user message in `messages`. The chat POST
+ *    carries `messages.at(-1)` (a user message) both for a new message and for
+ *    regenerate/edit, and a resumed stream belongs to the last user message of
+ *    the history, so client and server always agree on this id,
  *  - stops the client,
  *  - aborts the resumed read through a controller injected by the fetch wrapper.
  */
-export function useChatStop({ chatId, stop }: UseChatStopOptions) {
+export function useChatStop({ chatId, stop, getMessages }: UseChatStopOptions) {
   const chatIdRef = useRef(chatId);
   const stopRef = useRef(stop);
+  const getMessagesRef = useRef(getMessages);
   const pendingStopRef = useRef<Promise<unknown> | null>(null);
   const resumeControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     chatIdRef.current = chatId;
     stopRef.current = stop;
-  }, [chatId, stop]);
+    getMessagesRef.current = getMessages;
+  }, [chatId, stop, getMessages]);
 
   const handleStop = useCallback(() => {
-    const request: Promise<unknown> = fetch(
-      `/api/chat/${chatIdRef.current}/stop`,
-      {
-        method: "POST",
-        keepalive: true,
-      }
-    )
-      .catch(() => {
-        // Best effort: the client has stopped regardless of the server reply.
-      })
-      .finally(() => {
-        if (pendingStopRef.current === request) {
-          pendingStopRef.current = null;
+    const messageId = getMessagesRef
+      .current()
+      .findLast((message) => message.role === "user")?.id;
+
+    if (messageId) {
+      const request: Promise<unknown> = fetch(
+        `/api/chat/${chatIdRef.current}/stop`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messageId }),
+          keepalive: true,
         }
-      });
-    pendingStopRef.current = request;
+      )
+        .catch(() => {
+          // Best effort: the client has stopped regardless of the server reply.
+        })
+        .finally(() => {
+          if (pendingStopRef.current === request) {
+            pendingStopRef.current = null;
+          }
+        });
+      pendingStopRef.current = request;
+    }
 
     stopRef.current().catch(() => {
       // stop() only aborts local fetches; nothing to recover from.

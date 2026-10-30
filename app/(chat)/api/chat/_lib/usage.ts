@@ -250,13 +250,24 @@ export function estimateTokens(text: string): number {
 }
 
 /** The subset of a `streamText` `onChunk` chunk the tracker reads. */
-type InFlightChunk = { type: string; text?: string; delta?: string };
+type InFlightChunk = {
+  type: string;
+  text?: string;
+  delta?: string;
+  toolCallId?: string;
+};
 
 export type InFlightStepTracker = {
   /** Feed every `onChunk` chunk. Synchronous: a returned promise pauses the stream. */
   onChunk: (chunk: InFlightChunk) => void;
   /** Forget the running step (call from `onStepFinish`). */
   reset: () => void;
+  /**
+   * Tool calls the model issued in the running step whose result has not been
+   * seen yet. Note `onChunk` never reports `tool-error`, so a failed call stays
+   * pending until the step finishes (`reset`).
+   */
+  pendingToolCalls: () => number;
   /** Everything the running step has generated so far (text, reasoning, tool input). */
   outputText: () => string;
 };
@@ -267,10 +278,22 @@ export type InFlightStepTracker = {
  */
 export function createInFlightStepTracker(): InFlightStepTracker {
   let pieces: string[] = [];
+  const pendingTools = new Set<string>();
 
   return {
     onChunk(chunk) {
       switch (chunk.type) {
+        case "tool-call":
+          if (chunk.toolCallId) {
+            pendingTools.add(chunk.toolCallId);
+          }
+          break;
+        case "tool-result":
+        case "tool-error":
+          if (chunk.toolCallId) {
+            pendingTools.delete(chunk.toolCallId);
+          }
+          break;
         case "text-delta":
         case "reasoning-delta":
           if (chunk.text) {
@@ -288,6 +311,10 @@ export function createInFlightStepTracker(): InFlightStepTracker {
     },
     reset() {
       pieces = [];
+      pendingTools.clear();
+    },
+    pendingToolCalls() {
+      return pendingTools.size;
     },
     outputText() {
       return pieces.join("");

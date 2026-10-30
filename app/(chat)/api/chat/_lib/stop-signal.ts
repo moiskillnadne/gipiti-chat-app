@@ -7,19 +7,31 @@ import { createClient } from "redis";
  * model call are usually different serverless invocations, so the signal goes
  * through three layers:
  *  1. in-process watchers — the only layer without Redis, and the fast path;
- *  2. Redis pub/sub on `gipiti:chat-stop:<chatId>` — reaches other instances;
+ *  2. Redis pub/sub on `gipiti:chat-stop:<chatId>:<messageId>` — reaches other
+ *     instances;
  *  3. the same Redis key (`SET ... EX`) — read once right after subscribing, so
  *     a stop that landed before the producer subscribed is not lost.
  *
- * The value is the server timestamp of the stop. A producer only honours a stop
- * with `ts >= startedAt` of its own turn, so a stale stop from an earlier turn
- * of the same chat can never kill the next one.
+ * A stop is matched to the TURN, not to the clock: it names the user message
+ * the turn answers. Both sides compute that id the same way — the client sends
+ * the id of the last user message of its `messages` (for a new message that is
+ * the message just sent, for regenerate/edit it is the user message being
+ * answered, for a resumed stream it is the last user message in the history),
+ * and the server watches the `message.id` the POST was made with, which is the
+ * client's `messages.at(-1)` at send time, i.e. the same message. So clock skew
+ * and slow cold starts cannot drop an early stop, a late stop cannot hit the
+ * next turn (it has another user message), and two tabs on one chat do not
+ * stop each other. The stop marker is deleted when the turn that watched it
+ * ends, so regenerating the same user message right after a stop is not killed
+ * by the old marker.
  *
  * Everything here is best effort: failures are logged, never thrown.
  */
 
 const KEY_PREFIX = "gipiti:chat-stop:";
-const STOP_TTL_SECONDS = 120;
+// Long enough for a cold start of the producer; the marker is also deleted
+// when the watching turn ends.
+const STOP_TTL_SECONDS = 60;
 const STOP_TTL_MS = STOP_TTL_SECONDS * 1000;
 // Route maxDuration is 300s; the margin lets the turn settle before cleanup.
 const DEFAULT_MAX_LIFETIME_MS = 330_000;
@@ -29,17 +41,21 @@ const REDIS_RETRY_AFTER_MS = 30_000;
 type RedisClient = ReturnType<typeof createClient>;
 type RedisPair = { publisher: RedisClient; subscriber: RedisClient };
 
-type Watcher = { startedAt: number; trigger: (ts: number) => void };
+type Watcher = { trigger: () => void };
 
 const watchers = new Map<string, Set<Watcher>>();
-// Stops requested on this instance, so a watcher registered a moment later
-// (stop raced the start of the turn) still sees them without Redis.
-const lastLocalStop = new Map<string, number>();
+// Stops requested on this instance (key -> when), so a watcher registered a
+// moment later (the stop raced the start of the turn) still sees them without
+// Redis.
+const localStops = new Map<string, number>();
 
 let redisPromise: Promise<RedisPair | null> | undefined;
 let redisFailedAt = 0;
 
-const stopKey = (chatId: string) => `${KEY_PREFIX}${chatId}`;
+type TurnRef = { chatId: string; messageId: string };
+
+const stopKey = ({ chatId, messageId }: TurnRef) =>
+  `${KEY_PREFIX}${chatId}:${messageId}`;
 
 const REDIS_URL_PATTERN = /^rediss?:\/\//;
 
@@ -50,16 +66,16 @@ const noop = () => {
   // Intentionally empty: the cleanup promise never rejects.
 };
 
-function recentLocalStop(chatId: string): number | undefined {
-  const ts = lastLocalStop.get(chatId);
-  if (ts === undefined) {
-    return;
+function hasRecentLocalStop(key: string): boolean {
+  const requestedAt = localStops.get(key);
+  if (requestedAt === undefined) {
+    return false;
   }
-  if (Date.now() - ts > STOP_TTL_MS) {
-    lastLocalStop.delete(chatId);
-    return;
+  if (Date.now() - requestedAt > STOP_TTL_MS) {
+    localStops.delete(key);
+    return false;
   }
-  return ts;
+  return true;
 }
 
 async function connectRedis(url: string): Promise<RedisPair | null> {
@@ -118,15 +134,21 @@ function getRedis(): Promise<RedisPair | null> {
 }
 
 /**
- * Ask the instance running `chatId`'s current turn to abort. Resolves once the
- * signal has been handed to every available layer.
+ * Ask the instance running the turn that answers `messageId` to abort.
+ * Resolves once the signal has been handed to every available layer.
  */
-export async function requestChatStop(chatId: string): Promise<void> {
-  const ts = Date.now();
+export async function requestChatStop(turn: TurnRef): Promise<void> {
+  const key = stopKey(turn);
 
-  lastLocalStop.set(chatId, ts);
-  for (const watcher of [...(watchers.get(chatId) ?? [])]) {
-    watcher.trigger(ts);
+  const now = Date.now();
+  for (const [oldKey, requestedAt] of localStops) {
+    if (now - requestedAt > STOP_TTL_MS) {
+      localStops.delete(oldKey);
+    }
+  }
+  localStops.set(key, now);
+  for (const watcher of [...(watchers.get(key) ?? [])]) {
+    watcher.trigger();
   }
 
   try {
@@ -134,42 +156,42 @@ export async function requestChatStop(chatId: string): Promise<void> {
     if (!redis) {
       return;
     }
-    const key = stopKey(chatId);
-    await redis.publisher.set(key, String(ts), { EX: STOP_TTL_SECONDS });
-    await redis.publisher.publish(key, String(ts));
+    await redis.publisher.set(key, "1", { EX: STOP_TTL_SECONDS });
+    await redis.publisher.publish(key, "1");
   } catch (error) {
-    console.warn("[chat-stop] failed to publish stop", { chatId }, error);
+    console.warn("[chat-stop] failed to publish stop", turn, error);
   }
 }
 
-type WatchChatStopArgs = {
-  chatId: string;
-  /** Server timestamp (ms) at which this turn started; older stops are ignored. */
-  startedAt: number;
+type WatchChatStopArgs = TurnRef & {
   onStop: () => void;
   /** Safety net: the watcher unregisters itself after this long. */
   maxLifetimeMs?: number;
 };
 
 /**
- * Call `onStop` (at most once) when a stop newer than `startedAt` is requested
- * for the chat. Resolves after the Redis subscription is live and the early-stop
- * check has run, to a cleanup function (idempotent) that the caller must invoke
- * when the turn ends.
+ * Call `onStop` (at most once) when a stop is requested for the turn that
+ * answers `messageId`.
+ *
+ * Returns at once with a cleanup function (idempotent, never rejects) that the
+ * caller must invoke when the turn ends. The Redis subscription is set up in
+ * the background so it never sits on the time-to-first-token path; the check of
+ * the stored marker right after subscribing covers a stop that landed before
+ * the subscription was live. Cleanup waits for a subscription still in flight.
  */
-export async function watchChatStop({
+export function watchChatStop({
   chatId,
-  startedAt,
+  messageId,
   onStop,
   maxLifetimeMs = DEFAULT_MAX_LIFETIME_MS,
-}: WatchChatStopArgs): Promise<() => Promise<void>> {
+}: WatchChatStopArgs): () => Promise<void> {
+  const key = stopKey({ chatId, messageId });
   let stopped = false;
   let cleanedUp = false;
   let subscribed: RedisPair | undefined;
-  const channel = stopKey(chatId);
 
-  const trigger = (ts: number) => {
-    if (stopped || cleanedUp || !(ts >= startedAt)) {
+  const trigger = () => {
+    if (stopped || cleanedUp) {
       return;
     }
     stopped = true;
@@ -179,32 +201,33 @@ export async function watchChatStop({
       console.warn("[chat-stop] onStop handler failed", { chatId }, error);
     }
   };
-  const listener = (message: string) => trigger(Number(message));
+  const listener = () => trigger();
 
-  const watcher: Watcher = { startedAt, trigger };
-  const forChat = watchers.get(chatId) ?? new Set<Watcher>();
-  forChat.add(watcher);
-  watchers.set(chatId, forChat);
+  const watcher: Watcher = { trigger };
+  const forKey = watchers.get(key) ?? new Set<Watcher>();
+  forKey.add(watcher);
+  watchers.set(key, forKey);
 
-  const localStop = recentLocalStop(chatId);
-  if (localStop !== undefined) {
-    trigger(localStop);
+  if (hasRecentLocalStop(key)) {
+    trigger();
   }
 
-  try {
-    const redis = await getRedis();
-    if (redis) {
-      await redis.subscriber.subscribe(channel, listener);
+  const ready = (async () => {
+    try {
+      const redis = await getRedis();
+      if (!redis || cleanedUp) {
+        return;
+      }
+      await redis.subscriber.subscribe(key, listener);
       subscribed = redis;
       // A stop published before we subscribed is only visible in the key.
-      const stored = await redis.publisher.get(channel);
-      if (stored !== null) {
-        trigger(Number(stored));
+      if (!cleanedUp && (await redis.publisher.exists(key)) > 0) {
+        trigger();
       }
+    } catch (error) {
+      console.warn("[chat-stop] redis watch failed, in-process only", error);
     }
-  } catch (error) {
-    console.warn("[chat-stop] redis watch failed, in-process only", error);
-  }
+  })();
 
   let timer: ReturnType<typeof setTimeout> | undefined;
   let cleanup: Promise<void> | undefined;
@@ -212,13 +235,19 @@ export async function watchChatStop({
     cleanup ??= (async () => {
       cleanedUp = true;
       clearTimeout(timer);
-      forChat.delete(watcher);
-      if (forChat.size === 0 && watchers.get(chatId) === forChat) {
-        watchers.delete(chatId);
+      forKey.delete(watcher);
+      if (forKey.size === 0 && watchers.get(key) === forKey) {
+        watchers.delete(key);
       }
+      // The turn is over: its stop marker must not hit a later turn that
+      // answers the same user message (regenerate).
+      localStops.delete(key);
+
+      await ready;
       if (subscribed) {
         try {
-          await subscribed.subscriber.unsubscribe(channel, listener);
+          await subscribed.subscriber.unsubscribe(key, listener);
+          await subscribed.publisher.del(key);
         } catch (error) {
           console.warn("[chat-stop] unsubscribe failed", { chatId }, error);
         }
@@ -239,7 +268,7 @@ export async function watchChatStop({
 /** Test hook: drop all in-process state (watchers, remembered stops, clients). */
 export function __resetStopSignalForTests(): void {
   watchers.clear();
-  lastLocalStop.clear();
+  localStops.clear();
   redisPromise = undefined;
   redisFailedAt = 0;
 }

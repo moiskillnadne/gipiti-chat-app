@@ -80,9 +80,11 @@ export function Chat({
   // `stop` comes from useChat below; the hook is wired through a ref-backed
   // callback so the transport can be built before useChat returns.
   const stopRef = useRef<() => Promise<void>>(() => Promise.resolve());
+  const messagesRef = useRef<ChatMessage[]>(initialMessages);
   const { handleStop, waitForPendingStop, fetchWithResumeAbort } = useChatStop({
     chatId: id,
     stop: () => stopRef.current(),
+    getMessages: () => messagesRef.current,
   });
 
   const {
@@ -204,6 +206,7 @@ export function Chat({
   });
 
   stopRef.current = stop;
+  messagesRef.current = messages;
 
   const searchParams = useSearchParams();
   const query = searchParams.get("query");

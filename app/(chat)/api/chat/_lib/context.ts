@@ -9,6 +9,8 @@ import type { ProjectContextInput, RequestHints } from "@/lib/ai/prompts";
 import type { ImageGenerationUsageAccumulator } from "@/lib/ai/tools/generate-image";
 import type { ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
+import type { TurnAbort } from "./turn-abort";
+import type { TurnOutcome, TurnSettlement } from "./turn-lifecycle";
 
 /**
  * Writer handed to createUIMessageStream's execute callback. Intentionally the
@@ -47,12 +49,20 @@ export type ChatTurnContext = {
    */
   lastUsage: { value?: AppUsage };
   hasBalance: boolean;
-  /** Server timestamp (ms) at which this turn began; gates stale stop signals. */
-  startedAt: number;
-  /** Aborted when the user stops the turn (or, without resume, disconnects). */
-  abortSignal: AbortSignal;
-  /** Set by the text handler when a turn is aborted; awaited before persisting. */
-  abortSettlement: { value?: Promise<void> };
+  /**
+   * Stop control for the turn: `turnAbort.signal` aborts the provider request;
+   * `turnAbort.requestAbort()` is the entry point for a user stop (it waits
+   * for running tool calls to finish first).
+   */
+  turnAbort: TurnAbort;
+  /**
+   * Resolved by the handler on every terminal path, once the turn is billed.
+   * The route awaits it (text turns) before persisting the assistant message,
+   * because the SDK does not await `onAbort`.
+   */
+  turnSettlement: TurnSettlement;
+  /** How the turn ended; set by the text handler (or the route for a skipped turn). */
+  turnOutcome?: TurnOutcome;
 };
 
 /** A mode handler: runs inference for one turn, writing to the UI stream. */

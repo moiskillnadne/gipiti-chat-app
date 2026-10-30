@@ -33,8 +33,8 @@ import {
 } from "@/lib/constants";
 import { chargeUsageSafe } from "../charge";
 import type { ChatTurnContext, StreamWriter } from "../context";
+import { createTurnLifecycle } from "../turn-lifecycle";
 import {
-  type AbortedTurnStep,
   computeAbortedTurnUsage,
   createInFlightStepTracker,
   getTokenlensCatalog,
@@ -164,13 +164,26 @@ function extractPromptText(system: string, messages: ModelMessage[]): string {
  * reply, and on finish enrich usage via TokenLens and charge the cost. The
  * merged usage is stashed on ctx for last-context persistence.
  *
- * When the user stops the turn (`ctx.abortSignal`), the provider request is
- * aborted and the turn is settled once by `settleAborted`: finished steps are
+ * When the user stops the turn (`ctx.turnAbort`), the provider request is
+ * aborted and the turn is settled once by the turn lifecycle: finished steps are
  * charged at their real cost plus an estimate for the step that was running.
- * The settlement promise is parked on `ctx.abortSettlement` because the SDK
- * does not await `onAbort`; the route awaits it before persisting the message.
+ * `ctx.turnSettlement` resolves on every terminal path (the SDK does not await
+ * `onAbort`); the route awaits it before persisting the message.
  */
 export async function runTextChat(
+  ctx: ChatTurnContext,
+  writer: StreamWriter
+): Promise<void> {
+  try {
+    await streamTextTurn(ctx, writer);
+  } catch (error) {
+    // Nothing will bill this turn: do not leave the route waiting for it.
+    ctx.turnSettlement.resolve();
+    throw error;
+  }
+}
+
+async function streamTextTurn(
   ctx: ChatTurnContext,
   writer: StreamWriter
 ): Promise<void> {
@@ -259,64 +272,65 @@ export async function runTextChat(
       }
     : undefined;
 
+  // The user stopped before any request was made (e.g. during the preparation
+  // above): there is nothing to abort and nothing to bill.
+  if (ctx.turnAbort.signal.aborted) {
+    ctx.turnOutcome = "skipped";
+    ctx.turnSettlement.resolve();
+    return;
+  }
+
   const system = systemPrompt({ selectedChatModel: model });
   const tracker = createInFlightStepTracker();
-  // Set by whichever of onAbort / onFinish bills the turn first.
-  let settled = false;
 
-  const settleAborted = (steps: AbortedTurnStep[]) => {
-    if (settled) {
-      return;
-    }
-    settled = true;
+  const lifecycle = createTurnLifecycle({
+    turnAbort: ctx.turnAbort,
+    tracker,
+    settlement: ctx.turnSettlement,
+    onOutcome: (outcome) => {
+      ctx.turnOutcome = outcome;
+    },
+    billAborted: async ({ steps, inFlightOutputText }) => {
+      const catalog = await getTokenlensCatalog();
+      const resolvedModelId = myProvider.languageModel(model).modelId;
+      const merged = computeAbortedTurnUsage({
+        steps,
+        inFlightOutputText,
+        promptText: extractPromptText(system, chatMessages),
+        accumulator: ctx.imageUsageAccumulator,
+        modelId: resolvedModelId,
+        catalog,
+      });
+      ctx.lastUsage.value = merged;
 
-    // Snapshot synchronously: the tracker keeps no state past this point.
-    const inFlightOutputText = tracker.outputText();
-
-    ctx.abortSettlement.value = (async () => {
-      try {
-        const catalog = await getTokenlensCatalog();
-        const resolvedModelId = myProvider.languageModel(model).modelId;
-        const merged = computeAbortedTurnUsage({
-          steps,
-          inFlightOutputText,
-          promptText: extractPromptText(system, chatMessages),
-          accumulator: ctx.imageUsageAccumulator,
+      const chargeUsd = usageChargeUsd(merged);
+      if (chargeUsd > 0) {
+        await chargeUsageSafe({
+          userId: ctx.userId,
+          usdCost: chargeUsd,
           modelId: resolvedModelId,
-          catalog,
-        });
-        ctx.lastUsage.value = merged;
-
-        const chargeUsd = usageChargeUsd(merged);
-        if (chargeUsd > 0) {
-          await chargeUsageSafe({
-            userId: ctx.userId,
-            usdCost: chargeUsd,
-            modelId: resolvedModelId,
-            chatId: ctx.chatId,
-            description: "Chat completion (stopped)",
-          });
-        }
-        console.info("[chat-stop] aborted turn charged", {
           chatId: ctx.chatId,
-          usd: chargeUsd,
-          steps: steps.length,
+          description: "Chat completion (stopped)",
         });
-      } catch (err) {
-        console.warn("[chat-stop] aborted settlement failed", err);
       }
-    })();
-  };
+      console.info("[chat-stop] aborted turn charged", {
+        chatId: ctx.chatId,
+        usd: chargeUsd,
+        steps: steps.length,
+      });
+    },
+  });
 
   const result = streamText({
     model: myProvider.languageModel(model),
     system,
     messages: chatMessages,
-    abortSignal: ctx.abortSignal,
-    // Must stay synchronous: a returned promise pauses the stream.
-    onChunk: ({ chunk }) => tracker.onChunk(chunk),
-    onStepFinish: () => tracker.reset(),
-    onAbort: ({ steps }) => settleAborted(steps),
+    abortSignal: ctx.turnAbort.signal,
+    ...lifecycle.callbacks,
+    onError: ({ error }) => {
+      console.error(error);
+      lifecycle.onStreamError();
+    },
     stopWhen: stepCountIs(stepLimit),
     ...(isReasoningModelId(model) &&
       isThinkingEnabled &&
@@ -353,18 +367,17 @@ export async function runTextChat(
       // A stop after at least one finished step still ends up here, with empty
       // total usage: bill it through the abort path. A turn that completed
       // before the stop landed has real usage and is charged normally.
-      // `settled` keeps onAbort and onFinish from charging a turn twice.
+      // The lifecycle keeps the two paths from charging a turn twice.
       const hasTotalUsage =
         totalUsage.inputTokens !== undefined ||
         totalUsage.outputTokens !== undefined;
-      if (ctx.abortSignal.aborted && !hasTotalUsage) {
-        settleAborted(steps);
+      if (ctx.turnAbort.signal.aborted && !hasTotalUsage) {
+        lifecycle.settleAborted();
         return;
       }
-      if (settled) {
+      if (!lifecycle.claimCompletion()) {
         return;
       }
-      settled = true;
 
       try {
         const catalog = await getTokenlensCatalog();
@@ -405,6 +418,8 @@ export async function runTextChat(
         });
         ctx.lastUsage.value = merged;
         writer.write({ type: "data-usage", data: merged });
+      } finally {
+        lifecycle.completed();
       }
     },
   });
@@ -412,11 +427,18 @@ export async function runTextChat(
   // Surface stream-level failures so they hit the logs (and Vercel error
   // tracking) instead of being silently swallowed — without this the function
   // can crash mid-generation with no trace.
-  result.consumeStream({
-    onError: (error) => {
-      console.error("[chat-stream] consumeStream error", error);
-    },
-  });
+  Promise.resolve(
+    result.consumeStream({
+      onError: (error) => {
+        console.error("[chat-stream] consumeStream error", error);
+        lifecycle.onStreamError();
+      },
+    })
+  )
+    .finally(() => lifecycle.streamEnded())
+    .catch((error) => {
+      console.warn("[chat-stream] stream settlement failed", error);
+    });
   writer.merge(
     result.toUIMessageStream({ sendReasoning: true, sendSources: true })
   );

@@ -297,6 +297,27 @@ describe("createInFlightStepTracker", () => {
     tracker.onChunk({ type: "text-delta", text: "def" });
     expect(tracker.outputText()).toBe("def");
   });
+
+  it("tracks tool calls until their result or error arrives", () => {
+    const tracker = createInFlightStepTracker();
+    tracker.onChunk({ type: "tool-call", toolCallId: "a" });
+    tracker.onChunk({ type: "tool-call", toolCallId: "b" });
+    expect(tracker.pendingToolCalls()).toBe(2);
+
+    tracker.onChunk({ type: "tool-result", toolCallId: "a" });
+    expect(tracker.pendingToolCalls()).toBe(1);
+
+    tracker.onChunk({ type: "tool-error", toolCallId: "b" });
+    expect(tracker.pendingToolCalls()).toBe(0);
+  });
+
+  it("forgets pending tool calls on reset", () => {
+    const tracker = createInFlightStepTracker();
+    tracker.onChunk({ type: "tool-call", toolCallId: "a" });
+    tracker.reset();
+
+    expect(tracker.pendingToolCalls()).toBe(0);
+  });
 });
 
 describe("priceUsageUsd", () => {

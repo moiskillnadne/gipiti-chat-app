@@ -28,6 +28,8 @@ import { convertToUIMessages, generateUUID } from "@/lib/utils";
 import { generateTitleFromUserMessage } from "../../../actions";
 import type { PostRequestBody } from "../schema";
 import type { ChatTurnContext } from "./context";
+import type { TurnAbort } from "./turn-abort";
+import { createTurnSettlement } from "./turn-lifecycle";
 
 const PLACEHOLDER_TITLE_MAX_LENGTH = 80;
 
@@ -171,7 +173,7 @@ export async function prepareChatTurn(
   body: PostRequestBody,
   session: Session,
   request: Request,
-  turn: { startedAt: number; abortSignal: AbortSignal }
+  turn: { turnAbort: TurnAbort }
 ): Promise<ChatTurnContext> {
   const {
     id,
@@ -305,8 +307,7 @@ export async function prepareChatTurn(
     imageUsageAccumulator: createImageUsageAccumulator(),
     lastUsage: {},
     hasBalance,
-    startedAt: turn.startedAt,
-    abortSignal: turn.abortSignal,
-    abortSettlement: {},
+    turnAbort: turn.turnAbort,
+    turnSettlement: createTurnSettlement(),
   };
 }
