@@ -41,9 +41,15 @@ vi.mock("tokenlens/helpers", () => ({
 }));
 
 // Imported after the mock is registered so usage.ts picks up the mocked getUsage.
-const { mergeUsage, sumGatewayCostUsd, usageChargeUsd } = await import(
-  "../usage"
-);
+const {
+  computeAbortedTurnUsage,
+  createInFlightStepTracker,
+  estimateTokens,
+  mergeUsage,
+  priceUsageUsd,
+  sumGatewayCostUsd,
+  usageChargeUsd,
+} = await import("../usage");
 
 const FAKE_CATALOG = {} as ModelCatalog;
 const MODEL_ID = "gpt-5.4-mini";
@@ -246,5 +252,233 @@ describe("mergeUsage", () => {
 
     expect(merged.costUSD).toBeUndefined();
     expect(usageChargeUsd(merged)).toBe(0);
+  });
+});
+
+describe("estimateTokens", () => {
+  it("is 0 for an empty string", () => {
+    expect(estimateTokens("")).toBe(0);
+  });
+
+  it("counts Latin text at ~4 chars per token", () => {
+    expect(estimateTokens("abcdefgh")).toBe(2);
+    expect(estimateTokens("abcde")).toBe(2);
+  });
+
+  it("counts Cyrillic text at ~2.5 chars per token", () => {
+    expect(estimateTokens("приветпока")).toBe(4);
+    expect(estimateTokens("привет")).toBe(3);
+  });
+
+  it("combines both rates for mixed text", () => {
+    // 5 Cyrillic = 2 tokens, 4 other (incl. space) = 1 token
+    expect(estimateTokens("привет abc")).toBe(Math.ceil(6 / 2.5 + 4 / 4));
+  });
+});
+
+describe("createInFlightStepTracker", () => {
+  it("collects text, reasoning and tool-input deltas", () => {
+    const tracker = createInFlightStepTracker();
+    tracker.onChunk({ type: "reasoning-delta", text: "think " });
+    tracker.onChunk({ type: "text-delta", text: "hello " });
+    tracker.onChunk({ type: "tool-input-delta", delta: '{"q":' });
+    tracker.onChunk({ type: "source" });
+    tracker.onChunk({ type: "tool-result" });
+
+    expect(tracker.outputText()).toBe('think hello {"q":');
+  });
+
+  it("forgets the step on reset", () => {
+    const tracker = createInFlightStepTracker();
+    tracker.onChunk({ type: "text-delta", text: "abc" });
+    tracker.reset();
+
+    expect(tracker.outputText()).toBe("");
+    tracker.onChunk({ type: "text-delta", text: "def" });
+    expect(tracker.outputText()).toBe("def");
+  });
+
+  it("tracks tool calls until their result or error arrives", () => {
+    const tracker = createInFlightStepTracker();
+    tracker.onChunk({ type: "tool-call", toolCallId: "a" });
+    tracker.onChunk({ type: "tool-call", toolCallId: "b" });
+    expect(tracker.pendingToolCalls()).toBe(2);
+
+    tracker.onChunk({ type: "tool-result", toolCallId: "a" });
+    expect(tracker.pendingToolCalls()).toBe(1);
+
+    tracker.onChunk({ type: "tool-error", toolCallId: "b" });
+    expect(tracker.pendingToolCalls()).toBe(0);
+  });
+
+  it("knows which tool a pending call belongs to", () => {
+    const tracker = createInFlightStepTracker();
+    tracker.onChunk({
+      type: "tool-call",
+      toolCallId: "a",
+      toolName: "generateImage",
+    });
+    tracker.onChunk({
+      type: "tool-call",
+      toolCallId: "b",
+      toolName: "webSearch",
+    });
+
+    expect(tracker.hasPendingTool("generateImage")).toBe(true);
+    tracker.onChunk({ type: "tool-result", toolCallId: "a" });
+    expect(tracker.hasPendingTool("generateImage")).toBe(false);
+    expect(tracker.hasPendingTool("webSearch")).toBe(true);
+  });
+
+  it("forgets pending tool calls on reset", () => {
+    const tracker = createInFlightStepTracker();
+    tracker.onChunk({ type: "tool-call", toolCallId: "a" });
+    tracker.reset();
+
+    expect(tracker.pendingToolCalls()).toBe(0);
+  });
+});
+
+describe("priceUsageUsd", () => {
+  it("returns the TokenLens price", () => {
+    expect(
+      priceUsageUsd({
+        modelId: MODEL_ID,
+        usage: buildUsage(),
+        catalog: FAKE_CATALOG,
+      })
+    ).toBeCloseTo(CHAT_TOTAL_USD);
+  });
+
+  it("is undefined for an unpriced model or a missing catalog", () => {
+    expect(
+      priceUsageUsd({
+        modelId: "unknown/x",
+        usage: buildUsage(),
+        catalog: FAKE_CATALOG,
+      })
+    ).toBeUndefined();
+    expect(
+      priceUsageUsd({
+        modelId: MODEL_ID,
+        usage: buildUsage(),
+        catalog: undefined,
+      })
+    ).toBeUndefined();
+  });
+});
+
+describe("computeAbortedTurnUsage", () => {
+  const step = (cost?: string, tokens = { in: 100, out: 50 }) => ({
+    usage: {
+      inputTokens: tokens.in,
+      outputTokens: tokens.out,
+      totalTokens: tokens.in + tokens.out,
+    } as LanguageModelUsage,
+    providerMetadata: cost ? { gateway: { cost } } : undefined,
+  });
+
+  it("prices only the estimate when no step has finished", () => {
+    const usage = computeAbortedTurnUsage({
+      steps: [],
+      inFlightOutputText: "abcdefgh",
+      promptText: "x".repeat(40),
+      accumulator: buildAccumulator(),
+      modelId: MODEL_ID,
+      catalog: FAKE_CATALOG,
+    });
+
+    expect(usageChargeUsd(usage)).toBeCloseTo(CHAT_TOTAL_USD);
+    expect(usage.inputTokens).toBe(10);
+    expect(usage.outputTokens).toBe(2);
+  });
+
+  it("adds the running-step estimate to the gateway cost of finished steps", () => {
+    const usage = computeAbortedTurnUsage({
+      steps: [step("0.01"), step("0.02", { in: 200, out: 80 })],
+      inFlightOutputText: "abcdefgh",
+      promptText: "ignored for step > 0",
+      accumulator: buildAccumulator(),
+      modelId: MODEL_ID,
+      catalog: FAKE_CATALOG,
+    });
+
+    expect(usageChargeUsd(usage)).toBeCloseTo(0.03 + CHAT_TOTAL_USD);
+    // Running step input = previous step input + output.
+    expect(usage.inputTokens).toBe(100 + 200 + 280);
+    expect(usage.outputTokens).toBe(50 + 80 + 2);
+  });
+
+  it("falls back to TokenLens for finished steps without a gateway cost", () => {
+    const usage = computeAbortedTurnUsage({
+      steps: [step()],
+      inFlightOutputText: "abcd",
+      promptText: "",
+      accumulator: buildAccumulator(),
+      modelId: MODEL_ID,
+      catalog: FAKE_CATALOG,
+    });
+
+    expect(usageChargeUsd(usage)).toBeCloseTo(CHAT_TOTAL_USD * 2);
+  });
+
+  it("charges finished steps only, and alarms, when the running step is unpriced", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(vi.fn());
+    const usage = computeAbortedTurnUsage({
+      steps: [step("0.04")],
+      inFlightOutputText: "abcd",
+      promptText: "",
+      accumulator: buildAccumulator(),
+      modelId: MODEL_ID,
+      catalog: undefined,
+    });
+
+    expect(usageChargeUsd(usage)).toBeCloseTo(0.04);
+    expect(usage.inputTokens).toBe(100);
+    expect(warn).toHaveBeenCalledWith(
+      "[ALARM-USAGE] aborted step unpriced",
+      expect.objectContaining({ modelId: MODEL_ID })
+    );
+    warn.mockRestore();
+  });
+
+  it("includes the in-chat image-tool cost", () => {
+    const usage = computeAbortedTurnUsage({
+      steps: [step("0.01")],
+      inFlightOutputText: "abcd",
+      promptText: "",
+      accumulator: buildAccumulator({ totalCost: 0.05, generationCount: 1 }),
+      modelId: MODEL_ID,
+      catalog: FAKE_CATALOG,
+    });
+
+    expect(usageChargeUsd(usage)).toBeCloseTo(0.01 + CHAT_TOTAL_USD + 0.05);
+  });
+
+  it("adds no running-step estimate when the last finished step was terminal", () => {
+    const usage = computeAbortedTurnUsage({
+      steps: [{ ...step("0.01"), finishReason: "stop" }],
+      inFlightOutputText: "",
+      promptText: "",
+      accumulator: buildAccumulator(),
+      modelId: MODEL_ID,
+      catalog: FAKE_CATALOG,
+    });
+
+    expect(usageChargeUsd(usage)).toBeCloseTo(0.01);
+    expect(usage.inputTokens).toBe(100);
+  });
+
+  it("still estimates the next step after a tool-calls step", () => {
+    const usage = computeAbortedTurnUsage({
+      steps: [{ ...step("0.01"), finishReason: "tool-calls" }],
+      inFlightOutputText: "",
+      promptText: "",
+      accumulator: buildAccumulator(),
+      modelId: MODEL_ID,
+      catalog: FAKE_CATALOG,
+    });
+
+    expect(usageChargeUsd(usage)).toBeCloseTo(0.01 + CHAT_TOTAL_USD);
   });
 });

@@ -21,12 +21,18 @@ import { useModel, useModelRefs } from "@/contexts/model-context";
 import { useProjectRef } from "@/contexts/project-context";
 import { useWebSearchRef } from "@/contexts/web-search-context";
 import { useAutoResume } from "@/hooks/use-auto-resume";
+import { useChatStop } from "@/hooks/use-chat-stop";
+import {
+  isImageGenerationModel,
+  isVideoGenerationModel,
+} from "@/lib/ai/models";
 import type { Vote } from "@/lib/db/schema";
 import { ChatSDKError } from "@/lib/errors";
 import { useTranslations } from "@/lib/i18n/translate";
+import { markLastAssistantInterrupted } from "@/lib/messages/interrupted";
 import type { Attachment, ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
-import { fetcher, fetchWithErrorHandlers, generateUUID } from "@/lib/utils";
+import { fetcher, generateUUID } from "@/lib/utils";
 import { useDataStream } from "./data-stream-provider";
 import { MediaLightboxProvider } from "./elements/media-lightbox-provider";
 import { Messages } from "./messages";
@@ -71,6 +77,20 @@ export function Chat({
   // Use ref to avoid closure issues in prepareSendMessagesRequest
   const lastGenerationIdRef = useRef<string | undefined>(undefined);
 
+  // `stop` comes from useChat below; the hook is wired through a ref-backed
+  // callback so the transport can be built before useChat returns.
+  const stopRef = useRef<() => Promise<void>>(() => Promise.resolve());
+  const {
+    handleStop,
+    waitForPendingStop,
+    fetchWithResumeAbort,
+    beginTurn,
+    rememberTurn,
+  } = useChatStop({
+    chatId: id,
+    stop: () => stopRef.current(),
+  });
+
   const {
     messages,
     setMessages,
@@ -86,14 +106,13 @@ export function Chat({
     generateId: generateUUID,
     transport: new DefaultChatTransport({
       api: "/api/chat",
-      fetch: fetchWithErrorHandlers,
-      prepareSendMessagesRequest(request) {
-        console.log(
-          "Preparing request with lastGenerationId:",
-          lastGenerationIdRef.current
-        );
+      fetch: fetchWithResumeAbort,
+      async prepareSendMessagesRequest(request) {
+        // A late stop request must never hit the next turn.
+        await waitForPendingStop();
         const body = {
           id: request.id,
+          turnId: beginTurn(),
           message: request.messages.at(-1),
           selectedChatModel: modelIdRef.current,
           thinkingSetting: thinkingSettingRef.current,
@@ -112,7 +131,6 @@ export function Chat({
           webSearchEnabled: webSearchEnabledRef.current,
           ...request.body,
         };
-        console.log("Request body:", body);
         return { body };
       },
     }),
@@ -120,6 +138,9 @@ export function Chat({
       setDataStream((ds) => (ds ? [...ds, dataPart] : []));
       if (dataPart.type === "data-usage") {
         setUsage(dataPart.data);
+      }
+      if (dataPart.type === "data-turnId") {
+        rememberTurn(dataPart.data);
       }
       if (dataPart.type === "data-imageGenerationFinish") {
         const generationId = dataPart.data.responseId;
@@ -140,7 +161,15 @@ export function Chat({
         }
       }
     },
-    onFinish: () => {
+    onFinish: ({ isAbort }) => {
+      const modelId = modelIdRef.current;
+      if (
+        isAbort &&
+        !isImageGenerationModel(modelId) &&
+        !isVideoGenerationModel(modelId)
+      ) {
+        setMessages(markLastAssistantInterrupted);
+      }
       mutate(unstable_serialize(getChatHistoryPaginationKey));
       // Refresh balance/spend so the composer spend banner re-evaluates its
       // 50%/75% thresholds after this message's charge is recorded.
@@ -183,6 +212,8 @@ export function Chat({
       }
     },
   });
+
+  stopRef.current = stop;
 
   const searchParams = useSearchParams();
   const query = searchParams.get("query");
@@ -258,9 +289,8 @@ export function Chat({
                 sendMessage={sendMessage}
                 setAttachments={setAttachments}
                 setInput={setInput}
-                setMessages={setMessages}
                 status={status}
-                stop={stop}
+                stop={handleStop}
                 usage={usage}
               />
             )}

@@ -10,6 +10,7 @@ import type { Vote } from "@/lib/db/schema";
 import { downloadFromUrl } from "@/lib/download";
 import { useTranslations } from "@/lib/i18n/translate";
 import { groupToolRuns } from "@/lib/messages/group-tool-runs";
+import { isInterruptedMessage } from "@/lib/messages/interrupted";
 import type { ChatMessage } from "@/lib/types";
 import { cn, sanitizeText } from "@/lib/utils";
 import { AssistantIcon } from "./assistant-icon";
@@ -431,6 +432,15 @@ const PurePreviewMessage = ({
                 ))}
               </SourcesContent>
             </Sources>
+          )}
+
+          {message.role === "assistant" && isInterruptedMessage(message) && (
+            <p
+              className="text-muted-foreground text-xs"
+              data-testid="message-interrupted"
+            >
+              {t("interrupted")}
+            </p>
           )}
 
           {!isReadonly && (
