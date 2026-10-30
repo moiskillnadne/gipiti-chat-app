@@ -43,6 +43,7 @@ vi.mock("tokenlens/helpers", () => ({
 // Imported after the mock is registered so usage.ts picks up the mocked getUsage.
 const {
   computeAbortedTurnUsage,
+  computeErroredTurnUsage,
   createInFlightStepTracker,
   estimateTokens,
   mergeUsage,
@@ -480,5 +481,64 @@ describe("computeAbortedTurnUsage", () => {
     });
 
     expect(usageChargeUsd(usage)).toBeCloseTo(0.01 + CHAT_TOTAL_USD);
+  });
+});
+
+describe("computeErroredTurnUsage", () => {
+  const step = (cost?: string) => ({
+    usage: {
+      inputTokens: 100,
+      outputTokens: 50,
+      totalTokens: 150,
+    } as LanguageModelUsage,
+    providerMetadata: cost ? { gateway: { cost } } : undefined,
+  });
+
+  it("bills the gateway cost of the finished steps, with no estimate", () => {
+    const usage = computeErroredTurnUsage({
+      steps: [step("0.01"), step("0.02")],
+      accumulator: buildAccumulator(),
+      modelId: MODEL_ID,
+      catalog: FAKE_CATALOG,
+    });
+
+    expect(usageChargeUsd(usage)).toBeCloseTo(0.03);
+    expect(usage.inputTokens).toBe(200);
+    expect(usage.outputTokens).toBe(100);
+  });
+
+  it("falls back to TokenLens on the summed usage without a gateway cost", () => {
+    const usage = computeErroredTurnUsage({
+      steps: [step(), step()],
+      accumulator: buildAccumulator(),
+      modelId: MODEL_ID,
+      catalog: FAKE_CATALOG,
+    });
+
+    expect(usageChargeUsd(usage)).toBeCloseTo(CHAT_TOTAL_USD);
+    expect(usage.inputTokens).toBe(200);
+  });
+
+  it("adds the image-tool cost already spent", () => {
+    const usage = computeErroredTurnUsage({
+      steps: [step("0.01")],
+      accumulator: buildAccumulator({ totalCost: 0.05, generationCount: 1 }),
+      modelId: MODEL_ID,
+      catalog: FAKE_CATALOG,
+    });
+
+    expect(usageChargeUsd(usage)).toBeCloseTo(0.06);
+  });
+
+  it("prices the text at zero when no step finished, without asking TokenLens", () => {
+    const usage = computeErroredTurnUsage({
+      steps: [],
+      accumulator: buildAccumulator({ totalCost: 0.05, generationCount: 1 }),
+      modelId: MODEL_ID,
+      catalog: FAKE_CATALOG,
+    });
+
+    // The mocked TokenLens would price any usage at CHAT_TOTAL_USD.
+    expect(usageChargeUsd(usage)).toBeCloseTo(0.05);
   });
 });

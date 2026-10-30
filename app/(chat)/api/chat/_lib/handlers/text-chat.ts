@@ -31,6 +31,7 @@ import {
   isGeminiSignatureDebugEnabled,
   isProductionEnvironment,
 } from "@/lib/constants";
+import type { AppUsage } from "@/lib/usage";
 import { chargeUsageSafe } from "../charge";
 import type { ChatTurnContext, StreamWriter } from "../context";
 import {
@@ -39,6 +40,7 @@ import {
 } from "../turn-lifecycle";
 import {
   computeAbortedTurnUsage,
+  computeErroredTurnUsage,
   createInFlightStepTracker,
   getTokenlensCatalog,
   mergeUsage,
@@ -170,6 +172,8 @@ function extractPromptText(system: string, messages: ModelMessage[]): string {
  * When the user stops the turn (`ctx.turnAbort`), the provider request is
  * aborted and the turn is settled once by the turn lifecycle: finished steps are
  * charged at their real cost plus an estimate for the step that was running.
+ * A stream that fails without a stop is settled the same way, once, but only
+ * the finished steps (and image-tool cost already spent) are charged.
  * `ctx.turnSettlement` resolves on every terminal path (the SDK does not await
  * `onAbort`); the route awaits it before persisting the message.
  */
@@ -285,6 +289,26 @@ async function streamTextTurn(
 
   const system = systemPrompt({ selectedChatModel: model });
   const tracker = createInFlightStepTracker();
+  const resolvedModelId = myProvider.languageModel(model).modelId;
+
+  /** Charge a turn settled by the stop or error path; returns the USD charged. */
+  const chargeSettledTurn = async (
+    merged: AppUsage,
+    description: string
+  ): Promise<number> => {
+    ctx.lastUsage.value = merged;
+    const chargeUsd = usageChargeUsd(merged);
+    if (chargeUsd > 0) {
+      await chargeUsageSafe({
+        userId: ctx.userId,
+        usdCost: chargeUsd,
+        modelId: resolvedModelId,
+        chatId: ctx.chatId,
+        description,
+      });
+    }
+    return chargeUsd;
+  };
 
   const lifecycle = createTurnLifecycle({
     turnAbort: ctx.turnAbort,
@@ -295,7 +319,6 @@ async function streamTextTurn(
     },
     billAborted: async ({ steps, inFlightOutputText, atStepBoundary }) => {
       const catalog = await getTokenlensCatalog();
-      const resolvedModelId = myProvider.languageModel(model).modelId;
       const merged = computeAbortedTurnUsage({
         steps,
         inFlightOutputText,
@@ -305,19 +328,33 @@ async function streamTextTurn(
         modelId: resolvedModelId,
         catalog,
       });
-      ctx.lastUsage.value = merged;
-
-      const chargeUsd = usageChargeUsd(merged);
-      if (chargeUsd > 0) {
-        await chargeUsageSafe({
-          userId: ctx.userId,
-          usdCost: chargeUsd,
-          modelId: resolvedModelId,
-          chatId: ctx.chatId,
-          description: "Chat completion (stopped)",
-        });
-      }
+      const chargeUsd = await chargeSettledTurn(
+        merged,
+        "Chat completion (stopped)"
+      );
       console.info("[chat-stop] aborted turn charged", {
+        chatId: ctx.chatId,
+        usd: chargeUsd,
+        steps: steps.length,
+      });
+    },
+    billErrored: async ({ steps }) => {
+      // Failed on the first request, before any tool ran: nothing was spent.
+      if (steps.length === 0 && ctx.imageUsageAccumulator.totalCost === 0) {
+        return;
+      }
+      const catalog = await getTokenlensCatalog();
+      const merged = computeErroredTurnUsage({
+        steps,
+        accumulator: ctx.imageUsageAccumulator,
+        modelId: resolvedModelId,
+        catalog,
+      });
+      const chargeUsd = await chargeSettledTurn(
+        merged,
+        "Chat completion (error)"
+      );
+      console.info("[chat-stream] errored turn charged", {
         chatId: ctx.chatId,
         usd: chargeUsd,
         steps: steps.length,
@@ -376,7 +413,6 @@ async function streamTextTurn(
 
       try {
         const catalog = await getTokenlensCatalog();
-        const resolvedModelId = myProvider.languageModel(model).modelId;
         const merged = mergeUsage({
           usage,
           accumulator: ctx.imageUsageAccumulator,
