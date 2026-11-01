@@ -9,6 +9,10 @@ import { ChatSDKError } from "@/lib/errors";
 import type { ChatMessage } from "@/lib/types";
 import { getStreamContext } from "../../_lib/stream-context";
 
+// Matches POST /api/chat: a resumed stream follows its producer, which can run
+// for the producer's whole lifetime.
+export const maxDuration = 800;
+
 export async function GET(
   _: Request,
   { params }: { params: Promise<{ id: string }> }

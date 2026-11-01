@@ -21,13 +21,19 @@ import { watchChatStop } from "./_lib/stop-signal";
 import { getStreamContext } from "./_lib/stream-context";
 import { createTurnAbort } from "./_lib/turn-abort";
 import {
+  startTurnDiagnostics,
+  type TurnDiagnostics,
+} from "./_lib/turn-diagnostics";
+import {
   isTurnAborted,
   mediaPersistWaitMs,
   waitForSettlement,
   waitWithTimeout,
 } from "./_lib/turn-lifecycle";
 
-export const maxDuration = 300;
+// The GA maximum for Pro with Fluid compute: long reasoning answers need more
+// than the 300s project default. Above 800s the platform limit is beta-only.
+export const maxDuration = 800;
 
 // Upper bound for waiting on a text turn's billing before persisting it.
 const SETTLEMENT_TIMEOUT_MS = 15_000;
@@ -38,6 +44,9 @@ const SETTLEMENT_TIMEOUT_MS = 15_000;
 const MEDIA_PERSIST_MARGIN_MS = 10_000;
 // Upper bound for keeping the function alive for the stop watcher's cleanup.
 const STOP_WATCH_CLEANUP_TIMEOUT_MS = 5000;
+// The stop watcher unregisters itself this long after the function deadline,
+// in case the turn never reached its cleanup.
+const STOP_WATCH_LIFETIME_MARGIN_MS = 30_000;
 
 const STREAM_HANDLERS: Record<ChatMode, StreamHandler> = {
   text: runTextChat,
@@ -85,6 +94,8 @@ export async function POST(request: Request) {
   // response runs onFinish while a media handler is still saving and charging.
   const { promise: handlerDone, resolve: finishHandler } =
     Promise.withResolvers<void>();
+  // Set once the turn is about to stream; logs how and when it ended.
+  let turnDiagnostics: TurnDiagnostics | undefined;
 
   try {
     // Wrap with resumable-stream so the GET /stream endpoint can replay
@@ -123,6 +134,17 @@ export async function POST(request: Request) {
     const mode = resolveChatMode(ctx.model);
     const runHandler = STREAM_HANDLERS[mode];
 
+    turnDiagnostics = startTurnDiagnostics({
+      fields: {
+        chatId: ctx.chatId,
+        turnId: ctx.turnId,
+        model: ctx.model,
+        mode,
+      },
+      startedAt: turnStartedAt,
+      maxDurationMs: maxDuration * 1000,
+    });
+
     // Every mode can be stopped. Not awaited: subscribing to the stop channel
     // must not delay the first token (the early-stop check inside still covers
     // a stop that already landed).
@@ -131,6 +153,7 @@ export async function POST(request: Request) {
       chatId: ctx.chatId,
       turnId: ctx.turnId,
       onStop: turnAbort.requestAbort,
+      maxLifetimeMs: maxDuration * 1000 + STOP_WATCH_LIFETIME_MARGIN_MS,
     });
     after(() =>
       waitWithTimeout(stopWatchClosed, STOP_WATCH_CLEANUP_TIMEOUT_MS)
@@ -200,6 +223,7 @@ export async function POST(request: Request) {
         generateId: generateUUID,
         onFinish: async ({ messages, isAborted }) => {
           const finishedAt = new Date();
+          let isTurnInterrupted = false;
           try {
             // Disconnect cancels the response before streamText's `onAbort`
             // runs, and the SDK does not await it anyway. Text: wait for the
@@ -210,7 +234,7 @@ export async function POST(request: Request) {
             if (ctx.turnOutcome === "skipped") {
               return;
             }
-            const aborted = isTurnAborted({
+            isTurnInterrupted = isTurnAborted({
               isTextTurn: mode === "text",
               isStreamAborted: isAborted,
               turnOutcome: ctx.turnOutcome,
@@ -218,14 +242,18 @@ export async function POST(request: Request) {
               hasStopRequest: turnAbort.requestedAt !== undefined,
             });
             await persistAssistantTurn(ctx, messages as ChatMessage[], mode, {
-              aborted,
+              aborted: isTurnInterrupted,
               // An interrupted answer ends where the user pressed Stop, so it
               // sorts before a message sent right after.
-              finishedAt: aborted
+              finishedAt: isTurnInterrupted
                 ? (turnAbort.requestedAt ?? finishedAt)
                 : finishedAt,
             });
           } finally {
+            turnDiagnostics?.end({
+              outcome: ctx.turnOutcome,
+              isAborted: isTurnInterrupted,
+            });
             closeStopWatch();
             finishTurn();
           }
@@ -246,6 +274,7 @@ export async function POST(request: Request) {
 
     return new Response(sseStream);
   } catch (error) {
+    turnDiagnostics?.end({ outcome: "failed", isAborted: false });
     turnAbort.dispose();
     closeStopWatch();
     finishHandler();
