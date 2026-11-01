@@ -208,7 +208,7 @@ that.
   that it actually changes output. Otherwise it's a placebo UI control.
 - **Streams.** Errors inside stream callbacks must surface as an error part,
   not an infinite "generating" card. `stopWhen: stepCountIs(stepLimit)` must
-  bound tool loops. Watch `maxDuration` (300s) against long video polling.
+  bound tool loops. Watch `maxDuration` (800s) against long video polling.
 - **Tools** (`lib/ai/tools/`) need input schema validation, cost accounting
   (§4.1), output uploaded via the shared helpers, and the `Document.kind`
   union updated.

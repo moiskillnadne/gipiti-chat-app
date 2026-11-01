@@ -34,8 +34,10 @@ const KEY_PREFIX = "gipiti:chat-stop:";
 // when the watching turn ends.
 const STOP_TTL_SECONDS = 60;
 const STOP_TTL_MS = STOP_TTL_SECONDS * 1000;
-// Route maxDuration is 300s; the margin lets the turn settle before cleanup.
-const DEFAULT_MAX_LIFETIME_MS = 330_000;
+// Fallback when the caller does not pass one: the chat route's maxDuration
+// (800s) plus a margin that lets the turn settle before cleanup. The route
+// passes its own value derived from `maxDuration`.
+const DEFAULT_MAX_LIFETIME_MS = 830_000;
 const REDIS_CONNECT_TIMEOUT_MS = 3000;
 const REDIS_RETRY_AFTER_MS = 30_000;
 

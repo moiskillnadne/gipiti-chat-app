@@ -48,7 +48,7 @@ CI (`.github/workflows/`) runs lint, unit tests, and Playwright.
 - Providers: `lib/ai/providers.ts`; system prompts: `lib/ai/prompts.ts`; tools: `lib/ai/tools/` (web search, URL extract, calculator, generateImage, generatePdf/Docx/Markdown/Txt/Csv).
 - Recipes for adding a model, a tool, or changing the DB schema: `repo-recipes` skill (`.claude/skills/repo-recipes/SKILL.md`).
 
-### Chat request flow (`POST /api/chat`, `app/(chat)/api/chat/route.ts`, 300s max)
+### Chat request flow (`POST /api/chat`, `app/(chat)/api/chat/route.ts`, 800s max)
 
 The route is a thin orchestrator; logic lives in `app/(chat)/api/chat/_lib/`:
 1. `parse-request.ts` validates the body (`schema.ts`)

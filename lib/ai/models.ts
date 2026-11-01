@@ -445,9 +445,10 @@ const FLUX_VIDEO_GEN_SECTIONS = {
 // 5s, no resolution): the clip came back 1080x1920 with audio, i.e. aspectRatio
 // is honoured and the gateway defaults to 1080p at $0.20/s ($1.00 per 5s), and
 // generation took 130s. Only 5s is offered: a 10s clip at that default would
-// cost $2.00 and likely take ~250s in a 300s function that charges only after
-// the upload, so a timeout would leave the gateway bill uncharged. Add 10s+
-// only after timing it on prod, or after pinning a lower tier. A lowercase
+// cost $2.00 and likely take ~250s in what was then a 300s function (now 800s)
+// that charges only after the upload, so a timeout would leave the gateway
+// bill uncharged. Add 10s+ only after timing it on prod, or after pinning a
+// lower tier. A lowercase
 // top-level resolution "480p" was ignored (gateway warning: "wan3 models only
 // support the 480P, 720P, 1080P resolution tiers"); the uppercase token is
 // unverified. Resolution is not exposed: the video handler only forwards a

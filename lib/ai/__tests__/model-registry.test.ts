@@ -169,7 +169,8 @@ describe("newly added models", () => {
 
   it("offers Wan 3.0 only as a 5 s clip and coerces a saved 10 s setting", () => {
     // Probed 2026-10-29: Wan defaults to 1080p at $0.20/s and a 5 s clip took
-    // 130 s, so a 10 s clip risks the 300 s route limit before it is charged.
+    // 130 s, so a 10 s clip risked the then 300 s route limit (now 800 s)
+    // before it is charged; it stays off until timed on prod.
     const durations = getVideoGenConfig("wan-v3.0-video").duration?.options.map(
       (option) => option.value
     );
