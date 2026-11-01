@@ -14,7 +14,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { useSessionStorage, useWindowSize } from "usehooks-ts";
+import { useWindowSize } from "usehooks-ts";
 import type {
   UploadErrorBody,
   UploadErrorCode,
@@ -26,6 +26,7 @@ import { useSpendBanner } from "@/hooks/use-spend-banner";
 import { supportsAttachments, supportsToolCalling } from "@/lib/ai/models";
 import { formatFileSize } from "@/lib/attachments/attachment-display";
 import { MAX_ATTACHMENT_NAME_LENGTH } from "@/lib/attachments/attachment-limits";
+import { readInputDraft, writeInputDraft } from "@/lib/chat/input-draft";
 import { useTranslations } from "@/lib/i18n/translate";
 import type { Attachment, ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
@@ -117,35 +118,32 @@ function PureMultimodalInput({
     }
   }, []);
 
-  const [localStorageInput, setLocalStorageInput] = useSessionStorage(
-    `input-${chatId}`,
-    ""
-  );
-
   const prevChatIdRef = useRef(chatId);
   const hasMountedRef = useRef(false);
 
+  // Restore the draft on mount and when switching chats. Runs before the
+  // effect below, so the draft is read before the current input overwrites it.
   useEffect(() => {
     if (!hasMountedRef.current) {
       hasMountedRef.current = true;
       if (textareaRef.current) {
         const domValue = textareaRef.current.value;
-        const finalValue = domValue || localStorageInput || "";
-        setInput(finalValue);
+        setInput(domValue || readInputDraft(chatId));
       }
       return;
     }
 
     if (prevChatIdRef.current !== chatId) {
       prevChatIdRef.current = chatId;
-      setInput(localStorageInput);
+      setInput(readInputDraft(chatId));
       resetHeight();
     }
-  }, [chatId, localStorageInput, setInput, resetHeight]);
+  }, [chatId, setInput, resetHeight]);
 
+  // Storage only, no state update: see lib/chat/input-draft.ts for why.
   useEffect(() => {
-    setLocalStorageInput(input);
-  }, [input, setLocalStorageInput]);
+    writeInputDraft(chatId, input);
+  }, [chatId, input]);
 
   const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(event.target.value);
@@ -175,7 +173,6 @@ function PureMultimodalInput({
     });
 
     setAttachments([]);
-    setLocalStorageInput("");
     resetHeight();
     setInput("");
 
@@ -188,7 +185,6 @@ function PureMultimodalInput({
     attachments,
     sendMessage,
     setAttachments,
-    setLocalStorageInput,
     width,
     chatId,
     resetHeight,
