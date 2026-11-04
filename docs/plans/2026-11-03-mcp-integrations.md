@@ -413,6 +413,8 @@ once.
   only).
 - **`_lib/prepare-chat-turn.ts`:** call `resolveAllowedIntegrations` inside the existing
   `Promise.all` only when ids are present.
+  The route passes `deadlineAt` (start + `maxDuration` - `DEADLINE_MARGIN_MS`) through
+  `prepareChatTurn` onto `ctx.deadlineAt`, which the handler uses for the close timer.
 - **`_lib/handlers/text-chat.ts`:**
   - Build the plan when `integrationConnections.length > 0 && supportsToolCalling(model)`.
   - Apply `flattenOrphans` and `compactMcpHistory` to `messagesForModel` only when
