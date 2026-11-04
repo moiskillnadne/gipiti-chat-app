@@ -50,6 +50,26 @@ export type ChatTools = {
   generateCsv: generateCsvToolType;
 };
 
+/**
+ * UI part of an MCP tool call. MCP tools are dynamic (one per connected
+ * server tool), so they are not part of `ChatTools`.
+ */
+export type McpToolUIPart = {
+  type: `tool-mcp_${string}`;
+  toolCallId: string;
+  state:
+    | "input-streaming"
+    | "input-available"
+    | "output-available"
+    | "output-error";
+  input?: unknown;
+  output?: unknown;
+  errorText?: string;
+};
+
+export const isMcpToolPart = (part: { type: string }): part is McpToolUIPart =>
+  part.type.startsWith("tool-mcp_");
+
 export type CustomUIDataTypes = {
   appendMessage: string;
   usage: AppUsage;

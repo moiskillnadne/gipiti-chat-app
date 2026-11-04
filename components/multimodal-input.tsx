@@ -21,6 +21,7 @@ import type {
 } from "@/app/(chat)/api/files/upload/route";
 import { useModel } from "@/contexts/model-context";
 import { useWebSearch } from "@/contexts/web-search-context";
+import type { IntegrationSelection } from "@/hooks/use-integration-selection";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSpendBanner } from "@/hooks/use-spend-banner";
 import { supportsAttachments, supportsToolCalling } from "@/lib/ai/models";
@@ -36,6 +37,7 @@ import { AttachmentItem, UploadingItem } from "./composer/attachment-item";
 import { BalanceSpendBanner } from "./composer/balance-spend-banner";
 import { DragOverlay } from "./composer/drag-overlay";
 import { ImageSettingsPopover } from "./composer/image-settings-popover";
+import { IntegrationsPicker } from "./composer/integrations-picker";
 import { KeyboardHints } from "./composer/keyboard-hints";
 import { ProjectPickerPopover } from "./composer/project-picker-popover";
 import { ThinkPopover } from "./composer/think-popover";
@@ -55,6 +57,8 @@ type MultimodalInputProps = {
   setAttachments: Dispatch<SetStateAction<Attachment[]>>;
   sendMessage: UseChatHelpers<ChatMessage>["sendMessage"];
   className?: string;
+  /** Present only when integrations are enabled and the user is on a paid plan. */
+  integrationSelection?: IntegrationSelection;
   // Kept for backward compatibility with chat.tsx; usage UI is hidden in this redesign.
   usage?: AppUsage;
 };
@@ -90,6 +94,7 @@ function PureMultimodalInput({
   setAttachments,
   sendMessage,
   className,
+  integrationSelection,
 }: MultimodalInputProps) {
   const tCommon = useTranslations("common.toasts");
   const tInput = useTranslations("chat.input");
@@ -453,6 +458,13 @@ function PureMultimodalInput({
             <WebSearchToggle
               active={isWebSearchEnabled}
               onToggle={toggleWebSearch}
+            />
+          )}
+          {integrationSelection && canUseTools && (
+            <IntegrationsPicker
+              modelId={currentModelId}
+              onChange={integrationSelection.setSelectedIds}
+              selectedIds={integrationSelection.selectedIds}
             />
           )}
           <ThinkPopover />

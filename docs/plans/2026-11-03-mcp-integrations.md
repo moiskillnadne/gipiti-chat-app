@@ -455,6 +455,14 @@ once.
     `localStorage`. Wrap storage access in try/catch.
   - Send `integrationIds` in `prepareSendMessagesRequest`.
 - **`messages/ru.json`:** the `integrations` namespace.
+- **Implementation notes (as built):**
+  - `listMyIntegrations` is implemented for real in `app/integrations/actions.ts`; M1-T10 extends that
+    file instead of creating it.
+  - Pure helpers (part-name parsing, failure reading, stored-selection parsing) are in
+    `lib/integrations/ui.ts`; the selection hook is `hooks/use-integration-selection.ts`, owned by
+    `Chat` and passed to `MultimodalInput` as `integrationSelection` (absent when unavailable).
+  - The chat pages compute `isIntegrationsAvailable` via `lib/integrations/availability.ts`.
+  - The MCP run-card row lives in `components/tool-run-mcp-step.tsx` to keep the renderer small.
 - **Acceptance:** component files under 200 lines, no hardcoded strings, `pnpm check` green.
 - **Depends on:** M1-T8. The server action comes from M1-T10; until then, stub it in the same PR
   or order T10 first.

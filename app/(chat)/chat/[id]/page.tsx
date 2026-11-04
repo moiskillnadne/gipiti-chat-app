@@ -3,6 +3,7 @@ import { auth } from "@/app/(auth)/auth";
 import { Chat } from "@/components/chat";
 import { getChatById } from "@/lib/db/query/chat/get-chat-by-id";
 import { getMessagesByChatId } from "@/lib/db/query/chat/get-messages-by-chat-id";
+import { isIntegrationsAvailableForUser } from "@/lib/integrations/availability";
 import { convertToUIMessages, isValidUUID } from "@/lib/utils";
 
 export default async function Page(props: { params: Promise<{ id: string }> }) {
@@ -39,12 +40,17 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
 
   const uiMessages = convertToUIMessages(messagesFromDb);
 
+  const isIntegrationsAvailable = await isIntegrationsAvailableForUser(
+    session.user.id
+  );
+
   return (
     <Chat
       autoResume={true}
       id={chat.id}
       initialLastContext={chat.lastContext ?? undefined}
       initialMessages={uiMessages}
+      isIntegrationsAvailable={isIntegrationsAvailable}
       isReadonly={session?.user?.id !== chat.userId}
     />
   );

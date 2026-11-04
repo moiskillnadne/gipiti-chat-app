@@ -1,9 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useTranslations } from "@/lib/i18n/translate";
+import { type TranslateFn, useTranslations } from "@/lib/i18n/translate";
 import type { RunGroupPart } from "@/lib/messages/group-tool-runs";
-import type { ChatMessage } from "@/lib/types";
+import {
+  type ChatMessage,
+  isMcpToolPart,
+  type McpToolUIPart,
+} from "@/lib/types";
 import { extractDomain, faviconUrl } from "@/lib/url";
 import { Response } from "./elements/response";
 import {
@@ -18,6 +22,7 @@ import {
   ToolRunMetaSeparator,
   ToolRunStep,
 } from "./elements/tool-run";
+import { buildMcpStep } from "./tool-run-mcp-step";
 
 type ChatMessagePart = ChatMessage["parts"][number];
 type AnyPart = ChatMessagePart;
@@ -52,6 +57,8 @@ type StepDescriptor = {
     | "updatedDocument"
     | "requestedSuggestions";
   body: React.ReactNode;
+  /** Pre-localized verb that replaces `verbKey` (MCP integration calls). */
+  verbText?: string;
   /**
    * For `thought` steps, the full reasoning text (rendered as markdown when
    * the user expands the row). Other step kinds leave this undefined.
@@ -188,6 +195,7 @@ type BuildStepArgs = {
   index: number;
   isLastInGroup: boolean;
   isMessageStreaming: boolean;
+  tIntegrations: TranslateFn;
 };
 
 const buildStep = ({
@@ -195,6 +203,7 @@ const buildStep = ({
   index,
   isLastInGroup,
   isMessageStreaming,
+  tIntegrations,
 }: BuildStepArgs): StepDescriptor | null => {
   const key = `${part.type}-${index}`;
 
@@ -217,6 +226,21 @@ const buildStep = ({
 
   if (!isToolPart(part)) {
     return null;
+  }
+
+  if (isMcpToolPart(part)) {
+    // The SDK part union has no dynamic MCP members, so the guard narrows to never.
+    const mcpPart = part as unknown as McpToolUIPart;
+    const mcp = buildMcpStep({ part: mcpPart, t: tIntegrations });
+    return {
+      key,
+      kind: "extracted",
+      isActive: isLastInGroup && isStreamingState(mcpPart.state),
+      hasSources: 0,
+      verbKey: "extracted",
+      verbText: mcp.verb,
+      body: mcp.body,
+    };
   }
 
   // biome-ignore lint/suspicious/noExplicitAny: discriminated union narrowed at runtime
@@ -327,6 +351,7 @@ export const ToolRunRenderer = ({
 }: ToolRunRendererProps) => {
   const tVerb = useTranslations("chat.tools.run.verb");
   const tRun = useTranslations("chat.tools.run");
+  const tIntegrations = useTranslations("integrations");
   const [isExpanded, setIsExpanded] = useState(false);
   const [expandedThoughts, setExpandedThoughts] = useState<Set<string>>(
     () => new Set()
@@ -363,13 +388,14 @@ export const ToolRunRenderer = ({
         index: i,
         isLastInGroup: i === group.parts.length - 1,
         isMessageStreaming,
+        tIntegrations,
       });
       if (step) {
         result.push(step);
       }
     }
     return result;
-  }, [group.parts, isMessageStreaming]);
+  }, [group.parts, isMessageStreaming, tIntegrations]);
 
   const totalSources = useMemo(() => {
     const seen = new Set<string>();
@@ -497,7 +523,7 @@ export const ToolRunRenderer = ({
                     ? () => toggleThought(step.key)
                     : undefined
                 }
-                verb={tVerb(step.verbKey)}
+                verb={step.verbText ?? tVerb(step.verbKey)}
               />
             );
           })}
@@ -527,7 +553,7 @@ export const ToolRunRenderer = ({
                   ? () => toggleThought(step.key)
                   : undefined
               }
-              verb={tVerb(step.verbKey)}
+              verb={step.verbText ?? tVerb(step.verbKey)}
             />
           );
         })}
