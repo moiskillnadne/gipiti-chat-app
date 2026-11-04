@@ -488,6 +488,16 @@ once.
   - `refreshIntegrationTools(id)`: re-snapshot.
   - `listMyIntegrations()`.
   - Errors return user-friendly i18n keys, never raw messages.
+- **Implementation notes (as built):**
+  - Connect, disconnect and refresh logic lives in `lib/integrations/connect.ts` (tested in
+    `__tests__/connect.test.ts`); `actions.ts` only does `auth()`, the flag and paid gate
+    (`isIntegrationsAvailableForUser`), zod validation and `revalidatePath`.
+  - Actions return `{ ok: true } | { ok: false, error }`; `error` is a key under
+    `integrations.page.errors`. `connectBuiltinNoAuth` stores the localised catalog name as
+    `displayName` and lists only `authType: "none"` entries on the page.
+  - `listMyIntegrations` now returns `[]` when the flag is off or the user is free.
+  - `refreshIntegrationTools` keeps the user's disabled tools and enables tools new to the snapshot.
+  - `layout.tsx` only sets metadata (noindex); no `SessionProvider`, the page needs none.
 - **Acceptance:** `pnpm check` green. Manual: a tester connects DeepWiki and sees it in the
   picker.
 - **Depends on:** M1-T2, M1-T4.

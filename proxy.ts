@@ -27,6 +27,7 @@ const PROTECTED_ROUTE_PATTERNS = [
   /^\/chat(?:\/[^/]+)?$/,
   /^\/projects(?:\/[^/]+)?$/,
   /^\/prompts$/,
+  /^\/integrations$/,
   /^\/subscription(?:\/(?:manage|usage|verify-email))?$/,
   /^\/manage-subscription$/,
 ];
