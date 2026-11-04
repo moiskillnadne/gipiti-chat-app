@@ -41,7 +41,12 @@ function parseArgs(argv: string[]): EvalArgs {
   return args;
 }
 
-type Row = { entry: string; model: string; verdict: string };
+type Row = {
+  entry: string;
+  model: string;
+  tools: number;
+  verdict: string;
+};
 
 async function evalPair(
   tools: ToolSet,
@@ -84,7 +89,24 @@ async function main(): Promise<void> {
   const rows: Row[] = [];
 
   for (const entry of entries) {
-    const { snapshot } = await captureToolSnapshot({ entry });
+    const { snapshot, missingAllowlisted } = await captureToolSnapshot({
+      entry,
+    });
+    const expected = Object.keys(entry.tools).length;
+    const dropped = expected - missingAllowlisted.length - snapshot.length;
+    if (missingAllowlisted.length > 0 || dropped > 0 || snapshot.length === 0) {
+      // A partial or empty ToolSet would "accept" trivially and hide untested schemas.
+      const reason = `SKIPPED (missing: ${missingAllowlisted.join(", ") || "none"}, dropped: ${Math.max(dropped, 0)})`;
+      for (const model of args.models) {
+        rows.push({
+          entry: entry.id,
+          model,
+          tools: snapshot.length,
+          verdict: reason,
+        });
+      }
+      continue;
+    }
     const tools: ToolSet = {};
     for (const item of snapshot) {
       tools[item.name] = tool({
@@ -97,13 +119,19 @@ async function main(): Promise<void> {
       rows.push({
         entry: entry.id,
         model,
+        tools: snapshot.length,
         verdict: ok ? "accept" : `REJECT ${note}`,
       });
     }
   }
 
   console.table(rows);
-  if (rows.some((row) => row.verdict.startsWith("REJECT"))) {
+  if (
+    rows.some(
+      (row) =>
+        row.verdict.startsWith("REJECT") || row.verdict.startsWith("SKIPPED")
+    )
+  ) {
     process.exitCode = 2;
   }
 }
