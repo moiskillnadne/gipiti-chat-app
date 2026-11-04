@@ -57,3 +57,6 @@ gipiti.drawio.png
 .claude/*
 !.claude/settings.json
 !.claude/commands/
+!.claude/agents/
+!.claude/workflows/
+!.claude/skills/
