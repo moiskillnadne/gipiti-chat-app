@@ -14,6 +14,13 @@
  * turn (and its billing) alive until the function is killed. Forcing settles
  * the turn at once, so a tool whose cost is only known when it returns (image
  * generation) is given until the function deadline instead of the short cap.
+ *
+ * `stopRequested` fires the moment the user asks to stop, ahead of that gate.
+ * It is for tools that cost nothing on the GIPITI side (a remote MCP call, say):
+ * they can give up at once, return a result and let the step finish, so the
+ * deferred abort lands at the step boundary instead of waiting out the call.
+ * A tool whose cost is booked only when it returns must not honour it, and a
+ * tool that ignores it is still bounded by the force timer.
  */
 
 /** Longest a stop may wait for running tools after it was requested. */
@@ -32,6 +39,11 @@ export type TurnAbortOptions = {
 
 export type TurnAbort = {
   readonly signal: AbortSignal;
+  /**
+   * Aborted as soon as a stop is requested, even while the abort of `signal`
+   * is deferred. Only for tools with no GIPITI-side cost.
+   */
+  readonly stopRequested: AbortSignal;
   /** When the stop was first requested on this instance (undefined: not stopped). */
   readonly requestedAt: Date | undefined;
   /** User stop (or disconnect). Aborts now, or as soon as the gate opens. */
@@ -65,6 +77,7 @@ export function createTurnAbort({
   deferralCapMs = DEFERRAL_CAP_MS,
 }: TurnAbortOptions = {}): TurnAbort {
   const controller = new AbortController();
+  const stopController = new AbortController();
   let requestedAt: Date | undefined;
   let canAbortNow: () => boolean = () => true;
   let isLongToolRunning: () => boolean = () => false;
@@ -130,10 +143,14 @@ export function createTurnAbort({
 
   return {
     signal: controller.signal,
+    stopRequested: stopController.signal,
     get requestedAt() {
       return requestedAt;
     },
     requestAbort() {
+      if (!stopController.signal.aborted) {
+        stopController.abort(new DOMException("user-stop", "AbortError"));
+      }
       requestedAt ??= new Date();
       flush();
       if (!controller.signal.aborted && forceTimer === undefined) {

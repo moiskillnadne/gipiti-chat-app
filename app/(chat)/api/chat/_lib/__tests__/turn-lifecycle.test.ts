@@ -872,6 +872,161 @@ describe("forced abort with a pending image generation", () => {
   });
 });
 
+describe("tools that honour stopRequested", () => {
+  const STOP_AFTER_MS = 300;
+
+  const toolCall = (
+    toolCallId: string,
+    toolName: string
+  ): LanguageModelV3StreamPart => ({
+    type: "tool-call",
+    toolCallId,
+    toolName,
+    input: "{}",
+  });
+
+  it("exposes a signal that is aborted by the stop request, ahead of the gate", () => {
+    const turnAbort = createTurnAbort();
+    turnAbort.setAbortGate(() => false);
+
+    expect(turnAbort.stopRequested.aborted).toBe(false);
+    turnAbort.requestAbort();
+
+    expect(turnAbort.stopRequested.aborted).toBe(true);
+    expect(turnAbort.stopRequested.reason).toBeInstanceOf(DOMException);
+    expect(turnAbort.stopRequested.reason.name).toBe("AbortError");
+    expect(turnAbort.signal.aborted).toBe(false);
+  });
+
+  it("a tool resolves cancelled_by_user and the stop lands at the step boundary without a forced abort", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(vi.fn());
+    warn.mockClear();
+    const results: string[] = [];
+    // A tool with no GIPITI-side cost: it gives up as soon as the user stops.
+    const remote = tool({
+      description: "remote tool",
+      inputSchema: z.object({}),
+      execute: () =>
+        new Promise<string>((resolve) => {
+          h.turnAbort.stopRequested.addEventListener("abort", () => {
+            results.push("cancelled_by_user");
+            resolve("cancelled_by_user");
+          });
+        }),
+    });
+    const h = setup({ tools: { remote } });
+    await h.push(
+      textStart(),
+      textDelta("Looking"),
+      toolCall("r", "remote"),
+      toolCallsFinish
+    );
+    await until(() => h.tracker.pendingToolCalls() === 1);
+
+    vi.useFakeTimers();
+    setTimeout(() => h.turnAbort.requestAbort(), STOP_AFTER_MS);
+    await vi.advanceTimersByTimeAsync(STOP_AFTER_MS);
+    vi.useRealTimers();
+    await h.finished();
+
+    expect(results).toEqual(["cancelled_by_user"]);
+    expect(h.turnAbort.signal.aborted).toBe(true);
+    expect(h.billAborted).toHaveBeenCalledTimes(1);
+    const billed = h.billAborted.mock.calls[0]?.[0];
+    expect(billed?.steps).toHaveLength(1);
+    expect(billed?.atStepBoundary).toBe(true);
+    expect(warn).not.toHaveBeenCalledWith(
+      "[chat-stop] forced abort, tool still running"
+    );
+    expect(h.outcomes).toEqual(["aborted"]);
+  });
+
+  it("a pending generateImage still holds the gate after the other tool gave up", async () => {
+    vi.spyOn(console, "warn").mockImplementation(vi.fn());
+    let releaseImage: (value: string) => void = vi.fn();
+    const generateImage = tool({
+      description: "image tool",
+      inputSchema: z.object({}),
+      execute: () =>
+        new Promise<string>((resolve) => {
+          releaseImage = resolve;
+        }),
+    });
+    const remote = tool({
+      description: "remote tool",
+      inputSchema: z.object({}),
+      execute: () =>
+        new Promise<string>((resolve) => {
+          h.turnAbort.stopRequested.addEventListener("abort", () =>
+            resolve("cancelled_by_user")
+          );
+        }),
+    });
+    const h = setup({ tools: { remote, generateImage } });
+    await h.push(
+      textStart(),
+      textDelta("Both"),
+      toolCall("r", "remote"),
+      toolCall("i", "generateImage"),
+      toolCallsFinish
+    );
+    await until(() => h.tracker.pendingToolCalls() === 2);
+
+    vi.useFakeTimers();
+    setTimeout(() => h.turnAbort.requestAbort(), STOP_AFTER_MS);
+    await vi.advanceTimersByTimeAsync(STOP_AFTER_MS);
+    vi.useRealTimers();
+    await until(() => h.tracker.pendingToolCalls() === 1);
+
+    expect(h.turnAbort.stopRequested.aborted).toBe(true);
+    expect(h.turnAbort.signal.aborted).toBe(false);
+    expect(h.billAborted).not.toHaveBeenCalled();
+
+    releaseImage("image.png");
+    await h.finished();
+
+    expect(h.turnAbort.signal.aborted).toBe(true);
+    expect(h.billAborted).toHaveBeenCalledTimes(1);
+    const billed = h.billAborted.mock.calls[0]?.[0];
+    expect(billed?.steps).toHaveLength(1);
+    expect(billed?.atStepBoundary).toBe(true);
+  });
+
+  it("a tool that ignores the signal is cut off by the forced path at the cap", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(vi.fn());
+    const deaf = tool({
+      description: "deaf tool",
+      inputSchema: z.object({}),
+      execute: () => new Promise<string>(vi.fn()),
+    });
+    const h = setup({ tools: { deaf } });
+    await h.push(
+      textStart(),
+      textDelta("Waiting"),
+      toolCall("d", "deaf"),
+      toolCallsFinish
+    );
+    await until(() => h.tracker.pendingToolCalls() === 1);
+
+    vi.useFakeTimers();
+    h.turnAbort.requestAbort();
+    await vi.advanceTimersByTimeAsync(DEFERRAL_CAP_MS - 1);
+    expect(h.turnAbort.stopRequested.aborted).toBe(true);
+    expect(h.turnAbort.signal.aborted).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(2);
+    vi.useRealTimers();
+    await Promise.all([h.settlement.promise, h.uiDone]);
+
+    expect(h.turnAbort.signal.aborted).toBe(true);
+    expect(warn).toHaveBeenCalledWith(
+      "[chat-stop] forced abort, tool still running"
+    );
+    expect(h.billAborted).toHaveBeenCalledTimes(1);
+    expect(h.outcomes).toEqual(["aborted"]);
+  });
+});
+
 describe("turn lifecycle callbacks", () => {
   const step = (inputTokens: number) => ({
     usage: { inputTokens, outputTokens: 1, totalTokens: inputTokens + 1 },

@@ -22,6 +22,7 @@ import { useProjectRef } from "@/contexts/project-context";
 import { useWebSearchRef } from "@/contexts/web-search-context";
 import { useAutoResume } from "@/hooks/use-auto-resume";
 import { useChatStop } from "@/hooks/use-chat-stop";
+import { useIntegrationSelection } from "@/hooks/use-integration-selection";
 import type { Vote } from "@/lib/db/schema";
 import { ChatSDKError } from "@/lib/errors";
 import { useTranslations } from "@/lib/i18n/translate";
@@ -42,12 +43,14 @@ export function Chat({
   isReadonly,
   autoResume,
   initialLastContext,
+  isIntegrationsAvailable = false,
 }: {
   id: string;
   initialMessages: ChatMessage[];
   isReadonly: boolean;
   autoResume: boolean;
   initialLastContext?: AppUsage;
+  isIntegrationsAvailable?: boolean;
 }) {
   const { mutate } = useSWRConfig();
   const { setDataStream } = useDataStream();
@@ -64,6 +67,8 @@ export function Chat({
   const { setIsEmptyChat, persistPendingModelChange } = useModel();
   const { projectIdRef } = useProjectRef();
   const { webSearchEnabledRef } = useWebSearchRef();
+  const integrationSelection = useIntegrationSelection(id);
+  const { selectedIdsRef: integrationIdsRef } = integrationSelection;
 
   const [input, setInput] = useState<string>("");
   const [usage, setUsage] = useState<AppUsage | undefined>(initialLastContext);
@@ -125,6 +130,9 @@ export function Chat({
             selectedProjectId: projectIdRef.current,
           }),
           webSearchEnabled: webSearchEnabledRef.current,
+          ...(integrationIdsRef.current.length > 0 && {
+            integrationIds: integrationIdsRef.current,
+          }),
           ...request.body,
         };
         return { body };
@@ -278,6 +286,9 @@ export function Chat({
                 attachments={attachments}
                 chatId={id}
                 input={input}
+                integrationSelection={
+                  isIntegrationsAvailable ? integrationSelection : undefined
+                }
                 sendMessage={sendMessage}
                 setAttachments={setAttachments}
                 setInput={setInput}

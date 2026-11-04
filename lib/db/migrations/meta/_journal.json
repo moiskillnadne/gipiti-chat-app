@@ -323,6 +323,13 @@
       "when": 1792322105448,
       "tag": "0045_user_activity_day",
       "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1792408505448,
+      "tag": "0046_integration_connection",
+      "breakpoints": true
     }
   ]
 }

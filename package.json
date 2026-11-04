@@ -27,6 +27,7 @@
   "dependencies": {
     "@ai-sdk/gateway": "^3.0.57",
     "@ai-sdk/google": "^3.0.33",
+    "@ai-sdk/mcp": "1.0.101",
     "@ai-sdk/provider": "3.0.7",
     "@ai-sdk/react": "3.0.75",
     "@flags-sdk/vercel": "^1.4.5",

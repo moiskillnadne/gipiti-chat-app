@@ -11,6 +11,7 @@ import {
   isAutoReasoning,
   isGoogleModel,
   isReasoningModelId,
+  supportsMcp,
   supportsThinkingConfig,
   supportsToolCalling,
 } from "@/lib/ai/models";
@@ -31,6 +32,12 @@ import {
   isGeminiSignatureDebugEnabled,
   isProductionEnvironment,
 } from "@/lib/constants";
+import {
+  compactMcpHistory,
+  flattenOrphans,
+  hasMcpParts,
+} from "@/lib/integrations/history";
+import { buildIntegrationTurnPlan } from "@/lib/integrations/turn-plan";
 import type { AppUsage } from "@/lib/usage";
 import { chargeUsageSafe } from "../charge";
 import type { ChatTurnContext, StreamWriter } from "../context";
@@ -47,6 +54,9 @@ import {
   sumGatewayCostUsd,
   usageChargeUsd,
 } from "../usage";
+
+/** Extra steps granted to a turn that carries integration (MCP) tools. */
+const MCP_EXTRA_STEPS = 3;
 
 const FINAL_ANSWER_REMINDER =
   "Please provide your final answer now based on the information you've gathered. Do not call any more tools.";
@@ -164,6 +174,35 @@ function extractPromptText(system: string, messages: ModelMessage[]): string {
 }
 
 /**
+ * Close the integration clients exactly once, from whichever terminal path
+ * fires first: finish, stream end, forced abort, or the function-deadline timer.
+ */
+function createPlanCloser(
+  closePlan: () => Promise<void>,
+  ctx: ChatTurnContext
+): () => void {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const close = () => {
+    if (timer !== undefined) {
+      clearTimeout(timer);
+      timer = undefined;
+    }
+    closePlan().catch((error) => {
+      console.warn("[integrations] close failed", {
+        chatId: ctx.chatId,
+        code: error instanceof Error ? error.name : "unknown",
+      });
+    });
+  };
+  if (ctx.deadlineAt !== undefined) {
+    timer = setTimeout(close, Math.max(0, ctx.deadlineAt - Date.now()));
+    timer.unref?.();
+  }
+  ctx.turnAbort.onForcedAbort(close);
+  return close;
+}
+
+/**
  * Run a standard text-chat turn via streamText: build the system prompt, expose
  * the tool set (gated by model capability + web-search toggle), stream the
  * reply, and on finish enrich usage via TokenLens and charge the cost. The
@@ -194,7 +233,26 @@ async function streamTextTurn(
   ctx: ChatTurnContext,
   writer: StreamWriter
 ): Promise<void> {
-  const { model, thinkingSetting, stepLimit } = ctx;
+  const { model, thinkingSetting } = ctx;
+
+  // Integration tools are built (not connected) up front: connecting is lazy
+  // and happens on the first tool call.
+  const plan =
+    ctx.integrationConnections.length > 0 && supportsToolCalling(model)
+      ? buildIntegrationTurnPlan({
+          connections: ctx.integrationConnections,
+          turnSignal: ctx.turnAbort.signal,
+          stopRequested: ctx.turnAbort.stopRequested,
+        })
+      : undefined;
+  const planTools = plan?.tools ?? {};
+  const hasPlanTools = Object.keys(planTools).length > 0;
+  const stepLimit = hasPlanTools
+    ? ctx.stepLimit + MCP_EXTRA_STEPS
+    : ctx.stepLimit;
+  const historyHasMcp = hasMcpParts(ctx.uiMessages);
+  // MCP results are user data: keep them out of spans and error logs.
+  const isMcpTurn = hasPlanTools || historyHasMcp;
 
   const providerOptions = getProviderOptions(model, thinkingSetting);
 
@@ -211,8 +269,18 @@ async function streamTextTurn(
   // extracted text so the model can read them (providers only accept images and
   // PDFs as file parts). The stored user message keeps its file part, so the UI
   // still shows the attachment chip.
+  const historyForModel = historyHasMcp
+    ? [
+        ...compactMcpHistory(
+          flattenOrphans(ctx.uiMessages, {
+            activeToolNames: new Set(Object.keys(planTools)),
+            modelSupportsMcp: hasPlanTools && supportsMcp(model),
+          })
+        ),
+      ]
+    : ctx.uiMessages;
   const messagesForModel = await attachTextContentForModel(
-    await attachDocxContentForModel(ctx.uiMessages)
+    await attachDocxContentForModel(historyForModel)
   );
   // A message the user stopped mid tool call must not replay the dangling call.
   const baseMessages = (
@@ -286,6 +354,8 @@ async function streamTextTurn(
     ctx.turnSettlement.resolve();
     return;
   }
+
+  const closePlan = plan ? createPlanCloser(plan.close, ctx) : undefined;
 
   const system = systemPrompt({ selectedChatModel: model });
   const tracker = createInFlightStepTracker();
@@ -369,7 +439,14 @@ async function streamTextTurn(
     abortSignal: ctx.turnAbort.signal,
     ...lifecycle.callbacks,
     onError: ({ error }) => {
-      console.error(error);
+      if (isMcpTurn) {
+        console.error("[chat-stream] mcp turn error", {
+          chatId: ctx.chatId,
+          code: error instanceof Error ? error.name : "unknown",
+        });
+      } else {
+        console.error(error);
+      }
       lifecycle.onStreamError();
     },
     stopWhen: stepCountIs(stepLimit),
@@ -399,12 +476,14 @@ async function streamTextTurn(
 
       return {};
     },
-    tools: chatTools,
+    tools: chatTools && { ...chatTools, ...planTools },
     experimental_telemetry: {
       isEnabled: isProductionEnvironment,
       functionId: "stream-text",
+      ...(isMcpTurn && { recordInputs: false, recordOutputs: false }),
     },
     onFinish: async ({ usage, totalUsage, steps }) => {
+      closePlan?.();
       // Stop path vs. normal charge is decided (and kept exclusive) by the
       // lifecycle.
       if (!lifecycle.beginFinish(totalUsage)) {
@@ -461,12 +540,24 @@ async function streamTextTurn(
   Promise.resolve(
     result.consumeStream({
       onError: (error) => {
-        console.error("[chat-stream] consumeStream error", error);
+        // Provider errors can carry the request body (MCP results) — log the
+        // name only on MCP turns, same as streamText.onError above.
+        if (isMcpTurn) {
+          console.error("[chat-stream] consumeStream error", {
+            chatId: ctx.chatId,
+            code: error instanceof Error ? error.name : "unknown",
+          });
+        } else {
+          console.error("[chat-stream] consumeStream error", error);
+        }
         lifecycle.onStreamError();
       },
     })
   )
-    .finally(() => lifecycle.streamEnded())
+    .finally(() => {
+      closePlan?.();
+      lifecycle.streamEnded();
+    })
     .catch((error) => {
       console.warn("[chat-stream] stream settlement failed", error);
     });

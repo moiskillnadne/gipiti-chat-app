@@ -23,6 +23,7 @@ import { updateChatTitle } from "@/lib/db/query/chat/update-chat-title";
 import { getProjectById } from "@/lib/db/query/project/get-project-by-id";
 import { incrementProjectUsage } from "@/lib/db/query/project/increment-project-usage";
 import { ChatSDKError } from "@/lib/errors";
+import { resolveAllowedIntegrationsSafe } from "@/lib/integrations/policy";
 import { isInterruptedMessage } from "@/lib/messages/interrupted";
 import type { ChatMessage } from "@/lib/types";
 import { convertToUIMessages, generateUUID } from "@/lib/utils";
@@ -173,7 +174,7 @@ export async function prepareChatTurn(
   body: PostRequestBody,
   session: Session,
   request: Request,
-  turn: { turnAbort: TurnAbort }
+  turn: { turnAbort: TurnAbort; deadlineAt?: number }
 ): Promise<ChatTurnContext> {
   const {
     id,
@@ -184,6 +185,7 @@ export async function prepareChatTurn(
     videoGenSetting: rawVideoGenSetting,
     selectedProjectId,
     webSearchEnabled = true,
+    integrationIds,
   } = body;
 
   const userId = session.user.id;
@@ -210,13 +212,22 @@ export async function prepareChatTurn(
   });
 
   // Independent pre-stream reads in parallel.
-  const [hasBalance, existingChat, projectRow] = await Promise.all([
-    hasPositiveBalance(userId),
-    getChatById({ id }),
-    selectedProjectId
-      ? getProjectById({ id: selectedProjectId })
-      : Promise.resolve(undefined),
-  ]);
+  const [hasBalance, existingChat, projectRow, allowedIntegrations] =
+    await Promise.all([
+      hasPositiveBalance(userId),
+      getChatById({ id }),
+      selectedProjectId
+        ? getProjectById({ id: selectedProjectId })
+        : Promise.resolve(undefined),
+      integrationIds?.length
+        ? resolveAllowedIntegrationsSafe({
+            chatId: id,
+            userId,
+            modelId: model,
+            requestedIds: integrationIds,
+          })
+        : Promise.resolve(undefined),
+    ]);
 
   const projectContext: ProjectContextInput | null =
     projectRow && projectRow.userId === userId
@@ -310,6 +321,8 @@ export async function prepareChatTurn(
     videoGenSetting,
     previousGenerationId: body.previousGenerationId,
     webSearchEnabled,
+    integrationConnections: allowedIntegrations?.connections ?? [],
+    deadlineAt: turn.deadlineAt,
     stepLimit,
     requestHints,
     projectContext,

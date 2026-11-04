@@ -7,6 +7,7 @@ import type {
 } from "@/lib/ai/models";
 import type { ProjectContextInput, RequestHints } from "@/lib/ai/prompts";
 import type { ImageGenerationUsageAccumulator } from "@/lib/ai/tools/generate-image";
+import type { IntegrationTurnConnection } from "@/lib/db/query/integration/get-by-ids-for-user";
 import type { ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
 import type { MediaGenerationPart } from "./media-part";
@@ -42,6 +43,13 @@ export type ChatTurnContext = {
   videoGenSetting: VideoGenSetting | undefined;
   previousGenerationId?: string;
   webSearchEnabled: boolean;
+  /**
+   * Integrations the user selected and the gate let through (snapshot columns
+   * only, never credentials). Empty when none were requested or allowed.
+   */
+  integrationConnections: IntegrationTurnConnection[];
+  /** Epoch ms of the soft function deadline (start + maxDuration - margin). */
+  deadlineAt?: number;
   /** Multi-step inference cap; drives stopWhen + the validator's log context. */
   stepLimit: number;
   requestHints: RequestHints;

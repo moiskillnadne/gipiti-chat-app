@@ -19,7 +19,7 @@ import { prepareChatTurn } from "./_lib/prepare-chat-turn";
 import { type ChatMode, resolveChatMode } from "./_lib/resolve-mode";
 import { watchChatStop } from "./_lib/stop-signal";
 import { getStreamContext } from "./_lib/stream-context";
-import { createTurnAbort } from "./_lib/turn-abort";
+import { createTurnAbort, DEADLINE_MARGIN_MS } from "./_lib/turn-abort";
 import {
   startTurnDiagnostics,
   type TurnDiagnostics,
@@ -118,6 +118,7 @@ export async function POST(request: Request) {
 
     const ctx = await prepareChatTurn(parsed.body, session, request, {
       turnAbort,
+      deadlineAt: turnStartedAt + maxDuration * 1000 - DEADLINE_MARGIN_MS,
     });
 
     // The force timer must outlive the persist-time wait for billing (a hung

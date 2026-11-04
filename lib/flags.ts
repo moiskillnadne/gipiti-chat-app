@@ -49,3 +49,16 @@ export const isTopupEnabled = flag<boolean, UserEntities>({
   identify: identifyUser,
   adapter: vercelAdapter(),
 });
+
+export const isIntegrationsEnabled = flag<boolean, UserEntities>({
+  key: "isIntegrationsEnabled",
+  description: "Controls whether MCP integrations (connectors) are available",
+  // Fail closed: rolled out to testers first, then allowlisted paid users.
+  defaultValue: false,
+  options: [
+    { value: false, label: "Off" },
+    { value: true, label: "On" },
+  ],
+  identify: identifyUser,
+  adapter: vercelAdapter(),
+});

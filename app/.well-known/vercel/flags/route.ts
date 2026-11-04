@@ -1,7 +1,11 @@
 import { getProviderData } from "@flags-sdk/vercel";
 import { createFlagsDiscoveryEndpoint } from "flags/next";
-import { isSignupEnabled, isTopupEnabled } from "@/lib/flags";
+import {
+  isIntegrationsEnabled,
+  isSignupEnabled,
+  isTopupEnabled,
+} from "@/lib/flags";
 
 export const GET = createFlagsDiscoveryEndpoint(async () =>
-  getProviderData({ isSignupEnabled, isTopupEnabled })
+  getProviderData({ isIntegrationsEnabled, isSignupEnabled, isTopupEnabled })
 );
