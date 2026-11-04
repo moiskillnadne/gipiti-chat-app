@@ -523,6 +523,14 @@ export const MultimodalInput = memo(
     if (!equal(prevProps.attachments, nextProps.attachments)) {
       return false;
     }
+    // A new array on every change, so reference equality is enough. Also covers
+    // the picker appearing or disappearing (undefined vs an array).
+    if (
+      prevProps.integrationSelection?.selectedIds !==
+      nextProps.integrationSelection?.selectedIds
+    ) {
+      return false;
+    }
     return true;
   }
 );
