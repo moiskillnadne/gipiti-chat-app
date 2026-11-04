@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { IntegrationConnection } from "@/lib/db/schema";
 
 const mocks = vi.hoisted(() => ({
+  AlreadyConnected: class extends Error {},
   captureToolSnapshot: vi.fn(),
   insertIntegration: vi.fn(),
   listIntegrationsForUser: vi.fn(),
@@ -14,6 +15,7 @@ vi.mock("../snapshot", () => ({
   captureToolSnapshot: mocks.captureToolSnapshot,
 }));
 vi.mock("@/lib/db/query/integration/insert", () => ({
+  IntegrationAlreadyConnectedError: mocks.AlreadyConnected,
   insertIntegration: mocks.insertIntegration,
 }));
 vi.mock("@/lib/db/query/integration/list-for-user", () => ({
@@ -129,6 +131,12 @@ describe("connectBuiltinNoAuth", () => {
     mocks.insertIntegration.mockRejectedValue(new Error("db down"));
 
     expect(await connect()).toEqual({ ok: false, error: "generic" });
+  });
+
+  it("maps a lost unique-index race to alreadyConnected", async () => {
+    mocks.insertIntegration.mockRejectedValue(new mocks.AlreadyConnected());
+
+    expect(await connect()).toEqual({ ok: false, error: "alreadyConnected" });
   });
 });
 

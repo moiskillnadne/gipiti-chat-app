@@ -20,7 +20,10 @@ vi.mock("@/lib/db/query/integration/get-by-ids-for-user", () => ({
   getIntegrationsByIdsForUser: mocks.getIntegrationsByIdsForUser,
 }));
 
-import { resolveAllowedIntegrations } from "../policy";
+import {
+  resolveAllowedIntegrations,
+  resolveAllowedIntegrationsSafe,
+} from "../policy";
 
 const input = { userId: "user-1", modelId: "model-1", requestedIds: ["c1"] };
 
@@ -101,5 +104,54 @@ describe("resolveAllowedIntegrations", () => {
     expect(result.connections[0].toolSnapshot.map((tool) => tool.name)).toEqual(
       ["r"]
     );
+  });
+});
+
+const silence = (): void => {
+  // Keep expected gate logs out of the test output.
+};
+
+describe("resolveAllowedIntegrationsSafe", () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+    vi.spyOn(console, "error").mockImplementation(silence);
+    vi.spyOn(console, "info").mockImplementation(silence);
+    mocks.isIntegrationsEnabled.mockResolvedValue(true);
+    mocks.isFreeUserById.mockResolvedValue(false);
+    mocks.supportsMcp.mockReturnValue(true);
+  });
+
+  it("drops the ids instead of failing the turn when a gate throws", async () => {
+    mocks.getIntegrationsByIdsForUser.mockRejectedValue(new Error("db down"));
+
+    const result = await resolveAllowedIntegrationsSafe({
+      ...input,
+      chatId: "chat-1",
+    });
+
+    expect(result).toEqual({ connections: [], reason: "error" });
+  });
+
+  it("logs the deny reason without ids when nothing is allowed", async () => {
+    mocks.isFreeUserById.mockResolvedValue(true);
+
+    await resolveAllowedIntegrationsSafe({ ...input, chatId: "chat-1" });
+
+    expect(console.info).toHaveBeenCalledWith(
+      "[integrations] requested ids dropped",
+      { chatId: "chat-1", reason: "free_user" }
+    );
+  });
+
+  it("passes allowed connections through unchanged", async () => {
+    mocks.getIntegrationsByIdsForUser.mockResolvedValue([connection("active")]);
+
+    const result = await resolveAllowedIntegrationsSafe({
+      ...input,
+      chatId: "chat-1",
+    });
+
+    expect(result.connections).toHaveLength(1);
+    expect(console.info).not.toHaveBeenCalled();
   });
 });

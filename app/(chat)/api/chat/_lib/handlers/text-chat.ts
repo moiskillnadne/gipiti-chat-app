@@ -540,7 +540,16 @@ async function streamTextTurn(
   Promise.resolve(
     result.consumeStream({
       onError: (error) => {
-        console.error("[chat-stream] consumeStream error", error);
+        // Provider errors can carry the request body (MCP results) — log the
+        // name only on MCP turns, same as streamText.onError above.
+        if (isMcpTurn) {
+          console.error("[chat-stream] consumeStream error", {
+            chatId: ctx.chatId,
+            code: error instanceof Error ? error.name : "unknown",
+          });
+        } else {
+          console.error("[chat-stream] consumeStream error", error);
+        }
         lifecycle.onStreamError();
       },
     })

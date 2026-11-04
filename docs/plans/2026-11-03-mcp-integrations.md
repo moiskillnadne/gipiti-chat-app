@@ -1,7 +1,8 @@
 ---
 date: 2026-11-03
-status: draft
-branch: feat/gipiti-28-mcp-integrations
+status: in_progress
+milestones_done: [M1]
+branch: feat/gipiti-28-mcp-integrations-cw6f0r
 issue: GIPITI-28
 adr: docs/adr/0001-mcp-integrations.md
 ---
@@ -57,7 +58,7 @@ lib/integrations/
   json-schema.ts       provider-safe schema normaliser
   client.ts            createMCPClient factory (no sampling/elicitation, guarded fetch)
   snapshot.ts          tools/list -> allowlist -> sanitise -> normalise -> snapshot
-  turn-plan.ts         buildIntegrationTurnPlan -> { tools, close(), hasMcp }
+  turn-plan.ts         buildIntegrationTurnPlan -> { tools, close() }  (text-chat derives hasPlanTools)
   result.ts            CallToolResult -> bounded text output
   history.ts           flattenOrphans, compactMcpHistory, applyActionOutcomes (pure)
   policy.ts            paid + flag + model gates; mixed-chat write filter
@@ -74,7 +75,10 @@ telemetry rule, which also applies when the history holds MCP parts.
 
 1. `schema.ts` accepts `integrationIds`.
 2. `prepare-chat-turn.ts` runs the gate (`policy.ts`) in parallel with its existing reads. A
-   failed gate drops the ids silently and logs the reason code; it never errors the turn.
+   failed gate drops the ids silently and logs the reason code; it never errors the turn
+   (`resolveAllowedIntegrationsSafe` catches gate errors as reason `error`). `filterWriteTools`
+   runs in `policy.ts` on the loaded rows. The per-turn budget drops whole connections: the
+   count and the token estimate cover all enabled tools of a connection.
 3. `text-chat.ts` builds the turn plan and merges `plan.tools` after `chatTools`. It then
    - runs the history helpers before `convertToModelMessages`;
    - adds 3 to the step limit;
@@ -86,15 +90,15 @@ telemetry rule, which also applies when the history holds MCP parts.
 
 | Area | Files |
 |---|---|
-| Chat route | `app/(chat)/api/chat/schema.ts`, `_lib/context.ts`, `_lib/prepare-chat-turn.ts`, `_lib/handlers/text-chat.ts`, `_lib/turn-abort.ts`, `_lib/__tests__/turn-lifecycle.test.ts` |
+| Chat route | `app/(chat)/api/chat/route.ts` (passes `deadlineAt`), `app/(chat)/api/chat/schema.ts`, `_lib/context.ts`, `_lib/prepare-chat-turn.ts`, `_lib/handlers/text-chat.ts`, `_lib/turn-abort.ts`, `_lib/__tests__/turn-lifecycle.test.ts`, `_lib/__tests__/text-chat-integrations.test.ts` |
 | Tools | `lib/ai/tools/extract-url.ts` (taint guard, M2) |
 | Models | `lib/ai/models.ts` (`capabilities.mcp`, `supportsMcp`), `lib/ai/__tests__/model-registry.test.ts` |
 | DB | `lib/db/schema.ts`, `lib/db/migrations/0046_integration_connection.sql`, `0047_integration_credentials.sql`, `0048_integration_pending_action.sql`, `lib/db/migrations/meta/_journal.json`, `lib/db/query/integration/*` |
-| New lib | `lib/integrations/*` (above), `lib/integrations/__tests__/*` |
+| New lib | `lib/integrations/*` (above, plus `availability.ts`, `ui.ts`), `lib/integrations/__tests__/*` |
 | Flags | `lib/flags.ts` (`isIntegrationsEnabled`), `app/.well-known/vercel/flags/route.ts` |
 | Page | `app/integrations/{layout,page,actions}.tsx|ts`, `app/integrations/_components/*`, `components/account-page-top-nav.tsx`, `proxy.ts` (`PROTECTED_ROUTE_PATTERNS`) |
 | OAuth routes | `app/api/integrations/oauth/callback/route.ts`, `app/oauth/client-metadata.json/route.ts` (CIMD) |
-| Chat UI | `lib/types.ts` (`McpToolUIPart` + guard), `lib/messages/group-tool-runs.ts`, `components/tool-run-renderer.tsx`, `components/composer/integrations-picker.tsx`, `components/multimodal-input.tsx`, `components/chat.tsx`, `components/elements/response.tsx` (image guard), `components/integration-action-card.tsx` (M3) |
+| Chat UI | `lib/types.ts` (`McpToolUIPart` + guard), `lib/messages/group-tool-runs.ts` (+ `lib/messages/__tests__/group-tool-runs.test.ts`), `components/tool-run-renderer.tsx`, `components/tool-run-mcp-step.tsx`, `hooks/use-integration-selection.ts`, `components/composer/integrations-picker.tsx`, `components/multimodal-input.tsx`, `components/chat.tsx`, `components/elements/response.tsx` (image guard), `components/integration-action-card.tsx` (M3) |
 | i18n | `messages/ru.json` (`integrations` namespace) |
 | Config | `package.json` (`@ai-sdk/mcp@1.0.101`, `undici@7.16.0`, pinned exact), `scripts/check.ts` (placeholder key), `.env.example`, `CLAUDE.md` |
 
@@ -119,8 +123,20 @@ dependency.
 ## Go/no-go gates (human, outside implementer tasks)
 
 - **G0, schema eval.**
-  - Run `pnpm tsx scripts/integrations/schema-eval.ts` with a real `AI_GATEWAY_API_KEY`. It costs a
-    few cents.
+  - Run `npx tsx scripts/integrations/schema-eval.ts --models <ids> --yes [--entries ...]` with a
+    real `AI_GATEWAY_API_KEY` (`--models` is required). It costs a few cents.
+  - **Status: not run yet** (no key in the cloud session; `ai-gateway.vercel.sh` is also not in the
+    session's allowed hosts). Until G0 passes, the flag stays tester-only and `capabilities.mcp`
+    on the Claude / GPT-5.x list is provisional.
+  - Before the M1 smoke, run `npx tsx scripts/integrations/probe-server.ts <url>` for DeepWiki and
+    Context7 and check the catalog allowlist (`ask_wiki_question`, `query-docs`) against the live
+    `tools/list`. DeepWiki docs list `ask_question`; old Context7 used `get-library-docs`. The
+    cloud session could not reach these hosts, so this is unverified.
+  - Result table (fill in after the run):
+
+    | Model | DeepWiki | Context7 | Keep `mcp`? |
+    |---|---|---|---|
+    | _pending_ | | | |
   - Keep `capabilities.mcp` only on models that accept every built-in snapshot schema.
   - Record the result table in this plan.
 - **G1, Linear.**
@@ -149,7 +165,7 @@ dependency.
 | Anthropic rejects `tool_use` history when the tool is not defined | `flattenOrphans` turns parts for integrations not in this turn's plan, or for models without `capabilities.mcp`, into text. |
 | Prompt-injected exfiltration via `extractUrl` or markdown images | The chat-scoped taint rule (M2-T4) ships before any private-sensitivity integration (M2-T10, custom servers in M2-T6). Residual: search queries and links that need a click. Documented. |
 | A provider rejects a schema keyword | `json-schema.ts` normaliser, the `capabilities.mcp` allowlist and the G0 eval. |
-| Vendor tool renames (DeepWiki already did) | A missing allowlisted tool sets `needs_review`, logs `[integrations-drift]`, and the user gets a "Refresh tools" action. |
+| Vendor tool renames (DeepWiki already did) | A missing allowlisted tool sets `needs_review`, logs `[integrations-drift]`, and the user gets a "Refresh tools" action. Note: one missing allowlisted tool makes the whole connection unusable, and refresh cannot clear it without a catalog change. |
 | Refresh race across instances | Lease plus CAS (M2-T8), single statements only. |
 | Key loss or misconfiguration | A missing key means the flag is evaluated as off server-side and connect returns a friendly error. A self-test decrypt runs on first use per instance. |
 | MCP content in spans or logs | Telemetry rule (M1-T8). `onError` for MCP turns logs `{ code, integrationId }` only. |

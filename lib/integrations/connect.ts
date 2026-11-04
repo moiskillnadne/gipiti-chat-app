@@ -1,5 +1,8 @@
 import { deleteIntegration } from "@/lib/db/query/integration/delete";
-import { insertIntegration } from "@/lib/db/query/integration/insert";
+import {
+  IntegrationAlreadyConnectedError,
+  insertIntegration,
+} from "@/lib/db/query/integration/insert";
 import { listIntegrationsForUser } from "@/lib/db/query/integration/list-for-user";
 import { updateIntegrationSnapshot } from "@/lib/db/query/integration/update-snapshot";
 import type { IntegrationConnection } from "@/lib/db/schema";
@@ -86,6 +89,10 @@ export async function connectBuiltinNoAuth({
     });
     return { ok: true };
   } catch (error) {
+    // A concurrent double connect loses the race on the unique index.
+    if (error instanceof IntegrationAlreadyConnectedError) {
+      return failure("alreadyConnected");
+    }
     console.error("[integrations] connect failed", {
       provider: entry.id,
       error: error instanceof Error ? error.message : "unknown",

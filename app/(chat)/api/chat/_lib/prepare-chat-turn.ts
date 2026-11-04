@@ -23,7 +23,7 @@ import { updateChatTitle } from "@/lib/db/query/chat/update-chat-title";
 import { getProjectById } from "@/lib/db/query/project/get-project-by-id";
 import { incrementProjectUsage } from "@/lib/db/query/project/increment-project-usage";
 import { ChatSDKError } from "@/lib/errors";
-import { resolveAllowedIntegrations } from "@/lib/integrations/policy";
+import { resolveAllowedIntegrationsSafe } from "@/lib/integrations/policy";
 import { isInterruptedMessage } from "@/lib/messages/interrupted";
 import type { ChatMessage } from "@/lib/types";
 import { convertToUIMessages, generateUUID } from "@/lib/utils";
@@ -220,7 +220,8 @@ export async function prepareChatTurn(
         ? getProjectById({ id: selectedProjectId })
         : Promise.resolve(undefined),
       integrationIds?.length
-        ? resolveAllowedIntegrations({
+        ? resolveAllowedIntegrationsSafe({
+            chatId: id,
             userId,
             modelId: model,
             requestedIds: integrationIds,

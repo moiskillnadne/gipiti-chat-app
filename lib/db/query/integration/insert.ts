@@ -11,6 +11,14 @@ export type NewIntegrationConnection = Omit<
   "id" | "createdAt" | "updatedAt" | "lastUsedAt"
 >;
 
+/** Thrown when the user already has this builtin or custom server connected. */
+export class IntegrationAlreadyConnectedError extends Error {
+  constructor() {
+    super("Integration already connected");
+    this.name = "IntegrationAlreadyConnectedError";
+  }
+}
+
 export async function insertIntegration(
   values: NewIntegrationConnection
 ): Promise<IntegrationConnection> {
@@ -22,10 +30,7 @@ export async function insertIntegration(
     return created;
   } catch (error) {
     if (isUniqueViolation(error)) {
-      throw new ChatSDKError(
-        "bad_request:database",
-        "Integration already connected"
-      );
+      throw new IntegrationAlreadyConnectedError();
     }
     throw new ChatSDKError(
       "bad_request:database",
