@@ -1,3 +1,4 @@
+import type { JSONSchema7 } from "@ai-sdk/provider";
 import { type InferSelectModel, sql } from "drizzle-orm";
 import {
   bigint,
@@ -738,3 +739,96 @@ export const userActivityDay = pgTable(
 );
 
 export type UserActivityDay = InferSelectModel<typeof userActivityDay>;
+
+// ============================================================================
+// INTEGRATIONS (MCP)
+// ============================================================================
+
+export type ToolSnapshotEntry = {
+  /** Stable model-facing name (`mcp_<slug>__<tool>`), never recomputed. */
+  name: string;
+  /** Tool name as the MCP server reports it. */
+  originalName: string;
+  description: string;
+  inputSchema: JSONSchema7;
+  toolClass: "read" | "write";
+};
+
+export const integrationConnection = pgTable(
+  "IntegrationConnection",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    userId: uuid("userId")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    // Catalog id for built-ins, `custom` for user-supplied servers.
+    provider: varchar("provider", { length: 64 }).notNull(),
+    displayName: text("displayName").notNull(),
+    serverUrl: text("serverUrl").notNull(),
+    authType: varchar("authType", {
+      enum: ["none", "oauth", "static_header"],
+    }).notNull(),
+    authHeaderName: text("authHeaderName"),
+    authHeaderScheme: text("authHeaderScheme"),
+    // Non-secret extra headers only; secrets live in IntegrationCredential.
+    staticHeaders: jsonb("staticHeaders")
+      .$type<Record<string, string>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    status: varchar("status", {
+      enum: ["active", "needs_reauth", "needs_review", "error"],
+    })
+      .notNull()
+      .default("active"),
+    trustLevel: varchar("trustLevel", {
+      enum: ["builtin", "custom"],
+    }).notNull(),
+    allowWrites: boolean("allowWrites").notNull().default(false),
+    accessTokenExpiresAt: timestamp("accessTokenExpiresAt", {
+      withTimezone: true,
+    }),
+    scopes: text("scopes"),
+    toolSnapshot: jsonb("toolSnapshot")
+      .$type<ToolSnapshotEntry[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    toolSnapshotHash: text("toolSnapshotHash").notNull(),
+    toolSnapshotAt: timestamp("toolSnapshotAt", {
+      withTimezone: true,
+    }).notNull(),
+    toolTokenEstimate: integer("toolTokenEstimate").notNull().default(0),
+    // Model-facing names of the tools the user enabled.
+    enabledTools: jsonb("enabledTools")
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    // Model-facing names of tools that run without confirmation.
+    readOnlyToolNames: jsonb("readOnlyToolNames")
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    createdAt: timestamp("createdAt", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updatedAt", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    lastUsedAt: timestamp("lastUsedAt", { withTimezone: true }),
+  },
+  (table) => ({
+    builtinProviderIdx: uniqueIndex("integration_connection_builtin_idx")
+      .on(table.userId, table.provider)
+      .where(sql`${table.trustLevel} = 'builtin'`),
+    customUrlIdx: uniqueIndex("integration_connection_custom_url_idx")
+      .on(table.userId, sql`lower(${table.serverUrl})`)
+      .where(sql`${table.trustLevel} = 'custom'`),
+    userStatusIdx: index("integration_connection_user_status_idx").on(
+      table.userId,
+      table.status
+    ),
+  })
+);
+
+export type IntegrationConnection = InferSelectModel<
+  typeof integrationConnection
+>;
