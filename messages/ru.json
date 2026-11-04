@@ -1139,6 +1139,18 @@
       "changePassword": "Изменить пароль"
     }
   },
+  "integrations": {
+    "catalog": {
+      "deepwiki": {
+        "name": "DeepWiki",
+        "description": "Документация и ответы по публичным репозиториям GitHub."
+      },
+      "context7": {
+        "name": "Context7",
+        "description": "Актуальная документация и примеры кода для библиотек и фреймворков."
+      }
+    }
+  },
   "usage": {
     "title": "Баланс",
     "currentPeriod": "Текущий период",
