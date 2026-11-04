@@ -14,6 +14,12 @@ export type ChatModelCapabilities = {
    * so they run without the app tool set.
    */
   toolCalling?: boolean;
+  /**
+   * Whether the model may be given tools from user-connected MCP servers.
+   * Opt-in: only models whose tool-schema handling has been verified. Needs
+   * tool calling too (see `supportsMcp`).
+   */
+  mcp?: boolean;
 };
 
 export type ModelProvider =
@@ -614,6 +620,7 @@ export const chatModels: ChatModel[] = [
     capabilities: {
       reasoning: true,
       attachments: true,
+      mcp: true,
     },
     showInUI: true,
     thinkingConfig: GPT5_THINKING_CONFIG,
@@ -626,6 +633,7 @@ export const chatModels: ChatModel[] = [
     capabilities: {
       reasoning: true,
       attachments: true,
+      mcp: true,
     },
     showInUI: true,
     thinkingConfig: GPT5_THINKING_CONFIG,
@@ -638,6 +646,7 @@ export const chatModels: ChatModel[] = [
     capabilities: {
       reasoning: true,
       attachments: true,
+      mcp: true,
     },
     showInUI: true,
   },
@@ -649,6 +658,7 @@ export const chatModels: ChatModel[] = [
     capabilities: {
       reasoning: true,
       attachments: true,
+      mcp: true,
     },
     showInUI: true,
     thinkingConfig: GPT5_THINKING_CONFIG,
@@ -965,6 +975,7 @@ export const chatModels: ChatModel[] = [
     capabilities: {
       reasoning: true,
       attachments: true,
+      mcp: true,
     },
     showInUI: true,
     thinkingConfig: OPUS_THINKING_CONFIG,
@@ -977,6 +988,7 @@ export const chatModels: ChatModel[] = [
     capabilities: {
       reasoning: true,
       attachments: true,
+      mcp: true,
     },
     showInUI: true,
     thinkingConfig: OPUS_THINKING_CONFIG,
@@ -989,6 +1001,7 @@ export const chatModels: ChatModel[] = [
     capabilities: {
       reasoning: true,
       attachments: true,
+      mcp: true,
     },
     showInUI: true,
     thinkingConfig: OPUS_THINKING_CONFIG,
@@ -1001,6 +1014,7 @@ export const chatModels: ChatModel[] = [
     capabilities: {
       reasoning: true,
       attachments: true,
+      mcp: true,
     },
     showInUI: true,
     thinkingConfig: OPUS_THINKING_CONFIG,
@@ -1013,6 +1027,7 @@ export const chatModels: ChatModel[] = [
     capabilities: {
       reasoning: true,
       attachments: true,
+      mcp: true,
     },
     showInUI: true,
     thinkingConfig: OPUS_THINKING_CONFIG,
@@ -1025,6 +1040,7 @@ export const chatModels: ChatModel[] = [
     capabilities: {
       reasoning: true,
       attachments: true,
+      mcp: true,
     },
     showInUI: true,
     thinkingConfig: OPUS_THINKING_CONFIG,
@@ -1037,6 +1053,7 @@ export const chatModels: ChatModel[] = [
     capabilities: {
       reasoning: true,
       attachments: true,
+      mcp: true,
     },
     showInUI: true,
     thinkingConfig: OPUS_THINKING_CONFIG,
@@ -1049,6 +1066,7 @@ export const chatModels: ChatModel[] = [
     capabilities: {
       reasoning: true,
       attachments: true,
+      mcp: true,
     },
     showInUI: true,
     thinkingConfig: OPUS_THINKING_CONFIG,
@@ -1767,6 +1785,10 @@ export const supportsAttachments = (modelId: string) => {
 
 export const supportsToolCalling = (modelId: string): boolean =>
   getModelById(modelId)?.capabilities?.toolCalling !== false;
+
+export const supportsMcp = (modelId: string): boolean =>
+  getModelById(modelId)?.capabilities?.mcp === true &&
+  supportsToolCalling(modelId);
 
 export const isVisibleInUI = (modelId: string): boolean => {
   const model = chatModels.find((m) => m.id === modelId);

@@ -15,6 +15,7 @@ import {
   isOpenAIModel,
   isVideoGenerationModel,
   openaiModelIds,
+  supportsMcp,
   supportsToolCalling,
   usesReasoningTagMiddleware,
   validateVideoGenSetting,
@@ -242,5 +243,39 @@ describe("newly added models", () => {
     // so GLM must not be flagged as tool-less.
     expect(supportsToolCalling("glm-5.3")).toBe(true);
     expect(supportsToolCalling("sonar")).toBe(false);
+  });
+});
+
+describe("MCP capability", () => {
+  const mcpModels = chatModels.filter((m) => m.capabilities?.mcp === true);
+
+  it("is set on at least one model", () => {
+    expect(mcpModels.length).toBeGreaterThan(0);
+  });
+
+  it("only goes to visible models with tool calling", () => {
+    const offenders = mcpModels
+      .filter((m) => !(supportsToolCalling(m.id) && m.showInUI !== false))
+      .map((m) => m.id);
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("supportsMcp is true for an opted-in model", () => {
+    expect(supportsMcp("sonnet-5.5")).toBe(true);
+  });
+
+  it("supportsMcp is false for a model without the flag", () => {
+    expect(supportsMcp("gemini-3.1-pro")).toBe(false);
+  });
+
+  it("supportsMcp is false for an unknown id", () => {
+    expect(supportsMcp("no-such-model")).toBe(false);
+  });
+
+  it("supportsMcp is false without tool calling even if flagged", () => {
+    const sonar = getModelById("sonar");
+    expect(sonar?.capabilities?.toolCalling).toBe(false);
+    expect(supportsMcp("sonar")).toBe(false);
   });
 });
