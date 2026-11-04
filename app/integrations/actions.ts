@@ -52,8 +52,8 @@ async function runMutation(
   return result;
 }
 
-export function connectBuiltinNoAuth(catalogId: string) {
-  return runMutation(async (userId): Promise<ConnectResult> => {
+export async function connectBuiltinNoAuth(catalogId: string) {
+  return await runMutation(async (userId): Promise<ConnectResult> => {
     const parsed = catalogIdSchema.safeParse(catalogId);
     if (!parsed.success) {
       return { ok: false, error: "unknownIntegration" };
@@ -67,8 +67,8 @@ export function connectBuiltinNoAuth(catalogId: string) {
   });
 }
 
-export function disconnectIntegration(id: string) {
-  return runMutation((userId): Promise<ConnectResult> => {
+export async function disconnectIntegration(id: string) {
+  return await runMutation((userId): Promise<ConnectResult> => {
     const parsed = connectionIdSchema.safeParse(id);
     if (!parsed.success) {
       return Promise.resolve({ ok: false, error: "notFound" });
@@ -77,8 +77,8 @@ export function disconnectIntegration(id: string) {
   });
 }
 
-export function refreshIntegrationTools(id: string) {
-  return runMutation((userId): Promise<ConnectResult> => {
+export async function refreshIntegrationTools(id: string) {
+  return await runMutation((userId): Promise<ConnectResult> => {
     const parsed = connectionIdSchema.safeParse(id);
     if (!parsed.success) {
       return Promise.resolve({ ok: false, error: "notFound" });
