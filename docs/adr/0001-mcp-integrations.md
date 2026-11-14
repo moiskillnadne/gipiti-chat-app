@@ -63,8 +63,9 @@ with a stable mangled name (`mcp_<slug>__<tool>`, at most 64 characters, charset
 `[a-zA-Z0-9_]`, starting with a letter, with a hash suffix on collision).
 
 - **No `tools/list` on the chat path.** Execute calls `toolsFromDefinitions(snapshot)[original]`.
-- **Built-in descriptions are ours.** The vendor's text is not used. This removes tool poisoning
-  on built-ins and saves tokens.
+- **Built-in descriptions are ours.** The vendor's text is not used, including the property
+  descriptions inside the input schema (the catalog carries `inputDescriptions`; the normaliser
+  keeps only structural keywords). This removes tool poisoning on built-ins and saves tokens.
 - **History stays readable.** Parts persist as `tool-mcp_*`, so the existing run-card groups them
   (`lib/messages/group-tool-runs.ts`) and needs only one `buildStep` case.
 - **Names never change.** The mangled name is stored in the snapshot, so persisted parts keep

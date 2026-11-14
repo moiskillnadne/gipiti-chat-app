@@ -292,10 +292,14 @@ once.
   - `hashDefinitions(entries)` is sha256 over a canonical JSON of `(name, description, schema)`
     sorted by name.
 - **`json-schema.ts`:**
-  - `normalizeInputSchema(schema)`:
+  - `normalizeInputSchema(schema, { descriptions: "drop" | "keep" })`:
     - inline local `$ref` and `$defs`, max depth 5; on cycles, reject;
-    - drop `$schema`, `format`, `pattern`, `minimum`, `maximum`, `minLength`, `maxLength`,
-      `examples` and `default`;
+    - keep only structural keywords (`type`, `properties`, `required`, `items`, `enum`, `const`,
+      `anyOf`/`oneOf`/`allOf`, …); everything else (`title`, `$comment`, `examples`, `default`,
+      `format`, `pattern`, `x-*`, unknown keywords) is dropped, so server text can only travel
+      through `description`, literal values and property names, all of which are bounded
+      (300 / 100 / 64 characters; enums at most 50 values). Server `description`s are dropped
+      for built-ins and capped for custom servers (post-review fix, 2026-11-14);
     - make `type: "object"` default `properties: {}`;
     - turn `type: [x, "null"]` into `type: x` with `nullable: true`;
     - flatten a single-branch `anyOf` or `oneOf`;
@@ -311,7 +315,10 @@ once.
 - **`catalog.ts`:**
   - Type `CatalogEntry = { id; serverUrl; readWriteServerUrl?; authType; header?: { name; scheme
     }; staticHeaderKeys?: string[]; oauth?: { scope: string }; sensitivity: "public" | "private";
-    tools: Record<originalName, { toolClass; description: string }> }`.
+    tools: Record<originalName, { toolClass; description: string; inputDescriptions?:
+    Record<property, string> }> }`. `inputDescriptions` are our texts for the tool's top-level
+    input properties; the allowlist lookup is an own-property check (`Object.hasOwn`), never
+    `in` (post-review fix, 2026-11-14).
   - M1 entries:
     - `deepwiki` (`https://mcp.deepwiki.com/mcp`): `ask_wiki_question`, `read_wiki_contents`,
       `read_wiki_structure`.

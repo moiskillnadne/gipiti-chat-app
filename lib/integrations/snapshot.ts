@@ -1,7 +1,8 @@
 import type { ListToolsResult, MCPClient } from "@ai-sdk/mcp";
 
+import type { JSONSchema7 } from "@ai-sdk/provider";
 import type { ToolSnapshotEntry } from "@/lib/db/schema";
-import type { CatalogEntry } from "./catalog";
+import type { CatalogEntry, CatalogTool } from "./catalog";
 import { openMcpClient } from "./client";
 import { normalizeInputSchema } from "./json-schema";
 import {
@@ -60,6 +61,39 @@ const listAllTools = async (client: MCPClient): Promise<ServerTool[]> => {
 const customSlug = (connectionId: string): string =>
   `c${connectionId.replace(/-/g, "").slice(0, CUSTOM_SLUG_HEX_LENGTH)}`;
 
+/**
+ * The allowlist lookup must be an own-property check: `in` would also match
+ * `Object.prototype` keys, letting a server tool named `constructor` or `__proto__` through.
+ */
+const catalogToolFor = (
+  entry: CatalogEntry | undefined,
+  originalName: string
+): CatalogTool | undefined =>
+  entry && Object.hasOwn(entry.tools, originalName)
+    ? entry.tools[originalName]
+    : undefined;
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+/** Built-ins: the server's property descriptions were dropped; put ours in their place. */
+const withCatalogDescriptions = (
+  schema: JSONSchema7,
+  descriptions: Record<string, string> | undefined
+): JSONSchema7 => {
+  if (!(descriptions && isRecord(schema.properties))) {
+    return schema;
+  }
+  const properties = { ...schema.properties };
+  for (const [property, description] of Object.entries(descriptions)) {
+    const current = properties[property];
+    if (isRecord(current)) {
+      properties[property] = { ...current, description };
+    }
+  }
+  return { ...schema, properties };
+};
+
 const estimateTokens = (snapshot: readonly ToolSnapshotEntry[]): number => {
   const chars = snapshot.reduce(
     (sum, tool) =>
@@ -104,13 +138,13 @@ export async function captureToolSnapshot(
     : [];
 
   const selected = [...byName.values()]
-    .filter((tool) => !entry || tool.name in entry.tools)
+    .filter((tool) => !entry || catalogToolFor(entry, tool.name) !== undefined)
     .sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
 
   const taken = new Set<string>();
   const snapshot: ToolSnapshotEntry[] = [];
   for (const tool of selected) {
-    const catalogTool = entry?.tools[tool.name];
+    const catalogTool = catalogToolFor(entry, tool.name);
     const sanitized = sanitizeDefinition({
       name: tool.name,
       description: catalogTool?.description ?? tool.description ?? "",
@@ -119,11 +153,19 @@ export async function captureToolSnapshot(
     if (!sanitized.ok) {
       continue;
     }
-    const normalized = normalizeInputSchema(sanitized.definition.inputSchema);
+    // Built-ins never carry server-written text inside the schema either.
+    const normalized = normalizeInputSchema(sanitized.definition.inputSchema, {
+      descriptions: entry ? "drop" : "keep",
+    });
+    if (!normalized.ok) {
+      continue;
+    }
+    const inputSchema = withCatalogDescriptions(
+      normalized.schema,
+      catalogTool?.inputDescriptions
+    );
     if (
-      !normalized.ok ||
-      Buffer.byteLength(JSON.stringify(normalized.schema), "utf8") >
-        MAX_SCHEMA_BYTES
+      Buffer.byteLength(JSON.stringify(inputSchema), "utf8") > MAX_SCHEMA_BYTES
     ) {
       continue;
     }
@@ -134,7 +176,7 @@ export async function captureToolSnapshot(
       name,
       originalName: tool.name,
       description: sanitized.definition.description,
-      inputSchema: normalized.schema,
+      inputSchema,
       toolClass: catalogTool?.toolClass ?? "write",
     });
   }

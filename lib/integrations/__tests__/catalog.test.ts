@@ -42,6 +42,19 @@ describe("catalog", () => {
     }
   });
 
+  it("documents every tool and its inputs in our own short English", () => {
+    // Arrange / Act / Assert
+    for (const entry of CATALOG) {
+      for (const tool of Object.values(entry.tools)) {
+        expect(tool.description.length).toBeGreaterThan(0);
+        for (const text of Object.values(tool.inputDescriptions ?? {})) {
+          expect(text.length).toBeGreaterThan(0);
+          expect(text.length).toBeLessThanOrEqual(200);
+        }
+      }
+    }
+  });
+
   it("looks entries up by id", () => {
     // Arrange / Act
     const known = getCatalogEntry("deepwiki");
