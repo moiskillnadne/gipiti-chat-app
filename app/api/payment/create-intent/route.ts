@@ -5,9 +5,11 @@ import {
   getSubscriptionByCode,
   priceForCurrency,
 } from "@/lib/billing/subscriptions";
+import { canPurchaseSubscription } from "@/lib/billing/tester-plans";
 import { db } from "@/lib/db/connection";
 import { paymentIntent } from "@/lib/db/schema";
 import type { PaymentIntentResponse } from "@/lib/types";
+import { createSubscriptionIntentRequestSchema } from "@/lib/validation/subscription-intent";
 
 /**
  * Generate a unique session ID for payment intent
@@ -26,8 +28,20 @@ export async function POST(request: Request) {
     return new Response("Unauthorized", { status: 401 });
   }
 
+  let requestBody: unknown;
   try {
-    const { planName } = await request.json();
+    requestBody = await request.json();
+  } catch {
+    return Response.json({ error: "Invalid request body" }, { status: 400 });
+  }
+
+  const parsed = createSubscriptionIntentRequestSchema.safeParse(requestBody);
+  if (!parsed.success) {
+    return Response.json({ error: "Invalid request body" }, { status: 400 });
+  }
+
+  try {
+    const { planName } = parsed.data;
 
     // Resolve the subscription catalog entry by its stable code.
     const sub = await getSubscriptionByCode(planName);
@@ -35,6 +49,18 @@ export async function POST(request: Request) {
       return Response.json(
         { error: "Invalid subscription plan" },
         { status: 400 }
+      );
+    }
+
+    // Tester-only plans: eligibility comes from the DB, not the session JWT.
+    const isPurchaseAllowed = await canPurchaseSubscription({
+      userId: session.user.id,
+      code: sub.code,
+    });
+    if (!isPurchaseAllowed) {
+      return Response.json(
+        { error: "Subscription plan is not available" },
+        { status: 403 }
       );
     }
 
