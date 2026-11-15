@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import { db } from "@/lib/db/connection";
+import { isRateLimitingEnabled } from "@/lib/rate-limit";
 import { getUpstashClient, isUpstashConfigured } from "@/lib/redis";
 
 type CheckStatus = "up" | "down";
@@ -12,6 +13,15 @@ type HealthCheck = {
   missing?: string[];
 };
 
+/**
+ * Not a dependency check: reports whether requests are rate limited at all.
+ * The limiters fail open, so without an Upstash REST client they are off and
+ * nothing else in this response would say so.
+ */
+type RateLimitingCheck = {
+  enabled: boolean;
+};
+
 type HealthResponse = {
   status: "healthy" | "degraded" | "unhealthy";
   timestamp: string;
@@ -20,6 +30,7 @@ type HealthResponse = {
     database: HealthCheck;
     redis: HealthCheck;
     environment: HealthCheck;
+    rateLimiting: RateLimitingCheck;
   };
 };
 
@@ -114,7 +125,9 @@ export async function GET() {
   const [database, redis] = await Promise.all([checkDatabase(), checkRedis()]);
   const environment = checkEnvironment();
 
-  const checks = { database, redis, environment };
+  const rateLimiting: RateLimitingCheck = { enabled: isRateLimitingEnabled() };
+
+  const checks = { database, redis, environment, rateLimiting };
   const status = determineOverallStatus(checks);
 
   const response: HealthResponse = {
