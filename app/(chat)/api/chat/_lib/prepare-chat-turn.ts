@@ -3,8 +3,7 @@ import { after } from "next/server";
 import type { Session } from "next-auth";
 import { generateTitleFromUserMessage } from "@/lib/ai/generate-chat-title";
 import {
-  DEFAULT_CHAT_MODEL,
-  isVisibleInUI,
+  getMediaCostEstimateUsd,
   supportsToolCalling,
   validateImageGenSetting,
   validateThinkingSetting,
@@ -13,7 +12,7 @@ import {
 import type { ProjectContextInput, RequestHints } from "@/lib/ai/prompts";
 import { calculateOptimalStepLimit } from "@/lib/ai/step-calculator";
 import { createImageUsageAccumulator } from "@/lib/ai/tools/generate-image";
-import { hasPositiveBalance } from "@/lib/billing/balance";
+import { checkTurnBalance } from "@/lib/billing/turn-balance";
 import { createStreamId } from "@/lib/db/query/chat/create-stream-id";
 import { getChatById } from "@/lib/db/query/chat/get-chat-by-id";
 import { getMessagesByChatId } from "@/lib/db/query/chat/get-messages-by-chat-id";
@@ -28,6 +27,7 @@ import type { ChatMessage } from "@/lib/types";
 import { convertToUIMessages, generateUUID } from "@/lib/utils";
 import type { PostRequestBody } from "../schema";
 import type { ChatTurnContext } from "./context";
+import { resolveChatMode, resolveRequestedModel } from "./resolve-mode";
 import type { TurnAbort } from "./turn-abort";
 import { createTurnSettlement } from "./turn-lifecycle";
 
@@ -166,8 +166,11 @@ function sanitizeHistory(messages: ChatMessage[]): ChatMessage[] {
  * build the sanitized message history.
  *
  * Throws ChatSDKError("forbidden:chat") when the chat belongs to another user.
- * The returned context carries `hasBalance`; the caller enforces the gate after
- * this resolves so the user message is already saved (no client-side 404).
+ * The returned context carries `balanceCheck` (the balance against this turn's
+ * minimum); the caller enforces the gate after this resolves so the user
+ * message is already saved (no client-side 404). The caller holds the user's
+ * turn slot for the mode before calling, so the balance read here includes the
+ * charge of the previous turn of that kind.
  */
 export async function prepareChatTurn(
   body: PostRequestBody,
@@ -190,9 +193,7 @@ export async function prepareChatTurn(
 
   // Transform hidden models to the default visible model, then validate the
   // thinking/image settings against the resolved model's config.
-  const model = isVisibleInUI(requestedChatModel)
-    ? requestedChatModel
-    : DEFAULT_CHAT_MODEL;
+  const model = resolveRequestedModel(requestedChatModel);
   const thinkingSetting = validateThinkingSetting(model, rawThinkingSetting);
   const imageGenSetting = validateImageGenSetting(model, rawImageGenSetting);
   const videoGenSetting = validateVideoGenSetting(model, rawVideoGenSetting);
@@ -210,8 +211,12 @@ export async function prepareChatTurn(
   });
 
   // Independent pre-stream reads in parallel.
-  const [hasBalance, existingChat, projectRow] = await Promise.all([
-    hasPositiveBalance(userId),
+  const [balanceCheck, existingChat, projectRow] = await Promise.all([
+    checkTurnBalance({
+      userId,
+      mode: resolveChatMode(model),
+      estimatedCostUsd: getMediaCostEstimateUsd(model),
+    }),
     getChatById({ id }),
     selectedProjectId
       ? getProjectById({ id: selectedProjectId })
@@ -315,7 +320,7 @@ export async function prepareChatTurn(
     projectContext,
     imageUsageAccumulator: createImageUsageAccumulator(),
     lastUsage: {},
-    hasBalance,
+    balanceCheck,
     turnAbort: turn.turnAbort,
     turnSettlement: createTurnSettlement(),
   };

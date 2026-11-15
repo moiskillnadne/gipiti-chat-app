@@ -101,6 +101,12 @@ export type ImageGenConfig = {
   quality?: ImageGenQualityConfig;
   aspectRatio?: ImageGenAspectRatioConfig;
   style?: ImageGenStyleConfig;
+  /**
+   * Provider USD cost of one generation at the defaults above, from the AI
+   * Gateway catalog. Sets the minimum balance for a turn; without it the
+   * per-mode floor in lib/billing/constants.ts applies.
+   */
+  estimatedCostUsd?: number;
 };
 export type ImageGenSetting = {
   quality?: string;
@@ -155,6 +161,12 @@ export type VideoGenConfig = {
   resolution?: VideoGenOptionSection;
   /** Kling render mode ("std" | "pro") — its quality knob. */
   mode?: VideoGenOptionSection;
+  /**
+   * Provider USD cost of one clip at the defaults above (and the default
+   * duration), from the AI Gateway catalog. Sets the minimum balance for a
+   * turn; without it the per-mode floor in lib/billing/constants.ts applies.
+   */
+  estimatedCostUsd?: number;
 };
 
 /** Per-request user choice, validated against the model's VideoGenConfig. */
@@ -1758,6 +1770,17 @@ export const getVideoGenConfig = (modelId: string): VideoGenConfig => {
     throw new Error(`Missing video config for model: ${modelId}`);
   }
   return config;
+};
+
+/** The cost estimate of one image or video generation, when configured. */
+export const getMediaCostEstimateUsd = (
+  modelId: string
+): number | undefined => {
+  const model = getModelById(modelId);
+  return (
+    model?.videoGenConfig?.estimatedCostUsd ??
+    model?.imageGenConfig?.estimatedCostUsd
+  );
 };
 
 export const supportsAttachments = (modelId: string) => {

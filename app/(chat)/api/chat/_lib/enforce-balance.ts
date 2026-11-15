@@ -5,16 +5,17 @@ import { generateUUID } from "@/lib/utils";
 import type { ChatTurnContext } from "./context";
 
 /**
- * Pre-inference balance gate. When the user has no spendable balance, persist a
- * localized assistant notice (so the chat isn't left empty) and return a
- * quota_exceeded Response for the caller to send. Returns null to proceed.
+ * Pre-inference balance gate. When the balance is below the minimum for the
+ * turn's mode (`ctx.balanceCheck`), persist a localized assistant notice (so
+ * the chat isn't left empty) and return a quota_exceeded Response for the
+ * caller to send. Returns null to proceed.
  *
  * Runs after prepareChatTurn so the user message is already saved.
  */
 export async function enforceBalance(
   ctx: ChatTurnContext
 ): Promise<Response | null> {
-  if (ctx.hasBalance) {
+  if (ctx.balanceCheck.isSufficient) {
     return null;
   }
 

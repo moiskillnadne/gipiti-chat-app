@@ -1,6 +1,7 @@
 import { desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db/connection";
 import { currency, fxRate } from "@/lib/db/schema";
+import { getMinorUnits } from "./currencies";
 
 // Free, no-key USD-based rates API covering all our quote currencies.
 const FX_API_URL = "https://open.er-api.com/v6/latest/USD";
@@ -31,6 +32,25 @@ export async function getLatestFxRate(
     .limit(1);
 
   return row ? Number(row.rate) : null;
+}
+
+/** What converting a USD cost into a currency's minor units needs. */
+export type CurrencyPricing = {
+  minorUnits: number;
+  /** Latest cached USD→currency rate, or null when none is cached yet. */
+  fxRate: number | null;
+};
+
+/**
+ * Minor-unit exponent and latest FX rate for a currency, as used to price a
+ * usage charge (`chargeUsage`) and a turn's minimum balance.
+ */
+export async function getCurrencyPricing(
+  currencyCode: string
+): Promise<CurrencyPricing> {
+  const minorUnits = await getMinorUnits(currencyCode);
+  const rate = await getLatestFxRate(currencyCode);
+  return { minorUnits, fxRate: rate };
 }
 
 /**

@@ -61,3 +61,18 @@ export const SEARCH_COST_USD = {
 } as const;
 
 export type SearchDepth = keyof typeof SEARCH_COST_USD;
+
+// Turns a user may have in flight at once, by kind. A slot is held from before
+// the balance gate until the turn's charge has been written, so one user's turns
+// of a kind are checked against a balance that includes the previous charge.
+// Image and video share the media slot.
+export const TEXT_TURN_SLOT_LIMIT = 3;
+export const MEDIA_TURN_SLOT_LIMIT = 1;
+
+// Minimum spendable balance (minor units of the user's currency) required to
+// start a turn. Text turns need a small constant floor. Image and video turns
+// need the model's `estimatedCostUsd` priced like a charge; these floors apply
+// when the model has no estimate or no FX rate is cached.
+export const MIN_TEXT_TURN_BALANCE_MINOR = 100;
+export const MIN_IMAGE_TURN_BALANCE_MINOR = 2000;
+export const MIN_VIDEO_TURN_BALANCE_MINOR = 20_000;

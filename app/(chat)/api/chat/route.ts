@@ -16,7 +16,11 @@ import { runVideoGeneration } from "./_lib/handlers/video-generation";
 import { parseRequestBody } from "./_lib/parse-request";
 import { persistAssistantTurn } from "./_lib/persist-assistant-turn";
 import { prepareChatTurn } from "./_lib/prepare-chat-turn";
-import { type ChatMode, resolveChatMode } from "./_lib/resolve-mode";
+import {
+  type ChatMode,
+  resolveChatMode,
+  resolveRequestedModel,
+} from "./_lib/resolve-mode";
 import { watchChatStop } from "./_lib/stop-signal";
 import { getStreamContext } from "./_lib/stream-context";
 import { createTurnAbort } from "./_lib/turn-abort";
@@ -30,6 +34,11 @@ import {
   waitForSettlement,
   waitWithTimeout,
 } from "./_lib/turn-lifecycle";
+import {
+  acquireChatTurnSlot,
+  enforceChatRateLimit,
+  runHoldingTurnSlot,
+} from "./_lib/turn-slot";
 
 // The GA maximum for Pro with Fluid compute: long reasoning answers need more
 // than the 300s project default. Above 800s the platform limit is beta-only.
@@ -73,6 +82,29 @@ export async function POST(request: Request) {
 
   // Catches tabs left open across Moscow midnight that chat without reloading.
   recordUserActivity(session.user.id);
+
+  // Rate limit, then hold one of the user's turn slots for this mode until the
+  // turn's charge is written: the balance gate below then sees the previous
+  // turn's charge. Both reject with 429 before anything is saved.
+  const mode = resolveChatMode(
+    resolveRequestedModel(parsed.body.selectedChatModel)
+  );
+  let slot: Awaited<ReturnType<typeof acquireChatTurnSlot>>;
+  try {
+    await enforceChatRateLimit(session.user.id);
+    slot = await acquireChatTurnSlot({
+      userId: session.user.id,
+      mode,
+      ttlMs: maxDuration * 1000,
+    });
+  } catch (error) {
+    return handleChatError(error, request);
+  }
+  // Keeps the function alive for a release that lands after the response.
+  after(() => waitWithTimeout(slot.whenReleased, maxDuration * 1000));
+  // Set right before the mode handler runs; from then on the handler's own
+  // terminal paths release the slot (runHoldingTurnSlot).
+  let isHandlerStarted = false;
 
   let stopWatch: ReturnType<typeof watchChatStop> | undefined;
   // Resolved when the stop watcher is cleaned up (or there was none).
@@ -128,10 +160,11 @@ export async function POST(request: Request) {
     // 404s on a freshly created chat.
     const insufficientBalance = await enforceBalance(ctx);
     if (insufficientBalance) {
+      // No provider call was made: nothing to charge, free the slot now.
+      slot.release();
       return insufficientBalance;
     }
 
-    const mode = resolveChatMode(ctx.model);
     const runHandler = STREAM_HANDLERS[mode];
 
     turnDiagnostics = startTurnDiagnostics({
@@ -203,6 +236,7 @@ export async function POST(request: Request) {
             ctx.turnOutcome = "skipped";
             ctx.turnSettlement.resolve();
             finishHandler();
+            slot.release();
             return;
           }
           try {
@@ -215,7 +249,13 @@ export async function POST(request: Request) {
               data: ctx.turnId,
               transient: true,
             });
-            await runHandler(ctx, writer);
+            isHandlerStarted = true;
+            await runHoldingTurnSlot({
+              mode,
+              ctx,
+              slot,
+              run: () => runHandler(ctx, writer),
+            });
           } finally {
             finishHandler();
           }
@@ -279,6 +319,11 @@ export async function POST(request: Request) {
     closeStopWatch();
     finishHandler();
     finishTurn();
+    // Failed before the handler ran (no provider call): free the slot. Once it
+    // ran, the handler's terminal paths release it after the charge.
+    if (!isHandlerStarted) {
+      slot.release();
+    }
     return handleChatError(error, request);
   }
 }

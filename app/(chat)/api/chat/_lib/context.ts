@@ -7,6 +7,7 @@ import type {
 } from "@/lib/ai/models";
 import type { ProjectContextInput, RequestHints } from "@/lib/ai/prompts";
 import type { ImageGenerationUsageAccumulator } from "@/lib/ai/tools/generate-image";
+import type { TurnBalanceCheck } from "@/lib/billing/turn-balance";
 import type { ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
 import type { MediaGenerationPart } from "./media-part";
@@ -53,7 +54,8 @@ export type ChatTurnContext = {
    * and video turns intentionally leave it unset, matching prior behavior).
    */
   lastUsage: { value?: AppUsage };
-  hasBalance: boolean;
+  /** The user's balance against the minimum this turn's mode requires. */
+  balanceCheck: TurnBalanceCheck;
   /**
    * Stop control for the turn: `turnAbort.signal` aborts the provider request;
    * `turnAbort.requestAbort()` is the entry point for a user stop (it waits
