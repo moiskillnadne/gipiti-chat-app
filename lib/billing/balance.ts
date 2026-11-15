@@ -12,6 +12,7 @@ import {
   USAGE_MARKUP,
 } from "./constants";
 import { getMinorUnits } from "./currencies";
+import { assertEmailVerified } from "./email-verification";
 import { getLatestFxRate } from "./fx";
 import { majorToMinorUnits, usdToMinorUnits } from "./money";
 
@@ -453,12 +454,16 @@ export async function grantEmailVerificationBonus(
  * transaction already exists for this user and `quizKey` this is a no-op and
  * returns null. The existence check and the credit run inside a single
  * row-locked transaction, so concurrent callers cannot double-credit.
+ *
+ * Requires a confirmed email (read from the database): throws
+ * `EmailNotVerifiedError` before any write when the email is not verified.
  */
 export async function grantQuizBonus(
   userId: string,
   quizKey: string,
   bonusMajorUnits: number
 ): Promise<BalanceChangeResult | null> {
+  await assertEmailVerified(userId);
   await ensureBalance(userId);
 
   const summary = await getBalance(userId);
