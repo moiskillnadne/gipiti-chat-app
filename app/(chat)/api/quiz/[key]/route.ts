@@ -1,8 +1,10 @@
 import { auth } from "@/app/(auth)/auth";
 import { grantQuizBonus } from "@/lib/billing/balance";
+import { isUserEmailVerified } from "@/lib/billing/email-verification";
 import { createQuizResponse } from "@/lib/db/query/quiz/create-quiz-response";
 import { getQuizResponse } from "@/lib/db/query/quiz/get-quiz-response";
 import { ChatSDKError } from "@/lib/errors";
+import { getTranslations } from "@/lib/i18n/translate";
 import { getQuizDefinition } from "@/lib/quiz/registry";
 import type { QuizAnswers } from "@/lib/quiz/types";
 
@@ -50,6 +52,19 @@ export async function POST(request: Request, { params }: RouteContext) {
   }
 
   const userId = session.user.id;
+
+  // The quiz bonus is paid only to users with a confirmed email (read from the
+  // DB, not the session). Refuse before saving so the user can take the quiz
+  // after confirming.
+  const isVerified = await isUserEmailVerified(userId);
+  if (!isVerified) {
+    const t = await getTranslations("onboardingQuiz.api");
+    return new ChatSDKError(
+      "forbidden:auth",
+      "Email is not verified",
+      t("emailNotVerified")
+    ).toResponse();
+  }
 
   // Already completed — idempotent success, no second reward.
   const existing = await getQuizResponse({ userId, quizKey: key });
