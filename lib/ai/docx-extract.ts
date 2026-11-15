@@ -1,6 +1,7 @@
 import "server-only";
 
 import mammoth from "mammoth";
+import { fetchAttachmentBytes } from "../attachments/attachment-fetch-policy";
 import type { ChatMessage } from "../types";
 
 /** OOXML Word document MIME type. */
@@ -56,11 +57,9 @@ export async function extractDocxText(buffer: Buffer): Promise<string> {
 
 async function fetchAndExtract(url: string, label: string): Promise<string> {
   try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      return `[Не удалось прочитать файл "${label}".]`;
-    }
-    const buffer = Buffer.from(await response.arrayBuffer());
+    // `url` comes from the client: the fetch policy only downloads from the
+    // app's Blob store, within a size cap and a timeout.
+    const buffer = Buffer.from(await fetchAttachmentBytes(url));
     const text = await extractDocxText(buffer);
     return `Содержимое документа "${label}":\n\n${text}`;
   } catch (error) {

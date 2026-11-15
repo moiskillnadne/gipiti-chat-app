@@ -34,11 +34,13 @@ function verifyWebhook(
     "svix-signature": string | null;
   }
 ): WebhookEvent | null {
+  // Without the secret the sender cannot be verified, so nothing is accepted:
+  // parsing the payload anyway would let anyone trigger a forward.
   if (!resendWebhookSecret) {
-    console.warn(
-      "[ResendWebhook] RESEND_WEBHOOK_SECRET not configured, skipping verification"
+    console.error(
+      "[ResendWebhook] RESEND_WEBHOOK_SECRET is not configured, rejecting webhook"
     );
-    return JSON.parse(payload) as WebhookEvent;
+    return null;
   }
 
   const id = headers["svix-id"];

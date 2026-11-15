@@ -52,7 +52,8 @@ vi.mock("@/lib/db/query/document/get-document-by-generation-id", () => ({
 
 import { resolveImageProvider } from "../image/providers";
 
-const SOURCE_IMAGE_URL = "https://blob.example/source.png";
+const SOURCE_IMAGE_URL =
+  "https://store.public.blob.vercel-storage.com/source.png";
 
 const buildInput = (abortSignal: AbortSignal): ImageGenInput => ({
   modelId: "flux-test",
@@ -76,10 +77,7 @@ describe("dedicated image provider abort handling", () => {
     vi.spyOn(console, "warn").mockReturnValue(undefined);
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue({
-        ok: true,
-        arrayBuffer: async () => new ArrayBuffer(4),
-      })
+      vi.fn(async () => new Response(new Uint8Array(4), { status: 200 }))
     );
   });
 
@@ -102,9 +100,29 @@ describe("dedicated image provider abort handling", () => {
 
     await resolveImageProvider("flux-test")(buildInput(turnAbort.signal));
 
-    expect(fetch).toHaveBeenCalledWith(SOURCE_IMAGE_URL, {
-      signal: turnAbort.signal,
-    });
+    // The download runs under a signal combining the turn signal with the
+    // fetch policy's timeout, so a stop must abort it.
+    const [url, init] = vi.mocked(fetch).mock.calls[0];
+    const downloadSignal = init?.signal;
+    expect(url).toBe(SOURCE_IMAGE_URL);
+    expect(downloadSignal?.aborted).toBe(false);
+
+    turnAbort.requestAbort();
+
+    expect(downloadSignal?.aborted).toBe(true);
+  });
+
+  it("does not download a source image from outside the Blob store", async () => {
+    const turnAbort = createTurnAbort();
+    resolveLatestImageUrlMock.mockReturnValue("http://127.0.0.1:8080/admin");
+    sdkGenerateImageMock.mockResolvedValue(successResult);
+
+    await expect(
+      resolveImageProvider("flux-test")(buildInput(turnAbort.signal))
+    ).rejects.toMatchObject({ reason: "url_not_allowed" });
+
+    expect(fetch).not.toHaveBeenCalled();
+    expect(sdkGenerateImageMock).not.toHaveBeenCalled();
   });
 
   it("does not fall back to text-to-image when the edit was aborted", async () => {

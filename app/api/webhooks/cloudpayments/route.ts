@@ -1,4 +1,3 @@
-import crypto from "node:crypto";
 import { getCloudPaymentsConfig } from "@/lib/payments/cloudpayments-config";
 import type {
   CloudPaymentsCancelWebhook,
@@ -14,27 +13,13 @@ import { handlePayWebhook } from "./lib/handlers/pay";
 import { handleRecurrentWebhook } from "./lib/handlers/recurrent";
 import { handleRefundWebhook } from "./lib/handlers/refund";
 import { normalizeRecurrentPayload } from "./lib/recurrent-normalizer";
+import { isValidWebhookSignature } from "./lib/signature";
 
 // CloudPayments has a 30s timeout for webhooks.
 // Ensure Vercel allocates enough time (especially for cold starts + DB queries).
 export const maxDuration = 25;
 
 type WebhookType = "check" | "pay" | "fail" | "recurrent" | "cancel" | "refund";
-
-function validateWebhookSignature(
-  body: string,
-  signature: string | null
-): boolean {
-  if (!signature) {
-    return false;
-  }
-
-  const config = getCloudPaymentsConfig();
-  const hmac = crypto.createHmac("sha256", config.apiSecret);
-  hmac.update(body);
-  const expectedSignature = hmac.digest("base64");
-  return signature === expectedSignature;
-}
 
 function getWebhookType(request: Request): WebhookType | null {
   const url = new URL(request.url);
@@ -67,7 +52,17 @@ export async function POST(request: Request): Promise<Response> {
   const rawBody = await request.text();
   const signature = request.headers.get("Content-HMAC");
 
-  if (!validateWebhookSignature(rawBody, signature)) {
+  // The config is read only once a signature is present, as before: a request
+  // without the header is refused even when the secret is not configured.
+  const isSignatureValid =
+    signature !== null &&
+    isValidWebhookSignature(
+      rawBody,
+      signature,
+      getCloudPaymentsConfig().apiSecret
+    );
+
+  if (!isSignatureValid) {
     console.error("[CloudPayments] Invalid webhook signature");
     return Response.json({ code: 13 }, { status: 401 });
   }

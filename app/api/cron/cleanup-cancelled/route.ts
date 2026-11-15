@@ -1,12 +1,12 @@
 import { and, eq, lte } from "drizzle-orm";
+import { isAuthorizedCronRequest } from "@/lib/cron/is-authorized-cron-request";
 import { db } from "@/lib/db/connection";
 import { getActiveUserSubscription } from "@/lib/db/query/subscription/get-active-user-subscription";
 import { userSubscription } from "@/lib/db/schema";
 import { assignFreePlan } from "@/lib/subscription/subscription-init";
 
 export async function GET(request: Request) {
-  const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isAuthorizedCronRequest(request)) {
     return new Response("Unauthorized", { status: 401 });
   }
 

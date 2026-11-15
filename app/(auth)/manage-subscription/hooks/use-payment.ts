@@ -63,7 +63,9 @@ export function usePayment(options: UsePaymentOptions): UsePaymentReturn {
   const isPollingRef = useRef(false);
 
   const handleSessionUpdate = useCallback(async () => {
-    await updateSession({ hasActiveSubscription: true });
+    // The empty payload makes it a POST, which is what tells the server to
+    // re-read the claims from the database; it carries no claims itself.
+    await updateSession({});
     router.replace(successRedirectUrl);
   }, [updateSession, router, successRedirectUrl]);
 

@@ -1,4 +1,5 @@
 import { refreshFxRates } from "@/lib/billing/fx";
+import { isAuthorizedCronRequest } from "@/lib/cron/is-authorized-cron-request";
 
 /**
  * Refresh cached USD→currency FX rates. Scheduled hourly. On failure the last
@@ -6,8 +7,7 @@ import { refreshFxRates } from "@/lib/billing/fx";
  * deduction keeps working off the most recent successful fetch.
  */
 export async function GET(request: Request) {
-  const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isAuthorizedCronRequest(request)) {
     return new Response("Unauthorized", { status: 401 });
   }
 

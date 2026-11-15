@@ -43,6 +43,32 @@ if (upstashClient) {
 }
 
 /**
+ * True when the limiters below are backed by Upstash. When false every check
+ * in this file lets the request through, so nothing is rate limited.
+ */
+export const isRateLimitingEnabled = (): boolean => upstashClient !== null;
+
+let hasWarnedRateLimitingDisabled = false;
+
+/**
+ * Log, once per server instance, that requests are not being rate limited.
+ * Called from every check so the gap shows up in the logs on first use
+ * without a line per request.
+ */
+const warnRateLimitingDisabledOnce = (): void => {
+  if (hasWarnedRateLimitingDisabled) {
+    return;
+  }
+  hasWarnedRateLimitingDisabled = true;
+  console.warn(
+    "[RateLimit] Rate limiting is DISABLED: no Upstash REST client. " +
+      "Set KV_REST_API_URL and KV_REST_API_TOKEN (or an https:// REDIS_URL " +
+      "with REDIS_TOKEN). Chat, password reset, verification resend and " +
+      "payment status requests are not rate limited."
+  );
+};
+
+/**
  * Check if password reset request is rate limited
  * @param email The email address requesting password reset
  * @returns Object with success status and remaining attempts
@@ -54,12 +80,7 @@ export async function checkPasswordResetRateLimit(email: string): Promise<{
 }> {
   // If rate limiter is not configured, allow the request
   if (!passwordResetRateLimiter) {
-    console.warn(
-      "Rate limiting is not configured. Please set one of the following:\n" +
-        "1. KV_REST_API_URL and KV_REST_API_TOKEN, or\n" +
-        "2. REDIS_URL (with Upstash REST format)\n" +
-        "Password reset requests will proceed without rate limiting."
-    );
+    warnRateLimitingDisabledOnce();
     return { success: true };
   }
 
@@ -108,9 +129,7 @@ export async function checkVerificationResendRateLimit(email: string): Promise<{
 }> {
   // If rate limiter is not configured, allow the request
   if (!verificationResendRateLimiter) {
-    console.warn(
-      "Rate limiting is not configured. Verification resend requests will proceed without rate limiting."
-    );
+    warnRateLimitingDisabledOnce();
     return { success: true };
   }
 
@@ -156,9 +175,7 @@ export async function checkPaymentStatusRateLimit(identifier: string): Promise<{
 }> {
   // If rate limiter is not configured, allow the request
   if (!paymentStatusRateLimiter) {
-    console.warn(
-      "Payment status rate limiting is not configured. Requests will proceed without rate limiting."
-    );
+    warnRateLimitingDisabledOnce();
     return { success: true };
   }
 
@@ -191,6 +208,7 @@ export async function checkChatRateLimit(userId: string): Promise<{
   reset?: number;
 }> {
   if (!chatRequestRateLimiter) {
+    warnRateLimitingDisabledOnce();
     return { success: true };
   }
 

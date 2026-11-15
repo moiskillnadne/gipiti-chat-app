@@ -115,8 +115,15 @@ export const openApiDocument: OpenApiDocument = {
               database: { $ref: "#/components/schemas/HealthCheck" },
               redis: { $ref: "#/components/schemas/HealthCheck" },
               environment: { $ref: "#/components/schemas/HealthCheck" },
+              rateLimiting: {
+                type: "object",
+                description:
+                  "Включено ли ограничение частоты запросов. На общий статус не влияет.",
+                properties: { enabled: { type: "boolean" } },
+                required: ["enabled"],
+              },
             },
-            required: ["database", "redis", "environment"],
+            required: ["database", "redis", "environment", "rateLimiting"],
           },
         },
         required: ["status", "timestamp", "version", "checks"],

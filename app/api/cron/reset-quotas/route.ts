@@ -1,6 +1,7 @@
 import { and, eq, isNull, lte } from "drizzle-orm";
 import { resetSubscriptionPool } from "@/lib/billing/balance";
 import { priceForCurrency } from "@/lib/billing/subscriptions";
+import { isAuthorizedCronRequest } from "@/lib/cron/is-authorized-cron-request";
 import { db } from "@/lib/db/connection";
 import {
   subscription,
@@ -117,8 +118,7 @@ async function expireSubscription(
 
 export async function GET(request: Request) {
   // Verify cron secret
-  const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isAuthorizedCronRequest(request)) {
     return new Response("Unauthorized", { status: 401 });
   }
 
