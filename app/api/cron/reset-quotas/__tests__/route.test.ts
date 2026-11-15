@@ -108,6 +108,24 @@ describe("GET /api/cron/reset-quotas", () => {
     assignFreePlanMock.mockReset().mockResolvedValue(undefined);
   });
 
+  it("rejects `Bearer undefined` when CRON_SECRET is not configured", async () => {
+    // Arrange
+    vi.stubEnv("CRON_SECRET", undefined);
+    dbState.dueRows = [buildRow({ userId: "user_regular", isTester: false })];
+
+    // Act
+    const response = await GET(
+      new Request("https://example.test/api/cron/reset-quotas", {
+        headers: { authorization: "Bearer undefined" },
+      })
+    );
+
+    // Assert
+    expect(response.status).toBe(401);
+    expect(dbState.updates).toEqual([]);
+    expect(assignFreePlanMock).not.toHaveBeenCalled();
+  });
+
   it("expires a non-tester's subscription and moves the user to the free state", async () => {
     // Arrange
     dbState.dueRows = [buildRow({ userId: "user_regular", isTester: false })];

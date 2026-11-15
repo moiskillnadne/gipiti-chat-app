@@ -1,4 +1,5 @@
 import { and, eq, lte } from "drizzle-orm";
+import { isAuthorizedCronRequest } from "@/lib/cron/is-authorized-cron-request";
 import { db } from "@/lib/db/connection";
 import { paymentIntent } from "@/lib/db/schema";
 
@@ -11,8 +12,7 @@ import { paymentIntent } from "@/lib/db/schema";
  */
 export async function GET(request: Request) {
   // Verify cron secret
-  const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isAuthorizedCronRequest(request)) {
     return new Response("Unauthorized", { status: 401 });
   }
 
