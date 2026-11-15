@@ -1,13 +1,25 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { getUpstashClient } from "@/lib/redis";
 
+// POST /api/chat: requests per user per sliding window.
+const CHAT_REQUEST_LIMIT = 30;
+const CHAT_REQUEST_WINDOW = "1 m";
+
 // Initialize rate limiters with Upstash client
 let passwordResetRateLimiter: Ratelimit | null = null;
 let verificationResendRateLimiter: Ratelimit | null = null;
 let paymentStatusRateLimiter: Ratelimit | null = null;
+let chatRequestRateLimiter: Ratelimit | null = null;
 
 const upstashClient = getUpstashClient();
 if (upstashClient) {
+  chatRequestRateLimiter = new Ratelimit({
+    redis: upstashClient,
+    limiter: Ratelimit.slidingWindow(CHAT_REQUEST_LIMIT, CHAT_REQUEST_WINDOW),
+    analytics: true,
+    prefix: "ratelimit:chat",
+  });
+
   passwordResetRateLimiter = new Ratelimit({
     redis: upstashClient,
     limiter: Ratelimit.slidingWindow(5, "1 h"),
@@ -162,6 +174,33 @@ export async function checkPaymentStatusRateLimit(identifier: string): Promise<{
     };
   } catch (error) {
     console.error("Error checking payment status rate limit:", error);
+    return { success: true };
+  }
+}
+
+/**
+ * Check if a user's POST /api/chat request is rate limited. Like the other
+ * limiters here, the request is allowed when Redis is not configured or the
+ * check itself fails.
+ * @param userId The authenticated user sending the message
+ * @returns Object with success status and remaining requests
+ */
+export async function checkChatRateLimit(userId: string): Promise<{
+  success: boolean;
+  remaining?: number;
+  reset?: number;
+}> {
+  if (!chatRequestRateLimiter) {
+    return { success: true };
+  }
+
+  try {
+    const { success, remaining, reset } =
+      await chatRequestRateLimiter.limit(userId);
+
+    return { success, remaining, reset };
+  } catch (error) {
+    console.error("Error checking chat rate limit:", { userId, error });
     return { success: true };
   }
 }

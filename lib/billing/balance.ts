@@ -13,7 +13,7 @@ import {
 } from "./constants";
 import { getMinorUnits } from "./currencies";
 import { assertEmailVerified } from "./email-verification";
-import { getLatestFxRate } from "./fx";
+import { getCurrencyPricing } from "./fx";
 import { majorToMinorUnits, usdToMinorUnits } from "./money";
 
 export type BalanceSummary = {
@@ -33,6 +33,10 @@ type TransactionMetadata = {
   refundedAmount?: number;
   previousSubscriptionAmount?: number;
   previousTopupAmount?: number;
+  /** Usage debit floored at zero: what the turn cost, in minor units. */
+  requestedAmount?: number;
+  /** Usage debit floored at zero: the part of `requestedAmount` not debited. */
+  shortfallAmount?: number;
 };
 
 type BalanceChangeResult = {
@@ -92,20 +96,12 @@ export async function ensureBalance(
 }
 
 /**
- * Pre-inference gate: does the user have any spendable balance? Exact cost is
- * unknown until after inference, so we only require a positive total here.
- */
-export async function hasPositiveBalance(userId: string): Promise<boolean> {
-  const summary = await getBalance(userId);
-  return summary ? summary.total > 0 : false;
-}
-
-/**
  * Charge a provider USD cost to the user's balance, converting via the latest
  * cached FX rate and the configured markup. Drains the subscription pool first,
  * then top-up, flooring at zero (never negative). Records one `usage_debit`
- * transaction snapshotting the pricing inputs. Returns null when there is
- * nothing to charge or no balance/FX rate is available.
+ * transaction snapshotting the pricing inputs; when the floor cut the charge,
+ * the uncharged remainder goes into its metadata and a warning. Returns null
+ * when there is nothing to charge or no balance/FX rate is available.
  */
 export async function chargeUsage({
   userId,
@@ -138,8 +134,9 @@ export async function chargeUsage({
       return null;
     }
 
-    const minorUnits = await getMinorUnits(row.currencyCode);
-    const rate = await getLatestFxRate(row.currencyCode);
+    const { minorUnits, fxRate: rate } = await getCurrencyPricing(
+      row.currencyCode
+    );
     if (rate == null) {
       // No FX rate cached yet — cannot price this request. Fail open (don't
       // charge) rather than block the user; the FX cron should populate rates.
@@ -161,6 +158,11 @@ export async function chargeUsage({
     const totalCharged = fromSubscription + fromTopup;
     const newSubscription = row.subscriptionAmount - fromSubscription;
     const newTopup = row.topupAmount - fromTopup;
+    const shortfallAmount = amount - totalCharged;
+    const shortfallMetadata: TransactionMetadata | undefined =
+      shortfallAmount > 0
+        ? { requestedAmount: amount, shortfallAmount }
+        : undefined;
 
     await tx
       .update(balance)
@@ -189,8 +191,23 @@ export async function chargeUsage({
         chatId,
         messageId,
         description,
+        metadata: shortfallMetadata,
       })
       .returning({ id: transaction.id });
+
+    if (shortfallMetadata) {
+      console.warn("[billing] usage charge floored at zero", {
+        userId,
+        chatId,
+        messageId,
+        modelId,
+        currencyCode: row.currencyCode,
+        requestedAmount: amount,
+        chargedAmount: totalCharged,
+        shortfallAmount,
+        transactionId: debit.id,
+      });
+    }
 
     return {
       amount: totalCharged,
