@@ -13,7 +13,6 @@ import {
   VALID_REASON_CODES,
   validateReasonCodes,
 } from "@/lib/subscription/cancellation-reasons";
-import { upgradeToPlan } from "@/lib/subscription/subscription-init";
 
 type CancellationFeedback = {
   reasons: string[];
@@ -24,42 +23,8 @@ type CancelRequestBody = {
   feedback?: CancellationFeedback;
 };
 
-type UpgradeRequestBody = {
-  code?: string;
-  planName?: string;
-};
-
-/**
- * Create or upgrade subscription
- */
-export async function POST(request: Request) {
-  const session = await auth();
-  if (!session?.user) {
-    return new Response("Unauthorized", { status: 401 });
-  }
-
-  const body: UpgradeRequestBody = await request.json();
-  const code = body.code ?? body.planName;
-
-  if (!code) {
-    return Response.json(
-      { error: "Missing subscription code" },
-      { status: 400 }
-    );
-  }
-
-  try {
-    await upgradeToPlan(session.user.id, code);
-
-    return Response.json({
-      success: true,
-      message: `Successfully upgraded to ${code}`,
-    });
-  } catch (error) {
-    console.error("Failed to upgrade plan:", error);
-    return Response.json({ error: "Failed to upgrade plan" }, { status: 500 });
-  }
-}
+// There is deliberately no POST handler here. A subscription becomes active only
+// through the CloudPayments `pay` webhook, after a payment (GIPITI-119).
 
 /**
  * Get current subscription and balance
