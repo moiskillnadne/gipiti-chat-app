@@ -77,7 +77,7 @@ export const {
     }),
   ],
   callbacks: {
-    async jwt({ token, user, trigger, session }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id as string;
         token.type = user.type;
@@ -87,15 +87,11 @@ export const {
         token.isTester = (user.isTester ?? false) as boolean;
       }
 
-      // Refresh from database on session update
+      // On `useSession().update()` the claims are re-read from the database.
+      // Nothing is taken from the `session` argument: it is the request body
+      // of `POST /api/auth/session`, so the client controls it.
       if (trigger === "update") {
-        console.log(
-          "JWT callback triggered with update, session data:",
-          session
-        );
-
         if (token.id) {
-          // Check subscription status from database
           const subscription = await getActiveUserSubscription({
             userId: token.id,
           });
@@ -106,26 +102,10 @@ export const {
           const userRecord = await getUserByEmail(token.email);
 
           if (userRecord) {
-            console.log("DB user emailVerified:", userRecord.emailVerified);
             token.emailVerified = userRecord.emailVerified as boolean;
             token.isTester = userRecord.isTester as boolean;
           }
         }
-
-        // Also allow updating directly from session data
-        if (session?.emailVerified !== undefined) {
-          console.log(
-            "Updating token.emailVerified from session:",
-            session.emailVerified
-          );
-          token.emailVerified = session.emailVerified as boolean;
-        }
-        if (session?.hasActiveSubscription !== undefined) {
-          token.hasActiveSubscription =
-            session.hasActiveSubscription as boolean;
-        }
-
-        console.log("Final token.emailVerified:", token.emailVerified);
       }
 
       return token;
@@ -138,7 +118,6 @@ export const {
         session.user.emailVerified = token.emailVerified;
         session.user.hasActiveSubscription = token.hasActiveSubscription;
         session.user.isTester = token.isTester;
-        console.log("Session callback - emailVerified:", token.emailVerified);
       }
 
       return session;

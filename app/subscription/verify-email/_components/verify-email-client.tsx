@@ -105,7 +105,9 @@ export function VerifyEmailClient({
       const timer = setTimeout(() => {
         setIsDone(true);
         // Best-effort JWT refresh so the dashboard sees the verified state.
-        update({ emailVerified: true }).catch(() => {
+        // The empty payload makes it a POST, which is what tells the server
+        // to re-read the claims from the database; it carries no claims.
+        update({}).catch(() => {
           // Ignored — the next navigation re-reads the session from the cookie.
         });
       }, OK_TO_DONE_MS);
