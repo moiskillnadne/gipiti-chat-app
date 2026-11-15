@@ -2,11 +2,118 @@ import { and, eq, isNull, lte } from "drizzle-orm";
 import { resetSubscriptionPool } from "@/lib/billing/balance";
 import { priceForCurrency } from "@/lib/billing/subscriptions";
 import { db } from "@/lib/db/connection";
-import { subscription, userSubscription } from "@/lib/db/schema";
+import {
+  subscription,
+  type UserSubscription,
+  user,
+  userSubscription,
+} from "@/lib/db/schema";
 import {
   calculateNextBillingDate,
   calculatePeriodEnd,
 } from "@/lib/subscription/billing-periods";
+import { decidePeriodEndAction } from "@/lib/subscription/period-end-action";
+import { assignFreePlan } from "@/lib/subscription/subscription-init";
+import type { BillingPeriod } from "@/lib/subscription/subscription-tiers";
+
+type DueSubscription = {
+  sub: UserSubscription;
+  billingPeriod: BillingPeriod;
+  billingPeriodCount: number;
+};
+
+/**
+ * Extend a tester's subscription by one billing period and reset the
+ * subscription pool to the plan price. Returns whether the pool was reset.
+ */
+async function renewSubscription(
+  { sub, billingPeriod, billingPeriodCount }: DueSubscription,
+  now: Date
+): Promise<boolean> {
+  const newPeriodStart = sub.currentPeriodEnd;
+  const newPeriodEnd = calculatePeriodEnd(
+    newPeriodStart,
+    billingPeriod,
+    billingPeriodCount
+  );
+  const newBillingDate = calculateNextBillingDate(
+    newPeriodStart,
+    billingPeriod,
+    billingPeriodCount
+  );
+
+  await db
+    .update(userSubscription)
+    .set({
+      currentPeriodStart: newPeriodStart,
+      currentPeriodEnd: newPeriodEnd,
+      nextBillingDate: newBillingDate,
+      updatedAt: now,
+    })
+    .where(eq(userSubscription.id, sub.id));
+
+  console.log(
+    `[Cron:ResetQuotas] Renewed: new period ${newPeriodStart.toISOString()} to ${newPeriodEnd.toISOString()}`
+  );
+
+  // Reset the subscription balance pool to the plan price for the new period.
+  try {
+    const price = await priceForCurrency(sub.subscriptionId, sub.currencyCode);
+
+    if (price == null) {
+      console.error(
+        `[Cron:ResetQuotas] No ${sub.currencyCode} price for subscription ${sub.subscriptionId}, skipping pool reset`
+      );
+      return false;
+    }
+
+    await resetSubscriptionPool({
+      userId: sub.userId,
+      amount: price,
+      currencyCode: sub.currencyCode,
+      type: "subscription_renewal",
+      referenceId: sub.id,
+    });
+
+    console.log(
+      `[Cron:ResetQuotas] Subscription pool reset to ${price} for user ${sub.userId}`
+    );
+    return true;
+  } catch (balanceError) {
+    console.error(
+      `[Cron:ResetQuotas] Failed to reset balance for user ${sub.userId}:`,
+      balanceError
+    );
+    return false;
+  }
+}
+
+/**
+ * End a subscription whose period is not backed by a payment and move the user
+ * to the free state (empty subscription pool, top-up pool untouched).
+ */
+async function expireSubscription(
+  sub: UserSubscription,
+  now: Date
+): Promise<void> {
+  await db
+    .update(userSubscription)
+    .set({ status: "expired", updatedAt: now })
+    .where(eq(userSubscription.id, sub.id));
+
+  // assignFreePlan no-ops when the user has another active subscription.
+  try {
+    await assignFreePlan(sub.userId);
+    console.log(
+      `[Cron:ResetQuotas] Expired subscription ${sub.id}, assigned free plan to user ${sub.userId}`
+    );
+  } catch (error) {
+    console.error(
+      `[Cron:ResetQuotas] Failed to assign free plan to user ${sub.userId} after expiring subscription ${sub.id}:`,
+      error
+    );
+  }
+}
 
 export async function GET(request: Request) {
   // Verify cron secret
@@ -19,20 +126,23 @@ export async function GET(request: Request) {
 
   console.log("[Cron:ResetQuotas] Starting non-recurring subscription renewal");
 
-  // Renew active subscriptions whose period has ended and that are NOT backed by
-  // a CloudPayments recurring subscription (externalSubscriptionId IS NULL).
-  // CloudPayments-recurring subs are renewed by the recurrent webhook instead.
-  const expiredSubscriptions = await db
+  // Active subscriptions whose period has ended and that are NOT backed by a
+  // CloudPayments recurring subscription (externalSubscriptionId IS NULL).
+  // CloudPayments-recurring subs are renewed by the webhooks instead. The
+  // owner's tester flag is read from the DB: only testers are renewed here.
+  const dueSubscriptions = await db
     .select({
       sub: userSubscription,
       billingPeriod: subscription.billingPeriod,
       billingPeriodCount: subscription.billingPeriodCount,
+      isTester: user.isTester,
     })
     .from(userSubscription)
     .innerJoin(
       subscription,
       eq(userSubscription.subscriptionId, subscription.id)
     )
+    .innerJoin(user, eq(userSubscription.userId, user.id))
     .where(
       and(
         eq(userSubscription.status, "active"),
@@ -42,93 +152,55 @@ export async function GET(request: Request) {
     );
 
   console.log(
-    `[Cron:ResetQuotas] Found ${expiredSubscriptions.length} non-recurring subscriptions due for renewal`
+    `[Cron:ResetQuotas] Found ${dueSubscriptions.length} non-recurring subscriptions past period end`
   );
 
   let renewed = 0;
+  let expired = 0;
   let balancesReset = 0;
 
-  // Renew each subscription based on its catalog billing period and count.
-  for (const {
-    sub,
-    billingPeriod,
-    billingPeriodCount,
-  } of expiredSubscriptions) {
-    console.log(
-      `[Cron:ResetQuotas] Renewing subscription ${sub.id} for user ${sub.userId}`
-    );
+  for (const dueSubscription of dueSubscriptions) {
+    const { sub, isTester } = dueSubscription;
+    const action = decidePeriodEndAction({
+      externalSubscriptionId: sub.externalSubscriptionId,
+      isTester,
+    });
 
-    const newPeriodStart = sub.currentPeriodEnd;
-    const newPeriodEnd = calculatePeriodEnd(
-      newPeriodStart,
-      billingPeriod,
-      billingPeriodCount
-    );
-    const newBillingDate = calculateNextBillingDate(
-      newPeriodStart,
-      billingPeriod,
-      billingPeriodCount
-    );
-
-    await db
-      .update(userSubscription)
-      .set({
-        currentPeriodStart: newPeriodStart,
-        currentPeriodEnd: newPeriodEnd,
-        nextBillingDate: newBillingDate,
-        updatedAt: now,
-      })
-      .where(eq(userSubscription.id, sub.id));
-
-    console.log(
-      `[Cron:ResetQuotas] Renewed: new period ${newPeriodStart.toISOString()} to ${newPeriodEnd.toISOString()}`
-    );
-
-    renewed++;
-
-    // Reset the subscription balance pool to the plan price for the new period.
+    // One failing row must not stop the others.
     try {
-      const price = await priceForCurrency(
-        sub.subscriptionId,
-        sub.currencyCode
-      );
-
-      if (price == null) {
-        console.error(
-          `[Cron:ResetQuotas] No ${sub.currencyCode} price for subscription ${sub.subscriptionId}, skipping pool reset`
+      if (action === "renew") {
+        console.log(
+          `[Cron:ResetQuotas] Renewing tester subscription ${sub.id} for user ${sub.userId}`
         );
-        continue;
+        const isPoolReset = await renewSubscription(dueSubscription, now);
+        renewed++;
+        if (isPoolReset) {
+          balancesReset++;
+        }
+      } else if (action === "expire") {
+        console.log(
+          `[Cron:ResetQuotas] Expiring subscription ${sub.id} for user ${sub.userId}`
+        );
+        await expireSubscription(sub, now);
+        expired++;
       }
-
-      await resetSubscriptionPool({
-        userId: sub.userId,
-        amount: price,
-        currencyCode: sub.currencyCode,
-        type: "subscription_renewal",
-        referenceId: sub.id,
-      });
-
-      console.log(
-        `[Cron:ResetQuotas] Subscription pool reset to ${price} for user ${sub.userId}`
-      );
-      balancesReset++;
-    } catch (balanceError) {
+    } catch (error) {
       console.error(
-        `[Cron:ResetQuotas] Failed to reset balance for user ${sub.userId}:`,
-        balanceError
+        `[Cron:ResetQuotas] Failed to process subscription ${sub.id} (action: ${action}) for user ${sub.userId}:`,
+        error
       );
-      // Continue processing other users
     }
   }
 
   console.log(
-    `[Cron:ResetQuotas] Completed: ${renewed} subscriptions renewed, ${balancesReset} balances reset`
+    `[Cron:ResetQuotas] Completed: ${renewed} subscriptions renewed, ${expired} expired, ${balancesReset} balances reset`
   );
 
   return Response.json({
     renewed,
+    expired,
     balancesReset,
     timestamp: now.toISOString(),
-    message: `Renewed ${renewed} subscriptions, reset ${balancesReset} balances.`,
+    message: `Renewed ${renewed} subscriptions, expired ${expired}, reset ${balancesReset} balances.`,
   });
 }
