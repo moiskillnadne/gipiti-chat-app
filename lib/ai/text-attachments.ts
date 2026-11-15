@@ -1,5 +1,6 @@
 import "server-only";
 
+import { fetchAttachmentBytes } from "../attachments/attachment-fetch-policy";
 import type { ChatMessage } from "../types";
 
 /** Canonical media type for Markdown attachments (.md / .markdown). */
@@ -151,13 +152,11 @@ export const formatTextAttachmentForModel = (
 async function fetchAndFormat(part: TextFilePart): Promise<string> {
   const label = labelOf(part);
   try {
-    const response = await fetch(part.url);
-    if (!response.ok) {
-      return `[Не удалось прочитать файл "${label}".]`;
-    }
-    // Decode the bytes ourselves rather than via `response.text()` so blobs
+    // `part.url` comes from the client: the fetch policy only downloads from
+    // the app's Blob store, within a size cap and a timeout.
+    // The bytes are decoded here rather than via `response.text()` so blobs
     // uploaded before charset normalisation (cp1251 legacy files) still read.
-    const text = decodeTextFile(await response.arrayBuffer());
+    const text = decodeTextFile(await fetchAttachmentBytes(part.url));
     return formatTextAttachmentForModel(label, languageHintOf(part), text);
   } catch (error) {
     console.error("Failed to read text attachment", part.url, error);

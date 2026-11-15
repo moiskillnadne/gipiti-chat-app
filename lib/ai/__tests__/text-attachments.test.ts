@@ -24,7 +24,7 @@ const userMessage = (parts: ChatMessage["parts"]): ChatMessage => ({
 const filePart = (
   mediaType: string,
   filename: string,
-  url = "https://blob.example/file"
+  url = "https://store.public.blob.vercel-storage.com/file"
 ): ChatMessage["parts"][number] => ({
   type: "file",
   mediaType,
@@ -75,6 +75,7 @@ describe("formatTextAttachmentForModel", () => {
 describe("attachTextContentForModel", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   it("replaces markdown file parts with fetched text and keeps other parts", async () => {
@@ -128,11 +129,36 @@ describe("attachTextContentForModel", () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
+  it("never fetches a URL outside the Blob store and degrades to an error note", async () => {
+    const fetchSpy = vi.fn(
+      async () => new Response("internal secret", { status: 200 })
+    );
+    vi.stubGlobal("fetch", fetchSpy);
+    vi.spyOn(console, "error").mockReturnValue(undefined);
+
+    const [result] = await attachTextContentForModel([
+      userMessage([
+        filePart(
+          PLAIN_TEXT_MIME_TYPE,
+          "notes.txt",
+          "http://169.254.169.254/latest/meta-data/"
+        ),
+      ]),
+    ]);
+
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(result.parts[0]).toEqual({
+      type: "text",
+      text: '[Не удалось прочитать файл "notes.txt".]',
+    });
+  });
+
   it("degrades to an error note when the blob cannot be fetched", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => new Response("nope", { status: 404 }))
     );
+    vi.spyOn(console, "error").mockReturnValue(undefined);
 
     const [result] = await attachTextContentForModel([
       userMessage([filePart(MARKDOWN_MIME_TYPE, "gone.md")]),

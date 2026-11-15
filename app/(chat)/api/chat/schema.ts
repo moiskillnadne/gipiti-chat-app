@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { chatModelIds } from "@/lib/ai/models";
+import { isAllowedAttachmentUrl } from "@/lib/attachments/attachment-fetch-policy";
 import {
   MAX_ATTACHMENT_BYTES,
   MAX_ATTACHMENT_NAME_LENGTH,
@@ -29,7 +30,11 @@ const filePartSchema = z.object({
   filename: z.string().min(1).max(MAX_ATTACHMENT_NAME_LENGTH).optional(),
   // Original size in bytes; display-only metadata for the attachment card.
   size: z.number().int().nonnegative().max(MAX_ATTACHMENT_BYTES).optional(),
-  url: z.string().url(),
+  // Uploads always land in the app's Blob store; any other URL is refused so
+  // the server (and the model gateway) is never pointed at a foreign host.
+  url: z.string().url().refine(isAllowedAttachmentUrl, {
+    message: "Attachment URL must point to the app's file storage",
+  }),
 });
 
 const partSchema = z.union([textPartSchema, filePartSchema]);

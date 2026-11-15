@@ -17,6 +17,7 @@ import {
 import { myProvider } from "@/lib/ai/providers";
 import { generateRecraftImage, isRecraftModel } from "@/lib/ai/recraft-client";
 import { resolveLatestImageUrl } from "@/lib/ai/resolve-latest-image";
+import { fetchAttachmentBytes } from "@/lib/attachments/attachment-fetch-policy";
 import { getDocumentByGenerationId } from "@/lib/db/query/document/get-document-by-generation-id";
 import { ChatSDKError } from "@/lib/errors";
 import {
@@ -89,17 +90,17 @@ const toImageGenerationError = (
     : new Error(`Image generation failed: ${errorMessage}`);
 };
 
-/** Download a previously generated image as raw bytes for edit input. */
+/**
+ * Download the chat's latest image as raw bytes for edit input. The URL can be
+ * a file part the client sent, so it goes through the attachment fetch policy
+ * (the app's Blob store only, size cap, timeout); generated images live in the
+ * same store.
+ */
 async function fetchImageBytes(
   url: string,
   abortSignal: AbortSignal
 ): Promise<Uint8Array> {
-  const response = await fetch(url, { signal: abortSignal });
-  if (!response.ok) {
-    throw new Error(`Failed to download image: ${response.statusText}`);
-  }
-  const arrayBuffer = await response.arrayBuffer();
-  return new Uint8Array(arrayBuffer);
+  return await fetchAttachmentBytes(url, { signal: abortSignal });
 }
 
 /** Prompt accepted by `generateImage`: plain text, or image(s) + instruction. */
