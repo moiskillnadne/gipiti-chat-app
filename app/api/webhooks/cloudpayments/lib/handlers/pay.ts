@@ -9,6 +9,7 @@ import {
   getSubscriptionByCode,
   priceForCurrency,
 } from "@/lib/billing/subscriptions";
+import { isSubscriptionPurchaseAllowed } from "@/lib/billing/tester-plans";
 import { db } from "@/lib/db/connection";
 import {
   type PaymentIntent,
@@ -203,6 +204,21 @@ export async function handlePayWebhook(
     if (users.length === 0) {
       console.error(`[CloudPayments:Pay] User not found: ${AccountId}`);
       return Response.json({ code: 13 });
+    }
+
+    // Should be unreachable — the check webhook declines tester-only plans
+    // for non-testers before money moves. Never activate; acknowledge with
+    // code 0 to stop retry storms and reconcile manually from logs.
+    if (
+      !isSubscriptionPurchaseAllowed({
+        code: sub.code,
+        isTester: users[0].isTester,
+      })
+    ) {
+      console.error(
+        `[CloudPayments:Pay] CRITICAL tester-only plan ${planName} paid by non-tester ${AccountId} (transaction ${transactionId}). Subscription not activated. Manual reconciliation required.`
+      );
+      return Response.json({ code: 0 });
     }
 
     const cardMask = CardLastFour

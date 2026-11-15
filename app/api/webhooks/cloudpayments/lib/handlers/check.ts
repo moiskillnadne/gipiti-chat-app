@@ -10,6 +10,7 @@ import {
   getSubscriptionByCode,
   priceForCurrency,
 } from "@/lib/billing/subscriptions";
+import { isSubscriptionPurchaseAllowed } from "@/lib/billing/tester-plans";
 import { db } from "@/lib/db/connection";
 import { subscription, user, userSubscription } from "@/lib/db/schema";
 import type { CloudPaymentsCheckWebhook } from "@/lib/payments/cloudpayments-types";
@@ -143,6 +144,18 @@ export async function handleCheckWebhook(
 
   if (!sub || !sub.isActive) {
     console.error(`[CloudPayments:Check] Invalid plan: ${planName}`);
+    return Response.json({ code: 13 });
+  }
+
+  if (
+    !isSubscriptionPurchaseAllowed({
+      code: sub.code,
+      isTester: users[0].isTester,
+    })
+  ) {
+    console.error(
+      `[CloudPayments:Check] Plan ${planName} is tester-only; user ${AccountId} is not a tester`
+    );
     return Response.json({ code: 13 });
   }
 
