@@ -513,6 +513,27 @@ test.describe("Login Page", () => {
       expect(page.url()).not.toContain("malicious");
     });
 
+    // Both values start with a slash, and a "starts with a slash" check let
+    // them through to another host after a successful login (GIPITI-230).
+    for (const [label, callbackUrl] of [
+      ["protocol-relative", EXTERNAL_URLS.protocolRelative],
+      ["backslash", EXTERNAL_URLS.backslash],
+    ] as const) {
+      test(`${label} callbackUrl is rejected`, async ({ page }) => {
+        await page.goto(
+          `/login?callbackUrl=${encodeURIComponent(callbackUrl)}`
+        );
+        await loginPage.waitForPageLoad();
+        await loginPage.login(TEST_USER.email, TEST_USER.password);
+
+        // Should stay on this site instead of following the other host
+        await page.waitForURL(CHAT_URL_REGEX, {
+          timeout: TIMEOUTS.formSubmission,
+        });
+        expect(page.url()).not.toContain("malicious");
+      });
+    }
+
     test("relative callbackUrl is allowed", async ({ page }) => {
       // Test that relative URLs work
       await page.goto(`/login?callbackUrl=${encodeURIComponent("/chat")}`);
