@@ -24,7 +24,7 @@ import {
 
 // Every `db.select()...limit()` call resolves the next queued row set, in
 // the order the route issues its queries.
-const { selectResults, insertValues, updateSet, dbMock } = vi.hoisted(() => {
+const { selectResults, insertValues, dbMock } = vi.hoisted(() => {
   const queuedSelectResults: unknown[][] = [];
   const insertValuesMock = vi.fn().mockResolvedValue(undefined);
   const updateSetMock = vi.fn(() => ({
@@ -41,7 +41,6 @@ const { selectResults, insertValues, updateSet, dbMock } = vi.hoisted(() => {
   return {
     selectResults: queuedSelectResults,
     insertValues: insertValuesMock,
-    updateSet: updateSetMock,
     dbMock: {
       select: vi.fn(() => selectChain),
       insert: vi.fn(() => ({ values: insertValuesMock })),
@@ -489,7 +488,7 @@ describe("GET /api/payment/status", () => {
     });
   });
 
-  it("reports a pending intent past its expiry as expired and writes that status", async () => {
+  it("reports a pending intent past its expiry as expired without writing anything", async () => {
     // Arrange
     arrangeStatusRequester();
     selectResults.push([
@@ -501,18 +500,15 @@ describe("GET /api/payment/status", () => {
       createStatusRequest(STATUS_SESSION_ID)
     );
 
-    // Assert: pinned as-is, this GET writes to the database.
+    // Assert: the status is computed for the answer; the stored row is left
+    // to the cleanup cron.
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
       status: "expired",
       hasActivity: true,
       failureReason: "Payment intent expired after 30 minutes",
     });
-    expect(dbMock.update).toHaveBeenCalledTimes(1);
-    expect(updateSet).toHaveBeenCalledWith({
-      status: "expired",
-      updatedAt: NOW,
-    });
+    expect(dbMock.update).not.toHaveBeenCalled();
   });
 
   it("reports a succeeded top-up together with the fresh balance", async () => {

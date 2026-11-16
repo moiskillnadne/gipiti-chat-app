@@ -75,16 +75,15 @@ export async function GET(request: Request) {
 
     const intent = intents[0];
 
-    // Check if expired and update status
+    // A pending intent past its deadline is reported as expired without
+    // touching the row: a GET must not write. The stored status is brought in
+    // line by the hourly `cleanup-payment-intents` cron, and nothing waits for
+    // that: the top-up check webhook refuses an overdue intent by its
+    // `expiresAt`, not by its status.
     if (
       intent.status === "pending" &&
       new Date(intent.expiresAt) < new Date()
     ) {
-      await db
-        .update(paymentIntent)
-        .set({ status: "expired", updatedAt: new Date() })
-        .where(eq(paymentIntent.id, intent.id));
-
       const response: PaymentStatusResponse = {
         status: "expired",
         hasActivity: true, // Expiration means webhook processing happened
