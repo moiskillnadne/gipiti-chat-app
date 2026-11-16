@@ -95,6 +95,7 @@
     "@types/react": "^18.3.27",
     "@types/react-dom": "^18.3.7",
     "@types/react-syntax-highlighter": "^15.5.13",
+    "@vitest/coverage-v8": "4.1.12",
     "baseline-browser-mapping": "^2.11.37",
     "drizzle-kit": "^0.25.0",
     "postcss": "^8.5.33",
