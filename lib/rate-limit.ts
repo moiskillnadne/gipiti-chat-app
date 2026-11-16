@@ -1,4 +1,5 @@
 import { Ratelimit } from "@upstash/ratelimit";
+import { toRateLimitIpKey } from "@/lib/http/client-ip";
 import { getUpstashClient } from "@/lib/redis";
 
 // POST /api/chat: requests per user per sliding window.
@@ -9,6 +10,10 @@ const CHAT_REQUEST_WINDOW = "1 m";
 let passwordResetRateLimiter: Ratelimit | null = null;
 let verificationResendRateLimiter: Ratelimit | null = null;
 let verificationAttemptRateLimiter: Ratelimit | null = null;
+let loginPairRateLimiter: Ratelimit | null = null;
+let loginIpRateLimiter: Ratelimit | null = null;
+let loginEmailRateLimiter: Ratelimit | null = null;
+let registerIpRateLimiter: Ratelimit | null = null;
 let paymentStatusRateLimiter: Ratelimit | null = null;
 let chatRequestRateLimiter: Ratelimit | null = null;
 
@@ -45,6 +50,42 @@ if (upstashClient) {
     prefix: "ratelimit:verification-attempt",
   });
 
+  // Login attempts for one account from one address. Reset by a successful
+  // login, so only a run of wrong passwords reaches the limit.
+  loginPairRateLimiter = new Ratelimit({
+    redis: upstashClient,
+    limiter: Ratelimit.slidingWindow(10, "15 m"),
+    analytics: true,
+    prefix: "ratelimit:login-pair",
+  });
+
+  // Failed logins from one address, across all accounts (password spraying).
+  loginIpRateLimiter = new Ratelimit({
+    redis: upstashClient,
+    limiter: Ratelimit.slidingWindow(60, "15 m"),
+    analytics: true,
+    prefix: "ratelimit:login-ip",
+  });
+
+  // Failed logins for one account, from any address. Past it every attempt
+  // on the account is slowed down, never refused: refusing would let anyone
+  // lock a user out by guessing wrong on purpose.
+  loginEmailRateLimiter = new Ratelimit({
+    redis: upstashClient,
+    limiter: Ratelimit.slidingWindow(50, "1 h"),
+    analytics: true,
+    prefix: "ratelimit:login-email",
+  });
+
+  // Sign-ups from one address. Loose on purpose: mobile carriers put many
+  // people behind one IPv4 address.
+  registerIpRateLimiter = new Ratelimit({
+    redis: upstashClient,
+    limiter: Ratelimit.slidingWindow(20, "1 h"),
+    analytics: true,
+    prefix: "ratelimit:register-ip",
+  });
+
   paymentStatusRateLimiter = new Ratelimit({
     redis: upstashClient,
     limiter: Ratelimit.slidingWindow(120, "1 m"),
@@ -76,9 +117,9 @@ const warnRateLimitingDisabledOnce = (): void => {
     "[RateLimit] Rate limiting is DISABLED: no Upstash REST client. " +
       "Set KV_REST_API_URL and KV_REST_API_TOKEN (or an https:// REDIS_URL " +
       "with REDIS_TOKEN). Chat and payment status requests are not rate " +
-      "limited. Password reset, verification resend and verification code " +
-      "checks are not rate limited either, except in production, where they " +
-      "are refused."
+      "limited. Password reset, verification resend, verification code " +
+      "checks, login and sign-up are not rate limited either, except in " +
+      "production, where they are refused."
   );
 };
 
@@ -213,6 +254,200 @@ export function getRateLimitResetSeconds(resetTimestamp?: number): number {
   const diff = resetTimestamp - now;
   return Math.ceil(diff / 1000);
 }
+
+/**
+ * Like `checkLimit`, but only looks: no attempt is counted.
+ */
+const peekLimit = async ({
+  limiter,
+  key,
+  policy,
+  label,
+}: {
+  limiter: Ratelimit | null;
+  key: string;
+  policy: LimiterPolicy;
+  label: string;
+}): Promise<RateLimitResult> => {
+  if (!limiter) {
+    warnRateLimitingDisabledOnce();
+    return resultWhenUnavailable(policy);
+  }
+
+  try {
+    const { remaining, reset } = await limiter.getRemaining(key);
+
+    return { success: remaining > 0, remaining, reset };
+  } catch (error) {
+    console.error(`[RateLimit] The ${label} check failed:`, error);
+    return resultWhenUnavailable(policy);
+  }
+};
+
+const VERCEL_ENVIRONMENTS_WITH_SIGN_IN_LIMITS = ["production", "preview"];
+
+/**
+ * The login and sign-up limits apply only on deployed environments. Locally
+ * and in CI the e2e suite signs in with wrong passwords on purpose, many times
+ * from one address, and would lock its own test account out.
+ */
+const areSignInLimitsEnforced = (): boolean =>
+  VERCEL_ENVIRONMENTS_WITH_SIGN_IN_LIMITS.includes(
+    process.env.VERCEL_ENV ?? ""
+  );
+
+const UNKNOWN_IP_KEY = "unknown";
+
+export type LoginIdentity = {
+  /** The email as typed on the form. */
+  email: string;
+  /** From `getClientIp`; null when the platform reported no address. */
+  ip: string | null;
+};
+
+export type LoginAttemptDecision = {
+  isAllowed: boolean;
+  /** Refused because a limiter could not be checked, not because of a limit. */
+  isUnavailable: boolean;
+  /** The account is under a slow guessing attack: answer, but slowly. */
+  shouldDelay: boolean;
+};
+
+const loginKeysOf = ({
+  email,
+  ip,
+}: LoginIdentity): {
+  emailKey: string;
+  ipKey: string | null;
+  pairKey: string;
+} => {
+  const emailKey = email.trim().toLowerCase();
+  const ipKey = ip ? toRateLimitIpKey(ip) : null;
+
+  return { emailKey, ipKey, pairKey: `${emailKey}|${ipKey ?? UNKNOWN_IP_KEY}` };
+};
+
+/**
+ * Decide whether a login attempt may check the password, and count it.
+ *
+ * Three limits (numbers next to the limiters above):
+ * - account + address: counted here, before the password is checked, so a
+ *   burst of parallel guesses cannot all slip past it; a successful login
+ *   resets it (`recordSuccessfulLogin`);
+ * - address: only failures count (`recordFailedLogin`), so many people
+ *   behind one address signing in normally never reach it;
+ * - account: only failures count; past it the attempt is delayed, not refused.
+ *
+ * The first two refuse in production when the limiter cannot be checked.
+ */
+export const beginLoginAttempt = async (
+  identity: LoginIdentity
+): Promise<LoginAttemptDecision> => {
+  if (!areSignInLimitsEnforced()) {
+    return { isAllowed: true, isUnavailable: false, shouldDelay: false };
+  }
+
+  const { emailKey, ipKey, pairKey } = loginKeysOf(identity);
+  const [pairLimit, ipLimit, emailLimit] = await Promise.all([
+    checkLimit({
+      limiter: loginPairRateLimiter,
+      key: pairKey,
+      policy: "fail-closed",
+      label: "login (account and address)",
+    }),
+    ipKey
+      ? peekLimit({
+          limiter: loginIpRateLimiter,
+          key: ipKey,
+          policy: "fail-closed",
+          label: "login (address)",
+        })
+      : Promise.resolve<RateLimitResult>({ success: true }),
+    peekLimit({
+      limiter: loginEmailRateLimiter,
+      key: emailKey,
+      policy: "fail-open",
+      label: "login (account)",
+    }),
+  ]);
+
+  return {
+    isAllowed: pairLimit.success && ipLimit.success,
+    isUnavailable: Boolean(pairLimit.isUnavailable || ipLimit.isUnavailable),
+    shouldDelay: !emailLimit.success,
+  };
+};
+
+/**
+ * Count a wrong password (or an unknown account) against the address and the
+ * account. Never throws: a limiter failure must not turn a wrong password
+ * into a server error.
+ */
+export const recordFailedLogin = async (
+  identity: LoginIdentity
+): Promise<void> => {
+  if (!areSignInLimitsEnforced()) {
+    return;
+  }
+
+  const { emailKey, ipKey } = loginKeysOf(identity);
+
+  await Promise.all([
+    ipKey
+      ? checkLimit({
+          limiter: loginIpRateLimiter,
+          key: ipKey,
+          policy: "fail-open",
+          label: "failed login (address)",
+        })
+      : Promise.resolve(),
+    checkLimit({
+      limiter: loginEmailRateLimiter,
+      key: emailKey,
+      policy: "fail-open",
+      label: "failed login (account)",
+    }),
+  ]);
+};
+
+/**
+ * Give the account + address limit back after a successful login, so signing
+ * in normally never adds up to a block. Never throws.
+ */
+export const recordSuccessfulLogin = async (
+  identity: LoginIdentity
+): Promise<void> => {
+  if (!(areSignInLimitsEnforced() && loginPairRateLimiter)) {
+    return;
+  }
+
+  try {
+    await loginPairRateLimiter.resetUsedTokens(loginKeysOf(identity).pairKey);
+  } catch (error) {
+    console.error("[RateLimit] Resetting the login limit failed:", error);
+  }
+};
+
+/**
+ * Check if a sign-up from this address is rate limited. Refuses in production
+ * when the limiter cannot be checked. Without an address there is nothing to
+ * key on, and the sign-up is allowed.
+ * @param ip From `getClientIp`
+ */
+export const checkRegisterRateLimit = (
+  ip: string | null
+): Promise<RateLimitResult> => {
+  if (!(areSignInLimitsEnforced() && ip)) {
+    return Promise.resolve({ success: true });
+  }
+
+  return checkLimit({
+    limiter: registerIpRateLimiter,
+    key: toRateLimitIpKey(ip),
+    policy: "fail-closed",
+    label: "sign-up",
+  });
+};
 
 /**
  * Check if a payment status request is rate limited. The request is allowed

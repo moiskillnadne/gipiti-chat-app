@@ -41,6 +41,10 @@ vi.mock("next-auth", () => ({
     captured.config = config;
     return { handlers: {}, auth: vi.fn(), signIn: vi.fn(), signOut: vi.fn() };
   },
+  // The auth module extends this class for its rate-limit error.
+  CredentialsSignin: class CredentialsSignin extends Error {
+    code = "credentials";
+  },
 }));
 vi.mock("next-auth/providers/credentials", () => ({
   default: (options: CredentialsProviderOptions) => options,

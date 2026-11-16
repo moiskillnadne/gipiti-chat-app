@@ -67,6 +67,16 @@ function RegisterPage() {
       return;
     }
 
+    if (state.status === "rate_limited") {
+      toast({ type: "error", description: tErrors("tooManyAttempts") });
+      return;
+    }
+
+    if (state.status === "disposable_email") {
+      toast({ type: "error", description: tErrors("disposableEmail") });
+      return;
+    }
+
     if (state.status === "failed") {
       toast({ type: "error", description: tNotifications("createError") });
       return;
