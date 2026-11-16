@@ -418,7 +418,7 @@ Every migration gets its `meta/_journal.json` entry and schema types in the same
 | Enumeration | Dummy compare; forgot and send always 2xx; `email_taken` per Q6. |
 | Secret rotation | `kid` + previous secret (m13). |
 | PII in logs | Session `console.log`s removed (1b); the interceptor logs `userId`, path and `requestId`, never bodies. |
-| Preview builds migrating production (M11) | `migrate.ts` refuses when `VERCEL_ENV=preview` unless `ALLOW_PREVIEW_MIGRATIONS=1` (set only if Preview has its own Neon branch). Phase 1, before any new migration. |
+| Preview builds migrating production (M11) | Resolved without code: every preview deployment gets its own Neon branch (`preview/<git-branch>`, parented from `main`) through the Neon integration, and the build migrates that branch. No `migrate.ts` guard is added; a guard keyed on `VERCEL_ENV=preview` would block the migrations those branches need. The rule "never edit a migration after its PR has had a preview build" stays. |
 
 ---
 
@@ -517,7 +517,7 @@ Legend: **[R]** pure move (`git mv` + scripted specifier rewrite `scripts/codemo
 
 ### Phase 0 — Safety net, slim [B: tests/tooling] (3-4 days)
 - **Owner preconditions** (before Phase 1 merges): confirm Preview `POSTGRES_URL` is a separate Neon branch (M11); `CRON_SECRET` and `RESEND_WEBHOOK_SECRET` exist in Production (`vercel env ls`, m5); Production Redis is Upstash REST (`KV_REST_API_*` or an https `REDIS_URL`, M5); Skew Protection status (Q9); merge or park `feat/gipiti-28-mcp-integrations-cw6f0r` before Phase 3a; prune `.claude/worktrees/*` and the sibling worktrees `app-pr248` and `app-wt-activity`.
-- **Precondition status (checked 2026-11-15 with `vercel env ls` and `GET https://gipiti.ru/api/health`)**: `CRON_SECRET` and `RESEND_WEBHOOK_SECRET` exist in Production and Preview. Production has `KV_REST_API_*` and reports `rateLimiting.enabled: true`. **Not met**: `POSTGRES_URL` is a single variable shared by Production, Preview and Development, so preview builds migrate and use the production database; a separate Neon branch for Preview and (1i) come before any PR that adds a migration. Not checked yet: Skew Protection, the `feat/gipiti-28-mcp-integrations-cw6f0r` branch, stale worktrees.
+- **Precondition status (checked 2026-11-15 with `vercel env ls` and `GET https://gipiti.ru/api/health`)**: `CRON_SECRET` and `RESEND_WEBHOOK_SECRET` exist in Production and Preview. Production has `KV_REST_API_*` and reports `rateLimiting.enabled: true`. Preview database: met. The Neon integration creates a `preview/<git-branch>` database branch per preview deployment and injects its connection variables at deploy time; these overrides are not stored in the project settings, so `vercel env ls` shows only the shared project-level `POSTGRES_URL` and cannot be used to check this (corrected 2026-11-16 after the owner showed the branch list in the Neon console; an earlier version of this line wrongly reported the precondition as not met). Not checked yet: Skew Protection, the `feat/gipiti-28-mcp-integrations-cw6f0r` branch, stale worktrees.
 - **PRs**: (0a) `vitest.config.ts` `exclude` (`**/node_modules/**`, `.claude/**`, `**/.next/**`); `tsconfig.json` exclude `.claude`; the 7 relative `vi.mock` paths → `@/`; `lib/marketing/__tests__/model-landings.test.ts:19` → `process.cwd()`. (0b) CI `check-fast`, `@vitest/coverage-v8`, align Playwright workflow. (0c) Slim characterization + `targets.ts` + diff guard. (0d) Integration project + 2 money integration tests + CI job. (0e) Architecture test with allowlist + `vi.mock`-resolves check.
 - **Tests**: as listed. **Verify**: `pnpm check`; `pnpm vitest run tests/characterization tests/architecture`; `pnpm test:integration` locally (local Postgres container); CI green.
 - **Rollback**: revert (no runtime effect).
@@ -532,7 +532,7 @@ Legend: **[R]** pure move (`git mv` + scripted specifier rewrite `scripts/codemo
 - (1f) Migration `0046` + user-scoped verification lookup + 5-attempt cap.
 - (1g) Rate limits on login (`authorize`, keyed per m2) and register; disposable-domain blocklist.
 - (1h) `PATCH /api/vote` zod + message-in-chat check; `DELETE /api/subscription` returns 502 without a local cancel when CloudPayments throws; `GET /api/payment/status` stops writing (**depends on 1c being deployed**).
-- (1i) `migrate.ts` preview guard (M11). **Merge before 1f.**
+- (1i) Dropped (2026-11-16): the `migrate.ts` preview guard is not needed, because preview deployments already run against their own Neon branch (M11).
 - (1j) `attachment-url-policy.ts`: Blob host allow-list + fetch caps, used by `text-attachments.ts` and `docx-extract.ts` (M6, legacy too).
 - (1k) Welcome grant in the same DB transaction as the user insert (own PR, own test; F17).
 - **Verify**: `pnpm check`; `pnpm exec playwright test tests/e2e/login.test.ts`; on a preview, a CloudPayments test-mode payment and a cron call with and without the secret.
@@ -566,7 +566,7 @@ Legend: **[R]** pure move (`git mv` + scripted specifier rewrite `scripts/codemo
 - **3a [R]** (owner runs `git mv lib/db/migrations server/db/migrations`; the protect hook blocks agents): `lib/db` → `server/db`; queries → `server/modules/*/queries`; `lib/{redis,rate-limit,api/handle-route-error,flags}` → `server/*`; core isomorphic files → `core/*` (mapping table). Same PR: `drizzle.config.ts:4-5`, `server/db/migrate.ts` folder path, `package.json:7` (`tsx server/db/migrate`), `scripts/hooks/protected-paths.mjs:32` + its test, `tests/global-setup.ts:7`, `scripts/*.ts`, `CLAUDE.md`, `.claude/agents/review.md`, `.claude/skills/*`, `.cursor/rules/*`, the owner's memory notes that name paths, `targets.ts`.
 - **3b [B]** `server/api/_kit/*` (no `deprecation.ts` yet), `app/api/v1/[[...rest]]/route.ts`, `GET /config`, `/models`, `/plans` (DB catalog), `/me`, `GET /api/v1/openapi.json`, `pnpm api:spec`, snapshot test, `docs/agent-discovery.md` note. S14 run.
 - **Tests**: 3a none new (characterization diff guard + integration tests green); 3b per the table.
-- **Verify**: 3a `pnpm check`, preview deploy log shows migrations ran from `server/db/migrations` (preview guard set per M11), `pnpm test:integration`; 3b `pnpm vitest run server/api`, `curl https://<preview>/api/v1/config` and `/api/v1/does-not-exist` (404 JSON), `pnpm api:spec && git diff --exit-code server/api/v1/openapi.snapshot.json`.
+- **Verify**: 3a `pnpm check`, preview deploy log shows migrations ran from `server/db/migrations` (against the preview's own Neon branch, M11), `pnpm test:integration`; 3b `pnpm vitest run server/api`, `curl https://<preview>/api/v1/config` and `/api/v1/does-not-exist` (404 JSON), `pnpm api:spec && git diff --exit-code server/api/v1/openapi.snapshot.json`.
 - **Rollback**: 3a revert the single commit; if a production deploy fails after merge, `vercel rollback` to the previous deployment. Migration state is unchanged because 3a adds no migration. 3b: delete the catch-all.
 
 ### Phase 4 — Auth v1 [R then B, M] (6-8 days)
