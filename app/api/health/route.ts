@@ -5,12 +5,15 @@ import { getUpstashClient, isUpstashConfigured } from "@/lib/redis";
 
 type CheckStatus = "up" | "down";
 
+/**
+ * This endpoint is public and unauthenticated, so a check reports only that
+ * it failed. The reason (a driver message with a host name in it, the name of
+ * a missing variable) goes to the server log.
+ */
 type HealthCheck = {
   status: CheckStatus;
   latency?: number;
   error?: string;
-  configured?: string[];
-  missing?: string[];
 };
 
 /**
@@ -35,12 +38,10 @@ type HealthResponse = {
 };
 
 const REQUIRED_ENV_VARS = ["POSTGRES_URL"];
-const OPTIONAL_ENV_VARS = [
-  "KV_REST_API_URL",
-  "KV_REST_API_TOKEN",
-  "REDIS_URL",
-  "AUTH_SECRET",
-];
+
+const DATABASE_CHECK_FAILED = "Database check failed";
+const REDIS_CHECK_FAILED = "Redis check failed";
+const ENVIRONMENT_CHECK_FAILED = "Required configuration is missing";
 
 async function checkDatabase(): Promise<HealthCheck> {
   const start = Date.now();
@@ -48,10 +49,11 @@ async function checkDatabase(): Promise<HealthCheck> {
     await db.execute(sql`SELECT 1`);
     return { status: "up", latency: Date.now() - start };
   } catch (error) {
+    console.error("[Health] Database check failed:", error);
     return {
       status: "down",
       latency: Date.now() - start,
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: DATABASE_CHECK_FAILED,
     };
   }
 }
@@ -70,37 +72,24 @@ async function checkRedis(): Promise<HealthCheck> {
     await client.ping();
     return { status: "up", latency: Date.now() - start };
   } catch (error) {
+    console.error("[Health] Redis check failed:", error);
     return {
       status: "down",
       latency: Date.now() - start,
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: REDIS_CHECK_FAILED,
     };
   }
 }
 
 function checkEnvironment(): HealthCheck {
-  const configured: string[] = [];
-  const missing: string[] = [];
+  const missing = REQUIRED_ENV_VARS.filter((envVar) => !process.env[envVar]);
 
-  for (const envVar of REQUIRED_ENV_VARS) {
-    if (process.env[envVar]) {
-      configured.push(envVar);
-    } else {
-      missing.push(envVar);
-    }
+  if (missing.length === 0) {
+    return { status: "up" };
   }
 
-  for (const envVar of OPTIONAL_ENV_VARS) {
-    if (process.env[envVar]) {
-      configured.push(envVar);
-    }
-  }
-
-  return {
-    status: missing.length === 0 ? "up" : "down",
-    configured,
-    missing: missing.length > 0 ? missing : undefined,
-  };
+  console.error("[Health] Missing required environment variables:", missing);
+  return { status: "down", error: ENVIRONMENT_CHECK_FAILED };
 }
 
 function determineOverallStatus(

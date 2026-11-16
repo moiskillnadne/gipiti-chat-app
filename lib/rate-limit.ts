@@ -43,8 +43,9 @@ if (upstashClient) {
 }
 
 /**
- * True when the limiters below are backed by Upstash. When false every check
- * in this file lets the request through, so nothing is rate limited.
+ * True when the limiters below are backed by Upstash. When false nothing is
+ * rate limited: fail-open checks let every request through, and fail-closed
+ * checks refuse every request in production (see `LimiterPolicy`).
  */
 export const isRateLimitingEnabled = (): boolean => upstashClient !== null;
 
@@ -63,45 +64,85 @@ const warnRateLimitingDisabledOnce = (): void => {
   console.warn(
     "[RateLimit] Rate limiting is DISABLED: no Upstash REST client. " +
       "Set KV_REST_API_URL and KV_REST_API_TOKEN (or an https:// REDIS_URL " +
-      "with REDIS_TOKEN). Chat, password reset, verification resend and " +
-      "payment status requests are not rate limited."
+      "with REDIS_TOKEN). Chat and payment status requests are not rate " +
+      "limited. Password reset and verification resend are not rate limited " +
+      "either, except in production, where they are refused."
   );
 };
 
-/**
- * Check if password reset request is rate limited
- * @param email The email address requesting password reset
- * @returns Object with success status and remaining attempts
- */
-export async function checkPasswordResetRateLimit(email: string): Promise<{
+export type RateLimitResult = {
   success: boolean;
   remaining?: number;
   reset?: number;
-}> {
-  // If rate limiter is not configured, allow the request
-  if (!passwordResetRateLimiter) {
+  /**
+   * True when the request was refused because the limiter itself could not be
+   * asked (no Upstash client, or the check threw), not because a limit was
+   * hit. Only fail-closed limiters in production ever set it.
+   */
+  isUnavailable?: boolean;
+};
+
+/**
+ * What a limiter answers when it cannot be checked.
+ *
+ * `fail-open` lets the request through: a broken limiter must not take the
+ * chat or a payment page down. `fail-closed` refuses it, for the auth flows
+ * where an attacker gains from the limiter being off (code and password
+ * guessing, mail flooding). Refusing applies in production only: previews and
+ * local runs often have no Upstash.
+ */
+type LimiterPolicy = "fail-open" | "fail-closed";
+
+const PRODUCTION_ENVIRONMENT = "production";
+
+const resultWhenUnavailable = (policy: LimiterPolicy): RateLimitResult => {
+  const isProduction = process.env.VERCEL_ENV === PRODUCTION_ENVIRONMENT;
+
+  return policy === "fail-closed" && isProduction
+    ? { success: false, isUnavailable: true }
+    : { success: true };
+};
+
+const checkLimit = async ({
+  limiter,
+  key,
+  policy,
+  label,
+}: {
+  limiter: Ratelimit | null;
+  key: string;
+  policy: LimiterPolicy;
+  label: string;
+}): Promise<RateLimitResult> => {
+  if (!limiter) {
     warnRateLimitingDisabledOnce();
-    return { success: true };
+    return resultWhenUnavailable(policy);
   }
 
   try {
-    // Check rate limit using email as identifier
-    const { success, remaining, reset } = await passwordResetRateLimiter.limit(
-      email.toLowerCase()
-    );
+    const { success, remaining, reset } = await limiter.limit(key);
 
-    return {
-      success,
-      remaining,
-      reset,
-    };
+    return { success, remaining, reset };
   } catch (error) {
-    console.error("Error checking rate limit:", error);
-    // If rate limiting fails, allow the request to proceed
-    // Better to have a temporarily broken rate limit than block legitimate users
-    return { success: true };
+    console.error(`[RateLimit] The ${label} check failed:`, error);
+    return resultWhenUnavailable(policy);
   }
-}
+};
+
+/**
+ * Check if a password reset request is rate limited. Refuses in production
+ * when the limiter cannot be checked.
+ * @param email The email address requesting password reset
+ */
+export const checkPasswordResetRateLimit = (
+  email: string
+): Promise<RateLimitResult> =>
+  checkLimit({
+    limiter: passwordResetRateLimiter,
+    key: email.toLowerCase(),
+    policy: "fail-closed",
+    label: "password reset",
+  });
 
 /**
  * Get remaining time until rate limit resets (in minutes)
@@ -118,36 +159,19 @@ export function getRateLimitResetMinutes(resetTimestamp?: number): number {
 }
 
 /**
- * Check if verification resend request is rate limited
+ * Check if a verification resend request is rate limited. Refuses in
+ * production when the limiter cannot be checked.
  * @param email The email address requesting verification resend
- * @returns Object with success status and remaining attempts
  */
-export async function checkVerificationResendRateLimit(email: string): Promise<{
-  success: boolean;
-  remaining?: number;
-  reset?: number;
-}> {
-  // If rate limiter is not configured, allow the request
-  if (!verificationResendRateLimiter) {
-    warnRateLimitingDisabledOnce();
-    return { success: true };
-  }
-
-  try {
-    // Check rate limit using email as identifier
-    const { success, remaining, reset } =
-      await verificationResendRateLimiter.limit(email.toLowerCase());
-
-    return {
-      success,
-      remaining,
-      reset,
-    };
-  } catch (error) {
-    console.error("Error checking verification resend rate limit:", error);
-    return { success: true };
-  }
-}
+export const checkVerificationResendRateLimit = (
+  email: string
+): Promise<RateLimitResult> =>
+  checkLimit({
+    limiter: verificationResendRateLimiter,
+    key: email.toLowerCase(),
+    policy: "fail-closed",
+    label: "verification resend",
+  });
 
 /**
  * Get remaining time until rate limit resets (in seconds)
@@ -164,61 +188,29 @@ export function getRateLimitResetSeconds(resetTimestamp?: number): number {
 }
 
 /**
- * Check if payment status request is rate limited
+ * Check if a payment status request is rate limited. The request is allowed
+ * when the limiter cannot be checked.
  * @param identifier The IP address or user ID checking payment status
- * @returns Object with success status and remaining attempts
  */
-export async function checkPaymentStatusRateLimit(identifier: string): Promise<{
-  success: boolean;
-  remaining?: number;
-  reset?: number;
-}> {
-  // If rate limiter is not configured, allow the request
-  if (!paymentStatusRateLimiter) {
-    warnRateLimitingDisabledOnce();
-    return { success: true };
-  }
-
-  try {
-    // Check rate limit using identifier (IP or sessionId)
-    const { success, remaining, reset } =
-      await paymentStatusRateLimiter.limit(identifier);
-
-    return {
-      success,
-      remaining,
-      reset,
-    };
-  } catch (error) {
-    console.error("Error checking payment status rate limit:", error);
-    return { success: true };
-  }
-}
+export const checkPaymentStatusRateLimit = (
+  identifier: string
+): Promise<RateLimitResult> =>
+  checkLimit({
+    limiter: paymentStatusRateLimiter,
+    key: identifier,
+    policy: "fail-open",
+    label: "payment status",
+  });
 
 /**
- * Check if a user's POST /api/chat request is rate limited. Like the other
- * limiters here, the request is allowed when Redis is not configured or the
- * check itself fails.
+ * Check if a user's POST /api/chat request is rate limited. The request is
+ * allowed when the limiter cannot be checked.
  * @param userId The authenticated user sending the message
- * @returns Object with success status and remaining requests
  */
-export async function checkChatRateLimit(userId: string): Promise<{
-  success: boolean;
-  remaining?: number;
-  reset?: number;
-}> {
-  if (!chatRequestRateLimiter) {
-    warnRateLimitingDisabledOnce();
-    return { success: true };
-  }
-
-  try {
-    const { success, remaining, reset } =
-      await chatRequestRateLimiter.limit(userId);
-
-    return { success, remaining, reset };
-  } catch (error) {
-    console.error("Error checking chat rate limit:", { userId, error });
-    return { success: true };
-  }
-}
+export const checkChatRateLimit = (userId: string): Promise<RateLimitResult> =>
+  checkLimit({
+    limiter: chatRequestRateLimiter,
+    key: userId,
+    policy: "fail-open",
+    label: "chat",
+  });

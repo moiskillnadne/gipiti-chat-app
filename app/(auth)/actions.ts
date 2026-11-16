@@ -271,6 +271,9 @@ export const resendVerificationCode = async (
     const rateLimitResult = await checkVerificationResendRateLimit(
       validatedData.email
     );
+    if (rateLimitResult.isUnavailable) {
+      return { status: "failed" };
+    }
     if (!rateLimitResult.success) {
       return {
         status: "rate_limited",
@@ -336,6 +339,9 @@ export const requestPasswordReset = async (
     const rateLimitResult = await checkPasswordResetRateLimit(
       validatedData.email
     );
+    if (rateLimitResult.isUnavailable) {
+      return { status: "failed" };
+    }
     if (!rateLimitResult.success) {
       return {
         status: "rate_limited",
