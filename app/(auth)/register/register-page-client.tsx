@@ -3,36 +3,20 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Suspense, useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { AuthForm } from "@/components/auth-form";
 import { AuthPageHeader } from "@/components/auth-page-header";
 import { AuthPageLayout } from "@/components/auth-page-layout";
-import { Loader } from "@/components/elements/loader";
 import { SubmitButton } from "@/components/submit-button";
 import { toast } from "@/components/toast";
 import { useTranslations } from "@/lib/i18n/translate";
 import { type RegisterActionState, register } from "../actions";
 
+// No `<Suspense>` here: the form must be part of the first HTML chunk. Under a
+// boundary that suspends on the server, React streams the form into a hidden
+// element next to a fallback and, when the session request resolves before
+// the swap, renders a second copy on the client (GIPITI-229).
 export function RegisterPageClient() {
-  return (
-    <Suspense fallback={<RegisterPageFallback />}>
-      <RegisterPage />
-    </Suspense>
-  );
-}
-
-function RegisterPageFallback() {
-  const t = useTranslations("auth.register");
-
-  return (
-    <AuthPageLayout>
-      <AuthPageHeader subtitle={t("subtitle")} title={t("title")} />
-      <Loader size={30} />
-    </AuthPageLayout>
-  );
-}
-
-function RegisterPage() {
   const t = useTranslations("auth.register");
   const tErrors = useTranslations("auth.errors");
   const tNotifications = useTranslations("common.notifications");
