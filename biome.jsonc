@@ -47,5 +47,19 @@
         "noSvgWithoutTitle": "off"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      /* Each target module exists only to re-export the code a
+         characterization test pins, so a move changes one specifier here. */
+      "includes": ["tests/characterization/targets/**"],
+      "linter": {
+        "rules": {
+          "performance": {
+            "noBarrelFile": "off"
+          }
+        }
+      }
+    }
+  ]
 }

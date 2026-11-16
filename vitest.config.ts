@@ -5,7 +5,10 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "node",
-    include: ["**/__tests__/**/*.test.ts"],
+    include: [
+      "**/__tests__/**/*.test.ts",
+      "tests/characterization/**/*.test.ts",
+    ],
     // `.claude/worktrees/*` holds full checkouts of other branches and `.next`
     // holds build output; neither is part of this checkout's test suite.
     exclude: [...configDefaults.exclude, ".claude/**", "**/.next/**"],
