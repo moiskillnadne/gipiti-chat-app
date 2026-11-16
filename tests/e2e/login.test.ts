@@ -17,6 +17,10 @@ import { LoginPage } from "../pages/auth";
 const CHAT_OR_LOGIN_URL_REGEX = /\/(chat|login)/;
 const SUCCESS_REDIRECT_URL_REGEX = /\/(chat|verify-email)/;
 const CHAT_URL_REGEX = /\/chat/;
+const EMAIL_INPUT_MARKUP = 'id="email-display"';
+// How React streams the content of a suspended `<Suspense>` boundary: a
+// hidden staging element appended after the first HTML chunk.
+const STREAMED_SEGMENT_MARKUP = '<div hidden id="S:';
 
 test.describe("Login Page", () => {
   let loginPage: LoginPage;
@@ -34,6 +38,28 @@ test.describe("Login Page", () => {
       await expect(loginPage.emailInput).toBeVisible();
       await expect(loginPage.passwordInput).toBeVisible();
       await expect(loginPage.submitButton).toBeVisible();
+    });
+
+    test("form is in the first HTML chunk, not in a hidden streamed copy", async ({
+      request,
+    }) => {
+      // If the form sits under a `<Suspense>` boundary that suspends on the
+      // server, React sends a loader first and the real form later, inside a
+      // hidden staging element that it swaps in up to 300 ms after first
+      // paint. When the session request resolves before the swap, React
+      // renders a second form on the client while the hidden one is still in
+      // the DOM: every id of the form exists twice and the server-rendered
+      // form is discarded. That made `#email-display` resolve to two elements
+      // at random in this file.
+      const response = await request.get("/login");
+      const html = await response.text();
+      const emailInputIndex = html.indexOf(EMAIL_INPUT_MARKUP);
+
+      expect(response.ok()).toBe(true);
+      expect(html.split(EMAIL_INPUT_MARKUP)).toHaveLength(2);
+      expect(html.slice(0, emailInputIndex)).not.toContain(
+        STREAMED_SEGMENT_MARKUP
+      );
     });
 
     test("email field has autofocus", async () => {

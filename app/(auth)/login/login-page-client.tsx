@@ -1,52 +1,68 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import {
-  Suspense,
-  useActionState,
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
+import { useActionState, useEffect, useState } from "react";
 import { AuthForm } from "@/components/auth-form";
 import { AuthPageHeader } from "@/components/auth-page-header";
 import { AuthPageLayout } from "@/components/auth-page-layout";
-import { Loader } from "@/components/elements/loader";
 import { SubmitButton } from "@/components/submit-button";
 import { toast } from "@/components/toast";
 import { useTranslations } from "@/lib/i18n/translate";
 import { type LoginActionState, login } from "../actions";
 
+const CALLBACK_URL_PARAM = "callbackUrl";
+const DEFAULT_REDIRECT_PATH = "/chat";
+
 type LoginPageClientProps = {
   showSignup: boolean;
 };
 
+/**
+ * Where to send the user after a successful login: the `callbackUrl` query
+ * parameter when it stays on this origin, the chat otherwise.
+ *
+ * Browser-only (call it from an effect or an event handler). It reads
+ * `window.location` instead of `useSearchParams()` on purpose: that hook
+ * needs a `<Suspense>` boundary around the page, and the boundary made the
+ * server stream the form into a hidden `<div hidden id="S:0">` next to a
+ * loader fallback. For up to 300 ms the DOM then held that hidden copy and,
+ * once the session request resolved, a second client-rendered form with the
+ * same ids, and the server-rendered form was thrown away (GIPITI-229).
+ */
+const getRedirectPath = (): string => {
+  const callbackUrl = new URLSearchParams(window.location.search).get(
+    CALLBACK_URL_PARAM
+  );
+
+  if (!callbackUrl) {
+    return DEFAULT_REDIRECT_PATH;
+  }
+
+  if (callbackUrl.startsWith("/")) {
+    return callbackUrl;
+  }
+
+  try {
+    const url = new URL(callbackUrl, window.location.origin);
+
+    if (url.origin === window.location.origin) {
+      return `${url.pathname}${url.search}${url.hash}`;
+    }
+  } catch (error) {
+    console.error("Error parsing callback URL:", error);
+  }
+
+  return DEFAULT_REDIRECT_PATH;
+};
+
+// No `<Suspense>` here: the form must be part of the first HTML chunk, see
+// `getRedirectPath`.
 export function LoginPageClient({ showSignup }: LoginPageClientProps) {
-  return (
-    <Suspense fallback={<LoginPageFallback />}>
-      <LoginPage showSignup={showSignup} />
-    </Suspense>
-  );
-}
-
-function LoginPageFallback() {
-  const t = useTranslations("auth.login");
-
-  return (
-    <AuthPageLayout>
-      <AuthPageHeader subtitle={t("subtitle")} title={t("title")} />
-      <Loader size={30} />
-    </AuthPageLayout>
-  );
-}
-
-function LoginPage({ showSignup }: LoginPageClientProps) {
   const t = useTranslations("auth.login");
   const tErrors = useTranslations("auth.errors");
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const [isSuccessful, setIsSuccessful] = useState(false);
 
@@ -58,33 +74,6 @@ function LoginPage({ showSignup }: LoginPageClientProps) {
   );
 
   const { update: updateSession } = useSession();
-
-  const getRedirectPath = useCallback(() => {
-    const callbackUrl = searchParams?.get("callbackUrl");
-
-    if (!callbackUrl) {
-      return "/chat";
-    }
-
-    if (callbackUrl.startsWith("/")) {
-      return callbackUrl;
-    }
-
-    if (typeof window !== "undefined") {
-      try {
-        const url = new URL(callbackUrl, window.location.origin);
-
-        if (url.origin === window.location.origin) {
-          return `${url.pathname}${url.search}${url.hash}`;
-        }
-      } catch (error) {
-        console.error("Error parsing callback URL:", error);
-        return "/chat";
-      }
-    }
-
-    return "/chat";
-  }, [searchParams]);
 
   useEffect(() => {
     if (isSuccessful) {
@@ -118,14 +107,7 @@ function LoginPage({ showSignup }: LoginPageClientProps) {
     updateSession().then(() => {
       router.replace(redirectPath);
     });
-  }, [
-    getRedirectPath,
-    router,
-    state.status,
-    updateSession,
-    isSuccessful,
-    tErrors,
-  ]);
+  }, [router, state.status, updateSession, isSuccessful, tErrors]);
 
   return (
     <AuthPageLayout>
