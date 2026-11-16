@@ -28,8 +28,12 @@ const MILLISECONDS_PER_DAY = 24 * 60 * MILLISECONDS_PER_MINUTE;
 
 const INTENT_AMOUNT_MAJOR = 500;
 const INTENT_AMOUNT_MINOR = 50_000;
+const MISMATCHED_AMOUNT_MAJOR = 400;
 const PAYMENT_TRANSACTION_ID = 1001;
 const REFUND_TRANSACTION_ID = 2001;
+
+const DECLINE_REASON = "Insufficient funds (code: 5051)";
+const AMOUNT_MISMATCH_REASON = "Amount mismatch: charged 40000, expected 50000";
 
 const minutesAgo = (minutes: number): Date =>
   new Date(Date.now() - minutes * MILLISECONDS_PER_MINUTE);
@@ -145,6 +149,101 @@ describe("payment-intent cleanup cron against a real database", () => {
     expect(await readPaymentIntent(paidIntent.id)).toEqual(paidIntent);
   });
 
+  it("keeps a succeeded intent older than 30 days that has no transaction id", async () => {
+    // Arrange
+    const userId = await seedUserWithBalance();
+    const paidIntentWithoutTransactionId = await seedPaymentIntent({
+      userId,
+      kind: "subscription",
+      amount: INTENT_AMOUNT_MINOR,
+      status: "succeeded",
+      createdAt: beyondRetention(),
+      expiresAt: beyondRetention(),
+    });
+
+    // Act
+    const body = await runCleanup();
+
+    // Assert
+    expect(paidIntentWithoutTransactionId.externalTransactionId).toBeNull();
+    expect(body).toMatchObject({ expired: 0, deleted: 0 });
+    expect(await readPaymentIntent(paidIntentWithoutTransactionId.id)).toEqual(
+      paidIntentWithoutTransactionId
+    );
+  });
+
+  it("keeps an old expired intent that records a payment problem and deletes one that does not", async () => {
+    // Arrange
+    const userId = await seedUserWithBalance();
+    const expiredIntentWithProblem = await seedPaymentIntent({
+      userId,
+      kind: "topup",
+      amount: INTENT_AMOUNT_MINOR,
+      status: "expired",
+      failureReason: AMOUNT_MISMATCH_REASON,
+      createdAt: beyondRetention(),
+      expiresAt: beyondRetention(),
+    });
+    const expiredIntentWithoutProblem = await seedPaymentIntent({
+      userId,
+      kind: "topup",
+      amount: INTENT_AMOUNT_MINOR,
+      status: "expired",
+      createdAt: beyondRetention(),
+      expiresAt: beyondRetention(),
+    });
+
+    // Act
+    const body = await runCleanup();
+
+    // Assert
+    expect(body).toMatchObject({ expired: 0, deleted: 1 });
+    expect(await readPaymentIntent(expiredIntentWithProblem.id)).toEqual(
+      expiredIntentWithProblem
+    );
+    expect(
+      await readPaymentIntent(expiredIntentWithoutProblem.id)
+    ).toBeUndefined();
+  });
+
+  it("expires but keeps an old intent whose payment was charged with a mismatched amount", async () => {
+    // Arrange: the pay webhook refuses to credit a mismatched amount. It
+    // records the mismatch on the intent and leaves it pending.
+    const userId = await seedUserWithBalance();
+    const mismatchedIntent = await seedPaymentIntent({
+      userId,
+      kind: "topup",
+      amount: INTENT_AMOUNT_MINOR,
+      createdAt: beyondRetention(),
+      expiresAt: beyondRetention(),
+    });
+    await deliverWebhook(
+      signedWebhookRequest("pay", {
+        TransactionId: PAYMENT_TRANSACTION_ID,
+        Amount: MISMATCHED_AMOUNT_MAJOR,
+        Currency: "RUB",
+        AccountId: userId,
+        Status: "Completed",
+        Data: JSON.stringify({
+          kind: "topup",
+          sessionId: mismatchedIntent.sessionId,
+        }),
+      })
+    );
+
+    // Act
+    const body = await runCleanup();
+
+    // Assert
+    expect(body).toMatchObject({ expired: 1, deleted: 0 });
+    expect(await readPaymentIntent(mismatchedIntent.id)).toMatchObject({
+      status: "expired",
+      failureReason: AMOUNT_MISMATCH_REASON,
+      externalTransactionId: null,
+    });
+    expect((await readBalance(userId)).topupAmount).toBe(0);
+  });
+
   it("deletes expired and failed intents older than 30 days", async () => {
     // Arrange
     const userId = await seedUserWithBalance();
@@ -161,6 +260,8 @@ describe("payment-intent cleanup cron against a real database", () => {
       kind: "subscription",
       amount: INTENT_AMOUNT_MINOR,
       status: "failed",
+      // The decline reason from the fail webhook does not protect the row.
+      failureReason: DECLINE_REASON,
       createdAt: beyondRetention(),
       expiresAt: beyondRetention(),
     });

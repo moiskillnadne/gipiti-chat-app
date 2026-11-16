@@ -1,8 +1,8 @@
-import { and, eq, inArray, isNull, lte } from "drizzle-orm";
+import { and, eq, isNull, lte, or } from "drizzle-orm";
 
 import { isAuthorizedCronRequest } from "@/lib/cron/is-authorized-cron-request";
 import { db } from "@/lib/db/connection";
-import { type PaymentIntent, paymentIntent } from "@/lib/db/schema";
+import { paymentIntent } from "@/lib/db/schema";
 
 const LOG_PREFIX = "[Cron:CleanupPaymentIntents]";
 
@@ -10,14 +10,6 @@ const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 
 /** How long an intent that never became a payment is kept before deletion. */
 const UNPAID_INTENT_RETENTION_DAYS = 30;
-
-/**
- * The only statuses that may be deleted. `succeeded` intents are the record a
- * refund is matched against (the refund webhook looks the payment up by
- * `externalTransactionId`), and `pending` / `processing` ones may still
- * receive a webhook.
- */
-const DELETABLE_STATUSES: PaymentIntent["status"][] = ["expired", "failed"];
 
 /**
  * Mark pending intents past their `expiresAt` as expired. One statement, so a
@@ -40,22 +32,39 @@ const expireOverduePendingIntents = async (now: Date): Promise<number> => {
 };
 
 /**
- * Delete expired and failed intents created before the retention cutoff.
+ * Delete intents that never became a payment and were created before the
+ * retention cutoff. An intent is deleted only when all of these hold:
  *
- * An intent that carries a payment transaction id is kept whatever its
- * status: a failed renewal charge can flip a paid subscription intent to
- * `failed`, and deleting it would make a refund of that payment unmatchable.
+ * - it carries no payment transaction id. The refund webhook matches a refund
+ *   to its payment by `externalTransactionId`, and a failed renewal charge can
+ *   flip a paid subscription intent to `failed`, so such a row is kept
+ *   whatever its status;
+ * - its status is `failed`, or `expired` with no `failureReason`. A failure
+ *   reason on an expired intent means the pay webhook charged an amount that
+ *   did not match the intent: it recorded the mismatch, credited nothing and
+ *   left the intent pending. That row is the only database record of a
+ *   payment that needs manual reconciliation, so it is kept. A `failed`
+ *   intent's reason is just the decline reason.
+ *
+ * `succeeded` intents are never deleted (refunds are matched against them),
+ * nor are `pending` / `processing` ones, which may still receive a webhook.
  */
 const deleteStaleUnpaidIntents = async (now: Date): Promise<number> => {
   const retentionCutoff = new Date(
     now.getTime() - UNPAID_INTENT_RETENTION_DAYS * MILLISECONDS_PER_DAY
   );
 
+  const isDeclined = eq(paymentIntent.status, "failed");
+  const isExpiredWithoutPaymentProblem = and(
+    eq(paymentIntent.status, "expired"),
+    isNull(paymentIntent.failureReason)
+  );
+
   const deletedIntents = await db
     .delete(paymentIntent)
     .where(
       and(
-        inArray(paymentIntent.status, DELETABLE_STATUSES),
+        or(isDeclined, isExpiredWithoutPaymentProblem),
         isNull(paymentIntent.externalTransactionId),
         lte(paymentIntent.createdAt, retentionCutoff)
       )
@@ -67,8 +76,10 @@ const deleteStaleUnpaidIntents = async (now: Date): Promise<number> => {
 
 /**
  * Payment-intent housekeeping, scheduled hourly in `vercel.json`: expires
- * pending intents past their deadline, then deletes expired and failed ones
- * older than the retention period. Succeeded intents are never deleted.
+ * pending intents past their deadline, then deletes failed and expired ones
+ * older than the retention period that record neither a payment nor a payment
+ * problem (the exact rule is on `deleteStaleUnpaidIntents`). Succeeded intents
+ * are never deleted.
  */
 export async function GET(request: Request): Promise<Response> {
   if (!isAuthorizedCronRequest(request)) {
@@ -82,7 +93,7 @@ export async function GET(request: Request): Promise<Response> {
     const deleted = await deleteStaleUnpaidIntents(now);
 
     console.log(
-      `${LOG_PREFIX} Marked ${expired} overdue pending intents as expired, deleted ${deleted} expired or failed intents older than ${UNPAID_INTENT_RETENTION_DAYS} days`
+      `${LOG_PREFIX} Marked ${expired} overdue pending intents as expired, deleted ${deleted} unpaid expired or failed intents older than ${UNPAID_INTENT_RETENTION_DAYS} days`
     );
 
     return Response.json({

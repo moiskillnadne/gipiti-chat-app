@@ -49,6 +49,7 @@ type SeedPaymentIntentInput = {
   subscriptionId?: string;
   externalTransactionId?: string;
   externalSubscriptionId?: string;
+  failureReason?: string;
   /** Defaults to 30 minutes from now. */
   expiresAt?: Date;
   /** Defaults to now. */
@@ -167,6 +168,7 @@ export const seedPaymentIntent = async ({
   subscriptionId,
   externalTransactionId,
   externalSubscriptionId,
+  failureReason,
   expiresAt = new Date(Date.now() + THIRTY_MINUTES_MS),
   createdAt,
 }: SeedPaymentIntentInput): Promise<PaymentIntent> => {
@@ -182,6 +184,7 @@ export const seedPaymentIntent = async ({
       status,
       externalTransactionId,
       externalSubscriptionId,
+      failureReason,
       expiresAt,
       createdAt,
     })
