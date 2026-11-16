@@ -8,6 +8,7 @@ export default defineConfig({
     include: [
       "**/__tests__/**/*.test.ts",
       "tests/characterization/**/*.test.ts",
+      "tests/architecture/**/*.test.ts",
     ],
     // `.claude/worktrees/*` holds full checkouts of other branches and `.next`
     // holds build output; neither is part of this checkout's test suite.
