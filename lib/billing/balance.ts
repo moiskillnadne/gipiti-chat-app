@@ -134,8 +134,12 @@ export async function chargeUsage({
       return null;
     }
 
+    // Priced on the transaction's own connection. Through the global `db`
+    // this lookup would wait for a second pool connection while holding the
+    // first, and a pool's worth of concurrent charges would never finish.
     const { minorUnits, fxRate: rate } = await getCurrencyPricing(
-      row.currencyCode
+      row.currencyCode,
+      tx
     );
     if (rate == null) {
       // No FX rate cached yet — cannot price this request. Fail open (don't

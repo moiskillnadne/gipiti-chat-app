@@ -1,14 +1,16 @@
 import { eq } from "drizzle-orm";
-import { db } from "@/lib/db/connection";
+import { type DatabaseExecutor, db } from "@/lib/db/connection";
 import { type Currency, currency } from "@/lib/db/schema";
 
 /**
- * Fetch a currency dictionary row by ISO 4217 code.
+ * Fetch a currency dictionary row by ISO 4217 code. Inside a transaction, pass
+ * it as `executor` so the read does not take a second pool connection.
  */
 export async function getCurrencyByCode(
-  code: string
+  code: string,
+  executor: DatabaseExecutor = db
 ): Promise<Currency | null> {
-  const [row] = await db
+  const [row] = await executor
     .select()
     .from(currency)
     .where(eq(currency.code, code))
@@ -18,10 +20,14 @@ export async function getCurrencyByCode(
 }
 
 /**
- * Minor-unit exponent for a currency (defaults to 2 if not found).
+ * Minor-unit exponent for a currency (defaults to 2 if not found). Inside a
+ * transaction, pass it as `executor`.
  */
-export async function getMinorUnits(code: string): Promise<number> {
-  const row = await getCurrencyByCode(code);
+export async function getMinorUnits(
+  code: string,
+  executor: DatabaseExecutor = db
+): Promise<number> {
+  const row = await getCurrencyByCode(code, executor);
   return row?.minorUnits ?? 2;
 }
 

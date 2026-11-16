@@ -1,5 +1,5 @@
 import { desc, eq } from "drizzle-orm";
-import { db } from "@/lib/db/connection";
+import { type DatabaseExecutor, db } from "@/lib/db/connection";
 import { currency, fxRate } from "@/lib/db/schema";
 import { getMinorUnits } from "./currencies";
 
@@ -15,16 +15,18 @@ type ErApiResponse = {
 
 /**
  * Latest cached USD→quote rate (quote-currency units per 1 USD). Returns null
- * when no rate is cached yet; USD resolves to 1 without a lookup.
+ * when no rate is cached yet; USD resolves to 1 without a lookup. Inside a
+ * transaction, pass it as `executor`.
  */
 export async function getLatestFxRate(
-  quoteCurrency: string
+  quoteCurrency: string,
+  executor: DatabaseExecutor = db
 ): Promise<number | null> {
   if (quoteCurrency === "USD") {
     return 1;
   }
 
-  const [row] = await db
+  const [row] = await executor
     .select({ rate: fxRate.rate })
     .from(fxRate)
     .where(eq(fxRate.quoteCurrency, quoteCurrency))
@@ -43,13 +45,16 @@ export type CurrencyPricing = {
 
 /**
  * Minor-unit exponent and latest FX rate for a currency, as used to price a
- * usage charge (`chargeUsage`) and a turn's minimum balance.
+ * usage charge (`chargeUsage`) and a turn's minimum balance. Inside a
+ * transaction, pass it as `executor`: both lookups then run on the
+ * transaction's connection instead of taking a second one from the pool.
  */
 export async function getCurrencyPricing(
-  currencyCode: string
+  currencyCode: string,
+  executor: DatabaseExecutor = db
 ): Promise<CurrencyPricing> {
-  const minorUnits = await getMinorUnits(currencyCode);
-  const rate = await getLatestFxRate(currencyCode);
+  const minorUnits = await getMinorUnits(currencyCode, executor);
+  const rate = await getLatestFxRate(currencyCode, executor);
   return { minorUnits, fxRate: rate };
 }
 
