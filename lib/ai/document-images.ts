@@ -6,6 +6,7 @@ import {
   fetchPublicImageBytes,
   isAllowedRemoteImageUrl,
   RemoteImageFetchError,
+  type RemoteImageFetchFailureReason,
 } from "./remote-image-fetch";
 
 /**
@@ -71,6 +72,29 @@ const normalizeImage = async (bytes: Uint8Array): Promise<DocumentImage> => {
 };
 
 /**
+ * Why an image was left out: a reason from the fetch policy, "deadline" when
+ * the batch ran out of time while the image was downloading, or "unreadable"
+ * when the bytes arrived but are not an image sharp can decode.
+ */
+export type DocumentImageFailureReason =
+  | RemoteImageFetchFailureReason
+  | "deadline"
+  | "unreadable";
+
+const failureReasonOf = (
+  error: unknown,
+  deadline: AbortSignal
+): DocumentImageFailureReason => {
+  if (error instanceof RemoteImageFetchError) {
+    return error.reason;
+  }
+  // The fetcher rethrows the caller's abort reason as is, so identity tells
+  // a download cut by the deadline from a decode that failed after it.
+  const isDeadlineAbort = deadline.aborted && error === deadline.reason;
+  return isDeadlineAbort ? "deadline" : "unreadable";
+};
+
+/**
  * Download and normalize one image. Returns null on any failure (refused by
  * the fetch policy, unreachable, not an image, past the batch deadline) so
  * the renderer falls back to the image's alt text.
@@ -86,8 +110,7 @@ const loadImage = async (
     const bytes = await fetchPublicImageBytes(url, { signal: deadline });
     return await normalizeImage(bytes);
   } catch (error) {
-    const reason =
-      error instanceof RemoteImageFetchError ? error.reason : "unreadable";
+    const reason = failureReasonOf(error, deadline);
     console.error("Failed to load document image", { url, reason }, error);
     return null;
   }

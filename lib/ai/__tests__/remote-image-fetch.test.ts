@@ -4,6 +4,7 @@ import { EventEmitter } from "node:events";
 import type { ClientRequest, IncomingMessage } from "node:http";
 import type { RequestOptions } from "node:https";
 import { request as httpsRequest } from "node:https";
+import { isIP } from "node:net";
 import { Readable } from "node:stream";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -64,11 +65,17 @@ type RequestCall = { url: URL; options: RequestOptions };
 let requestCalls: RequestCall[] = [];
 let addressesByHost = new Map<string, LookupAddress[]>();
 
+const IPV6_BRACKETS_PATTERN = /^\[|\]$/g;
+
+const isIpLiteralHost = (hostname: string): boolean =>
+  isIP(hostname.replace(IPV6_BRACKETS_PATTERN, "")) !== 0;
+
 /**
- * Stands in for `https.request`. Like the real one it resolves the host
- * through the request's own `lookup` before anything is sent, fails the
- * request when the lookup fails, and fails it with an AbortError when the
- * signal fires before a response.
+ * Stands in for `https.request`. Like the real one it resolves a hostname
+ * through the request's own `lookup` before anything is sent, connects to an
+ * IP-literal host without any lookup, fails the request when the lookup
+ * fails, and fails it with an AbortError when the signal fires before a
+ * response.
  */
 const createFakeRequest = (
   url: URL,
@@ -84,15 +91,22 @@ const createFakeRequest = (
     }
   };
 
+  const answer = (): void => {
+    if (outcome !== NO_ANSWER) {
+      settle(outcome instanceof Error ? "error" : "response", outcome);
+    }
+  };
   const end = (): void => {
+    if (isIpLiteralHost(url.hostname)) {
+      answer();
+      return;
+    }
     options.lookup?.(url.hostname, { all: true }, (lookupError) => {
       if (lookupError) {
         settle("error", lookupError);
         return;
       }
-      if (outcome !== NO_ANSWER) {
-        settle(outcome instanceof Error ? "error" : "response", outcome);
-      }
+      answer();
     });
   };
   options.signal?.addEventListener("abort", () =>
@@ -306,6 +320,41 @@ describe("fetchPublicImageBytes", () => {
     await expect(download).rejects.toBeInstanceOf(RemoteImageFetchError);
     await expect(download).rejects.toMatchObject({ reason: "url_not_allowed" });
     expect(requestCalls).toHaveLength(0);
+  });
+
+  it.each([
+    ["an IPv4 literal", "https://93.184.216.34/photo.png"],
+    ["an IPv6 literal", "https://[2606:4700:4700::1111]/photo.png"],
+  ])(
+    "connects to a public host given as %s without a DNS lookup",
+    async (_label, url) => {
+      // Arrange
+      stubRequests(fakeResponse());
+
+      // Act
+      const bytes = await fetchPublicImageBytes(url);
+
+      // Assert
+      expect(bytes.byteLength).toBe(4);
+      expect(dnsLookup).not.toHaveBeenCalled();
+    }
+  );
+
+  it.each([
+    ["a benchmarking address", "https://198.18.0.1/photo.png"],
+    ["a documentation address", "https://[2001:db8::1]/photo.png"],
+    ["an IPv4-translated address", "https://[::ffff:0:169.254.169.254]/a.png"],
+  ])("makes no request for %s given as a literal", async (_label, url) => {
+    // Arrange
+    stubRequests(fakeResponse());
+
+    // Act
+    const download = fetchPublicImageBytes(url);
+
+    // Assert
+    await expect(download).rejects.toMatchObject({ reason: "url_not_allowed" });
+    expect(requestCalls).toHaveLength(0);
+    expect(dnsLookup).not.toHaveBeenCalled();
   });
 
   it("refuses a host that resolves to one private address among public ones", async () => {

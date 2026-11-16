@@ -300,5 +300,46 @@ describe("document image embedding", () => {
       // the rest were never attempted once the deadline had passed.
       expect(fetchedUrls()).toEqual(urls.slice(0, 5));
     });
+
+    it("logs a download cut by the batch deadline as a deadline, not as a bad image", async () => {
+      // Arrange
+      vi.mocked(fetchPublicImageBytes).mockImplementation(
+        (_url: string, options?: RemoteImageFetchOptions) =>
+          new Promise<Uint8Array>((_resolve, reject) => {
+            options?.signal?.addEventListener("abort", () =>
+              reject(options.signal?.reason)
+            );
+          })
+      );
+
+      // Act
+      await loadDocumentImages([SMALL_PNG_URL], { deadlineMs: 20 });
+
+      // Assert
+      expect(consoleError).toHaveBeenCalledTimes(1);
+      expect(consoleError).toHaveBeenCalledWith(
+        expect.any(String),
+        { url: SMALL_PNG_URL, reason: "deadline" },
+        expect.anything()
+      );
+    });
+
+    it("logs the reason an image was left out", async () => {
+      // Act
+      await loadDocumentImages([BROKEN_URL, MISSING_URL]);
+
+      // Assert
+      const loggedFailures = consoleError.mock.calls.map(
+        (logArguments: unknown[]) => logArguments[1]
+      );
+      // The two downloads run side by side, so the log order is not fixed.
+      expect(loggedFailures).toHaveLength(2);
+      expect(loggedFailures).toEqual(
+        expect.arrayContaining([
+          { url: BROKEN_URL, reason: "unreadable" },
+          { url: MISSING_URL, reason: "http_error" },
+        ])
+      );
+    });
   });
 });
