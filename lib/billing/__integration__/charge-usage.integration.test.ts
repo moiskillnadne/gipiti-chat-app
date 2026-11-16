@@ -3,12 +3,14 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { chargeUsage } from "@/lib/billing/balance";
 import {
   closeDatabaseConnection,
+  connectionPoolSize,
   readBalance,
   readTransactions,
   resetMoneyTables,
   seedCurrency,
   seedFxRate,
   seedUserWithBalance,
+  settleWithinDeadline,
 } from "@/tests/integration/helpers";
 
 /**
@@ -19,10 +21,13 @@ const RUB_PER_USD = 100;
 const MINOR_UNITS_PER_USD_COST = 20_000;
 
 /**
- * Stays below the connection pool size (10): `chargeUsage` holds one
- * connection for its transaction and takes a second one for the FX lookup.
+ * More charges at once than the pool has connections: a charge that needed a
+ * second connection inside its transaction would wait for one forever.
  */
-const CONCURRENT_CHARGES = 5;
+const CONCURRENT_CHARGES = connectionPoolSize() + 5;
+
+/** Far above what the charges take (well under a second), below the test timeout. */
+const HUNG_CHARGES_DEADLINE_MS = 3000;
 
 describe("chargeUsage against a real database", () => {
   beforeEach(async () => {
@@ -88,38 +93,6 @@ describe("chargeUsage against a real database", () => {
     });
   });
 
-  it("applies every one of several concurrent charges exactly once", async () => {
-    // Arrange
-    const startingTopup = 1_000_000;
-    const userId = await seedUserWithBalance({ topupAmount: startingTopup });
-    const usdCostPerCharge = 0.5;
-    const minorPerCharge = MINOR_UNITS_PER_USD_COST * usdCostPerCharge;
-
-    // Act: without the row lock, concurrent read-modify-write would lose updates.
-    await Promise.all(
-      Array.from({ length: CONCURRENT_CHARGES }, () =>
-        chargeUsage({ userId, usdCost: usdCostPerCharge })
-      )
-    );
-
-    // Assert
-    const balanceAfter = await readBalance(userId);
-    expect(balanceAfter.topupAmount).toBe(
-      startingTopup - CONCURRENT_CHARGES * minorPerCharge
-    );
-
-    const transactions = await readTransactions(userId);
-    expect(transactions).toHaveLength(CONCURRENT_CHARGES);
-    expect(transactions.every(({ amount }) => amount === -minorPerCharge)).toBe(
-      true
-    );
-    // Each charge saw the balance the previous one left: all different.
-    const balancesAfter = new Set(
-      transactions.map(({ topupBalanceAfter }) => topupBalanceAfter)
-    );
-    expect(balancesAfter.size).toBe(CONCURRENT_CHARGES);
-  });
-
   it("charges nothing when there is no FX rate for the balance currency", async () => {
     // Arrange
     await resetMoneyTables();
@@ -143,5 +116,73 @@ describe("chargeUsage against a real database", () => {
 
     // Assert
     expect(result).toBeNull();
+  });
+
+  it("applies every one of several concurrent charges exactly once", async () => {
+    // Arrange
+    const startingTopup = 1_000_000;
+    const userId = await seedUserWithBalance({ topupAmount: startingTopup });
+    const usdCostPerCharge = 0.5;
+    const minorPerCharge = MINOR_UNITS_PER_USD_COST * usdCostPerCharge;
+
+    // Act: without the row lock, concurrent read-modify-write would lose updates.
+    await settleWithinDeadline(
+      Promise.all(
+        Array.from({ length: CONCURRENT_CHARGES }, () =>
+          chargeUsage({ userId, usdCost: usdCostPerCharge })
+        )
+      ),
+      HUNG_CHARGES_DEADLINE_MS
+    );
+
+    // Assert
+    const balanceAfter = await readBalance(userId);
+    expect(balanceAfter.topupAmount).toBe(
+      startingTopup - CONCURRENT_CHARGES * minorPerCharge
+    );
+
+    const transactions = await readTransactions(userId);
+    expect(transactions).toHaveLength(CONCURRENT_CHARGES);
+    expect(transactions.every(({ amount }) => amount === -minorPerCharge)).toBe(
+      true
+    );
+    // Each charge saw the balance the previous one left: all different.
+    const balancesAfter = new Set(
+      transactions.map(({ topupBalanceAfter }) => topupBalanceAfter)
+    );
+    expect(balancesAfter.size).toBe(CONCURRENT_CHARGES);
+  });
+
+  it("completes concurrent charges for more users than the pool has connections", async () => {
+    // Arrange
+    const startingTopup = 100_000;
+    const userIds = await Promise.all(
+      Array.from({ length: CONCURRENT_CHARGES }, () =>
+        seedUserWithBalance({ topupAmount: startingTopup })
+      )
+    );
+
+    // Act: every charge is in its transaction at once, one connection each.
+    const results = await settleWithinDeadline(
+      Promise.all(userIds.map((userId) => chargeUsage({ userId, usdCost: 1 }))),
+      HUNG_CHARGES_DEADLINE_MS
+    );
+
+    // Assert
+    expect(results.map((result) => result?.amount)).toEqual(
+      userIds.map(() => MINOR_UNITS_PER_USD_COST)
+    );
+
+    const balancesAfter = await Promise.all(userIds.map(readBalance));
+    expect(balancesAfter.map(({ topupAmount }) => topupAmount)).toEqual(
+      userIds.map(() => startingTopup - MINOR_UNITS_PER_USD_COST)
+    );
+
+    const transactionsPerUser = await Promise.all(
+      userIds.map(readTransactions)
+    );
+    expect(transactionsPerUser.map(({ length }) => length)).toEqual(
+      userIds.map(() => 1)
+    );
   });
 });

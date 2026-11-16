@@ -71,6 +71,51 @@ export const closeDatabaseConnection = async (): Promise<void> => {
   await db.$client.end();
 };
 
+/** How many connections the app's pool may open at once. */
+export const connectionPoolSize = (): number => db.$client.options.max;
+
+export class DatabaseWorkHungError extends Error {
+  constructor(timeoutMs: number) {
+    super(
+      `Database work did not settle within ${timeoutMs} ms: the connection pool is most likely exhausted by transactions that wait for a second connection. The pool was destroyed to release their row locks, so later tests in this file fail with CONNECTION_ENDED.`
+    );
+    this.name = "DatabaseWorkHungError";
+  }
+}
+
+/**
+ * Await database work that must not hang. When it has not settled after
+ * `timeoutMs` the pool is destroyed and the returned promise rejects with
+ * `DatabaseWorkHungError`.
+ *
+ * Destroying the pool is the point: hung transactions keep their connections
+ * and row locks, and every later query would queue behind them until the test
+ * runner gives up. Dropping the connections makes Postgres roll them back.
+ */
+export const settleWithinDeadline = async <Result>(
+  work: Promise<Result>,
+  timeoutMs: number
+): Promise<Result> => {
+  let deadlineTimer: NodeJS.Timeout | undefined;
+  const deadline = new Promise<never>((_resolve, reject) => {
+    deadlineTimer = setTimeout(
+      () => reject(new DatabaseWorkHungError(timeoutMs)),
+      timeoutMs
+    );
+  });
+
+  try {
+    return await Promise.race([work, deadline]);
+  } catch (error) {
+    if (error instanceof DatabaseWorkHungError) {
+      await db.$client.end({ timeout: 0 });
+    }
+    throw error;
+  } finally {
+    clearTimeout(deadlineTimer);
+  }
+};
+
 export const seedCurrency = async (
   code: string = TEST_CURRENCY_CODE
 ): Promise<void> => {
