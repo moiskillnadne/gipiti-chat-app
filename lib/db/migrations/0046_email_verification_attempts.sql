@@ -1,0 +1,11 @@
+-- Wrong guesses made against the current email verification code.
+--
+-- The code is 6 digits and lives 30 minutes. Without a cap, a script can try
+-- the whole space against an address it registered but cannot read. Each check
+-- of a code takes one attempt (lib/db/query/user/take-verification-attempt.ts);
+-- at 5 the code stops being accepted and a new one has to be requested, which
+-- resets the counter.
+--
+-- Additive: existing rows start at 0. Adding a column with a constant default
+-- does not rewrite the table.
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "email_verification_attempts" integer DEFAULT 0 NOT NULL;

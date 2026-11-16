@@ -8,6 +8,7 @@ const CHAT_REQUEST_WINDOW = "1 m";
 // Initialize rate limiters with Upstash client
 let passwordResetRateLimiter: Ratelimit | null = null;
 let verificationResendRateLimiter: Ratelimit | null = null;
+let verificationAttemptRateLimiter: Ratelimit | null = null;
 let paymentStatusRateLimiter: Ratelimit | null = null;
 let chatRequestRateLimiter: Ratelimit | null = null;
 
@@ -32,6 +33,16 @@ if (upstashClient) {
     limiter: Ratelimit.fixedWindow(1, "60 s"),
     analytics: true,
     prefix: "ratelimit:verification-resend",
+  });
+
+  // Checks of an email verification code per address. A code already dies
+  // after 5 checks, but a new code can be requested every minute; this caps
+  // how many guesses an hour of that buys.
+  verificationAttemptRateLimiter = new Ratelimit({
+    redis: upstashClient,
+    limiter: Ratelimit.slidingWindow(10, "1 h"),
+    analytics: true,
+    prefix: "ratelimit:verification-attempt",
   });
 
   paymentStatusRateLimiter = new Ratelimit({
@@ -65,8 +76,9 @@ const warnRateLimitingDisabledOnce = (): void => {
     "[RateLimit] Rate limiting is DISABLED: no Upstash REST client. " +
       "Set KV_REST_API_URL and KV_REST_API_TOKEN (or an https:// REDIS_URL " +
       "with REDIS_TOKEN). Chat and payment status requests are not rate " +
-      "limited. Password reset and verification resend are not rate limited " +
-      "either, except in production, where they are refused."
+      "limited. Password reset, verification resend and verification code " +
+      "checks are not rate limited either, except in production, where they " +
+      "are refused."
   );
 };
 
@@ -171,6 +183,21 @@ export const checkVerificationResendRateLimit = (
     key: email.toLowerCase(),
     policy: "fail-closed",
     label: "verification resend",
+  });
+
+/**
+ * Check if a verification code check is rate limited. Refuses in production
+ * when the limiter cannot be checked.
+ * @param email The email address whose code is being checked
+ */
+export const checkVerificationAttemptRateLimit = (
+  email: string
+): Promise<RateLimitResult> =>
+  checkLimit({
+    limiter: verificationAttemptRateLimiter,
+    key: email.toLowerCase(),
+    policy: "fail-closed",
+    label: "verification attempt",
   });
 
 /**

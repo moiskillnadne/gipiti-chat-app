@@ -8,9 +8,9 @@ import {
 } from "@/lib/db/query/user/create-user";
 import { getUserByEmail } from "@/lib/db/query/user/get-by-email";
 import { getUserByResetToken } from "@/lib/db/query/user/get-user-by-reset-token";
-import { getUserByVerificationCode } from "@/lib/db/query/user/get-user-by-verification-code";
 import { markEmailAsVerified } from "@/lib/db/query/user/mark-email-as-verified";
 import { setPasswordResetToken } from "@/lib/db/query/user/set-password-reset-token";
+import { takeVerificationAttempt } from "@/lib/db/query/user/take-verification-attempt";
 import { updateUserPassword } from "@/lib/db/query/user/update-user-password";
 import type { User } from "@/lib/db/schema";
 import { generateHashedPassword } from "@/lib/db/utils";
@@ -23,6 +23,7 @@ import {
 } from "@/lib/geo/registration-geo";
 import {
   checkPasswordResetRateLimit,
+  checkVerificationAttemptRateLimit,
   checkVerificationResendRateLimit,
   getRateLimitResetMinutes,
   getRateLimitResetSeconds,
@@ -62,6 +63,7 @@ vi.mock("next/headers", () => ({
 vi.mock("@/lib/flags", () => ({ isSignupEnabled: isSignupEnabledMock }));
 vi.mock("@/lib/rate-limit", () => ({
   checkPasswordResetRateLimit: vi.fn(),
+  checkVerificationAttemptRateLimit: vi.fn(),
   checkVerificationResendRateLimit: vi.fn(),
   getRateLimitResetMinutes: vi.fn(),
   getRateLimitResetSeconds: vi.fn(),
@@ -80,8 +82,9 @@ vi.mock("@/lib/db/query/user/get-by-email", () => ({
 vi.mock("@/lib/db/query/user/get-user-by-reset-token", () => ({
   getUserByResetToken: vi.fn(),
 }));
-vi.mock("@/lib/db/query/user/get-user-by-verification-code", () => ({
-  getUserByVerificationCode: vi.fn(),
+vi.mock("@/lib/db/query/user/take-verification-attempt", () => ({
+  MAX_EMAIL_VERIFICATION_ATTEMPTS: 5,
+  takeVerificationAttempt: vi.fn(),
 }));
 vi.mock("@/lib/db/query/user/mark-email-as-verified", () => ({
   markEmailAsVerified: vi.fn(),
@@ -115,7 +118,6 @@ vi.mock("@/lib/email/send-password-changed", () => ({
 
 const USER_ID = "user-1";
 const USER_EMAIL = "user@example.test";
-const OTHER_EMAIL = "other@example.test";
 const STRONG_PASSWORD = "Str0ng!Pass";
 const VERIFICATION_CODE = "123456";
 const RESET_TOKEN = "plain-reset-token";
@@ -153,7 +155,7 @@ const arrangeHappyPathDefaults = (): void => {
   isSignupEnabledMock.mockResolvedValue(true);
   cookieGetMock.mockReturnValue(undefined);
   vi.mocked(getUserByEmail).mockResolvedValue(null);
-  vi.mocked(getUserByVerificationCode).mockResolvedValue(null);
+  vi.mocked(takeVerificationAttempt).mockResolvedValue(null);
   vi.mocked(getUserByResetToken).mockResolvedValue(null);
   vi.mocked(createUser).mockResolvedValue(userRow());
   vi.mocked(markEmailAsVerified).mockResolvedValue([]);
@@ -165,6 +167,9 @@ const arrangeHappyPathDefaults = (): void => {
   vi.mocked(sanitizeLanguage).mockReturnValue(LANGUAGE);
   vi.mocked(checkPasswordResetRateLimit).mockResolvedValue({ success: true });
   vi.mocked(checkVerificationResendRateLimit).mockResolvedValue({
+    success: true,
+  });
+  vi.mocked(checkVerificationAttemptRateLimit).mockResolvedValue({
     success: true,
   });
   vi.mocked(getRateLimitResetSeconds).mockReturnValue(COOLDOWN_SECONDS);
@@ -446,28 +451,51 @@ describe("register", () => {
 
 describe("verifyEmail", () => {
   const verification = { email: USER_EMAIL, code: VERIFICATION_CODE };
+  const WRONG_CODE = "654321";
+  const MAX_ATTEMPTS = 5;
+
+  /** An attempt taken on a live code whose stored hash is VERIFICATION_CODE. */
+  const liveAttempt = (attemptsUsed = 1) => ({
+    userId: USER_ID,
+    hashedCode: sha256Hex(VERIFICATION_CODE),
+    attemptsUsed,
+  });
 
   it("returns success, marks the email verified and grants the bonus", async () => {
     // Arrange
-    vi.mocked(getUserByVerificationCode).mockResolvedValue(userRow());
+    vi.mocked(takeVerificationAttempt).mockResolvedValue(liveAttempt());
 
     // Act
     const state = await verifyEmail({ status: "idle" }, formData(verification));
 
     // Assert
     expect(state).toEqual({ status: "success" });
-    expect(getUserByVerificationCode).toHaveBeenCalledWith({
-      hashedCode: sha256Hex(VERIFICATION_CODE),
-    });
+    expect(checkVerificationAttemptRateLimit).toHaveBeenCalledWith(USER_EMAIL);
+    expect(takeVerificationAttempt).toHaveBeenCalledTimes(1);
+    expect(takeVerificationAttempt).toHaveBeenCalledWith({ email: USER_EMAIL });
     expect(markEmailAsVerified).toHaveBeenCalledTimes(1);
     expect(markEmailAsVerified).toHaveBeenCalledWith({ email: USER_EMAIL });
     expect(grantEmailVerificationBonus).toHaveBeenCalledTimes(1);
     expect(grantEmailVerificationBonus).toHaveBeenCalledWith(USER_ID);
   });
 
+  it("accepts the right code on the last attempt", async () => {
+    // Arrange
+    vi.mocked(takeVerificationAttempt).mockResolvedValue(
+      liveAttempt(MAX_ATTEMPTS)
+    );
+
+    // Act
+    const state = await verifyEmail({ status: "idle" }, formData(verification));
+
+    // Assert
+    expect(state).toEqual({ status: "success" });
+    expect(markEmailAsVerified).toHaveBeenCalledTimes(1);
+  });
+
   it("still returns success when granting the bonus throws", async () => {
     // Arrange
-    vi.mocked(getUserByVerificationCode).mockResolvedValue(userRow());
+    vi.mocked(takeVerificationAttempt).mockResolvedValue(liveAttempt());
     vi.mocked(grantEmailVerificationBonus).mockRejectedValue(
       new Error("bonus failed")
     );
@@ -480,11 +508,67 @@ describe("verifyEmail", () => {
     expect(markEmailAsVerified).toHaveBeenCalledTimes(1);
   });
 
+  it("looks the code up by the email as typed and leaves the case to the query", async () => {
+    // Arrange
+    const typedEmail = "User@Example.test";
+    vi.mocked(takeVerificationAttempt).mockResolvedValue(liveAttempt());
+
+    // Act
+    const state = await verifyEmail(
+      { status: "idle" },
+      formData({ email: typedEmail, code: VERIFICATION_CODE })
+    );
+
+    // Assert
+    expect(state).toEqual({ status: "success" });
+    expect(takeVerificationAttempt).toHaveBeenCalledWith({ email: typedEmail });
+    expect(markEmailAsVerified).toHaveBeenCalledWith({ email: typedEmail });
+  });
+
+  it("returns invalid_code for a wrong code while attempts remain", async () => {
+    // Arrange
+    vi.mocked(takeVerificationAttempt).mockResolvedValue(
+      liveAttempt(MAX_ATTEMPTS - 1)
+    );
+
+    // Act
+    const state = await verifyEmail(
+      { status: "idle" },
+      formData({ email: USER_EMAIL, code: WRONG_CODE })
+    );
+
+    // Assert
+    expect(state).toEqual({ status: "invalid_code" });
+    expect(markEmailAsVerified).not.toHaveBeenCalled();
+    expect(grantEmailVerificationBonus).not.toHaveBeenCalled();
+  });
+
+  it("returns expired_code for a wrong code on the last attempt", async () => {
+    // Arrange
+    vi.mocked(takeVerificationAttempt).mockResolvedValue(
+      liveAttempt(MAX_ATTEMPTS)
+    );
+
+    // Act
+    const state = await verifyEmail(
+      { status: "idle" },
+      formData({ email: USER_EMAIL, code: WRONG_CODE })
+    );
+
+    // Assert
+    expect(state).toEqual({ status: "expired_code" });
+    expect(markEmailAsVerified).not.toHaveBeenCalled();
+    expect(grantEmailVerificationBonus).not.toHaveBeenCalled();
+  });
+
   it.each<[string, User | null]>([
     ["the email has no account", null],
-    ["the email's account is not verified", userRow({ emailVerified: false })],
+    [
+      "the email's account has no code",
+      userRow({ emailVerified: false, emailVerificationCode: null }),
+    ],
   ])(
-    "returns invalid_code when the code matches no user and %s",
+    "returns invalid_code when no attempt can be taken and %s",
     async (_label, userByEmail) => {
       // Arrange
       vi.mocked(getUserByEmail).mockResolvedValue(userByEmail);
@@ -503,7 +587,25 @@ describe("verifyEmail", () => {
     }
   );
 
-  it("returns already_verified when no user has the code but the email is verified", async () => {
+  it("returns expired_code when no attempt can be taken and the account still holds a code", async () => {
+    // Arrange: the code expired or its attempts are used up.
+    vi.mocked(getUserByEmail).mockResolvedValue(
+      userRow({
+        emailVerified: false,
+        emailVerificationCode: sha256Hex(VERIFICATION_CODE),
+      })
+    );
+
+    // Act
+    const state = await verifyEmail({ status: "idle" }, formData(verification));
+
+    // Assert
+    expect(state).toEqual({ status: "expired_code" });
+    expect(markEmailAsVerified).not.toHaveBeenCalled();
+    expect(grantEmailVerificationBonus).not.toHaveBeenCalled();
+  });
+
+  it("returns already_verified when no attempt can be taken and the email is verified", async () => {
     // Arrange
     vi.mocked(getUserByEmail).mockResolvedValue(
       userRow({ emailVerified: true })
@@ -518,35 +620,27 @@ describe("verifyEmail", () => {
     expect(grantEmailVerificationBonus).not.toHaveBeenCalled();
   });
 
-  it("returns invalid_code when the code belongs to a different email", async () => {
-    // Arrange
-    vi.mocked(getUserByVerificationCode).mockResolvedValue(
-      userRow({ email: OTHER_EMAIL })
-    );
+  it.each<[string, { success: boolean; isUnavailable?: boolean }]>([
+    ["the limit is reached", { success: false }],
+    ["the limiter cannot be checked", { success: false, isUnavailable: true }],
+  ])(
+    "returns failed without taking an attempt when %s",
+    async (_label, limit) => {
+      // Arrange
+      vi.mocked(checkVerificationAttemptRateLimit).mockResolvedValue(limit);
 
-    // Act
-    const state = await verifyEmail({ status: "idle" }, formData(verification));
+      // Act
+      const state = await verifyEmail(
+        { status: "idle" },
+        formData(verification)
+      );
 
-    // Assert
-    expect(state).toEqual({ status: "invalid_code" });
-    expect(markEmailAsVerified).not.toHaveBeenCalled();
-    expect(grantEmailVerificationBonus).not.toHaveBeenCalled();
-  });
-
-  it("returns invalid_code when the email differs from the stored one only by case", async () => {
-    // Arrange
-    vi.mocked(getUserByVerificationCode).mockResolvedValue(userRow());
-
-    // Act
-    const state = await verifyEmail(
-      { status: "idle" },
-      formData({ email: "User@Example.test", code: VERIFICATION_CODE })
-    );
-
-    // Assert
-    expect(state).toEqual({ status: "invalid_code" });
-    expect(markEmailAsVerified).not.toHaveBeenCalled();
-  });
+      // Assert
+      expect(state).toEqual({ status: "failed" });
+      expect(takeVerificationAttempt).not.toHaveBeenCalled();
+      expect(markEmailAsVerified).not.toHaveBeenCalled();
+    }
+  );
 
   it.each<[string, Record<string, string>]>([
     ["a malformed email", { email: "not-an-email", code: VERIFICATION_CODE }],
@@ -559,12 +653,13 @@ describe("verifyEmail", () => {
 
     // Assert
     expect(state).toEqual({ status: "invalid_data" });
-    expect(getUserByVerificationCode).not.toHaveBeenCalled();
+    expect(checkVerificationAttemptRateLimit).not.toHaveBeenCalled();
+    expect(takeVerificationAttempt).not.toHaveBeenCalled();
   });
 
   it("returns failed when marking the email verified throws", async () => {
     // Arrange
-    vi.mocked(getUserByVerificationCode).mockResolvedValue(userRow());
+    vi.mocked(takeVerificationAttempt).mockResolvedValue(liveAttempt());
     vi.mocked(markEmailAsVerified).mockRejectedValue(new Error("db down"));
 
     // Act

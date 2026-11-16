@@ -2,12 +2,19 @@
 
 import { cookies } from "next/headers";
 import { z } from "zod";
-import { createPasswordResetToken, hashToken } from "@/lib/auth/reset-token";
+import {
+  createPasswordResetToken,
+  hashToken,
+  verifyToken,
+} from "@/lib/auth/reset-token";
 import { grantEmailVerificationBonus } from "@/lib/billing/balance";
 import { getUserByEmail } from "@/lib/db/query/user/get-by-email";
 import { getUserByResetToken } from "@/lib/db/query/user/get-user-by-reset-token";
-import { getUserByVerificationCode } from "@/lib/db/query/user/get-user-by-verification-code";
 import { markEmailAsVerified } from "@/lib/db/query/user/mark-email-as-verified";
+import {
+  MAX_EMAIL_VERIFICATION_ATTEMPTS,
+  takeVerificationAttempt,
+} from "@/lib/db/query/user/take-verification-attempt";
 import { updateUserPassword } from "@/lib/db/query/user/update-user-password";
 import { generateHashedPassword } from "@/lib/db/utils";
 import { sendPasswordChangedEmail } from "@/lib/email/send-password-changed";
@@ -20,6 +27,7 @@ import {
 } from "@/lib/geo/registration-geo";
 import {
   checkPasswordResetRateLimit,
+  checkVerificationAttemptRateLimit,
   checkVerificationResendRateLimit,
   getRateLimitResetMinutes,
   getRateLimitResetSeconds,
@@ -188,6 +196,23 @@ export type VerifyEmailActionState = {
     | "invalid_data";
 };
 
+/**
+ * Why a code could not be checked for this email: the account is already
+ * verified, its code is dead (expired, or its attempts are used up), or there
+ * is nothing to check against.
+ */
+const getStatusWithoutLiveCode = async (
+  email: string
+): Promise<"already_verified" | "expired_code" | "invalid_code"> => {
+  const userRecord = await getUserByEmail(email);
+
+  if (userRecord?.emailVerified) {
+    return "already_verified";
+  }
+
+  return userRecord?.emailVerificationCode ? "expired_code" : "invalid_code";
+};
+
 export const verifyEmail = async (
   _: VerifyEmailActionState,
   formData: FormData
@@ -198,26 +223,27 @@ export const verifyEmail = async (
       code: formData.get("code"),
     });
 
-    // Hash the code to match database storage
-    const hashedCode = hashToken(validatedData.code);
-
-    // Find user by verification code and check expiry
-    const foundUser = await getUserByVerificationCode({ hashedCode });
-
-    if (!foundUser) {
-      // Check if email is already verified (code was already used successfully)
-      const userRecord = await getUserByEmail(validatedData.email);
-      if (userRecord?.emailVerified) {
-        return { status: "already_verified" };
-      }
-      console.error("[VerifyEmail] User not found");
-      return { status: "invalid_code" };
+    const rateLimitResult = await checkVerificationAttemptRateLimit(
+      validatedData.email
+    );
+    if (!rateLimitResult.success) {
+      return { status: "failed" };
     }
 
-    // Verify the email matches
-    if (foundUser.email !== validatedData.email) {
-      console.error("[VerifyEmail] Email mismatch");
-      return { status: "invalid_code" };
+    // Takes one of the code's attempts whether the guess is right or wrong;
+    // see `takeVerificationAttempt` for why it is taken first.
+    const attempt = await takeVerificationAttempt({
+      email: validatedData.email,
+    });
+
+    if (!attempt) {
+      return { status: await getStatusWithoutLiveCode(validatedData.email) };
+    }
+
+    if (!verifyToken(validatedData.code, attempt.hashedCode)) {
+      const isLastAttempt =
+        attempt.attemptsUsed >= MAX_EMAIL_VERIFICATION_ATTEMPTS;
+      return { status: isLastAttempt ? "expired_code" : "invalid_code" };
     }
 
     // Mark email as verified
@@ -226,7 +252,7 @@ export const verifyEmail = async (
     // Credit the one-time email-confirmation bonus. Best-effort and idempotent:
     // verification has already succeeded, so a bonus failure must not block it.
     try {
-      await grantEmailVerificationBonus(foundUser.id);
+      await grantEmailVerificationBonus(attempt.userId);
     } catch (bonusError) {
       console.error("Failed to grant email verification bonus:", bonusError);
     }
