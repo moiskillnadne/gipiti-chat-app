@@ -23,6 +23,9 @@ type CancelRequestBody = {
   feedback?: CancellationFeedback;
 };
 
+/** Same error code as `subscription/resume` returns for a provider failure. */
+const PAYMENT_PROVIDER_ERROR = "payment_provider_error";
+
 // There is deliberately no POST handler here. A subscription becomes active only
 // through the CloudPayments `pay` webhook, after a payment (GIPITI-119).
 
@@ -63,8 +66,6 @@ export async function DELETE(request: Request) {
   if (!session?.user) {
     return new Response("Unauthorized", { status: 401 });
   }
-
-  console.log("Cancelling subscription for user:", session.user.id);
 
   // Parse request body for feedback
   let feedback: CancellationFeedback | undefined;
@@ -152,7 +153,15 @@ export async function DELETE(request: Request) {
           );
         }
       } catch (error) {
+        // The provider did not answer, so nobody knows whether it will keep
+        // charging. Marking the subscription cancelled here would tell the
+        // user it is over while the card may still be billed: stop, change
+        // nothing locally, and let the user try again.
         console.error("Failed to cancel CloudPayments subscription:", error);
+        return Response.json(
+          { error: PAYMENT_PROVIDER_ERROR },
+          { status: 502 }
+        );
       }
     }
 
