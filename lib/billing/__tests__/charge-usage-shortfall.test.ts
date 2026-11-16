@@ -47,7 +47,9 @@ vi.mock("@/lib/db/connection", () => ({
     ) => await run(buildTx()),
   },
 }));
-vi.mock("../fx", () => ({ getCurrencyPricing: getCurrencyPricingMock }));
+vi.mock("@/lib/billing/fx", () => ({
+  getCurrencyPricing: getCurrencyPricingMock,
+}));
 
 import { chargeUsage } from "../balance";
 

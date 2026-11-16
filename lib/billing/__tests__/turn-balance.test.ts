@@ -13,8 +13,10 @@ const { getBalanceMock, getCurrencyPricingMock } = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/db/connection", () => ({ db: {} }));
-vi.mock("../balance", () => ({ getBalance: getBalanceMock }));
-vi.mock("../fx", () => ({ getCurrencyPricing: getCurrencyPricingMock }));
+vi.mock("@/lib/billing/balance", () => ({ getBalance: getBalanceMock }));
+vi.mock("@/lib/billing/fx", () => ({
+  getCurrencyPricing: getCurrencyPricingMock,
+}));
 
 import { checkTurnBalance, requiredTurnBalanceMinor } from "../turn-balance";
 

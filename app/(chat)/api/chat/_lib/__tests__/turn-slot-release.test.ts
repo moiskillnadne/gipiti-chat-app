@@ -29,7 +29,9 @@ const {
   saveDocumentMock: vi.fn(),
 }));
 
-vi.mock("../charge", () => ({ chargeUsageSafe: chargeUsageSafeMock }));
+vi.mock("@/app/(chat)/api/chat/_lib/charge", () => ({
+  chargeUsageSafe: chargeUsageSafeMock,
+}));
 
 // Text handler dependencies.
 vi.mock("ai", () => ({
@@ -77,7 +79,7 @@ vi.mock("@/lib/constants", () => ({
   isGeminiSignatureDebugEnabled: false,
   isProductionEnvironment: false,
 }));
-vi.mock("../usage", () => ({
+vi.mock("@/app/(chat)/api/chat/_lib/usage", () => ({
   computeAbortedTurnUsage: vi.fn(),
   computeErroredTurnUsage: vi.fn(),
   createInFlightStepTracker: () => ({
@@ -94,7 +96,7 @@ vi.mock("../usage", () => ({
 }));
 
 // Image handler dependencies.
-vi.mock("../image/providers", () => ({
+vi.mock("@/app/(chat)/api/chat/_lib/image/providers", () => ({
   resolveImageProvider: resolveImageProviderMock,
 }));
 vi.mock("@/lib/ai/media-upload", () => ({

@@ -16,7 +16,8 @@ const landingBySlug = new Map(
 const sectionSlugs = new Set(catalogSections.map((section) => section.slug));
 const modelById = new Map(chatModels.map((model) => [model.id, model]));
 
-const PUBLIC_DIR = join(__dirname, "../../../public");
+// Resolved from the repo root so the test keeps working when it moves.
+const PUBLIC_DIR = join(process.cwd(), "public");
 
 const imageLandings = modelLandings.filter(
   (landing): landing is MediaModelLanding => landing.kind === "image"
