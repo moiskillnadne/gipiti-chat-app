@@ -19,7 +19,9 @@ pnpm check                       # full 360° check: typecheck + lint/format + u
 pnpm check:fast                  # same without the build (~12s)
 pnpm typecheck                   # tsc --noEmit
 pnpm build                       # NOTE: runs DB migrations first (tsx lib/db/migrate), then next build
-pnpm test:unit                   # Vitest; only picks up **/__tests__/**/*.test.ts
+pnpm test:unit                   # Vitest; picks up **/__tests__/**/*.test.ts and tests/characterization/
+pnpm test:integration            # Vitest against a real local Postgres (TEST_POSTGRES_URL); **/__integration__/**/*.test.ts
+pnpm check:characterization-diff # fails if an existing characterization test changed beyond its import paths
 pnpm vitest run lib/ai/__tests__/model-registry.test.ts   # single unit test file
 pnpm test                        # Playwright E2E (starts `pnpm dev` via webServer)
 pnpm exec playwright test tests/e2e/login.test.ts         # single E2E file
@@ -29,7 +31,13 @@ npx tsx scripts/seed-subscriptions.ts   # seed Subscription catalog from lib/sub
 npx tsx scripts/add-tokens.ts <userId> <amountMajor> [description]  # credit a user's top-up balance
 ```
 
-CI (`.github/workflows/`) runs lint, unit tests, and Playwright.
+CI (`.github/workflows/`) runs typecheck, lint, unit tests with coverage, the characterization diff guard, integration tests, and Playwright.
+
+### Test layers
+
+- **Unit** (`**/__tests__/`): everything external mocked with `vi.mock`. Always mock by `@/` path, never by a relative one: a relative mock silently stops applying when a file moves.
+- **Characterization** (`tests/characterization/`): pin the current behaviour of the money and auth entry points while code moves. They import the code under test only through `tests/characterization/targets/`. An existing test may change only in its import / `vi.mock` paths (`pnpm check:characterization-diff`, enforced in CI). A PR that changes pinned behaviour on purpose says so in its body and carries the `characterization-change` label.
+- **Integration** (`**/__integration__/`, `pnpm test:integration`): real Postgres, no module-path mocks; outbound HTTP is stubbed with `vi.spyOn(globalThis, "fetch")`. Not part of `pnpm check`. `TEST_POSTGRES_URL` must be a local database whose name ends in `_test` (the tests truncate tables); it is created and migrated on the first run. Helpers live in `tests/integration/`.
 
 ## Architecture Overview
 
