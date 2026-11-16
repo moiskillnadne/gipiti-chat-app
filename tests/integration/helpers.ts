@@ -49,6 +49,10 @@ type SeedPaymentIntentInput = {
   subscriptionId?: string;
   externalTransactionId?: string;
   externalSubscriptionId?: string;
+  /** Defaults to 30 minutes from now. */
+  expiresAt?: Date;
+  /** Defaults to now. */
+  createdAt?: Date;
 };
 
 type SeedUserSubscriptionInput = {
@@ -163,6 +167,8 @@ export const seedPaymentIntent = async ({
   subscriptionId,
   externalTransactionId,
   externalSubscriptionId,
+  expiresAt = new Date(Date.now() + THIRTY_MINUTES_MS),
+  createdAt,
 }: SeedPaymentIntentInput): Promise<PaymentIntent> => {
   const [intent] = await db
     .insert(paymentIntent)
@@ -176,7 +182,8 @@ export const seedPaymentIntent = async ({
       status,
       externalTransactionId,
       externalSubscriptionId,
-      expiresAt: new Date(Date.now() + THIRTY_MINUTES_MS),
+      expiresAt,
+      createdAt,
     })
     .returning();
 
