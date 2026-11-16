@@ -32,6 +32,19 @@ Outcome: five small PRs, each green on `pnpm check`, after which a move PR can p
 | P5 | `lint.yml` and `unit-tests.yml` are replaced by one `ci.yml`. | `main` has no branch protection, so no required check name breaks. One file keeps pnpm and Node versions in one place. |
 | P6 | CI does not run `next build`. | Vercel builds every PR. `pnpm check` (with build) stays the local gate. |
 
+## Implementation notes (2026-11-16)
+
+Implemented as PRs #267 (0a), #268 (0b), #269 (0c), #270 (0d) and #271 (0e), stacked in that order; this plan and the roadmap are in #266. Where the work departed from the plan below:
+
+- **0c, five test files instead of four.** `authorize` needs the real `app/(auth)/auth.ts`, which `auth-actions.test.ts` mocks, so it has its own file, `auth-authorize.test.ts`.
+- **0c, `targets/` is a folder.** One re-export module per area instead of a single `targets.ts`: a single file would make every test load every entry point and mock all of their dependencies. `biome.jsonc` turns `noBarrelFile` off for that folder.
+- **0c, the guard ignores comments** as well as whitespace, because it compares token streams.
+- **0c, more cases than planned** (113 tests): the agents pinned extra behaviour they found in the code, listed in #269.
+- **0d, `test-database-url.ts`** is the guard's file name (the plan said `assert-test-database.ts`). It also reads only `TEST_POSTGRES_URL` from `.env.local`, so no other secret from that file reaches the tests.
+- **0d, the concurrency case runs 5 charges, not 10.** Ten simultaneous `chargeUsage` calls exhaust the connection pool and never finish. That is a defect in the code, recorded as roadmap item (1m), not a test limitation to paper over.
+- **0d, extra cases**: an amount mismatch credits nothing; a wrong signature is rejected before any write.
+- **0e, the allowlist has two entries**, both listed in #271.
+
 ## Order of work
 
 Each item is one PR from `origin/main`, merged in this order. 0c, 0d and 0e all edit `vitest.config.ts` or `ci.yml`, so they are not opened in parallel.
