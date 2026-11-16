@@ -1,5 +1,5 @@
 import { and, desc, eq, ne } from "drizzle-orm";
-import { db } from "@/lib/db/connection";
+import { type DatabaseExecutor, db } from "@/lib/db/connection";
 import {
   balance,
   type PaymentIntent,
@@ -48,11 +48,13 @@ type BalanceChangeResult = {
 
 /**
  * Read a user's balance summary (both pools + total), or null if no row.
+ * Inside a transaction, pass it as `executor`.
  */
 export async function getBalance(
-  userId: string
+  userId: string,
+  executor: DatabaseExecutor = db
 ): Promise<BalanceSummary | null> {
-  const [row] = await db
+  const [row] = await executor
     .select()
     .from(balance)
     .where(eq(balance.userId, userId))
@@ -72,23 +74,26 @@ export async function getBalance(
 
 /**
  * Ensure a balance row exists for the user, creating a zeroed one in the given
- * currency when missing. Idempotent under concurrent callers.
+ * currency when missing. Idempotent under concurrent callers. Inside a
+ * transaction, pass it as `executor`: the row then exists only if that
+ * transaction commits.
  */
 export async function ensureBalance(
   userId: string,
-  currencyCode: string = DEFAULT_CURRENCY_CODE
+  currencyCode: string = DEFAULT_CURRENCY_CODE,
+  executor: DatabaseExecutor = db
 ): Promise<BalanceSummary> {
-  const existing = await getBalance(userId);
+  const existing = await getBalance(userId, executor);
   if (existing) {
     return existing;
   }
 
-  await db
+  await executor
     .insert(balance)
     .values({ userId, currencyCode })
     .onConflictDoNothing({ target: balance.userId });
 
-  const row = await getBalance(userId);
+  const row = await getBalance(userId, executor);
   if (!row) {
     throw new Error(`Failed to ensure balance row for user ${userId}`);
   }
@@ -225,33 +230,45 @@ export async function chargeUsage({
 /**
  * Credit a positive amount (minor units) to one balance pool. Used for the
  * welcome grant, top-up purchases, refunds, and admin adjustments.
+ *
+ * Inside a transaction, pass it as `executor`: the balance row is ensured and
+ * the credit is written on that transaction (as a savepoint), so the credit
+ * commits or rolls back together with the caller's other writes.
  */
-export async function creditBalance({
-  userId,
-  pool,
-  amount,
-  type,
-  referenceType,
-  referenceId,
-  description,
-  metadata,
-}: {
-  userId: string;
-  pool: BalancePool;
-  amount: number;
-  type: "welcome" | "email_bonus" | "topup_purchase" | "refund" | "adjustment";
-  referenceType?: string;
-  referenceId?: string;
-  description?: string;
-  metadata?: TransactionMetadata;
-}): Promise<BalanceChangeResult> {
+export async function creditBalance(
+  {
+    userId,
+    pool,
+    amount,
+    type,
+    referenceType,
+    referenceId,
+    description,
+    metadata,
+  }: {
+    userId: string;
+    pool: BalancePool;
+    amount: number;
+    type:
+      | "welcome"
+      | "email_bonus"
+      | "topup_purchase"
+      | "refund"
+      | "adjustment";
+    referenceType?: string;
+    referenceId?: string;
+    description?: string;
+    metadata?: TransactionMetadata;
+  },
+  executor: DatabaseExecutor = db
+): Promise<BalanceChangeResult> {
   if (amount <= 0) {
     throw new Error("Credit amount must be positive");
   }
 
-  await ensureBalance(userId);
+  await ensureBalance(userId, DEFAULT_CURRENCY_CODE, executor);
 
-  return await db.transaction(async (tx) => {
+  return await executor.transaction(async (tx) => {
     const [row] = await tx
       .select()
       .from(balance)
