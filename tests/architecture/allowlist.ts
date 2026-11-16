@@ -21,11 +21,4 @@ export const ALLOWED_VIOLATIONS: AllowedViolation[] = [
     reason:
       "Type-only import of UserType. Goes away when the auth module moves to server/modules/auth (roadmap Phase 4a).",
   },
-  {
-    rule: "client-imports-server-code",
-    from: "components/sign-out-form.tsx",
-    to: "app/(auth)/auth",
-    reason:
-      "Unused server component with an inline server action. Deleted with the other orphans (roadmap Phase 1a).",
-  },
 ];
