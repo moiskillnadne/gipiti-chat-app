@@ -1,6 +1,6 @@
 ---
 date: 2026-11-16
-status: accepted
+status: done
 branch: docs/gipiti-227-orpc-v1-roadmap
 session: 8b251a3d-a790-43ee-8ff7-78bff99f4bb8
 ---
@@ -34,7 +34,7 @@ Outcome: five small PRs, each green on `pnpm check`, after which a move PR can p
 
 ## Implementation notes (2026-11-16)
 
-Implemented as PRs #267 (0a), #268 (0b), #269 (0c), #270 (0d) and #271 (0e), stacked in that order; this plan and the roadmap are in #266. Where the work departed from the plan below:
+Implemented as PRs #267 (0a), #268 (0b), #269 (0c), #270 (0d) and #271 (0e); this plan and the roadmap are in #266. All six were merged on 2026-11-16. Where the work departed from the plan below:
 
 - **0c, five test files instead of four.** `authorize` needs the real `app/(auth)/auth.ts`, which `auth-actions.test.ts` mocks, so it has its own file, `auth-authorize.test.ts`.
 - **0c, `targets/` is a folder.** One re-export module per area instead of a single `targets.ts`: a single file would make every test load every entry point and mock all of their dependencies. `biome.jsonc` turns `noBarrelFile` off for that folder.
@@ -44,6 +44,8 @@ Implemented as PRs #267 (0a), #268 (0b), #269 (0c), #270 (0d) and #271 (0e), sta
 - **0d, the concurrency case runs 5 charges, not 10.** Ten simultaneous `chargeUsage` calls exhaust the connection pool and never finish. That is a defect in the code, recorded as roadmap item (1m), not a test limitation to paper over.
 - **0d, extra cases**: an amount mismatch credits nothing; a wrong signature is rejected before any write.
 - **0e, the allowlist has two entries**, both listed in #271.
+
+- **Open after the merge: the Playwright job is flaky.** Now that the workflow reports real results, runs fail in one or two login tests, different ones each time, always with `strict mode violation: locator('#email-display') resolved to 2 elements`. No Phase 0 change touches the app or the e2e tests. It needs its own investigation before the job can gate merges.
 
 ## Order of work
 
