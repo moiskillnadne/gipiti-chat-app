@@ -8,7 +8,7 @@ const { putMock, saveDocumentMock } = vi.hoisted(() => ({
 
 vi.mock("@vercel/blob", () => ({ put: putMock }));
 vi.mock("@/lib/ai/watermark", () => ({ applyImageWatermark: vi.fn() }));
-vi.mock("../../../db/query/document/save-document", () => ({
+vi.mock("@/lib/db/query/document/save-document", () => ({
   saveDocument: saveDocumentMock,
 }));
 

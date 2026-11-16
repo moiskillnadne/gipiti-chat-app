@@ -16,7 +16,7 @@ const {
   chargeUsageSafeMock: vi.fn(),
 }));
 
-vi.mock("../image/providers", () => ({
+vi.mock("@/app/(chat)/api/chat/_lib/image/providers", () => ({
   resolveImageProvider: resolveImageProviderMock,
 }));
 vi.mock("@/lib/ai/media-upload", () => ({
@@ -32,7 +32,9 @@ vi.mock("@/lib/db/query/document/save-document", () => ({
 vi.mock("@/lib/subscription/is-free-user", () => ({
   isFreeUserById: vi.fn().mockResolvedValue(false),
 }));
-vi.mock("../charge", () => ({ chargeUsageSafe: chargeUsageSafeMock }));
+vi.mock("@/app/(chat)/api/chat/_lib/charge", () => ({
+  chargeUsageSafe: chargeUsageSafeMock,
+}));
 
 import { runImageGeneration } from "../handlers/image-generation";
 

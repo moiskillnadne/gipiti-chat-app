@@ -33,7 +33,9 @@ vi.mock("@/lib/ai/models", () => ({
 vi.mock("@/lib/db/query/document/save-document", () => ({
   saveDocument: saveDocumentMock,
 }));
-vi.mock("../charge", () => ({ chargeUsageSafe: chargeUsageSafeMock }));
+vi.mock("@/app/(chat)/api/chat/_lib/charge", () => ({
+  chargeUsageSafe: chargeUsageSafeMock,
+}));
 
 import { runVideoGeneration } from "../handlers/video-generation";
 
