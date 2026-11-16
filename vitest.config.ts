@@ -9,6 +9,13 @@ export default defineConfig({
     // `.claude/worktrees/*` holds full checkouts of other branches and `.next`
     // holds build output; neither is part of this checkout's test suite.
     exclude: [...configDefaults.exclude, ".claude/**", "**/.next/**"],
+    // Measured on demand (`vitest run --coverage`, as CI does). There are no
+    // thresholds yet: they are set per `server/` folder as those folders appear.
+    coverage: {
+      provider: "v8",
+      reporter: ["text-summary", "json-summary"],
+      include: ["app/**", "lib/**"],
+    },
   },
   resolve: {
     alias: {
