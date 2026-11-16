@@ -35,6 +35,11 @@ export const user = pgTable(
     isTester: boolean("is_tester").default(false).notNull(),
     emailVerificationCode: varchar("email_verification_code", { length: 255 }),
     emailVerificationCodeExpiry: timestamp("email_verification_code_expiry"),
+    // Checks made against the current code; a new code resets it. See
+    // lib/db/query/user/take-verification-attempt.ts.
+    emailVerificationAttempts: integer("email_verification_attempts")
+      .default(0)
+      .notNull(),
     resetPasswordToken: varchar("reset_password_token", { length: 255 }),
     resetPasswordTokenExpiry: timestamp("reset_password_token_expiry"),
 
