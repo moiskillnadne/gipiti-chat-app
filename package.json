@@ -21,6 +21,7 @@
     "test:unit": "vitest run",
     "check": "tsx scripts/check.ts",
     "check:fast": "tsx scripts/check.ts --skip-build",
+    "check:characterization-diff": "tsx scripts/check-characterization-diff.ts",
     "models:list": "tsx scripts/fetch-gateway-models.ts",
     "prompts:sync": "tsx scripts/sync-prompts.ts"
   },

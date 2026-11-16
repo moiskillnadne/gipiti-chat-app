@@ -4,6 +4,9 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+    # `labeled` / `unlabeled` re-run the checks when the
+    # `characterization-change` label is added or removed.
+    types: [opened, synchronize, reopened, labeled, unlabeled]
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -55,3 +58,29 @@ jobs:
           name: coverage
           path: coverage/
           retention-days: 7
+
+  characterization-diff:
+    name: Characterization diff guard
+    # A pull request that changes pinned behaviour on purpose carries the
+    # `characterization-change` label and skips this job.
+    if: >-
+      github.event_name == 'pull_request' &&
+      !contains(github.event.pull_request.labels.*.name, 'characterization-change')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The guard compares against the merge base with the base branch.
+          fetch-depth: 0
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Check characterization tests
+        run: pnpm check:characterization-diff "origin/${{ github.base_ref }}"
