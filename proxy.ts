@@ -83,16 +83,6 @@ export async function proxy(request: NextRequest) {
     return new Response("pong", { status: 200 });
   }
 
-  // Allow webhook, auth, payment, and log API routes through without auth
-  if (
-    pathname.startsWith("/api/auth") ||
-    pathname.startsWith("/api/webhooks") ||
-    pathname.startsWith("/api/payment") ||
-    pathname.startsWith("/api/log")
-  ) {
-    return NextResponse.next();
-  }
-
   // Author preview tool: no login (external author), never indexed, hidden behind
   // a shared secret in production. Dev is open for convenience.
   if (pathname === "/blog/preview") {

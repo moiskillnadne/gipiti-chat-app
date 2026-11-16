@@ -1,7 +1,5 @@
 import { and, eq } from "drizzle-orm";
 import { auth } from "@/app/(auth)/auth";
-import { getBalance } from "@/lib/billing/balance";
-import { getActiveUserSubscription } from "@/lib/billing/subscriptions";
 import { db } from "@/lib/db/connection";
 import { saveCancellationFeedback } from "@/lib/db/query/subscription/save-cancellation-feedback";
 import { subscription, userSubscription } from "@/lib/db/schema";
@@ -25,26 +23,6 @@ type CancelRequestBody = {
 
 // There is deliberately no POST handler here. A subscription becomes active only
 // through the CloudPayments `pay` webhook, after a payment (GIPITI-119).
-
-/**
- * Get current subscription and balance
- */
-export async function GET(_request: Request) {
-  const session = await auth();
-  if (!session?.user) {
-    return new Response("Unauthorized", { status: 401 });
-  }
-
-  const [subscriptionRow, balanceSummary] = await Promise.all([
-    getActiveUserSubscription(session.user.id),
-    getBalance(session.user.id),
-  ]);
-
-  return Response.json({
-    subscription: subscriptionRow,
-    balance: balanceSummary,
-  });
-}
 
 /**
  * Calculate the number of days since a given date

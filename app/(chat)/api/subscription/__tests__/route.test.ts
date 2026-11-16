@@ -31,12 +31,12 @@ describe("/api/subscription", () => {
     expect(Object.keys(subscriptionRoute)).not.toContain("POST");
   });
 
-  it("still exposes the read and cancel handlers", async () => {
+  // Nothing read the GET handler; the balance and the plan are read through
+  // their own endpoints.
+  it("exposes only the cancel handler", async () => {
     const subscriptionRoute = await import("../route");
 
-    expect(Object.keys(subscriptionRoute)).toEqual(
-      expect.arrayContaining(["GET", "DELETE"])
-    );
+    expect(Object.keys(subscriptionRoute)).toEqual(["DELETE"]);
   });
 });
 
