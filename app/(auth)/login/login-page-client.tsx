@@ -9,11 +9,11 @@ import { AuthPageHeader } from "@/components/auth-page-header";
 import { AuthPageLayout } from "@/components/auth-page-layout";
 import { SubmitButton } from "@/components/submit-button";
 import { toast } from "@/components/toast";
+import { getSafeRedirectPath } from "@/lib/auth/safe-redirect-path";
 import { useTranslations } from "@/lib/i18n/translate";
 import { type LoginActionState, login } from "../actions";
 
 const CALLBACK_URL_PARAM = "callbackUrl";
-const DEFAULT_REDIRECT_PATH = "/chat";
 
 type LoginPageClientProps = {
   showSignup: boolean;
@@ -21,7 +21,8 @@ type LoginPageClientProps = {
 
 /**
  * Where to send the user after a successful login: the `callbackUrl` query
- * parameter when it stays on this origin, the chat otherwise.
+ * parameter when it stays on this origin, the chat otherwise (the rule is in
+ * `getSafeRedirectPath`).
  *
  * Browser-only (call it from an effect or an event handler). It reads
  * `window.location` instead of `useSearchParams()` on purpose: that hook
@@ -31,31 +32,11 @@ type LoginPageClientProps = {
  * once the session request resolved, a second client-rendered form with the
  * same ids, and the server-rendered form was thrown away (GIPITI-229).
  */
-const getRedirectPath = (): string => {
-  const callbackUrl = new URLSearchParams(window.location.search).get(
-    CALLBACK_URL_PARAM
+const getRedirectPath = (): string =>
+  getSafeRedirectPath(
+    new URLSearchParams(window.location.search).get(CALLBACK_URL_PARAM),
+    window.location.origin
   );
-
-  if (!callbackUrl) {
-    return DEFAULT_REDIRECT_PATH;
-  }
-
-  if (callbackUrl.startsWith("/")) {
-    return callbackUrl;
-  }
-
-  try {
-    const url = new URL(callbackUrl, window.location.origin);
-
-    if (url.origin === window.location.origin) {
-      return `${url.pathname}${url.search}${url.hash}`;
-    }
-  } catch (error) {
-    console.error("Error parsing callback URL:", error);
-  }
-
-  return DEFAULT_REDIRECT_PATH;
-};
 
 // No `<Suspense>` here: the form must be part of the first HTML chunk, see
 // `getRedirectPath`.

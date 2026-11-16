@@ -48,6 +48,10 @@ export const TEST_URLS = {
 export const EXTERNAL_URLS = {
   malicious: "https://malicious-site.com",
   xssAttempt: "javascript:alert('xss')",
+  /** Starts with a slash, yet a browser reads it as another host. */
+  protocolRelative: "//malicious-site.com/path",
+  /** Browsers treat the backslash as a slash, so this is `//host` too. */
+  backslash: "/\\malicious-site.com",
 };
 
 /** Timeouts for various operations */
