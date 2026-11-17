@@ -17,6 +17,7 @@ import {
   subscription,
   type Transaction,
   transaction,
+  type User,
   type UserSubscription,
   user,
   userSubscription,
@@ -125,6 +126,16 @@ export const seedCurrency = async (
     .onConflictDoNothing();
 };
 
+/**
+ * Delete a currency from the dictionary. Works only while nothing references
+ * it, so call it after `resetMoneyTables`. `seedCurrency` puts it back.
+ */
+export const removeCurrency = async (
+  code: string = TEST_CURRENCY_CODE
+): Promise<void> => {
+  await db.delete(currency).where(eq(currency.code, code));
+};
+
 /** `rate` is quote-currency units per 1 USD. */
 export const seedFxRate = async (
   rate: number,
@@ -212,6 +223,10 @@ export const seedActiveUserSubscription = async ({
     externalSubscriptionId,
   });
 };
+
+/** Every account stored under an (already normalized) email address. */
+export const readUsersByEmail = async (email: string): Promise<User[]> =>
+  await db.select().from(user).where(eq(user.email, email));
 
 export const readBalance = async (userId: string): Promise<Balance> => {
   const [row] = await db
