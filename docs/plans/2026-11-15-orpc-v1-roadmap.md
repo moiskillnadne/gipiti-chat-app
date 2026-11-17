@@ -28,8 +28,8 @@ Accepting this roadmap does not start implementation. Each phase gets its own sh
 | File-part `url` is any URL; text attachments are fetched unbounded | `app/(chat)/api/chat/schema.ts:32`, `lib/ai/text-attachments.ts:154-160` |
 | Uploads are stored under the bare filename (not user-scoped) | `app/(chat)/api/files/upload/route.ts:124` |
 | NextAuth `jwt` callback runs on every `auth()`; returning `null` clears the session cookies | `app/(auth)/auth.ts:80-131`; `@auth/core@0.41.3/lib/actions/session.js:34,53-55` |
-| `jwt` `update` trigger lets the client set `emailVerified` / `hasActiveSubscription` | `app/(auth)/auth.ts:115-126` |
-| Limiters are no-ops when no Upstash REST client exists (TCP `REDIS_URL` yields none) | `lib/rate-limit.ts:14,63`, `lib/redis.ts:10-40` |
+| `jwt` `update` trigger let the client set `emailVerified` / `hasActiveSubscription` (fixed in Phase 1b: the callback now re-reads the database) | `app/(auth)/auth.ts`, `jwt` callback |
+| Limiters were no-ops when no Upstash REST client exists (TCP `REDIS_URL` yields none). Since Phase 1e/1g the auth limiters refuse in production instead | `lib/rate-limit.ts:14,63`, `lib/redis.ts:10-40` |
 | Production build runs migrations from a hard-coded path, with no environment guard | `package.json:7`, `lib/db/migrate.ts:10-24` |
 | CloudPayments HMAC compared with `===` | `app/api/webhooks/cloudpayments/route.ts:25-37` |
 | Tracing-includes keys are picomatch globs; the docs escape `[[...slug]]` (`:105`) but show unescaped `'/products/[id]'` (`:114`) | `node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/output.md:93-114` |
@@ -37,7 +37,7 @@ Accepting this roadmap does not start implementation. Each phase gets its own sh
 | Cookie preference actions set plain, non-httpOnly cookies; the chat layout reads them with `cookies()` | `app/(chat)/actions.ts:19-85`, `app/(chat)/layout.tsx:36-90` |
 | Four nested Server Components query the DB | `app/subscription/_components/{plan-card,transaction-history-card}.tsx`, `app/subscription/manage/_components/{tariff-card,payment-history-card}.tsx` |
 | Alias `@/*` → `./*`; no root `server/`, `client/`, `core/` folders exist | `tsconfig.json:22-24`; `ls` |
-| 37 `route.ts` files; 6 auth actions + 12 chat actions | `find app -name route.ts`; `app/(auth)/actions.ts`, `app/(chat)/actions.ts` |
+| 36 `route.ts` files (37 before Phase 1a removed `app/api/me`); 6 auth actions + 12 chat actions | `find app -name route.ts`; `app/(auth)/actions.ts`, `app/(chat)/actions.ts` |
 | `server-only` already a dependency | `package.json:73` |
 | `feat/gipiti-28-mcp-integrations-cw6f0r` has 18 commits not in `origin/main` | `git cherry origin/main <branch>` |
 | Latest migration `0045_user_activity_day.sql` | `lib/db/migrations/` |
@@ -90,7 +90,7 @@ Accepting this roadmap does not start implementation. Each phase gets its own sh
 | D16 | **Boundaries**: a vitest architecture test (`tests/architecture/boundaries.test.ts`, `ts.preProcessFile`, shrinking allowlist) is the source of truth. It also bans `ResponseValidationPlugin` on clients and checks that every `vi.mock` specifier resolves. Biome `noRestrictedImports` overrides give editor feedback (S8), and `import "server-only"` goes in server entry modules. | dependency-cruiser / Steiger gate. | No new tool. Steiger is beta (optional non-blocking job). |
 | D17 | **Safety net = slim characterization + real-DB integration tests for money.** Characterization (mocked) covers only the CloudPayments webhook, the auth actions, chat POST guards/charging and payment intents. The real-Postgres integration suite (its own config, `vitest.integration.config.ts`) starts in Phase 0 for webhook idempotency, refunds and `chargeUsage`; it does not mock module paths, so moves cannot break it. In move PRs a characterization diff may contain **only** import / `vi.mock` specifier lines, enforced by `scripts/check-characterization-diff.ts` (M9/F3). Every other area gets v1 procedure/HTTP tests when it is ported (F4). | Draft: 15-area characterization, "byte-identical" files. | `vi.mock` is hoisted and takes literal specifiers (`node_modules/vitest/dist/index.d.ts:422-423`), so byte-identical files cannot survive moves. Tests written against v1 outlive the legacy code. |
 | D18 | **SWR stays**; typed client calls become fetchers. | `@orpc/tanstack-query`. | Less churn, no mobile benefit to switching. |
-| D19 | **Uploads multipart for v1 parity** (`POST /api/v1/uploads`). Blob pathnames become user-scoped (`u/<userId>/<uuid>-<name>`). Direct-to-Blob (`@vercel/blob` `handleUpload`, present in 0.24.1) is a later additive endpoint. | Direct-to-Blob now. | Parity first; S4 measures the platform body limit. User-scoped paths enable the SSRF fix (M6). |
+| D19 | **Uploads multipart for v1 parity** (`POST /api/v1/uploads`). Blob pathnames become user-scoped (`u/<userId>/<uuid>-<name>`). Direct-to-Blob (`@vercel/blob` `handleUpload`, present in 0.24.1) was planned as a later additive endpoint; **spike S4 moves it into v1**, because Vercel refuses request bodies over 4.5 MB (see `orpc-v1-roadmap/spike-findings.md`). Original wording: a later additive endpoint. | Direct-to-Blob now. | Parity first; S4 measures the platform body limit. User-scoped paths enable the SSRF fix (M6). |
 | D20 | **Separate v1 spec** at `GET /api/v1/openapi.json`, committed at `server/api/v1/openapi.snapshot.json`. `/openapi.json` (agent discovery) is unchanged. | Merge into `/openapi.json`. | `docs/agent-discovery.md:76-85` keeps session APIs out of the public document (Q3). |
 | D21 | **Web chat transport switch behind a Vercel Flag** (`isChatV1TransportEnabled`, `lib/flags.ts` pattern), ramped testers → 10% → 100% (M10). | Revert-by-deploy. | The money path can be rolled back without a deploy. |
 | D22 | **Additive-only from first client use.** An endpoint becomes frozen the day any shipped client (web included) calls it, not at mobile GA (m10). `oasdiff breaking` runs in CI from Phase 5 against the `origin/main` snapshot. The hand-written frozen-surface comparer is dropped (F14). | Draft: draft-until-GA + custom comparer + oasdiff later. | Stale web tabs are clients too; one mechanism instead of three. |
@@ -136,7 +136,7 @@ server/
       common-errors.ts            ISOMORPHIC ErrorMap fragments (UNAUTHORIZED, NOT_FOUND, INSUFFICIENT_BALANCE, MODEL_UNAVAILABLE,
                                   CLIENT_UPGRADE_REQUIRED, TURN_ALREADY_EXISTS, …)
       pagination.ts               ISOMORPHIC cursor input/output schemas
-      open-enum.ts                ISOMORPHIC openEnum(values): z.string() + JSON_SCHEMA_OUTPUT_REGISTRY entry (S1)
+      open-enum.ts                ISOMORPHIC openEnum(values): z.string().meta({ description }) (S1: no @orpc/zod import)
       guards/                     plain functions (request, principal, policy) => Response-like error | null
         principal.ts  require-auth.ts  csrf.ts  client-version.ts  rate-limit.ts  activity.ts  transport-policy.ts
       middleware.ts               oRPC middleware wrappers over guards/*
@@ -545,6 +545,7 @@ Legend: **[R]** pure move (`git mv` + scripted specifier rewrite `scripts/codemo
 - **Rollback**: revert the single PR; `0046` is additive.
 
 ### Phase 2 — Dependencies and spikes [B: deps, M] (2-3 days)
+- **Status (2026-11-17): spikes done.** Findings: `docs/plans/orpc-v1-roadmap/spike-findings.md`; plan: `docs/plans/2026-11-17-phase-2-orpc-dependencies-and-spikes-before-the-se.md` (GIPITI-231); dependencies in PR #291; probe code on `spike/gipiti-231-orpc-v1` (PR #290, not merged). The design stands, with these changes: `openEnum` uses zod `.meta()`; the kit writes its own 404; raw route files answer the other methods themselves; the web login checks `error`, not `ok`; Biome boundary overrides are optional. **S4 changes decision D19:** Vercel refuses a request body over 4.5 MB before the function runs (measured on the preview), so direct-to-Blob upload moves into v1, and today's 10 MB and 25 MB upload caps are a production defect (GIPITI-232). Open: production answers non-browser requests on some paths with Vercel's Security Checkpoint, which a mobile client cannot pass; the owner checks the Firewall settings before Phase 3b.
 - **PR 2a**: add `@orpc/{contract,server,client,openapi,openapi-client,zod}@1.16.2` (exact) and `jose@6.2.17` (exact).
 - **Spikes** (throwaway branches; findings written into the Phase 3 plan file):
 
@@ -553,7 +554,7 @@ Legend: **[R]** pure move (`git mv` + scripted specifier rewrite `scripts/codemo
 | S1 | `OpenAPIHandler` (`@orpc/openapi/fetch`) error body encoding; `OpenAPIGenerator` options (converters, OpenAPI version); `@orpc/zod/zod4` with `zod/v4` from `zod@3.25.76`; `openEnum` via `JSON_SCHEMA_OUTPUT_REGISTRY` | spec for 2 procedures + captured 401 body; an `openEnum` field emits `type: string` |
 | S2 | `OpenAPILink` 1.16.2 constructor; browser bundle cost of the contract | a client component calls a sample procedure; size recorded |
 | S3 | Precedence: catch-all + `turns/route.ts` + `stream/route.ts`; `/turns/{id}/stop` reaches the catch-all; other methods on raw paths; unknown path → 404 JSON | `next build && next start` matrix recorded; fallback stop path `POST /chats/{chatId}/stop` |
-| S4 | oRPC `File` input via `OpenAPIHandler`; 6 MB and 10 MB uploads on a preview | decide oRPC vs raw multipart |
+| S4 | oRPC `File` input via `OpenAPIHandler`; 6 MB, 10 MB and 25 MB (the project-files cap) uploads on a preview | decide oRPC vs raw multipart |
 | S5 | `auth()` in an oRPC handler and in RSC via `createRouterClient`; `signIn("credentials")` from `next-auth/react` | cookie principal in both; login works |
 | S6 | v2 spread-override typechecks | sample compiles |
 | S7 | flags `identify` with an explicit principal; behaviour when `getToken` meets our JWS (must return null, not throw) | flag evaluates for a bearer user |
@@ -642,7 +643,7 @@ Each sub-phase: **(i) [R]** move the domain's legacy `lib/*` once into `server/m
 |---|---|---|
 | GIPITI-28 branch conflicts with moves | high / high | Owner merges or parks it before 3a; moves are spread over domains, not done up front |
 | Migrations path change breaks the production deploy | medium / critical | Single move (3a) with a preview deploy; guard in `migrate.ts`; protect-hook regex + test in the same PR; `vercel rollback` path documented |
-| Preview build migrates production | unknown / critical | Owner precondition + `ALLOW_PREVIEW_MIGRATIONS` guard (1i) |
+| Preview build migrates production | resolved | Previews run on their own Neon branch (M11); the `ALLOW_PREVIEW_MIGRATIONS` guard (1i) was dropped |
 | Tracing includes miss on the v1 chat route | medium / high | `"/api/v1/chats/**"` key + nft build assertion + manual PDF/watermark turn |
 | Money route outside middleware | was certain / high | `withV1Raw` shares guards; HTTP tests per raw route |
 | Paid duplicate turns from mobile retries | medium / medium | `trigger` + 409 `TURN_ALREADY_EXISTS`; resume-not-retry README |
@@ -716,7 +717,7 @@ On 2026-11-15 the owner accepted the recommended default for every open question
 | Risk M4: retried turn = paid regeneration | Accepted | `trigger` forwarded (verified in transport, `ai/dist/index.mjs:12251`; web omits it today, `chat.tsx:106-131`), 409 `TURN_ALREADY_EXISTS`, resume-not-retry rule, abort-still-charges test. |
 | Risk M5: grant farming; limiters no-op without Upstash REST | Accepted (device attestation deferred) | Verified `rate-limit.ts`/`redis.ts`; health + fail-closed, (email, IP)//64 limits, blocklist, mobile grant deferral (Q5), metric. |
 | Risk M6: SSRF / unbounded fetch via file URLs | Accepted | Blob host allow-list + caps in Phase 1 for legacy and v1; v1 user-prefix rule; user-scoped upload pathnames (verified `upload/route.ts:124`). |
-| Risk M7: open enums not expressible; response validation | Accepted | `openEnum` via `JSON_SCHEMA_OUTPUT_REGISTRY` (exists in `@orpc/zod@1.16.2`), `ResponseValidationPlugin` banned, S14 native decode check. |
+| Risk M7: open enums not expressible; response validation | Accepted | `openEnum` as `z.string().meta({ description })` (S1; the registry stays available to the generator), `ResponseValidationPlugin` banned, S14 native decode check. |
 | Risk M8: stream protocol and message parts unversioned | Accepted | `MessagePart` union with fallback, golden stream test, explicit breaking rule for tools/parts, AI SDK major → adapter or v2. |
 | Risk M9 / Pragmatist F3: byte-identical characterization impossible | Accepted | DoD changed to "specifier lines only" with a CI diff guard; `vi.mock`-resolves check; money flows pinned by real-DB integration tests from Phase 0. |
 | Risk M10: no instant rollback for the Phase 8 cutover | Accepted | Vercel Flag for the transport, tester → 10% → 100% ramp, hourly reconciliation. |
