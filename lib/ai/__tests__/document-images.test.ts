@@ -2,7 +2,22 @@ import sharp from "sharp";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
+vi.mock("@/lib/ai/remote-image-fetch", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/ai/remote-image-fetch")>()),
+  fetchPublicImageBytes: vi.fn(),
+}));
 
+import {
+  fetchPublicImageBytes,
+  RemoteImageFetchError,
+  type RemoteImageFetchOptions,
+} from "@/lib/ai/remote-image-fetch";
+
+import {
+  loadDocumentImages,
+  MAX_CONCURRENT_IMAGE_LOADS,
+  MAX_DOCUMENT_IMAGES,
+} from "../document-images";
 import { resolveDocxImages } from "../docx-images";
 import { resolvePdfImages } from "../pdf-images";
 
@@ -17,6 +32,10 @@ const LARGE_PNG_URL = "https://images.test/large.png";
 const BROKEN_URL = "https://images.test/broken.png";
 const MISSING_URL = "https://images.test/missing.png";
 const DATA_URL = "data:image/png;base64,AAAA";
+const PLAIN_HTTP_URL = "http://images.test/small.png";
+const METADATA_URL = "https://169.254.169.254/latest/meta-data/";
+const LOCALHOST_URL = "https://localhost/small.png";
+const REFUSED_URLS = [DATA_URL, PLAIN_HTTP_URL, METADATA_URL, LOCALHOST_URL];
 
 type ImageFormat = "png" | "jpeg" | "webp";
 
@@ -47,35 +66,48 @@ const decodeDataUri = (
   };
 };
 
+const numberedUrl = (index: number): string =>
+  `https://images.test/numbered-${index}.png`;
+
+const fetchedUrls = (): string[] =>
+  vi.mocked(fetchPublicImageBytes).mock.calls.map(([url]) => url);
+
 describe("document image embedding", () => {
   let consoleError: ReturnType<typeof vi.spyOn>;
+  let consoleWarn: ReturnType<typeof vi.spyOn>;
+  let smallPng: Buffer;
 
   beforeEach(async () => {
+    smallPng = await createImage("png", 320, 200);
     const imagesByUrl = new Map<string, Buffer>([
-      [SMALL_PNG_URL, await createImage("png", 320, 200)],
+      [SMALL_PNG_URL, smallPng],
       [SMALL_JPEG_URL, await createImage("jpeg", 320, 200)],
       [SMALL_WEBP_URL, await createImage("webp", 320, 200)],
       [LARGE_PNG_URL, await createImage("png", 3200, 1600)],
       [BROKEN_URL, Buffer.from("this is not an image")],
     ]);
 
-    vi.stubGlobal(
-      "fetch",
-      vi.fn((url: string): Promise<Response> => {
+    vi.mocked(fetchPublicImageBytes).mockImplementation(
+      (url: string): Promise<Uint8Array> => {
         const bytes = imagesByUrl.get(url);
-        return Promise.resolve(
-          bytes
-            ? new Response(new Uint8Array(bytes))
-            : new Response(null, { status: 404 })
-        );
-      })
+        return bytes
+          ? Promise.resolve(new Uint8Array(bytes))
+          : Promise.reject(
+              new RemoteImageFetchError(
+                "http_error",
+                "Image download failed with status 404"
+              )
+            );
+      }
     );
     consoleError = vi.spyOn(console, "error").mockImplementation(vi.fn());
+    consoleWarn = vi.spyOn(console, "warn").mockImplementation(vi.fn());
   });
 
   afterEach(() => {
-    vi.unstubAllGlobals();
+    vi.mocked(fetchPublicImageBytes).mockReset();
     consoleError.mockRestore();
+    consoleWarn.mockRestore();
   });
 
   describe("resolvePdfImages", () => {
@@ -115,17 +147,18 @@ describe("document image embedding", () => {
       expect(metadata.height).toBe(MAX_DIMENSION / 2);
     });
 
-    it("omits images that cannot be fetched, decoded or are not http(s)", async () => {
+    it("omits images that cannot be fetched or decoded, or that the fetch policy refuses", async () => {
       // Act
       const images = await resolvePdfImages([
         BROKEN_URL,
         MISSING_URL,
-        DATA_URL,
+        ...REFUSED_URLS,
         SMALL_PNG_URL,
       ]);
 
       // Assert
       expect([...images.keys()]).toEqual([SMALL_PNG_URL]);
+      expect(fetchedUrls()).toEqual([BROKEN_URL, MISSING_URL, SMALL_PNG_URL]);
     });
   });
 
@@ -168,17 +201,145 @@ describe("document image embedding", () => {
       expect(image?.height).toBe(MAX_DIMENSION / 2);
     });
 
-    it("omits images that cannot be fetched, decoded or are not http(s)", async () => {
+    it("omits images that cannot be fetched or decoded, or that the fetch policy refuses", async () => {
       // Act
       const images = await resolveDocxImages([
         BROKEN_URL,
         MISSING_URL,
-        DATA_URL,
+        ...REFUSED_URLS,
         SMALL_JPEG_URL,
       ]);
 
       // Assert
       expect([...images.keys()]).toEqual([SMALL_JPEG_URL]);
+      expect(fetchedUrls()).toEqual([BROKEN_URL, MISSING_URL, SMALL_JPEG_URL]);
+    });
+  });
+
+  describe("loadDocumentImages", () => {
+    it("fetches each URL once and stops at the image cap", async () => {
+      // Arrange
+      const urls = Array.from({ length: MAX_DOCUMENT_IMAGES + 5 }, (_, index) =>
+        numberedUrl(index)
+      );
+      vi.mocked(fetchPublicImageBytes).mockResolvedValue(
+        new Uint8Array(smallPng)
+      );
+
+      // Act
+      const images = await loadDocumentImages([...urls, ...urls]);
+
+      // Assert
+      const expectedUrls = urls.slice(0, MAX_DOCUMENT_IMAGES);
+      expect(fetchedUrls()).toEqual(expectedUrls);
+      expect([...images.keys()]).toEqual(expectedUrls);
+    });
+
+    it("does not let refused URLs use up the image cap", async () => {
+      // Arrange
+      const refusedUrls = Array.from(
+        { length: MAX_DOCUMENT_IMAGES },
+        (_, index) => `http://images.test/plain-${index}.png`
+      );
+
+      // Act
+      const images = await loadDocumentImages([...refusedUrls, SMALL_PNG_URL]);
+
+      // Assert
+      expect([...images.keys()]).toEqual([SMALL_PNG_URL]);
+      expect(consoleWarn).toHaveBeenCalledWith(expect.any(String), {
+        refusedCount: MAX_DOCUMENT_IMAGES,
+        requestedCount: MAX_DOCUMENT_IMAGES + 1,
+      });
+    });
+
+    it("downloads at most four images at a time", async () => {
+      // Arrange
+      const urls = Array.from({ length: 12 }, (_, index) => numberedUrl(index));
+      let activeDownloads = 0;
+      let mostActiveDownloads = 0;
+      vi.mocked(fetchPublicImageBytes).mockImplementation(async () => {
+        activeDownloads += 1;
+        mostActiveDownloads = Math.max(mostActiveDownloads, activeDownloads);
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        activeDownloads -= 1;
+        return new Uint8Array(smallPng);
+      });
+
+      // Act
+      const images = await loadDocumentImages(urls);
+
+      // Assert
+      expect(mostActiveDownloads).toBe(MAX_CONCURRENT_IMAGE_LOADS);
+      expect([...images.keys()]).toEqual(urls);
+    });
+
+    it("leaves out images that are not loaded by the batch deadline", async () => {
+      // Arrange
+      const urls = Array.from({ length: 10 }, (_, index) => numberedUrl(index));
+      const [promptUrl] = urls;
+      // The first image arrives at once; every other download hangs until
+      // the batch signal fires, as a stalled server would.
+      vi.mocked(fetchPublicImageBytes).mockImplementation(
+        (url: string, options?: RemoteImageFetchOptions) =>
+          url === promptUrl
+            ? Promise.resolve(new Uint8Array(smallPng))
+            : new Promise<Uint8Array>((_resolve, reject) => {
+                options?.signal?.addEventListener("abort", () =>
+                  reject(options.signal?.reason)
+                );
+              })
+      );
+
+      // Act
+      const images = await loadDocumentImages(urls, { deadlineMs: 40 });
+
+      // Assert
+      expect([...images.keys()]).toEqual([promptUrl]);
+      // One slot was freed by the prompt image, so five downloads started;
+      // the rest were never attempted once the deadline had passed.
+      expect(fetchedUrls()).toEqual(urls.slice(0, 5));
+    });
+
+    it("logs a download cut by the batch deadline as a deadline, not as a bad image", async () => {
+      // Arrange
+      vi.mocked(fetchPublicImageBytes).mockImplementation(
+        (_url: string, options?: RemoteImageFetchOptions) =>
+          new Promise<Uint8Array>((_resolve, reject) => {
+            options?.signal?.addEventListener("abort", () =>
+              reject(options.signal?.reason)
+            );
+          })
+      );
+
+      // Act
+      await loadDocumentImages([SMALL_PNG_URL], { deadlineMs: 20 });
+
+      // Assert
+      expect(consoleError).toHaveBeenCalledTimes(1);
+      expect(consoleError).toHaveBeenCalledWith(
+        expect.any(String),
+        { url: SMALL_PNG_URL, reason: "deadline" },
+        expect.anything()
+      );
+    });
+
+    it("logs the reason an image was left out", async () => {
+      // Act
+      await loadDocumentImages([BROKEN_URL, MISSING_URL]);
+
+      // Assert
+      const loggedFailures = consoleError.mock.calls.map(
+        (logArguments: unknown[]) => logArguments[1]
+      );
+      // The two downloads run side by side, so the log order is not fixed.
+      expect(loggedFailures).toHaveLength(2);
+      expect(loggedFailures).toEqual(
+        expect.arrayContaining([
+          { url: BROKEN_URL, reason: "unreadable" },
+          { url: MISSING_URL, reason: "http_error" },
+        ])
+      );
     });
   });
 });

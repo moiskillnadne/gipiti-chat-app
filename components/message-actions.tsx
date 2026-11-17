@@ -11,6 +11,38 @@ import type { ChatMessage } from "@/lib/types";
 import { Action, Actions } from "./elements/actions";
 import { CopyIcon, PencilEditIcon, ThumbDownIcon, ThumbUpIcon } from "./icons";
 
+type VoteType = "up" | "down";
+
+type VoteRequest = {
+  chatId: string;
+  messageId: string;
+  type: VoteType;
+};
+
+class VoteRequestError extends Error {
+  constructor(status: number) {
+    super(`Vote request failed with status ${status}`);
+    this.name = "VoteRequestError";
+  }
+}
+
+/**
+ * Sends a vote. `fetch` resolves on 4xx/5xx, so a refused vote is turned into
+ * a rejection: `toast.promise` then shows the error toast and skips the
+ * optimistic cache update.
+ */
+const submitVote = async (voteRequest: VoteRequest): Promise<void> => {
+  const response = await fetch("/api/vote", {
+    method: "PATCH",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(voteRequest),
+  });
+
+  if (!response.ok) {
+    throw new VoteRequestError(response.status);
+  }
+};
+
 export function PureMessageActions({
   chatId,
   message,
@@ -85,13 +117,10 @@ export function PureMessageActions({
         data-testid="message-upvote"
         disabled={vote?.isUpvoted}
         onClick={() => {
-          const upvote = fetch("/api/vote", {
-            method: "PATCH",
-            body: JSON.stringify({
-              chatId,
-              messageId: message.id,
-              type: "up",
-            }),
+          const upvote = submitVote({
+            chatId,
+            messageId: message.id,
+            type: "up",
           });
 
           toast.promise(upvote, {
@@ -134,13 +163,10 @@ export function PureMessageActions({
         data-testid="message-downvote"
         disabled={vote && !vote.isUpvoted}
         onClick={() => {
-          const downvote = fetch("/api/vote", {
-            method: "PATCH",
-            body: JSON.stringify({
-              chatId,
-              messageId: message.id,
-              type: "down",
-            }),
+          const downvote = submitVote({
+            chatId,
+            messageId: message.id,
+            type: "down",
           });
 
           toast.promise(downvote, {

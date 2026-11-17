@@ -107,7 +107,7 @@ Machine-readable surface for AI agents, all under `lib/agent-discovery/` — see
 
 ### Cron jobs (`app/api/cron/`, scheduled in `vercel.json`)
 
-All require `Authorization: Bearer ${CRON_SECRET}`: `reset-quotas` (renew billing periods / reset subscription pool), `cleanup-cancelled`, `cleanup-payment-intents`, `refresh-fx-rates` (hourly).
+All require `Authorization: Bearer ${CRON_SECRET}`: `reset-quotas` (every 10 minutes; renew billing periods / reset subscription pool), `cleanup-cancelled` (every 10 minutes), `refresh-fx-rates` (hourly, at :00), `cleanup-payment-intents` (hourly, at :15; expires overdue pending intents and deletes expired/failed ones older than 30 days — succeeded intents are kept, refunds are matched against them).
 
 ## Conventions
 

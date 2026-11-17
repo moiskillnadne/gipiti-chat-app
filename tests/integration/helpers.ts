@@ -17,6 +17,7 @@ import {
   subscription,
   type Transaction,
   transaction,
+  type User,
   type UserSubscription,
   user,
   userSubscription,
@@ -49,6 +50,11 @@ type SeedPaymentIntentInput = {
   subscriptionId?: string;
   externalTransactionId?: string;
   externalSubscriptionId?: string;
+  failureReason?: string;
+  /** Defaults to 30 minutes from now. */
+  expiresAt?: Date;
+  /** Defaults to now. */
+  createdAt?: Date;
 };
 
 type SeedUserSubscriptionInput = {
@@ -125,6 +131,16 @@ export const seedCurrency = async (
     .onConflictDoNothing();
 };
 
+/**
+ * Delete a currency from the dictionary. Works only while nothing references
+ * it, so call it after `resetMoneyTables`. `seedCurrency` puts it back.
+ */
+export const removeCurrency = async (
+  code: string = TEST_CURRENCY_CODE
+): Promise<void> => {
+  await db.delete(currency).where(eq(currency.code, code));
+};
+
 /** `rate` is quote-currency units per 1 USD. */
 export const seedFxRate = async (
   rate: number,
@@ -163,6 +179,9 @@ export const seedPaymentIntent = async ({
   subscriptionId,
   externalTransactionId,
   externalSubscriptionId,
+  failureReason,
+  expiresAt = new Date(Date.now() + THIRTY_MINUTES_MS),
+  createdAt,
 }: SeedPaymentIntentInput): Promise<PaymentIntent> => {
   const [intent] = await db
     .insert(paymentIntent)
@@ -176,7 +195,9 @@ export const seedPaymentIntent = async ({
       status,
       externalTransactionId,
       externalSubscriptionId,
-      expiresAt: new Date(Date.now() + THIRTY_MINUTES_MS),
+      failureReason,
+      expiresAt,
+      createdAt,
     })
     .returning();
 
@@ -212,6 +233,10 @@ export const seedActiveUserSubscription = async ({
     externalSubscriptionId,
   });
 };
+
+/** Every account stored under an (already normalized) email address. */
+export const readUsersByEmail = async (email: string): Promise<User[]> =>
+  await db.select().from(user).where(eq(user.email, email));
 
 export const readBalance = async (userId: string): Promise<Balance> => {
   const [row] = await db
