@@ -3,7 +3,7 @@
 import Form from "next/form";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Suspense, useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { AuthPageHeader } from "@/components/auth-page-header";
 import { AuthPageLayout } from "@/components/auth-page-layout";
 import { SubmitButton } from "@/components/submit-button";
@@ -17,25 +17,11 @@ import {
   requestPasswordReset,
 } from "../actions";
 
+// No `<Suspense>` here: the form must be part of the first HTML chunk. Under a
+// boundary that suspends on the server, React streams the form into a hidden
+// element next to a fallback and, when the session request resolves before
+// the swap, renders a second copy on the client (GIPITI-229).
 export default function Page() {
-  return (
-    <Suspense fallback={<ForgotPasswordPageFallback />}>
-      <ForgotPasswordPage />
-    </Suspense>
-  );
-}
-
-function ForgotPasswordPageFallback() {
-  const t = useTranslations("auth.forgotPassword");
-
-  return (
-    <AuthPageLayout>
-      <AuthPageHeader subtitle={t("subtitle")} title={t("title")} />
-    </AuthPageLayout>
-  );
-}
-
-function ForgotPasswordPage() {
   const t = useTranslations("auth.forgotPassword");
   const tErrors = useTranslations("auth.errors");
   const router = useRouter();
