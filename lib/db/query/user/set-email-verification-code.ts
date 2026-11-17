@@ -19,6 +19,8 @@ export async function setEmailVerificationCode({
       .set({
         emailVerificationCode: hashedCode,
         emailVerificationCodeExpiry: expiresAt,
+        // A new code gets a fresh set of attempts.
+        emailVerificationAttempts: 0,
       })
       .where(sql`lower(${user.email}) = ${normalizeEmail(email)}`)
       .returning();

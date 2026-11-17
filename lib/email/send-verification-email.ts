@@ -17,7 +17,8 @@ type SendVerificationEmailParams = {
  * @returns 6-digit string code
  */
 export function generateVerificationCode(): string {
-  const code = randomInt(100_000, 999_999);
+  // The upper bound is exclusive.
+  const code = randomInt(100_000, 1_000_000);
   return code.toString();
 }
 

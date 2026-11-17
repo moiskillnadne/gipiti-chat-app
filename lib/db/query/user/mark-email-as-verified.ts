@@ -12,6 +12,7 @@ export async function markEmailAsVerified({ email }: { email: string }) {
         emailVerified: true,
         emailVerificationCode: null,
         emailVerificationCodeExpiry: null,
+        emailVerificationAttempts: 0,
         updatedAt: new Date(),
       })
       .where(sql`lower(${user.email}) = ${normalizeEmail(email)}`)

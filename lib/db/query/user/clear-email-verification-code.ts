@@ -11,6 +11,7 @@ export async function clearEmailVerificationCode(email: string) {
       .set({
         emailVerificationCode: null,
         emailVerificationCodeExpiry: null,
+        emailVerificationAttempts: 0,
       })
       .where(sql`lower(${user.email}) = ${normalizeEmail(email)}`);
   } catch (_error) {
