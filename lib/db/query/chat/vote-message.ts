@@ -1,4 +1,3 @@
-import { and, eq } from "drizzle-orm";
 import { ChatSDKError } from "../../../errors";
 import { db } from "../../connection";
 import { vote } from "../../schema";
@@ -12,23 +11,18 @@ export async function voteMessage({
   messageId: string;
   type: "up" | "down";
 }) {
-  try {
-    const [existingVote] = await db
-      .select()
-      .from(vote)
-      .where(and(eq(vote.messageId, messageId)));
+  const isUpvoted = type === "up";
 
-    if (existingVote) {
-      return await db
-        .update(vote)
-        .set({ isUpvoted: type === "up" })
-        .where(and(eq(vote.messageId, messageId), eq(vote.chatId, chatId)));
-    }
-    return await db.insert(vote).values({
-      chatId,
-      messageId,
-      isUpvoted: type === "up",
-    });
+  try {
+    // Upsert on the primary key (chatId, messageId): one statement, and a vote
+    // row of another chat is never matched by its messageId alone.
+    return await db
+      .insert(vote)
+      .values({ chatId, messageId, isUpvoted })
+      .onConflictDoUpdate({
+        target: [vote.chatId, vote.messageId],
+        set: { isUpvoted },
+      });
   } catch (_error) {
     throw new ChatSDKError("bad_request:database", "Failed to vote message");
   }

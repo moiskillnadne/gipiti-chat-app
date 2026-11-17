@@ -1,8 +1,22 @@
+import { z } from "zod";
 import { auth } from "@/app/(auth)/auth";
 import { getChatById } from "@/lib/db/query/chat/get-chat-by-id";
+import { getMessageById } from "@/lib/db/query/chat/get-message-by-id";
 import { getVotesByChatId } from "@/lib/db/query/chat/get-votes-by-chat-id";
 import { voteMessage } from "@/lib/db/query/chat/vote-message";
 import { ChatSDKError } from "@/lib/errors";
+
+const voteRequestSchema = z.object({
+  chatId: z.string().uuid(),
+  messageId: z.string().uuid(),
+  type: z.enum(["up", "down"]),
+});
+
+const invalidVoteRequestResponse = (): Response =>
+  new ChatSDKError(
+    "bad_request:api",
+    "Body must be JSON with chatId (uuid), messageId (uuid) and type (up | down)."
+  ).toResponse();
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -37,25 +51,25 @@ export async function GET(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const {
-    chatId,
-    messageId,
-    type,
-  }: { chatId: string; messageId: string; type: "up" | "down" } =
-    await request.json();
-
-  if (!chatId || !messageId || !type) {
-    return new ChatSDKError(
-      "bad_request:api",
-      "Parameters chatId, messageId, and type are required."
-    ).toResponse();
-  }
-
   const session = await auth();
 
   if (!session?.user) {
     return new ChatSDKError("unauthorized:vote").toResponse();
   }
+
+  let requestBody: unknown;
+  try {
+    requestBody = await request.json();
+  } catch {
+    return invalidVoteRequestResponse();
+  }
+
+  const parsedBody = voteRequestSchema.safeParse(requestBody);
+  if (!parsedBody.success) {
+    return invalidVoteRequestResponse();
+  }
+
+  const { chatId, messageId, type } = parsedBody.data;
 
   const chat = await getChatById({ id: chatId });
 
@@ -65,6 +79,14 @@ export async function PATCH(request: Request) {
 
   if (chat.userId !== session.user.id) {
     return new ChatSDKError("forbidden:vote").toResponse();
+  }
+
+  // One answer for "no such message" and "message of another chat", so the
+  // response never reveals whether a message id exists elsewhere.
+  const [votedMessage] = await getMessageById({ id: messageId });
+
+  if (votedMessage?.chatId !== chatId) {
+    return new ChatSDKError("not_found:vote").toResponse();
   }
 
   await voteMessage({
