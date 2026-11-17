@@ -2,6 +2,15 @@ import sharp from "sharp";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
+vi.mock("@/lib/ai/remote-image-fetch", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/ai/remote-image-fetch")>()),
+  fetchPublicImageBytes: vi.fn(),
+}));
+
+import {
+  fetchPublicImageBytes,
+  RemoteImageFetchError,
+} from "@/lib/ai/remote-image-fetch";
 
 import { extractDocxText } from "../docx-extract";
 import { createDocxBuffer } from "../generate-docx-document";
@@ -43,21 +52,21 @@ describe("generated .docx read back by the extractor", () => {
       .png()
       .toBuffer();
 
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(
-        (url: string): Promise<Response> =>
-          Promise.resolve(
-            url === IMAGE_URL
-              ? new Response(new Uint8Array(chart))
-              : new Response(null, { status: 404 })
-          )
-      )
+    vi.mocked(fetchPublicImageBytes).mockImplementation(
+      (url: string): Promise<Uint8Array> =>
+        url === IMAGE_URL
+          ? Promise.resolve(new Uint8Array(chart))
+          : Promise.reject(
+              new RemoteImageFetchError(
+                "http_error",
+                "Image download failed with status 404"
+              )
+            )
     );
   });
 
   afterEach(() => {
-    vi.unstubAllGlobals();
+    vi.mocked(fetchPublicImageBytes).mockReset();
   });
 
   it("keeps the heading, text, list, table and image of the source document", async () => {
