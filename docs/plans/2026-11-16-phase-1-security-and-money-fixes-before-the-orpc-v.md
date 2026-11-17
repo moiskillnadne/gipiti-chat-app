@@ -195,7 +195,7 @@ Not verified, left for the owner on a live environment: 11 wrong passwords in a 
 
 Found on the way and not fixed:
 
-- A non-auth error thrown inside `authorize` (for example the database being down) makes the `login` action answer `success` without a session.
+- The `login` action answered `success` without a session when the server `signIn` resolved with a URL inside `/api/auth/` (an error thrown outside the credentials callback, or a request Auth.js refuses before `authorize` runs). Fixed afterwards in `app/(auth)/actions.ts`. An earlier version of this line blamed errors thrown inside `authorize`; those already made `signIn` throw and `login` answer `failed`.
 - `GET /api/vote` does not validate `chatId`; a missing chat answers 404 and someone else's chat 403, so chat ids can be probed.
 - The vote toasts and tooltips in `components/message-actions.tsx` are hardcoded English strings.
 - With the local default of 8 Playwright workers the login tests hang on form submission; CI uses 2.
