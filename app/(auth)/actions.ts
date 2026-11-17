@@ -1,12 +1,14 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { z } from "zod";
+import { isDisposableEmail } from "@/lib/auth/disposable-email-domains";
 import {
   createPasswordResetToken,
   hashToken,
   verifyToken,
 } from "@/lib/auth/reset-token";
+import { isRateLimitedSignInError } from "@/lib/auth/sign-in-error-codes";
 import { grantEmailVerificationBonus } from "@/lib/billing/balance";
 import { getUserByEmail } from "@/lib/db/query/user/get-by-email";
 import { getUserByResetToken } from "@/lib/db/query/user/get-user-by-reset-token";
@@ -25,8 +27,10 @@ import {
   getRegistrationGeoFromHeaders,
   sanitizeLanguage,
 } from "@/lib/geo/registration-geo";
+import { getClientIp } from "@/lib/http/client-ip";
 import {
   checkPasswordResetRateLimit,
+  checkRegisterRateLimit,
   checkVerificationAttemptRateLimit,
   checkVerificationResendRateLimit,
   getRateLimitResetMinutes,
@@ -63,7 +67,13 @@ const registerFormSchema = z.object({
 });
 
 export type LoginActionState = {
-  status: "idle" | "in_progress" | "success" | "failed" | "invalid_data";
+  status:
+    | "idle"
+    | "in_progress"
+    | "success"
+    | "failed"
+    | "rate_limited"
+    | "invalid_data";
 };
 
 export const login = async (
@@ -92,6 +102,10 @@ export const login = async (
       return { status: "invalid_data" };
     }
 
+    if (isRateLimitedSignInError(error)) {
+      return { status: "rate_limited" };
+    }
+
     return { status: "failed" };
   }
 };
@@ -103,6 +117,8 @@ export type RegisterActionState = {
     | "success"
     | "failed"
     | "user_exists"
+    | "rate_limited"
+    | "disposable_email"
     | "invalid_data";
   email?: string;
 };
@@ -121,6 +137,20 @@ export const register = async (
       email: formData.get("email"),
       password: formData.get("password"),
     });
+
+    const rateLimitResult = await checkRegisterRateLimit(
+      getClientIp(await headers())
+    );
+    if (rateLimitResult.isUnavailable) {
+      return { status: "failed" };
+    }
+    if (!rateLimitResult.success) {
+      return { status: "rate_limited" };
+    }
+
+    if (isDisposableEmail(validatedData.email)) {
+      return { status: "disposable_email" };
+    }
 
     const userRecord = await getUserByEmail(validatedData.email);
 

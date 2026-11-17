@@ -23,6 +23,7 @@ import {
 } from "@/lib/geo/registration-geo";
 import {
   checkPasswordResetRateLimit,
+  checkRegisterRateLimit,
   checkVerificationAttemptRateLimit,
   checkVerificationResendRateLimit,
   getRateLimitResetMinutes,
@@ -59,10 +60,12 @@ vi.mock("@/app/(auth)/auth", () => ({ signIn: signInMock }));
 vi.mock("next/headers", () => ({
   cookies: () =>
     Promise.resolve({ get: cookieGetMock, delete: cookieDeleteMock }),
+  headers: () => Promise.resolve(new Headers({ "x-forwarded-for": CLIENT_IP })),
 }));
 vi.mock("@/lib/flags", () => ({ isSignupEnabled: isSignupEnabledMock }));
 vi.mock("@/lib/rate-limit", () => ({
   checkPasswordResetRateLimit: vi.fn(),
+  checkRegisterRateLimit: vi.fn(),
   checkVerificationAttemptRateLimit: vi.fn(),
   checkVerificationResendRateLimit: vi.fn(),
   getRateLimitResetMinutes: vi.fn(),
@@ -118,6 +121,8 @@ vi.mock("@/lib/email/send-password-changed", () => ({
 
 const USER_ID = "user-1";
 const USER_EMAIL = "user@example.test";
+const CLIENT_IP = "203.0.113.7";
+const DISPOSABLE_EMAIL = "user@mailinator.com";
 const STRONG_PASSWORD = "Str0ng!Pass";
 const VERIFICATION_CODE = "123456";
 const RESET_TOKEN = "plain-reset-token";
@@ -166,6 +171,7 @@ const arrangeHappyPathDefaults = (): void => {
   vi.mocked(getRegistrationGeoFromHeaders).mockResolvedValue(GEO_HEADERS);
   vi.mocked(sanitizeLanguage).mockReturnValue(LANGUAGE);
   vi.mocked(checkPasswordResetRateLimit).mockResolvedValue({ success: true });
+  vi.mocked(checkRegisterRateLimit).mockResolvedValue({ success: true });
   vi.mocked(checkVerificationResendRateLimit).mockResolvedValue({
     success: true,
   });
@@ -225,6 +231,19 @@ describe("login", () => {
 
     // Assert
     expect(state).toEqual({ status: "failed" });
+  });
+
+  it("returns rate_limited when signIn throws the rate-limit error", async () => {
+    // Arrange: the shape Auth.js rethrows for a credentials error with a code.
+    signInMock.mockRejectedValue(
+      Object.assign(new Error("CredentialsSignin"), { code: "rate_limited" })
+    );
+
+    // Act
+    const state = await login({ status: "idle" }, formData(credentials));
+
+    // Assert
+    expect(state).toEqual({ status: "rate_limited" });
   });
 
   it("returns failed when signIn throws", async () => {
@@ -446,6 +465,62 @@ describe("register", () => {
     // Assert
     expect(state).toEqual({ status: "failed" });
     expect(signInMock).not.toHaveBeenCalled();
+  });
+
+  it("returns rate_limited and creates no user when the sign-up limit is reached", async () => {
+    // Arrange
+    vi.mocked(checkRegisterRateLimit).mockResolvedValue({ success: false });
+
+    // Act
+    const state = await register({ status: "idle" }, formData(registration));
+
+    // Assert
+    expect(state).toEqual({ status: "rate_limited" });
+    expect(checkRegisterRateLimit).toHaveBeenCalledWith(CLIENT_IP);
+    expect(getUserByEmail).not.toHaveBeenCalled();
+    expect(createUser).not.toHaveBeenCalled();
+    expect(signInMock).not.toHaveBeenCalled();
+  });
+
+  it("returns failed and creates no user when the sign-up limiter cannot be checked", async () => {
+    // Arrange
+    vi.mocked(checkRegisterRateLimit).mockResolvedValue({
+      success: false,
+      isUnavailable: true,
+    });
+
+    // Act
+    const state = await register({ status: "idle" }, formData(registration));
+
+    // Assert
+    expect(state).toEqual({ status: "failed" });
+    expect(createUser).not.toHaveBeenCalled();
+  });
+
+  it("returns disposable_email and creates no user for a throwaway mailbox", async () => {
+    // Act
+    const state = await register(
+      { status: "idle" },
+      formData({ ...registration, email: DISPOSABLE_EMAIL })
+    );
+
+    // Assert
+    expect(state).toEqual({ status: "disposable_email" });
+    expect(getUserByEmail).not.toHaveBeenCalled();
+    expect(createUser).not.toHaveBeenCalled();
+    expect(signInMock).not.toHaveBeenCalled();
+  });
+
+  it("does not ask the sign-up limiter for data that fails validation", async () => {
+    // Act
+    const state = await register(
+      { status: "idle" },
+      formData({ ...registration, password: "weak" })
+    );
+
+    // Assert
+    expect(state).toEqual({ status: "invalid_data" });
+    expect(checkRegisterRateLimit).not.toHaveBeenCalled();
   });
 });
 

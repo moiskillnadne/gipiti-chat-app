@@ -69,6 +69,11 @@ export function LoginPageClient({ showSignup }: LoginPageClientProps) {
       return;
     }
 
+    if (state.status === "rate_limited") {
+      toast({ type: "error", description: tErrors("tooManyAttempts") });
+      return;
+    }
+
     if (state.status === "invalid_data") {
       toast({
         type: "error",
