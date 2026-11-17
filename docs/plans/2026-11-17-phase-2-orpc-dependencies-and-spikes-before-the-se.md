@@ -1,6 +1,6 @@
 ---
 date: 2026-11-17
-status: accepted
+status: done
 branch: docs/gipiti-231-spike-findings
 issue: GIPITI-231
 ---
@@ -104,11 +104,12 @@ No file under `app/`, `lib/` or `tests/` changes on `main` in this phase.
 
 ## Implementation notes (2026-11-17)
 
-Done: spikes S1, S2, S5, S6, S7, S8, S9 and the local half of S3 and S4; the oRPC 2.0 notes; PR #291 (dependencies); the findings in `docs/plans/orpc-v1-roadmap/spike-findings.md`; the draft spike PR #290.
+Done: spikes S1 to S9, the oRPC 2.0 notes, PR #291 (dependencies), the findings in `docs/plans/orpc-v1-roadmap/spike-findings.md`, the draft spike PR #290, and GIPITI-232 for the upload defect S4 found.
 
 Where the work departed from this plan:
 
-- **The preview could not be reached.** It is behind Vercel Authentication. Creating a share link (anyone with the link gets in for 23 hours) was left to the owner, so the preview half of S3, S4, S5 and S7 is open. The status of this plan stays `accepted` until those are run.
+- **The preview is behind Vercel Authentication.** The owner signed in to Vercel in the browser; the preview checks were then run from that browser with `fetch`, not from a script. No share link was created.
+- **Nobody was signed in to the app on the preview**, so the catch-all's rows of the S3 matrix show the spike's own 401 gate, the S4 probe shows the route's 401 for bodies that reached the function, and S7 was run only on a local production build.
 - **P4 turned out to be mostly moot**, because the preview is not public. Two things in the spike are not behind a session anyway: the raw stub routes (fixed text) and `/spike/login` (a bare sign-in form).
-- **The production cross-check for S4 was dropped.** Runtime logs do not show requests the platform refuses before a function runs, and wide log queries time out. Unauthenticated probes of the production upload route were answered by Vercel's Security Checkpoint, which became a finding of its own.
-- **No scratch script for the upload probe** was written; nothing was sent to the preview.
+- **S4 stopped at 4.7 MB.** The boundary was found between 4 403 200 and 4 505 600 bytes; the 5 to 25 MB bodies were not waited for.
+- **The production cross-check for S4 was dropped.** Runtime logs do not show requests the platform refuses before a function runs. Unauthenticated probes of the production upload route were answered by Vercel's Security Checkpoint, which became a finding of its own; production was not probed further.

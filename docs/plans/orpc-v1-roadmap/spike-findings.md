@@ -19,8 +19,8 @@ Every API fact was read from the installed type declarations (`node_modules/@orp
 | S1 zod | `@orpc/zod/zod4` converts `zod/v4` schemas from `zod@3.25.76`. | Decision D12 stands; no Zod 4 upgrade is needed. |
 | S1 `openEnum` | `z.string().meta({ description })` is emitted as `type: string` and needs no oRPC import. | `_kit/open-enum.ts` uses zod's `.meta()`. The architecture rule stays as it is. |
 | S2 | `new OpenAPILink(contract, { url })`; no response validation unless a plugin is added. Cost: 27 KB of client JavaScript (9.5 KB gzip) for oRPC, plus 70 KB (18 KB gzip) for `zod/v4` on pages that do not ship it yet. `/chat` already ships it. | Decision D7 stands. |
-| S3 (local only) | A deeper path (`/turns/{id}/stop`) reaches the catch-all. A raw route file owns every method on its exact path and answers the others with an empty 405. | No fallback stop path. Raw route files export a handler for the other methods so they answer in the error envelope. |
-| S4 | oRPC accepts a multipart `File` input. **The platform's body limit was not measured** (the preview is behind Vercel Authentication). | The upload design waits for that measurement. |
+| S3 | A deeper path (`/turns/{id}/stop`) reaches the catch-all. A raw route file owns every method on its exact path and answers the others with an empty 405. | No fallback stop path. Raw route files export a handler for the other methods so they answer in the error envelope. |
+| S4 | oRPC accepts a multipart `File` input, but **Vercel refuses a request body over 4.5 MB** (413 before the function runs). | Direct-to-Blob upload moves into v1 (decision D19 changes). Today's 10 MB and 25 MB caps are a production defect: GIPITI-232. |
 | S5 | `auth()` gives the cookie principal inside an oRPC procedure and inside a server component through `createRouterClient`. `signIn` from `next-auth/react` reports failure in `error` and `code` while `ok` stays `true`. | Decisions D10 and D14 stand. The login form checks `error`, never `ok`. |
 | S6 | A v2 contract and router that spread v1, override a key, add one and drop one typecheck. | Versioning rule 6 stands. |
 | S7 | `getToken` returns `null` for a bearer JWS. `flag.run({ identify })` evaluates for an explicit user inside a procedure. | `server/flags.ts` passes the principal through `run`. |
@@ -119,7 +119,18 @@ The `zod/v4` chunk is the same file the `/chat` page already loads (`/chat` ship
 | `GET /chats/c1` | 404 from our handler | catch-all (`matched: false`) |
 | `GET /nope/deeper`, `GET /api/spike` | 404 from our handler | catch-all |
 
-**Not repeated on Vercel.** The preview of the spike branch is behind Vercel Authentication, and the session that ran the spikes had no way in without creating a public share link, which was left to the owner. Next's own routing produced the table above; whether Vercel's router agrees is open until the matrix is run on the preview (see "Open items").
+**On Vercel (preview, from a browser signed in to Vercel but not to the app).** The same picture:
+
+| Request | Preview | Answered by |
+|---|---|---|
+| `POST /chats/c1/turns` | 200, `x-spike-route: raw-turns` | raw route |
+| `GET` and `DELETE /chats/c1/turns` | 405, empty body | raw route file |
+| `POST /chats/c1/turns/t1/stop` | 401 from the spike's own session gate | catch-all |
+| `GET /chats/c1/stream` | 200, `x-spike-route: raw-stream` | raw route |
+| `POST /chats/c1/stream` | 405, empty body | raw route file |
+| `GET /chats/c1`, `GET /nope/deeper`, `GET /config` | 401 from the spike's own session gate | catch-all |
+
+The catch-all on a deployment refuses callers without an app session before it routes (plan decision P4), so its rows show which handler received the request, not the procedure's answer.
 
 **For Phase 3 and 6:**
 
@@ -129,15 +140,23 @@ The `zod/v4` chunk is the same file the `/chat` page already loads (`/chat` ship
 
 ## S4. Uploads
 
-**The platform's request body limit was not measured.** This is the main open item of the phase.
+**The platform refuses a request body larger than 4.5 MB before the function runs.** Measured on the preview with `fetch` from a browser, bodies of zero bytes sent to `/api/spike/upload`:
 
-- The plan was to send 3 to 25 MB bodies to a probe on the preview. The preview is behind Vercel Authentication (see S3).
-- A fallback, sending unauthenticated bodies to the production upload route (they end in 401 before anything is stored), did not work either: production answers non-browser requests on that path with Vercel's Security Checkpoint (see "A finding outside the spikes"), and the same probe from a browser was refused by the tooling as out of bounds. Production was not probed further.
-- Vercel's function limits documentation, as the author of this note remembers it, gives 4.5 MB for a request body, answered with 413 `FUNCTION_PAYLOAD_TOO_LARGE`. That page was not retrieved in this session, so treat the number as unconfirmed.
+| Body | Answer |
+|---|---|
+| 1 048 576 bytes | 401 from the route (no app session), so the function ran |
+| 3 145 728 | 401 from the route |
+| 4 194 304 | 401 from the route |
+| 4 403 200 | 401 from the route |
+| 4 505 600 | **413**, `x-vercel-error: FUNCTION_PAYLOAD_TOO_LARGE`, `text/plain` body "Request Entity Too Large" |
+| 4 608 000 | 413, the same |
+| 4 710 400 | 413, the same |
 
-What is certain from the code: `POST /api/files/upload` accepts files up to 10 MB and `POST /api/projects/[id]/files` up to 25 MB, both by reading `request.formData()` inside a function. If the 4.5 MB limit applies, uploads between 4.5 MB and those caps fail today with a platform error instead of the route's own message.
+The limit is between 4 403 200 and 4 505 600 bytes, which is Vercel's 4.5 MB. Larger bodies (up to 25 MB) were not waited for. The 401 answers come from the route's own session check; they show that the body reached the function.
 
-**For Phase 3 and 5:** do not design `POST /api/v1/uploads` as multipart-through-a-function until the limit is measured. If it is near 4.5 MB, direct-to-Blob upload (`@vercel/blob` client uploads) moves from "later" (decision D19) into v1, and the current limits become a production defect with its own issue.
+**What this means today (GIPITI-232).** `POST /api/files/upload` accepts files up to 10 MB and `POST /api/projects/[id]/files` up to 25 MB, both through `request.formData()` inside a function. A file between 4.5 MB and those caps never reaches the route. The platform's answer is not JSON, and `components/multimodal-input.tsx` calls `response.json()` on a failed upload, so the user most likely sees a generic error instead of "file too large" (not reproduced in a browser). Production itself was not probed; the limit is the platform's.
+
+**Decision for Phase 3 and 5.** Multipart through a function cannot carry v1's upload sizes. Direct-to-Blob upload (`@vercel/blob` client uploads: the function issues a token, the file goes to the store without passing through the function) moves from "later" (decision D19) into v1. A multipart endpoint, if kept at all, is for files up to 4 MB. The same change fixes GIPITI-232 for the web.
 
 **oRPC `File` input (local).** A procedure with `z.object({ file: z.file(), note: z.string().optional() })` received a 1 MB multipart upload through `OpenAPIHandler`: `{"name":"one-megabyte.bin","size":1048576,"type":"application/octet-stream"}`. A request without the file field, or with a JSON body, is a 400 with a zod issue `expected: "file"`. So multipart through oRPC works, and a raw multipart route is not needed for parsing.
 
@@ -155,9 +174,11 @@ What is certain from the code: `POST /api/files/upload` accepts files up to 10 M
 | Wrong password | `{"error":"CredentialsSignin","code":"credentials","status":200,"ok":true,"url":null}` |
 | Unknown email | the same |
 | Correct password | `{"status":200,"ok":true,"url":"http://localhost:3005/spike/login"}` |
-| Refused by the login limiter | not run: the limits apply only on deployments, and the preview could not be reached (see "Open items"). Expected from the code: `error: "CredentialsSignin"`, `code: "rate_limited"` |
+| Refused by the login limiter (preview) | `{"error":"CredentialsSignin","code":"rate_limited","status":200,"ok":true,"url":null}` |
 
 `ok` is `true` and `status` is 200 for a failed sign-in. The login form must test `error` (and read `code`), never `ok`.
+
+On the preview, twelve wrong passwords in a row for an address with no account gave `code: "credentials"` ten times and `code: "rate_limited"` from the eleventh. The real `/login` page then showed "Слишком много попыток. Попробуйте позже." for the same address. This is the live check of the Phase 1 login limit (10 attempts per 15 minutes for one account from one address).
 
 ## S6. A second version by spreading the first
 
@@ -219,12 +240,9 @@ So the Vercel Firewall challenges requests that do not come from a browser on at
 
 ## Open items
 
-These need access to the protected preview (the owner signing in to Vercel in the browser, or a share link) and then take minutes:
-
-1. S3: the route matrix on Vercel.
-2. S4: the request body limit (3, 5, 6, 10 and 25 MB to `/api/spike/upload`).
-3. S5: the `signIn` result for an attempt the login limiter refuses (11 wrong passwords). This is also the live check of the Phase 1 login limits.
-4. S7: `flag.run({ identify })` on a deployment.
+1. **The Firewall settings** (above): the owner's look before Phase 3b.
+2. **S7 on a deployment.** `flag.run({ identify })` was run only on a local production build. On the preview it needs an app session, and nobody was signed in to the app there. Low risk: the code path is the same.
+3. **S4 above 4.7 MB and the multipart path.** Not needed for the decision.
 
 ## Corrections to the roadmap that follow
 
@@ -232,4 +250,5 @@ These need access to the protected preview (the owner signing in to Vercel in th
 - The `openEnum` row and the `_kit/open-enum.ts` line: zod `.meta()`, not `JSON_SCHEMA_OUTPUT_REGISTRY`.
 - S3: no fallback stop path; raw route files export the other methods.
 - S5: the web login checks `error`, not `ok`.
+- Decision D19 and the uploads rows: direct-to-Blob in v1; multipart through a function is limited to 4.5 MB by the platform.
 - S8: Biome boundary overrides are optional feedback.
