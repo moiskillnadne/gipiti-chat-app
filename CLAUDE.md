@@ -79,6 +79,9 @@ The route is a thin orchestrator; logic lives in `app/(chat)/api/chat/_lib/`:
 - NextAuth v5 Credentials (email/password), bcrypt-ts, dummy-password compare to prevent user enumeration; emails normalized (`lib/auth/`), unique on `lower(email)`.
 - JWT callbacks add `id`, `type`, `emailVerified`, `hasActiveSubscription`, `isTester` — these are **login-time snapshots**; read the DB for runtime tier decisions.
 - Registration → 6-digit email verification code via Resend; signup can be disabled by the `isSignupEnabled` Vercel Flag (`lib/flags.ts`).
+- A verification code is checked only against the account with the submitted email and dies after 5 checks (`lib/db/query/user/take-verification-attempt.ts`); a new code resets the counter.
+- Rate limits are in `lib/rate-limit.ts` (Upstash). The auth limiters (password reset, code resend, code check, login, sign-up) refuse the request in production when Upstash cannot be checked; chat and payment status let it through. The login and sign-up limits apply only when `VERCEL_ENV` is `production` or `preview`, because the e2e suite signs in with wrong passwords on purpose. Login limits live in `authorize` (`app/(auth)/auth.ts`).
+- Sign-up refuses throwaway mailboxes (`lib/auth/disposable-email-domains.json`, a vendored list; delete a line to allow a domain).
 
 ### Client state
 
@@ -107,7 +110,7 @@ Machine-readable surface for AI agents, all under `lib/agent-discovery/` — see
 
 ### Cron jobs (`app/api/cron/`, scheduled in `vercel.json`)
 
-All require `Authorization: Bearer ${CRON_SECRET}`: `reset-quotas` (every 10 minutes; renew billing periods / reset subscription pool), `cleanup-cancelled` (every 10 minutes), `refresh-fx-rates` (hourly, at :00), `cleanup-payment-intents` (hourly, at :15; expires overdue pending intents and deletes expired/failed ones older than 30 days — succeeded intents are kept, refunds are matched against them).
+All require `Authorization: Bearer ${CRON_SECRET}`: `reset-quotas` (every 10 minutes; renew billing periods / reset subscription pool), `cleanup-cancelled` (every 10 minutes), `refresh-fx-rates` (hourly, at :00), `cleanup-payment-intents` (hourly, at :15). The last one marks overdue pending intents `expired` and deletes intents older than 30 days only when they have no `externalTransactionId` and are `failed`, or `expired` with no `failureReason`. Succeeded intents are never deleted: the refund webhook finds the payment through them.
 
 ## Conventions
 
