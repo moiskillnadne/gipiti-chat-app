@@ -1,6 +1,6 @@
 ---
 date: 2026-11-16
-status: accepted
+status: done
 branch: docs/gipiti-230-phase-1-plan
 issue: GIPITI-230
 ---
@@ -173,3 +173,30 @@ Verify after deploy: the cron run in Vercel logs; `curl` with and without the se
 - Owner, on a preview: one CloudPayments test-mode payment and a subscription cancel (1h-b, 1h-c).
 - Rollback: revert the single PR. Migration `0046` is additive.
 - When all PRs are merged: Phase 1 marked done in the roadmap, `status: done` in this plan.
+
+## Implementation notes (2026-11-17)
+
+Merged: #276 (1a), #277 (1n), #278 (1h-b), #279 (1e), #281 (1f), #282 (1h-a), #283 (1k), #284 (1g), #285 (1c), #286 (1l), #287 (1o), #288 (1h-c).
+
+Where the work departed from this plan:
+
+- **1a** also removed `components/elements/code-block.tsx` and `suggestion.tsx` (only the deleted files used them), the whole `auth.subscription.management` and `chat.empty` translation subtrees (nothing requested them) and the `react-syntax-highlighter` dependency.
+- **1e**: no new `isRateLimitingConfigured` export. The existing `isRateLimitingEnabled` already answers that.
+- **1f**: the fifth miss does not clear the stored code. The counter is what kills it, and keeping the hash lets the action tell a dead code from no code. A dead code answers `expired_code`, a status that existed but was never returned. The index `user_email_verification_code_idx` is now unused and still in place. #280, the first PR for this item, was based on the branch of #279 and was merged into that branch after #279 had been squashed into `main`; #281 is the same commit against `main`.
+- **1g**: the login and sign-up limits apply only when `VERCEL_ENV` is `production` or `preview`. Locally and in CI the e2e suite signs in with wrong passwords on purpose, and local `.env.local` points at a real Upstash. Counting also differs from the one-line description above: the account + address limit is taken before the password check and reset by a successful login; the address and account limits count failed logins only.
+- **1c**: the delete is narrower than decision P3. It also keeps every intent with an `externalTransactionId` (a failed renewal can flip a paid subscription intent to `failed`) and every `expired` intent with a `failureReason` (the top-up amount-mismatch path of the `pay` webhook: charged, not credited, the row is the only record). Known gap: the "tester-only plan paid by a non-tester" branch of the `pay` webhook leaves no mark on the intent.
+- **1l**: three modules instead of one: `lib/ai/remote-image-fetch.ts`, `lib/ai/public-address.ts` (the block list, wider than listed here: also protocol-assignment, benchmarking and documentation ranges, NAT64, 6to4, Teredo, site-local) and `lib/ai/document-images.ts` (the shared batch loader).
+- **1o**: on `/forgot-password` the boundary never streamed the form, so removing it there is tidying. The new e2e test fails on the old `/register` and `/reset-password` only.
+- **1h-a**: the toast library already treated a non-OK response as an error, so the client change makes existing behaviour explicit.
+
+Verified in production on 2026-11-17: the cleanup cron ran at 11:15 UTC (15 intents expired, 14 deleted); `GET /api/health` lists no variable names; the cron route answers 401 without the secret; no error-level runtime logs in the hour after the deployments.
+
+Not verified, left for the owner on a live environment: 11 wrong passwords in a row end in the "too many attempts" message; six wrong verification codes close the code; a generated document with a public image and one at a private address; a CloudPayments test-mode payment and a subscription cancel.
+
+Found on the way and not fixed:
+
+- A non-auth error thrown inside `authorize` (for example the database being down) makes the `login` action answer `success` without a session.
+- `GET /api/vote` does not validate `chatId`; a missing chat answers 404 and someone else's chat 403, so chat ids can be probed.
+- The vote toasts and tooltips in `components/message-actions.tsx` are hardcoded English strings.
+- With the local default of 8 Playwright workers the login tests hang on form submission; CI uses 2.
+- `next dev` writes an untracked `AGENTS.md` into the repository root.
