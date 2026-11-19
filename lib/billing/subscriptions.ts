@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { db } from "@/lib/db/connection";
 import {
   type Subscription,
@@ -65,4 +65,48 @@ export async function getActiveUserSubscription(
     .limit(1);
 
   return row ?? null;
+}
+
+export type SubscriptionWithPrices = {
+  subscription: Subscription;
+  /** Active prices, one per currency, in minor units. */
+  prices: { currencyCode: string; price: number }[];
+};
+
+/**
+ * The catalog on sale: every active subscription that has at least one active
+ * price, ordered by code, each with its prices ordered by currency.
+ *
+ * Tester-only plans are included; callers decide who may see them
+ * (`isSubscriptionPurchaseAllowed` in `tester-plans.ts`).
+ */
+export async function listActiveSubscriptionsWithPrices(): Promise<
+  SubscriptionWithPrices[]
+> {
+  const rows = await db
+    .select({
+      subscription,
+      currencyCode: subscriptionPrice.currencyCode,
+      price: subscriptionPrice.price,
+    })
+    .from(subscription)
+    .innerJoin(
+      subscriptionPrice,
+      and(
+        eq(subscriptionPrice.subscriptionId, subscription.id),
+        eq(subscriptionPrice.isActive, true)
+      )
+    )
+    .where(eq(subscription.isActive, true))
+    .orderBy(asc(subscription.code), asc(subscriptionPrice.currencyCode));
+
+  const catalog = new Map<string, SubscriptionWithPrices>();
+
+  for (const { subscription: row, currencyCode, price } of rows) {
+    const entry = catalog.get(row.id) ?? { subscription: row, prices: [] };
+    entry.prices.push({ currencyCode, price });
+    catalog.set(row.id, entry);
+  }
+
+  return [...catalog.values()];
 }
