@@ -243,6 +243,7 @@ So the Vercel Firewall challenges requests that do not come from a browser on at
 1. **The Firewall settings** (above): the owner's look before Phase 3b.
 2. **S7 on a deployment.** `flag.run({ identify })` was run only on a local production build. On the preview it needs an app session, and nobody was signed in to the app there. Low risk: the code path is the same.
 3. **S4 above 4.7 MB and the multipart path.** Not needed for the decision.
+4. **S14, a generated native client and an unknown open-enum value. Not run** (2026-11-19, Phase 3b). The plan was a Swift package with `swift-openapi-generator` built against `server/api/v1/openapi.snapshot.json`; the agent's environment refused to download and build the generator, and no generator is installed on the machine. What is known without the run: the two open enums in the document (`provider` in `/models`, `billingPeriod` in `/plans`) are emitted as `{ "type": "string", "description": "One of: …" }` with no `enum` keyword, so a generator has nothing to turn into a closed enum and will type the field as a string. What the run would still settle: whether the generator accepts the 3.1.1 document as it is, and how it types a nullable field written as `anyOf: [{ "type": "string" }, { "type": "null" }]` (`provider`, `balance`, the client version fields). To be run by whoever starts the mobile client, before its first generated build.
 
 ## Corrections to the roadmap that follow
 

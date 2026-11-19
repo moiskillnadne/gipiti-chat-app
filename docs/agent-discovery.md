@@ -90,3 +90,13 @@ returning nothing.
 
 If any of these get built, the discovery documents are small additions
 alongside the existing ones in `lib/agent-discovery/`.
+
+### The v1 API and its OpenAPI document
+
+`/api/v1` is the API the first-party clients use (the web app later, a mobile
+app after that). Its OpenAPI document is served at `/api/v1/openapi.json` from
+the committed file `server/api/v1/openapi.snapshot.json`. It is deliberately
+**not** linked from `/openapi.json`, the API catalog or the `Link` headers:
+those describe the public surface for outside agents, and v1 is a first-party
+API that is still changing and whose useful endpoints need a signed-in
+session. Revisit when the mobile app ships.

@@ -22,6 +22,7 @@ pnpm build                       # NOTE: runs DB migrations first (tsx lib/db/mi
 pnpm test:unit                   # Vitest; picks up **/__tests__/**/*.test.ts and tests/characterization/
 pnpm test:integration            # Vitest against a real local Postgres (TEST_POSTGRES_URL); **/__integration__/**/*.test.ts
 pnpm check:characterization-diff # fails if an existing characterization test changed beyond its import paths
+pnpm api:spec                    # regenerate server/api/v1/openapi.snapshot.json from the v1 contract
 pnpm vitest run lib/ai/__tests__/model-registry.test.ts   # single unit test file
 pnpm test                        # Playwright E2E (starts `pnpm dev` via webServer)
 pnpm exec playwright test tests/e2e/login.test.ts         # single E2E file
@@ -86,6 +87,17 @@ The route is a thin orchestrator; logic lives in `app/(chat)/api/chat/_lib/`:
 ### Client state
 
 Chat layout providers: `SessionProvider → DataStreamProvider → ModelProvider → ProjectProvider → WebSearchProvider → SidebarProvider`. Model/thinking/media settings and project selection persist in cookies (update through server actions in `app/(chat)/actions.ts`). `DataStreamProvider` pipes `useChat()` stream parts so `useAutoResume()` can resume after reload. Data fetching uses SWR.
+
+### API v1 (`server/api/`, served at `/api/v1/*`)
+
+The REST API for first-party clients, built with oRPC, contract first. Live so far: `GET /config`, `/models`, `/plans`, `/me`, `/openapi.json`. The web app does not call it yet.
+
+- `server/api/v1/<resource>/contract.ts` declares the route and its shapes (`oc` from `@orpc/contract`, schemas in `v1/_schemas/`, `zod/v4`); `router.ts` implements it with `v1` from `v1/implementer.ts`; `v1/contract.ts` and `v1/router.ts` aggregate. Contract files import only `zod`, `@orpc/contract` and other contract files (enforced by `tests/architecture`).
+- `server/api/_kit/`: `create-handler.ts` (oRPC → the Next catch-all `app/api/v1/[[...rest]]/route.ts`, writes the 404 itself), `middleware.ts` (`handleErrors` on every procedure, `withPrincipal`, `requireAuth`), `errors.ts` (the one table from `ChatSDKError` to wire errors), `open-enum.ts`.
+- Every error is `{ defined, code, status, message, data? }` with the matching HTTP status. Money is `{ amountMinor, currencyCode }`. A response field whose values may grow is `openEnum(...)`, never `z.enum`: generated native clients cannot decode an unknown enum value.
+- Auth: the session cookie only, for now. A request with an `Authorization` header is refused with 401 and its cookie is not consulted; bearer tokens come with roadmap Phase 4. The route file passes `auth` down as `getCookieSession`, because `server/` must not import `app/`.
+- After changing a contract run `pnpm api:spec`; it rewrites `server/api/v1/openapi.snapshot.json`, and a unit test fails while the file is out of date.
+- Verified facts about the oRPC version in use (error encoding, routing next to raw route files, what the generator emits): `docs/plans/orpc-v1-roadmap/spike-findings.md`. orpc.dev documents 2.0; read the installed type declarations instead.
 
 ### Errors
 

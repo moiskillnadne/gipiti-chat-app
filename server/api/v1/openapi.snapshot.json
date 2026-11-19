@@ -1,0 +1,657 @@
+{
+  "info": {
+    "title": "GIPITI API",
+    "version": "1.0.0"
+  },
+  "openapi": "3.1.1",
+  "paths": {
+    "/config": {
+      "get": {
+        "operationId": "config.get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "bonuses": {
+                      "properties": {
+                        "emailConfirm": {
+                          "properties": {
+                            "amountMinor": {
+                              "maximum": 9007199254740991,
+                              "minimum": -9007199254740991,
+                              "type": "integer"
+                            },
+                            "currencyCode": {
+                              "maxLength": 3,
+                              "minLength": 3,
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "amountMinor",
+                            "currencyCode"
+                          ],
+                          "type": "object"
+                        },
+                        "onboardingQuiz": {
+                          "properties": {
+                            "amountMinor": {
+                              "maximum": 9007199254740991,
+                              "minimum": -9007199254740991,
+                              "type": "integer"
+                            },
+                            "currencyCode": {
+                              "maxLength": 3,
+                              "minLength": 3,
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "amountMinor",
+                            "currencyCode"
+                          ],
+                          "type": "object"
+                        },
+                        "welcome": {
+                          "properties": {
+                            "amountMinor": {
+                              "maximum": 9007199254740991,
+                              "minimum": -9007199254740991,
+                              "type": "integer"
+                            },
+                            "currencyCode": {
+                              "maxLength": 3,
+                              "minLength": 3,
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "amountMinor",
+                            "currencyCode"
+                          ],
+                          "type": "object"
+                        }
+                      },
+                      "required": [
+                        "welcome",
+                        "emailConfirm",
+                        "onboardingQuiz"
+                      ],
+                      "type": "object"
+                    },
+                    "clients": {
+                      "properties": {
+                        "android": {
+                          "properties": {
+                            "latestVersion": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "minSupportedVersion": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "updateUrl": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "minSupportedVersion",
+                            "latestVersion",
+                            "updateUrl"
+                          ],
+                          "type": "object"
+                        },
+                        "ios": {
+                          "properties": {
+                            "latestVersion": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "minSupportedVersion": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "updateUrl": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "minSupportedVersion",
+                            "latestVersion",
+                            "updateUrl"
+                          ],
+                          "type": "object"
+                        }
+                      },
+                      "required": [
+                        "ios",
+                        "android"
+                      ],
+                      "type": "object"
+                    },
+                    "features": {
+                      "properties": {
+                        "signup": {
+                          "description": "New accounts can be created.",
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "signup"
+                      ],
+                      "type": "object"
+                    },
+                    "topup": {
+                      "properties": {
+                        "maximum": {
+                          "properties": {
+                            "amountMinor": {
+                              "maximum": 9007199254740991,
+                              "minimum": -9007199254740991,
+                              "type": "integer"
+                            },
+                            "currencyCode": {
+                              "maxLength": 3,
+                              "minLength": 3,
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "amountMinor",
+                            "currencyCode"
+                          ],
+                          "type": "object"
+                        },
+                        "minimum": {
+                          "properties": {
+                            "amountMinor": {
+                              "maximum": 9007199254740991,
+                              "minimum": -9007199254740991,
+                              "type": "integer"
+                            },
+                            "currencyCode": {
+                              "maxLength": 3,
+                              "minLength": 3,
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "amountMinor",
+                            "currencyCode"
+                          ],
+                          "type": "object"
+                        },
+                        "presets": {
+                          "items": {
+                            "properties": {
+                              "amountMinor": {
+                                "maximum": 9007199254740991,
+                                "minimum": -9007199254740991,
+                                "type": "integer"
+                              },
+                              "currencyCode": {
+                                "maxLength": 3,
+                                "minLength": 3,
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "amountMinor",
+                              "currencyCode"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "required": [
+                        "minimum",
+                        "maximum",
+                        "presets"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "clients",
+                    "features",
+                    "bonuses",
+                    "topup"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Settings that are the same for every caller",
+        "tags": [
+          "config"
+        ]
+      }
+    },
+    "/me": {
+      "get": {
+        "operationId": "me.get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "balance": {
+                      "anyOf": [
+                        {
+                          "properties": {
+                            "subscription": {
+                              "description": "Credited on each renewal; spent first; reset on renewal.",
+                              "properties": {
+                                "amountMinor": {
+                                  "maximum": 9007199254740991,
+                                  "minimum": -9007199254740991,
+                                  "type": "integer"
+                                },
+                                "currencyCode": {
+                                  "maxLength": 3,
+                                  "minLength": 3,
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "amountMinor",
+                                "currencyCode"
+                              ],
+                              "type": "object"
+                            },
+                            "topup": {
+                              "description": "Top-ups and bonuses; never resets.",
+                              "properties": {
+                                "amountMinor": {
+                                  "maximum": 9007199254740991,
+                                  "minimum": -9007199254740991,
+                                  "type": "integer"
+                                },
+                                "currencyCode": {
+                                  "maxLength": 3,
+                                  "minLength": 3,
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "amountMinor",
+                                "currencyCode"
+                              ],
+                              "type": "object"
+                            },
+                            "total": {
+                              "properties": {
+                                "amountMinor": {
+                                  "maximum": 9007199254740991,
+                                  "minimum": -9007199254740991,
+                                  "type": "integer"
+                                },
+                                "currencyCode": {
+                                  "maxLength": 3,
+                                  "minLength": 3,
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "amountMinor",
+                                "currencyCode"
+                              ],
+                              "type": "object"
+                            }
+                          },
+                          "required": [
+                            "subscription",
+                            "topup",
+                            "total"
+                          ],
+                          "type": "object"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Null until the account has a balance row."
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "emailVerified": {
+                      "type": "boolean"
+                    },
+                    "features": {
+                      "properties": {
+                        "topup": {
+                          "description": "One-time balance top-up is offered to this user.",
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "topup"
+                      ],
+                      "type": "object"
+                    },
+                    "hasActiveSubscription": {
+                      "type": "boolean"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "isTester": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "email",
+                    "emailVerified",
+                    "isTester",
+                    "hasActiveSubscription",
+                    "balance",
+                    "features"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          }
+        },
+        "summary": "The signed-in user and their balance",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/models": {
+      "get": {
+        "operationId": "models.list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "defaultModelId": {
+                      "type": "string"
+                    },
+                    "items": {
+                      "items": {
+                        "properties": {
+                          "capabilities": {
+                            "properties": {
+                              "attachments": {
+                                "type": "boolean"
+                              },
+                              "imageGeneration": {
+                                "type": "boolean"
+                              },
+                              "reasoning": {
+                                "type": "boolean"
+                              },
+                              "toolCalling": {
+                                "type": "boolean"
+                              },
+                              "videoGeneration": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "reasoning",
+                              "attachments",
+                              "imageGeneration",
+                              "videoGeneration",
+                              "toolCalling"
+                            ],
+                            "type": "object"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "provider": {
+                            "anyOf": [
+                              {
+                                "description": "One of: openai, google, anthropic, xai, bfl, recraft, klingai, bytedance, deepseek, perplexity, moonshotai, alibaba, meta, mistral, zai, minimax, xiaomi, microsoft. Clients must accept other values.",
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "description",
+                          "provider",
+                          "capabilities"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "defaultModelId",
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Models a user can pick in the chat",
+        "tags": [
+          "models"
+        ]
+      }
+    },
+    "/plans": {
+      "get": {
+        "description": "Works without authentication. A signed-in internal tester also sees the tester-only plans.",
+        "operationId": "plans.list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "properties": {
+                          "billingPeriod": {
+                            "description": "One of: daily, weekly, monthly, annual. Clients must accept other values.",
+                            "type": "string"
+                          },
+                          "billingPeriodCount": {
+                            "exclusiveMinimum": 0,
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          },
+                          "code": {
+                            "description": "Stable identifier, for example basic_monthly.",
+                            "type": "string"
+                          },
+                          "displayName": {
+                            "type": "string"
+                          },
+                          "prices": {
+                            "description": "One entry per currency. The price is charged per billing period and credited to the balance.",
+                            "items": {
+                              "properties": {
+                                "amountMinor": {
+                                  "maximum": 9007199254740991,
+                                  "minimum": -9007199254740991,
+                                  "type": "integer"
+                                },
+                                "currencyCode": {
+                                  "maxLength": 3,
+                                  "minLength": 3,
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "amountMinor",
+                                "currencyCode"
+                              ],
+                              "type": "object"
+                            },
+                            "type": "array"
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "displayName",
+                          "billingPeriod",
+                          "billingPeriodCount",
+                          "prices"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          }
+        },
+        "summary": "Subscription plans on sale",
+        "tags": [
+          "plans"
+        ]
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "/api/v1"
+    }
+  ]
+}
