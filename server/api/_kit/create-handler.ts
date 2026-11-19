@@ -61,6 +61,13 @@ const withStandardHeaders = (
   });
 };
 
+const withoutBody = (response: Response): Response =>
+  new Response(null, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  });
+
 /**
  * Turn an oRPC router into the method handlers of a Next catch-all route.
  *
@@ -77,8 +84,10 @@ export const createHandler = (
 ): RouteHandlers => {
   const handler = new OpenAPIHandler<InitialContext>(router);
 
-  const handle: RouteHandler = async (request) => {
-    const requestId = requestIdOf(request);
+  const answer = async (
+    request: Request,
+    requestId: string
+  ): Promise<Response> => {
     const { pathname } = new URL(request.url);
     const isOpenApiRequest =
       openApiDocument !== undefined &&
@@ -86,7 +95,7 @@ export const createHandler = (
       pathname === `${prefix}${OPENAPI_DOCUMENT_PATH}`;
 
     if (isOpenApiRequest) {
-      return withStandardHeaders(Response.json(openApiDocument), requestId);
+      return Response.json(openApiDocument);
     }
 
     const { matched, response } = await handler.handle(request, {
@@ -94,10 +103,24 @@ export const createHandler = (
       context: { request, transport: "http", requestId, getCookieSession },
     });
 
-    return withStandardHeaders(
-      matched ? response : notFoundResponse(),
+    return matched ? response : notFoundResponse();
+  };
+
+  const handle: RouteHandler = async (request) => {
+    const requestId = requestIdOf(request);
+
+    if (request.method !== "HEAD") {
+      return withStandardHeaders(await answer(request, requestId), requestId);
+    }
+
+    // No procedure is declared for HEAD, so the router would answer 404 for a
+    // path that GET serves. HEAD gets what GET gets, minus the body.
+    const getResponse = await answer(
+      new Request(request, { method: "GET" }),
       requestId
     );
+
+    return withoutBody(withStandardHeaders(getResponse, requestId));
   };
 
   return {

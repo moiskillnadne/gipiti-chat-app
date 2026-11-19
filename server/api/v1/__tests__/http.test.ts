@@ -189,6 +189,58 @@ describe("the v1 handler", () => {
     );
   });
 
+  it("answers a handler result that breaks its own schema with a plain 500", async () => {
+    // Arrange: the plan schema requires a positive period count.
+    vi.mocked(listActiveSubscriptionsWithPrices).mockResolvedValue([
+      catalogEntry("basic_monthly", { billingPeriodCount: 0 }),
+    ]);
+    vi.spyOn(console, "error").mockReturnValue(undefined);
+
+    // Act
+    const response = await call("/plans");
+
+    // Assert
+    expect(response.status).toBe(500);
+    expect((await response.json()).message).toBe("Internal server error");
+  });
+
+  it("answers HEAD like GET, without a body", async () => {
+    // Act
+    const response = await call("/models", { method: "HEAD" });
+
+    // Assert
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe("");
+    expect(response.headers.get("x-request-id")).toBeTruthy();
+    expect(response.headers.get("cache-control")).toBe("no-store");
+  });
+
+  it("answers HEAD for an unknown path with 404", async () => {
+    // Act
+    const response = await call("/does-not-exist", { method: "HEAD" });
+
+    // Assert
+    expect(response.status).toBe(404);
+    expect(await response.text()).toBe("");
+  });
+
+  it.each(["/config", "/models", "/openapi.json"])(
+    "serves %s, which identifies nobody, whatever credentials are sent",
+    async (path) => {
+      // Arrange
+      signIn();
+
+      // Act
+      const response = await call(path, {
+        headers: { authorization: "Bearer some.jwt.token" },
+      });
+
+      // Assert
+      expect(response.status).toBe(200);
+      expect(getCookieSession).not.toHaveBeenCalled();
+    }
+  );
+
   it("serves the OpenAPI document it was given", async () => {
     // Act
     const response = await call("/openapi.json");
@@ -273,6 +325,10 @@ describe("GET /models", () => {
 
     // Assert
     expect(sentTexts.filter((text) => registryKeys.has(text))).toEqual([]);
+    // A key with no translation comes back as `modelList.<key>`.
+    expect(sentTexts.filter((text) => text.startsWith("modelList."))).toEqual(
+      []
+    );
     expect(sentTexts.every((text) => text.length > 0)).toBe(true);
   });
 
@@ -394,7 +450,7 @@ describe("GET /plans", () => {
     expect(body.items[0].displayName).toBe("basic_monthly");
   });
 
-  it("refuses a request with an Authorization header", async () => {
+  it("refuses a request with an Authorization header instead of treating it as anonymous", async () => {
     // Act
     const response = await call("/plans", {
       headers: { authorization: "Bearer some.jwt.token" },

@@ -75,6 +75,35 @@ describe("toApiError", () => {
     // Assert
     expect(apiError).toBe(wireError);
   });
+
+  it("replaces a 5xx the library raised with a 500 that carries no detail", () => {
+    // Arrange: what oRPC throws when a handler's output fails its schema.
+    const libraryError = new ORPCError("INTERNAL_SERVER_ERROR", {
+      message: "Output validation failed",
+    });
+
+    // Act
+    const apiError = toApiError(libraryError);
+
+    // Assert
+    expect(apiError.status).toBe(500);
+    expect(apiError.message).toBe("Internal server error");
+  });
+
+  it("keeps a 5xx that a contract declares", () => {
+    // Arrange
+    const declaredError = new ORPCError("SERVICE_UNAVAILABLE", {
+      status: 503,
+      message: "The model provider is down.",
+      defined: true,
+    });
+
+    // Act
+    const apiError = toApiError(declaredError);
+
+    // Assert
+    expect(apiError).toBe(declaredError);
+  });
 });
 
 describe("isExpectedApiError", () => {

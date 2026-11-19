@@ -53,6 +53,8 @@ export const API_ERROR_BY_TYPE: Record<ErrorType, ApiErrorDefinition> = {
   },
 };
 
+const SERVER_ERROR_STATUS_FLOOR = 500;
+
 const INTERNAL_ERROR = new ORPCError("INTERNAL_SERVER_ERROR", {
   status: 500,
   message: "Internal server error",
@@ -61,14 +63,19 @@ const INTERNAL_ERROR = new ORPCError("INTERNAL_SERVER_ERROR", {
 /**
  * Turn an error thrown by app code into the error a v1 client receives.
  *
- * - An `ORPCError` is already in wire form and passes through.
+ * - An `ORPCError` is already in wire form and passes through, unless it is a
+ *   5xx no contract declares: those come from the library ("Output validation
+ *   failed") and get the same plain 500 as any other unexpected failure.
  * - A `ChatSDKError` is mapped by its type. If its surface is log-only (the
  *   database), the client gets a plain 500 with no detail.
  * - Anything else is a 500 with no detail.
  */
 export const toApiError = (error: unknown): ORPCError<string, unknown> => {
   if (error instanceof ORPCError) {
-    return error;
+    const isUndeclaredServerError =
+      error.status >= SERVER_ERROR_STATUS_FLOOR && !error.defined;
+
+    return isUndeclaredServerError ? INTERNAL_ERROR : error;
   }
   if (!(error instanceof ChatSDKError)) {
     return INTERNAL_ERROR;
@@ -87,4 +94,4 @@ export const toApiError = (error: unknown): ORPCError<string, unknown> => {
 
 /** True for errors that are a normal answer, not something to investigate. */
 export const isExpectedApiError = (error: unknown): boolean =>
-  error instanceof ORPCError && error.status < 500;
+  error instanceof ORPCError && error.status < SERVER_ERROR_STATUS_FLOOR;
