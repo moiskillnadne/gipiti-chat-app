@@ -108,6 +108,22 @@ describe("legacy layout rules", () => {
     ]);
   });
 
+  it("guards the database layer at its new place under server/ too", () => {
+    // Act
+    const keys = violationKeys({
+      "components/chat.tsx": [
+        '"use client";',
+        'import { db } from "@/server/db/connection";',
+        'import type { Chat } from "@/server/db/schema";',
+      ].join("\n"),
+    });
+
+    // Assert
+    expect(keys).toEqual([
+      "client-imports-server-code: components/chat.tsx -> server/db/connection",
+    ]);
+  });
+
   it("allows a client component to import database types", () => {
     // Act
     const keys = violationKeys({

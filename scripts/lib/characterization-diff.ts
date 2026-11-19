@@ -62,7 +62,7 @@ const isViModuleCall = (node: ts.CallExpression): boolean => {
 };
 
 /** The string literal that names a module in `node`, if `node` has one. */
-const moduleSpecifierOf = (node: ts.Node): ts.Node | undefined => {
+export const moduleSpecifierOf = (node: ts.Node): ts.Node | undefined => {
   if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) {
     return node.moduleSpecifier;
   }

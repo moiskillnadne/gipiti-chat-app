@@ -40,7 +40,9 @@ const TEST_FILE_PATTERN =
   /(?:^|\/)(?:__tests__|__integration__)\/|\.test\.tsx?$|^tests\//;
 
 const LEGACY_CLIENT_DIRS = ["components/", "hooks/", "contexts/"];
-const LEGACY_SERVER_CODE = ["lib/db/", "app/(auth)/auth"];
+// `server/db/` is where `lib/db` moves in Phase 3a; both are listed so the
+// rule keeps guarding the database layer while the move is in flight.
+const LEGACY_SERVER_CODE = ["lib/db/", "server/db/", "app/(auth)/auth"];
 
 const FSD_LAYERS = [
   "app",

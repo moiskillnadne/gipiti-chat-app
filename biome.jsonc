@@ -50,6 +50,20 @@
   },
   "overrides": [
     {
+      /* A move PR may change these tests only in their module specifiers
+         (`pnpm check:characterization-diff`). Renaming a specifier changes
+         its sort position, and re-sorting the import lines would itself be a
+         change the guard rejects, so imports here keep the order they have. */
+      "includes": ["tests/characterization/**/*.test.ts"],
+      "assist": {
+        "actions": {
+          "source": {
+            "organizeImports": "off"
+          }
+        }
+      }
+    },
+    {
       /* Each target module exists only to re-export the code a
          characterization test pins, so a move changes one specifier here. */
       "includes": ["tests/characterization/targets/**"],

@@ -39,6 +39,19 @@ CI (`.github/workflows/`) runs typecheck, lint, unit tests with coverage, the ch
 - **Characterization** (`tests/characterization/`): pin the current behaviour of the money and auth entry points while code moves. They import the code under test only through `tests/characterization/targets/`. An existing test may change only in its import / `vi.mock` paths (`pnpm check:characterization-diff`, enforced in CI). A PR that changes pinned behaviour on purpose says so in its body and carries the `characterization-change` label.
 - **Integration** (`**/__integration__/`, `pnpm test:integration`): real Postgres, no module-path mocks; outbound HTTP is stubbed with `vi.spyOn(globalThis, "fetch")`. Not part of `pnpm check`. `TEST_POSTGRES_URL` must be a local database whose name ends in `_test` (the tests truncate tables); it is created and migrated on the first run. Helpers live in `tests/integration/`.
 
+### Moving files
+
+Server code is moving to `server/` in steps (roadmap in `docs/plans/`). A move PR is `git mv` plus a scripted rewrite, with no logic edits:
+
+```bash
+pnpm exec tsx scripts/codemods/rewrite-imports.ts moves.json --dry-run   # before the move: what would change
+git mv …                                                                 # the move itself
+pnpm exec tsx scripts/codemods/rewrite-imports.ts moves.json             # every import, export and vi.mock specifier
+pnpm format
+```
+
+`moves.json` maps old paths to new ones (files or folders). The codemod covers `*.ts` and `*.tsx` only: paths in `package.json` scripts, configs and docs are changed by hand. Imports in `tests/characterization/` are deliberately not sorted by Biome, so that a move changes nothing there but the specifiers.
+
 ## Architecture Overview
 
 ### Route groups

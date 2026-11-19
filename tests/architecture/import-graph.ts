@@ -58,9 +58,13 @@ const packageNameOf = (specifier: string): string => {
     : segments[0];
 };
 
-type ResolvedSpecifier = Pick<ImportEdge, "to" | "packageName" | "isRelative">;
+export type ResolvedSpecifier = Pick<
+  ImportEdge,
+  "to" | "packageName" | "isRelative"
+>;
 
-const resolveSpecifier = (
+/** Where a specifier written in the file `from` points. */
+export const resolveSpecifier = (
   from: string,
   specifier: string
 ): ResolvedSpecifier => {

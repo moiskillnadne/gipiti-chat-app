@@ -15,10 +15,12 @@ export default defineConfig({
     exclude: [...configDefaults.exclude, ".claude/**", "**/.next/**"],
     // Measured on demand (`vitest run --coverage`, as CI does). There are no
     // thresholds yet: they are set per `server/` folder as those folders appear.
+    // `server/` and `core/` are listed before they exist, so code that moves
+    // there does not drop out of the measurement.
     coverage: {
       provider: "v8",
       reporter: ["text-summary", "json-summary"],
-      include: ["app/**", "lib/**"],
+      include: ["app/**", "lib/**", "server/**", "core/**"],
     },
   },
   resolve: {
