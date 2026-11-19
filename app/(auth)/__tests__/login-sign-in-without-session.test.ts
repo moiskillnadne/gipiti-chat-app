@@ -17,8 +17,8 @@ vi.mock("server-only", () => ({}));
 vi.mock("@/server/db/connection", () => ({ db: {} }));
 vi.mock("@/app/(auth)/auth", () => ({ signIn: signInMock }));
 vi.mock("next/headers", () => ({ cookies: vi.fn(), headers: vi.fn() }));
-vi.mock("@/lib/flags", () => ({ isSignupEnabled: vi.fn() }));
-vi.mock("@/lib/rate-limit", () => ({}));
+vi.mock("@/server/flags", () => ({ isSignupEnabled: vi.fn() }));
+vi.mock("@/server/http/rate-limit", () => ({}));
 vi.mock("@/lib/db/query/user/get-by-email", () => ({
   getUserByEmail: vi.fn(),
 }));

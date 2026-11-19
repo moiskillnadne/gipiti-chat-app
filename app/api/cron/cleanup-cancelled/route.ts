@@ -1,7 +1,7 @@
 import { and, eq, lte } from "drizzle-orm";
-import { isAuthorizedCronRequest } from "@/lib/cron/is-authorized-cron-request";
 import { getActiveUserSubscription } from "@/lib/db/query/subscription/get-active-user-subscription";
 import { assignFreePlan } from "@/lib/subscription/subscription-init";
+import { isAuthorizedCronRequest } from "@/server/cron/is-authorized-cron-request";
 import { db } from "@/server/db/connection";
 import { userSubscription } from "@/server/db/schema";
 

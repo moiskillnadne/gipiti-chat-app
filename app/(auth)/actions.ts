@@ -21,12 +21,15 @@ import { updateUserPassword } from "@/lib/db/query/user/update-user-password";
 import { sendPasswordChangedEmail } from "@/lib/email/send-password-changed";
 import { sendPasswordResetEmail } from "@/lib/email/send-password-reset";
 import { sendVerificationEmail } from "@/lib/email/send-verification-email";
-import { isSignupEnabled } from "@/lib/flags";
 import {
   getRegistrationGeoFromHeaders,
   sanitizeLanguage,
 } from "@/lib/geo/registration-geo";
-import { getClientIp } from "@/lib/http/client-ip";
+import { UTM_COOKIE_NAME } from "@/lib/utm/constants";
+import { parseUtmCookie } from "@/lib/utm/parse-utm-cookie";
+import { generateHashedPassword } from "@/server/db/utils";
+import { isSignupEnabled } from "@/server/flags";
+import { getClientIp } from "@/server/http/client-ip";
 import {
   checkPasswordResetRateLimit,
   checkRegisterRateLimit,
@@ -34,10 +37,7 @@ import {
   checkVerificationResendRateLimit,
   getRateLimitResetMinutes,
   getRateLimitResetSeconds,
-} from "@/lib/rate-limit";
-import { UTM_COOKIE_NAME } from "@/lib/utm/constants";
-import { parseUtmCookie } from "@/lib/utm/parse-utm-cookie";
-import { generateHashedPassword } from "@/server/db/utils";
+} from "@/server/http/rate-limit";
 import {
   createUser,
   DuplicateEmailError,

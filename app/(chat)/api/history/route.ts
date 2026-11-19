@@ -1,9 +1,9 @@
 import type { NextRequest } from "next/server";
 import { auth } from "@/app/(auth)/auth";
-import { handleRouteError } from "@/lib/api/handle-route-error";
 import { deleteAllChatsByUserId } from "@/lib/db/query/chat/delete-all-chats-by-user-id";
 import { getChatsByUserId } from "@/lib/db/query/chat/get-chats-by-user-id";
 import { ChatSDKError } from "@/lib/errors";
+import { handleRouteError } from "@/server/http/handle-route-error";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;

@@ -9,8 +9,8 @@ import {
 } from "@/lib/billing/subscriptions";
 import { getUserById } from "@/lib/db/query/user/get-by-id";
 import type { PaymentIntent, Subscription, User } from "@/server/db/schema";
-import { isTopupEnabled } from "@/lib/flags";
-import { checkPaymentStatusRateLimit } from "@/lib/rate-limit";
+import { isTopupEnabled } from "@/server/flags";
+import { checkPaymentStatusRateLimit } from "@/server/http/rate-limit";
 import {
   getLatestSubscription,
   type LatestSubscription,
@@ -50,8 +50,8 @@ const { selectResults, insertValues, dbMock } = vi.hoisted(() => {
 });
 
 vi.mock("@/app/(auth)/auth", () => ({ auth: vi.fn() }));
-vi.mock("@/lib/flags", () => ({ isTopupEnabled: vi.fn() }));
-vi.mock("@/lib/rate-limit", () => ({
+vi.mock("@/server/flags", () => ({ isTopupEnabled: vi.fn() }));
+vi.mock("@/server/http/rate-limit", () => ({
   checkPaymentStatusRateLimit: vi.fn(),
 }));
 vi.mock("@/server/db/connection", () => ({ db: dbMock }));

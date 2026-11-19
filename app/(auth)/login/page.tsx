@@ -1,4 +1,4 @@
-import { isSignupEnabled } from "@/lib/flags";
+import { isSignupEnabled } from "@/server/flags";
 import { LoginPageClient } from "./login-page-client";
 
 export default async function Page() {

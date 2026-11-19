@@ -8,13 +8,13 @@ import {
 } from "@/lib/billing/constants";
 import { majorToMinorUnits } from "@/lib/billing/money";
 import { getUserById } from "@/lib/db/query/user/get-by-id";
-import { isTopupEnabled } from "@/lib/flags";
 import { getLatestSubscription } from "@/lib/subscription/get-latest-subscription";
 import { deriveSubscriptionUiState } from "@/lib/subscription/subscription-state";
 import type { TopupIntentResponse } from "@/lib/types";
 import { createTopupIntentRequestSchema } from "@/lib/validation/topup";
 import { db } from "@/server/db/connection";
 import { paymentIntent } from "@/server/db/schema";
+import { isTopupEnabled } from "@/server/flags";
 
 const RUB_MINOR_UNITS = 2;
 const INTENT_TTL_MS = 30 * 60 * 1000;

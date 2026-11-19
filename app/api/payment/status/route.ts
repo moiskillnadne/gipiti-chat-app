@@ -1,7 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { auth } from "@/app/(auth)/auth";
 import { getBalance } from "@/lib/billing/balance";
-import { checkPaymentStatusRateLimit } from "@/lib/rate-limit";
 import type { PaymentStatusResponse } from "@/lib/types";
 import { db } from "@/server/db/connection";
 import {
@@ -9,6 +8,7 @@ import {
   subscription,
   userSubscription,
 } from "@/server/db/schema";
+import { checkPaymentStatusRateLimit } from "@/server/http/rate-limit";
 
 /**
  * Get payment status by session ID

@@ -1,7 +1,10 @@
 import { sql } from "drizzle-orm";
-import { isRateLimitingEnabled } from "@/lib/rate-limit";
-import { getUpstashClient, isUpstashConfigured } from "@/lib/redis";
 import { db } from "@/server/db/connection";
+import { isRateLimitingEnabled } from "@/server/http/rate-limit";
+import {
+  getUpstashClient,
+  isUpstashConfigured,
+} from "@/server/integrations/redis/client";
 
 type CheckStatus = "up" | "down";
 

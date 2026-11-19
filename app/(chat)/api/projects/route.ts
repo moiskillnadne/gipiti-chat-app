@@ -1,11 +1,11 @@
 import { z } from "zod";
 import { auth } from "@/app/(auth)/auth";
-import { handleRouteError } from "@/lib/api/handle-route-error";
 import { createProject } from "@/lib/db/query/project/create-project";
 import { deleteProject } from "@/lib/db/query/project/delete-project";
 import { getProjectsByUserId } from "@/lib/db/query/project/get-projects-by-user-id";
 import { updateProject } from "@/lib/db/query/project/update-project";
 import { ChatSDKError } from "@/lib/errors";
+import { handleRouteError } from "@/server/http/handle-route-error";
 
 const SWATCH_VALUES = ["sw1", "sw2", "sw3", "sw4", "sw5", "sw6"] as const;
 

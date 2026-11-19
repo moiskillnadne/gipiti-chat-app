@@ -12,7 +12,9 @@ const {
   resetUsedTokensMock: vi.fn(),
 }));
 
-vi.mock("@/lib/redis", () => ({ getUpstashClient: getUpstashClientMock }));
+vi.mock("@/server/integrations/redis/client", () => ({
+  getUpstashClient: getUpstashClientMock,
+}));
 vi.mock("@upstash/ratelimit", () => {
   class Ratelimit {
     static slidingWindow = (): string => "sliding-window";

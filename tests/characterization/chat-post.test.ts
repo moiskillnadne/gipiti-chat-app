@@ -103,7 +103,7 @@ vi.mock("@vercel/functions", () => ({ geolocation: () => ({}) }));
 vi.mock("@/lib/activity/record-user-activity", () => ({
   recordUserActivity: recordUserActivityMock,
 }));
-vi.mock("@/lib/rate-limit", () => ({
+vi.mock("@/server/http/rate-limit", () => ({
   checkChatRateLimit: checkChatRateLimitMock,
 }));
 vi.mock("@/lib/billing/turn-slots", async () => {

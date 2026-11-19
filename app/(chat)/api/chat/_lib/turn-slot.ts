@@ -5,7 +5,7 @@ import {
 } from "@/lib/billing/turn-slots";
 import { ChatSDKError } from "@/lib/errors";
 import { getTranslations } from "@/lib/i18n/translate";
-import { checkChatRateLimit } from "@/lib/rate-limit";
+import { checkChatRateLimit } from "@/server/http/rate-limit";
 import type { ChatTurnContext } from "./context";
 import type { ChatMode } from "./resolve-mode";
 

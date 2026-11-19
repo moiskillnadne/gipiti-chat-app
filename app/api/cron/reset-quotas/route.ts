@@ -1,7 +1,6 @@
 import { and, eq, isNull, lte } from "drizzle-orm";
 import { resetSubscriptionPool } from "@/lib/billing/balance";
 import { priceForCurrency } from "@/lib/billing/subscriptions";
-import { isAuthorizedCronRequest } from "@/lib/cron/is-authorized-cron-request";
 import {
   calculateNextBillingDate,
   calculatePeriodEnd,
@@ -9,6 +8,7 @@ import {
 import { decidePeriodEndAction } from "@/lib/subscription/period-end-action";
 import { assignFreePlan } from "@/lib/subscription/subscription-init";
 import type { BillingPeriod } from "@/lib/subscription/subscription-tiers";
+import { isAuthorizedCronRequest } from "@/server/cron/is-authorized-cron-request";
 import { db } from "@/server/db/connection";
 import {
   subscription,

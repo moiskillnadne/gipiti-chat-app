@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { isSignupEnabled } from "@/lib/flags";
+import { isSignupEnabled } from "@/server/flags";
 import { RegisterPageClient } from "./register-page-client";
 
 export default async function Page() {
