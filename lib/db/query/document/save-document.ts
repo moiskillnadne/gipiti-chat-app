@@ -1,6 +1,6 @@
+import { db } from "@/server/db/connection";
+import { document } from "@/server/db/schema";
 import { ChatSDKError } from "../../../errors";
-import { db } from "../../connection";
-import { document } from "../../schema";
 
 export type DocumentKind =
   | "image"

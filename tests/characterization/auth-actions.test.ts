@@ -12,8 +12,8 @@ import { markEmailAsVerified } from "@/lib/db/query/user/mark-email-as-verified"
 import { setPasswordResetToken } from "@/lib/db/query/user/set-password-reset-token";
 import { takeVerificationAttempt } from "@/lib/db/query/user/take-verification-attempt";
 import { updateUserPassword } from "@/lib/db/query/user/update-user-password";
-import type { User } from "@/lib/db/schema";
-import { generateHashedPassword } from "@/lib/db/utils";
+import type { User } from "@/server/db/schema";
+import { generateHashedPassword } from "@/server/db/utils";
 import { sendPasswordChangedEmail } from "@/lib/email/send-password-changed";
 import { sendPasswordResetEmail } from "@/lib/email/send-password-reset";
 import { sendVerificationEmail } from "@/lib/email/send-verification-email";
@@ -55,7 +55,7 @@ const { signInMock, isSignupEnabledMock, cookieGetMock, cookieDeleteMock } =
   }));
 
 vi.mock("server-only", () => ({}));
-vi.mock("@/lib/db/connection", () => ({ db: {} }));
+vi.mock("@/server/db/connection", () => ({ db: {} }));
 vi.mock("@/app/(auth)/auth", () => ({ signIn: signInMock }));
 vi.mock("next/headers", () => ({
   cookies: () =>
@@ -78,7 +78,7 @@ vi.mock("@/lib/geo/registration-geo", () => ({
 vi.mock("@/lib/billing/balance", () => ({
   grantEmailVerificationBonus: vi.fn(),
 }));
-vi.mock("@/lib/db/utils", () => ({ generateHashedPassword: vi.fn() }));
+vi.mock("@/server/db/utils", () => ({ generateHashedPassword: vi.fn() }));
 vi.mock("@/lib/db/query/user/get-by-email", () => ({
   getUserByEmail: vi.fn(),
 }));

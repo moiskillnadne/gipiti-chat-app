@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { balance, transaction, user } from "@/lib/db/schema";
+import { balance, transaction, user } from "@/server/db/schema";
 
 type BalanceRow = {
   userId: string;
@@ -101,7 +101,7 @@ const fakeDb = vi.hoisted(() => {
   return { state, tables, client };
 });
 
-vi.mock("@/lib/db/connection", () => ({ db: fakeDb.client }));
+vi.mock("@/server/db/connection", () => ({ db: fakeDb.client }));
 vi.mock("@/lib/billing/currencies", () => ({
   getMinorUnits: vi.fn(async () => 2),
 }));

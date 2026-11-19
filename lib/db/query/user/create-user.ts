@@ -1,3 +1,7 @@
+import { type DatabaseExecutor, db } from "@/server/db/connection";
+import { type User, user } from "@/server/db/schema";
+import { isUniqueViolation } from "@/server/db/unique-violation";
+import { generateHashedPassword } from "@/server/db/utils";
 import { normalizeEmail } from "../../../auth/normalize-email";
 import { creditBalance, ensureBalance } from "../../../billing/balance";
 import {
@@ -9,10 +13,6 @@ import { majorToMinorUnits } from "../../../billing/money";
 import { ChatSDKError } from "../../../errors";
 import type { RegistrationGeo } from "../../../geo/registration-geo";
 import type { UtmData } from "../../../utm/constants";
-import { type DatabaseExecutor, db } from "../../connection";
-import { type User, user } from "../../schema";
-import { isUniqueViolation } from "../../unique-violation";
-import { generateHashedPassword } from "../../utils";
 
 /**
  * Raised when an address is already registered. The register action pre-checks

@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
+import { db } from "@/server/db/connection";
+import { user } from "@/server/db/schema";
 import { ChatSDKError } from "../../../errors";
-import { db } from "../../connection";
-import { user } from "../../schema";
 
 export async function updateUserPassword({
   userId,

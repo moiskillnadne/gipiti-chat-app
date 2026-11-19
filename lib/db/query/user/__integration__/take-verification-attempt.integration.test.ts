@@ -1,14 +1,13 @@
 import { eq } from "drizzle-orm";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
-
-import { db } from "@/lib/db/connection";
 import { markEmailAsVerified } from "@/lib/db/query/user/mark-email-as-verified";
 import { setEmailVerificationCode } from "@/lib/db/query/user/set-email-verification-code";
 import {
   MAX_EMAIL_VERIFICATION_ATTEMPTS,
   takeVerificationAttempt,
 } from "@/lib/db/query/user/take-verification-attempt";
-import { user } from "@/lib/db/schema";
+import { db } from "@/server/db/connection";
+import { user } from "@/server/db/schema";
 import {
   closeDatabaseConnection,
   resetMoneyTables,

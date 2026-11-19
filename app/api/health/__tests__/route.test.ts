@@ -12,7 +12,7 @@ const {
   pingMock: vi.fn(),
 }));
 
-vi.mock("@/lib/db/connection", () => ({ db: { execute: executeMock } }));
+vi.mock("@/server/db/connection", () => ({ db: { execute: executeMock } }));
 vi.mock("@/lib/redis", () => ({
   getUpstashClient: () => ({ ping: pingMock }),
   isUpstashConfigured: isUpstashConfiguredMock,

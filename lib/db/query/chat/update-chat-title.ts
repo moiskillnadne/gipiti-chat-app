@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
-import { db } from "../../connection";
-import { chat } from "../../schema";
+import { db } from "@/server/db/connection";
+import { chat } from "@/server/db/schema";
 
 export async function updateChatTitle({
   chatId,

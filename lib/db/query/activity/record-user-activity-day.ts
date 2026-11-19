@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 
-import { db } from "../../connection";
+import { db } from "@/server/db/connection";
 
 /**
  * Marks `userId` as active on `activityDay` (Moscow calendar day, "YYYY-MM-DD").

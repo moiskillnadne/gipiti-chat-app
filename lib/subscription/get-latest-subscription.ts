@@ -1,6 +1,6 @@
 import { desc, eq } from "drizzle-orm";
-import { db } from "@/lib/db/connection";
-import { subscription, userSubscription } from "@/lib/db/schema";
+import { db } from "@/server/db/connection";
+import { subscription, userSubscription } from "@/server/db/schema";
 
 export type BillingPeriodKey = "daily" | "weekly" | "monthly" | "annual";
 

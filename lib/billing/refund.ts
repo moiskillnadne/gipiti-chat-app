@@ -1,7 +1,7 @@
 import { and, eq, sql } from "drizzle-orm";
 
-import { db } from "@/lib/db/connection";
-import { balance, type PaymentIntent, transaction } from "@/lib/db/schema";
+import { db } from "@/server/db/connection";
+import { balance, type PaymentIntent, transaction } from "@/server/db/schema";
 
 import { type BalancePool, ensureBalance } from "./balance";
 

@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { planRefundDebit, poolForPayment } from "../refund";
 
 // planRefundDebit is pure; stub the DB so importing the module never connects.
-vi.mock("@/lib/db/connection", () => ({ db: {} }));
+vi.mock("@/server/db/connection", () => ({ db: {} }));
 
 describe("planRefundDebit", () => {
   it("debits the whole refund and marks a full refund when the pool covers it", () => {

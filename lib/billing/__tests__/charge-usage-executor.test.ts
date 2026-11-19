@@ -9,7 +9,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { USAGE_MARKUP } from "@/lib/billing/constants";
-import { balance, currency, fxRate } from "@/lib/db/schema";
+import { balance, currency, fxRate } from "@/server/db/schema";
 
 type InsertedTransaction = {
   amount: number;
@@ -55,7 +55,7 @@ const buildTx = () => ({
   }),
 });
 
-vi.mock("@/lib/db/connection", () => ({
+vi.mock("@/server/db/connection", () => ({
   db: {
     select: rejectGlobalQuery,
     insert: rejectGlobalQuery,

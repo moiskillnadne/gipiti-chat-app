@@ -6,7 +6,7 @@ import { createHmac, randomUUID } from "node:crypto";
 
 import { asc, eq, sql } from "drizzle-orm";
 
-import { db } from "@/lib/db/connection";
+import { db } from "@/server/db/connection";
 import {
   type Balance,
   balance,
@@ -21,7 +21,7 @@ import {
   type UserSubscription,
   user,
   userSubscription,
-} from "@/lib/db/schema";
+} from "@/server/db/schema";
 
 export const TEST_CURRENCY_CODE = "RUB";
 

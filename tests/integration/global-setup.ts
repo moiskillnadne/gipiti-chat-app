@@ -11,7 +11,7 @@ import {
   type TestDatabaseTarget,
 } from "./test-database-url";
 
-const MIGRATIONS_FOLDER = "./lib/db/migrations";
+const MIGRATIONS_FOLDER = "./server/db/migrations";
 
 const ensureDatabaseExists = async ({
   adminConnectionString,

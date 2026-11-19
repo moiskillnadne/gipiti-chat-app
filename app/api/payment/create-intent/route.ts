@@ -6,10 +6,10 @@ import {
   priceForCurrency,
 } from "@/lib/billing/subscriptions";
 import { canPurchaseSubscription } from "@/lib/billing/tester-plans";
-import { db } from "@/lib/db/connection";
-import { paymentIntent } from "@/lib/db/schema";
 import type { PaymentIntentResponse } from "@/lib/types";
 import { createSubscriptionIntentRequestSchema } from "@/lib/validation/subscription-intent";
+import { db } from "@/server/db/connection";
+import { paymentIntent } from "@/server/db/schema";
 
 /**
  * Generate a unique session ID for payment intent

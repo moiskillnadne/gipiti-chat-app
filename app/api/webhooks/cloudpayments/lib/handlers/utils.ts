@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
-import { db } from "@/lib/db/connection";
-import { type PaymentIntent, paymentIntent } from "@/lib/db/schema";
+import { db } from "@/server/db/connection";
+import { type PaymentIntent, paymentIntent } from "@/server/db/schema";
 
 // Widget `data` payload echoed back by CloudPayments in webhook `Data`.
 // Subscriptions pass { sessionId, planName }; top-ups pass { kind, sessionId }.

@@ -2,8 +2,8 @@ import { config } from "dotenv";
 import { and, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { subscription, subscriptionPrice } from "@/lib/db/schema";
 import { SUBSCRIPTION_SEEDS } from "@/lib/subscription/subscription-tiers";
+import { subscription, subscriptionPrice } from "@/server/db/schema";
 
 config({ path: ".env.local" });
 

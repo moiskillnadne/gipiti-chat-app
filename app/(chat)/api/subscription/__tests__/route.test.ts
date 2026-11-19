@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 // tests only look at what the modules export.
 vi.mock("server-only", () => ({}));
 vi.mock("@/app/(auth)/auth", () => ({ auth: vi.fn() }));
-vi.mock("@/lib/db/connection", () => ({ db: {} }));
+vi.mock("@/server/db/connection", () => ({ db: {} }));
 vi.mock("@/lib/billing/balance", () => ({
   getBalance: vi.fn(),
   ensureBalance: vi.fn(),

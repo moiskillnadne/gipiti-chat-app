@@ -6,13 +6,13 @@ import { ChevronDownIcon } from "lucide-react";
 import { memo, useMemo, useState } from "react";
 import { useMediaDownload } from "@/hooks/use-media-download";
 import { getModelById } from "@/lib/ai/models";
-import type { Vote } from "@/lib/db/schema";
 import { downloadFromUrl } from "@/lib/download";
 import { useTranslations } from "@/lib/i18n/translate";
 import { groupToolRuns } from "@/lib/messages/group-tool-runs";
 import { isInterruptedMessage } from "@/lib/messages/interrupted";
 import type { ChatMessage } from "@/lib/types";
 import { cn, sanitizeText } from "@/lib/utils";
+import type { Vote } from "@/server/db/schema";
 import { AssistantIcon } from "./assistant-icon";
 import {
   DOCUMENT_FORMAT_LABELS,

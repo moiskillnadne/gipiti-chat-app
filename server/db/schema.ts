@@ -18,8 +18,8 @@ import {
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
-import type { QuizAnswers } from "../quiz/types";
-import type { AppUsage } from "../usage";
+import type { QuizAnswers } from "@/lib/quiz/types";
+import type { AppUsage } from "@/lib/usage";
 
 // ============================================================================
 // USER & AUTH

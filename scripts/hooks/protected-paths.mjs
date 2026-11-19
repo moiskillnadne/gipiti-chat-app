@@ -29,7 +29,7 @@ export const PROTECTION_RULES = [
   {
     // Migrations are hand-written here (`db:generate` is broken), so new migration files
     // and the journal stay editable; already-written migrations and snapshots do not.
-    pattern: /^lib\/db\/migrations\/(?!meta\/_journal\.json$)/,
+    pattern: /^server\/db\/migrations\/(?!meta\/_journal\.json$)/,
     reason:
       "existing migrations may already be applied — add a new migration instead of editing one",
     allowsNewFiles: true,

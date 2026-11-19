@@ -1,9 +1,9 @@
 import { and, eq, gt, isNotNull, lt, sql } from "drizzle-orm";
 
 import { normalizeEmail } from "@/lib/auth/normalize-email";
-import { db } from "@/lib/db/connection";
-import { user } from "@/lib/db/schema";
 import { ChatSDKError } from "@/lib/errors";
+import { db } from "@/server/db/connection";
+import { user } from "@/server/db/schema";
 
 /** How many times one verification code may be checked before it is dead. */
 export const MAX_EMAIL_VERIFICATION_ATTEMPTS = 5;

@@ -1,7 +1,7 @@
 import { desc, eq } from "drizzle-orm";
+import { db } from "@/server/db/connection";
+import { document } from "@/server/db/schema";
 import { ChatSDKError } from "../../../errors";
-import { db } from "../../connection";
-import { document } from "../../schema";
 
 /**
  * Resolve the most recent Document by its provider `generationId` (the

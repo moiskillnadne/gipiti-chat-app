@@ -1,7 +1,6 @@
 import { config } from "dotenv";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { prompt } from "@/lib/db/schema";
 import { validateSheetRows } from "@/lib/prompts/prompt-seed";
 import { fetchPromptSheetRows } from "@/lib/prompts/prompt-sheet";
 import {
@@ -10,6 +9,7 @@ import {
   type ExistingPrompt,
   type SyncPlan,
 } from "@/lib/prompts/prompt-sync";
+import { prompt } from "@/server/db/schema";
 
 config({ path: ".env.local" });
 

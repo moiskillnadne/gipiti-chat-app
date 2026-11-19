@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { getUserById } from "@/lib/db/query/user/get-by-id";
-import type { User } from "@/lib/db/schema";
 import { SUBSCRIPTION_SEEDS } from "@/lib/subscription/subscription-tiers";
+import type { User } from "@/server/db/schema";
 
 import {
   canPurchaseSubscription,
@@ -11,7 +11,7 @@ import {
   TESTER_ONLY_SUBSCRIPTION_CODES,
 } from "../tester-plans";
 
-vi.mock("@/lib/db/connection", () => ({ db: {} }));
+vi.mock("@/server/db/connection", () => ({ db: {} }));
 vi.mock("@/lib/db/query/user/get-by-id", () => ({ getUserById: vi.fn() }));
 
 const TESTER_PLAN_CODE = "tester_paid";

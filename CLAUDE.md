@@ -18,7 +18,7 @@ Non-obvious ones:
 pnpm check                       # full 360° check: typecheck + lint/format + unit tests + build (~45s)
 pnpm check:fast                  # same without the build (~12s)
 pnpm typecheck                   # tsc --noEmit
-pnpm build                       # NOTE: runs DB migrations first (tsx lib/db/migrate), then next build
+pnpm build                       # NOTE: runs DB migrations first (tsx server/db/migrate), then next build
 pnpm test:unit                   # Vitest; picks up **/__tests__/**/*.test.ts and tests/characterization/
 pnpm test:integration            # Vitest against a real local Postgres (TEST_POSTGRES_URL); **/__integration__/**/*.test.ts
 pnpm check:characterization-diff # fails if an existing characterization test changed beyond its import paths
@@ -52,6 +52,8 @@ pnpm format
 ```
 
 `moves.json` maps old paths to new ones (files or folders). The codemod covers `*.ts` and `*.tsx` only: paths in `package.json` scripts, configs and docs are changed by hand. Imports in `tests/characterization/` are deliberately not sorted by Biome, so that a move changes nothing there but the specifiers.
+
+Moved so far: the database layer is `server/db/` (connection, schema, migrations, `migrate.ts`). The queries are still in `lib/db/query/` and move later, each with its domain.
 
 ## Architecture Overview
 
@@ -167,7 +169,7 @@ See `.env.example` (`AUTH_SECRET`, `AI_GATEWAY_API_KEY`, `BLOB_READ_WRITE_TOKEN`
 
 1. **Message schema**: use `Message_v2` / `Vote_v2`, not the deprecated tables. `Vote_v2` PK is (chatId, messageId); `Document` PK is (id, createdAt).
 2. **Document table** only stores generated tool output (`kind` = image | video | pdf | docx | markdown | txt | csv). `kind` is a TS-only varchar enum — adding a kind needs no migration.
-3. **Migrations**: SQL files in `lib/db/migrations/`, applied by `pnpm db:migrate`. `pnpm db:generate` is currently broken (drizzle-kit 0.25 vs drizzle-orm 0.45) — hand-write migrations + journal entries. Drizzle puts Postgres SQLSTATE on `error.cause` (see `lib/db/unique-violation.ts`).
+3. **Migrations**: SQL files in `server/db/migrations/`, applied by `pnpm db:migrate`. `pnpm db:generate` is currently broken (drizzle-kit 0.25 vs drizzle-orm 0.45) — hand-write migrations + journal entries. Drizzle puts Postgres SQLSTATE on `error.cause` (see `server/db/unique-violation.ts`).
 4. **Gate before inference, charge after**: balance is checked before calling the model; cost is charged afterwards. A billing failure must never break the stream (`chargeUsageSafe`).
 5. **Gateway provider metadata**: Google models report under `providerMetadata.vertex`, not `google`. The gateway silently drops unknown image/video params — verify a new param actually changes output.
 6. **Reasoning**: some models need `extractReasoningMiddleware` for `<think>` tags — check `usesReasoningTagMiddleware()` in `models.ts`; native-reasoning models must not be wrapped.

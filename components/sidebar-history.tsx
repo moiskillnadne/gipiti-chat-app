@@ -22,9 +22,9 @@ import {
   SidebarMenu,
   useSidebar,
 } from "@/components/ui/sidebar";
-import type { Chat } from "@/lib/db/schema";
 import { useTranslations } from "@/lib/i18n/translate";
 import { fetcher } from "@/lib/utils";
+import type { Chat } from "@/server/db/schema";
 import { LoaderIcon } from "./icons";
 import { ChatItem } from "./sidebar-history-item";
 

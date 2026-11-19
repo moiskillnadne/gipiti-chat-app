@@ -8,12 +8,12 @@ import {
   DialogContent,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { Prompt } from "@/lib/db/schema";
 import { useTranslations } from "@/lib/i18n/translate";
 import {
   getPromptCategory,
   getPromptModelMeta,
 } from "@/lib/prompts/prompt-meta";
+import type { Prompt } from "@/server/db/schema";
 import { PromptPlaceholders } from "./prompt-placeholders";
 
 const COPIED_RESET_MS = 1600;

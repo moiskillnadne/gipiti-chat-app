@@ -18,7 +18,6 @@ import {
   takeVerificationAttempt,
 } from "@/lib/db/query/user/take-verification-attempt";
 import { updateUserPassword } from "@/lib/db/query/user/update-user-password";
-import { generateHashedPassword } from "@/lib/db/utils";
 import { sendPasswordChangedEmail } from "@/lib/email/send-password-changed";
 import { sendPasswordResetEmail } from "@/lib/email/send-password-reset";
 import { sendVerificationEmail } from "@/lib/email/send-verification-email";
@@ -38,6 +37,7 @@ import {
 } from "@/lib/rate-limit";
 import { UTM_COOKIE_NAME } from "@/lib/utm/constants";
 import { parseUtmCookie } from "@/lib/utm/parse-utm-cookie";
+import { generateHashedPassword } from "@/server/db/utils";
 import {
   createUser,
   DuplicateEmailError,

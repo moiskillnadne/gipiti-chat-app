@@ -5,7 +5,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useProject } from "@/contexts/project-context";
 import { formatFileSize } from "@/lib/attachments/attachment-display";
-import type { Project, ProjectFile } from "@/lib/db/schema";
 import { useTranslations } from "@/lib/i18n/translate";
 import {
   resolveSwatchToken,
@@ -13,6 +12,7 @@ import {
   type SwatchToken,
   swatchTokenToClass,
 } from "@/lib/utils/swatch";
+import type { Project, ProjectFile } from "@/server/db/schema";
 
 import { FileIcon, PencilEditIcon, PlusIcon, TrashIcon } from "../icons";
 import { toast } from "../toast";

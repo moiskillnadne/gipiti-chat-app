@@ -12,7 +12,7 @@ const { getBalanceMock, getCurrencyPricingMock } = vi.hoisted(() => ({
   getCurrencyPricingMock: vi.fn(),
 }));
 
-vi.mock("@/lib/db/connection", () => ({ db: {} }));
+vi.mock("@/server/db/connection", () => ({ db: {} }));
 vi.mock("@/lib/billing/balance", () => ({ getBalance: getBalanceMock }));
 vi.mock("@/lib/billing/fx", () => ({
   getCurrencyPricing: getCurrencyPricingMock,

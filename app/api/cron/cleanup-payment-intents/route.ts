@@ -1,8 +1,8 @@
 import { and, eq, isNull, lte, or } from "drizzle-orm";
 
 import { isAuthorizedCronRequest } from "@/lib/cron/is-authorized-cron-request";
-import { db } from "@/lib/db/connection";
-import { paymentIntent } from "@/lib/db/schema";
+import { db } from "@/server/db/connection";
+import { paymentIntent } from "@/server/db/schema";
 
 const LOG_PREFIX = "[Cron:CleanupPaymentIntents]";
 

@@ -10,7 +10,12 @@ import {
   priceForCurrency,
 } from "@/lib/billing/subscriptions";
 import { isSubscriptionPurchaseAllowed } from "@/lib/billing/tester-plans";
-import { db } from "@/lib/db/connection";
+import type { CloudPaymentsPayWebhook } from "@/lib/payments/cloudpayments-types";
+import {
+  calculateNextBillingDate,
+  calculatePeriodEnd,
+} from "@/lib/subscription/billing-periods";
+import { db } from "@/server/db/connection";
 import {
   type PaymentIntent,
   paymentIntent,
@@ -18,12 +23,7 @@ import {
   subscription,
   user,
   userSubscription,
-} from "@/lib/db/schema";
-import type { CloudPaymentsPayWebhook } from "@/lib/payments/cloudpayments-types";
-import {
-  calculateNextBillingDate,
-  calculatePeriodEnd,
-} from "@/lib/subscription/billing-periods";
+} from "@/server/db/schema";
 import {
   findTopupIntent,
   parseWebhookData,

@@ -2,13 +2,6 @@ import { and, eq, isNull, lte } from "drizzle-orm";
 import { resetSubscriptionPool } from "@/lib/billing/balance";
 import { priceForCurrency } from "@/lib/billing/subscriptions";
 import { isAuthorizedCronRequest } from "@/lib/cron/is-authorized-cron-request";
-import { db } from "@/lib/db/connection";
-import {
-  subscription,
-  type UserSubscription,
-  user,
-  userSubscription,
-} from "@/lib/db/schema";
 import {
   calculateNextBillingDate,
   calculatePeriodEnd,
@@ -16,6 +9,13 @@ import {
 import { decidePeriodEndAction } from "@/lib/subscription/period-end-action";
 import { assignFreePlan } from "@/lib/subscription/subscription-init";
 import type { BillingPeriod } from "@/lib/subscription/subscription-tiers";
+import { db } from "@/server/db/connection";
+import {
+  subscription,
+  type UserSubscription,
+  user,
+  userSubscription,
+} from "@/server/db/schema";
 
 type DueSubscription = {
   sub: UserSubscription;

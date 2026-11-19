@@ -1,7 +1,7 @@
 import { and, eq, gt } from "drizzle-orm";
+import { db } from "@/server/db/connection";
+import { type User, user } from "@/server/db/schema";
 import { ChatSDKError } from "../../../errors";
-import { db } from "../../connection";
-import { type User, user } from "../../schema";
 
 export async function getUserByResetToken({
   hashedToken,

@@ -4,9 +4,9 @@ import { auth } from "@/app/(auth)/auth";
 import { getChatById } from "@/lib/db/query/chat/get-chat-by-id";
 import { getMessagesByChatId } from "@/lib/db/query/chat/get-messages-by-chat-id";
 import { getStreamIdsByChatId } from "@/lib/db/query/chat/get-stream-ids-by-chat-id";
-import type { Chat } from "@/lib/db/schema";
 import { ChatSDKError } from "@/lib/errors";
 import type { ChatMessage } from "@/lib/types";
+import type { Chat } from "@/server/db/schema";
 import { getStreamContext } from "../../_lib/stream-context";
 
 // Matches POST /api/chat: a resumed stream follows its producer, which can run

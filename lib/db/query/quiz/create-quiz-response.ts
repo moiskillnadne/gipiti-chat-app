@@ -1,7 +1,7 @@
+import { db } from "@/server/db/connection";
+import { type QuizResponse, quizResponse } from "@/server/db/schema";
 import { ChatSDKError } from "../../../errors";
 import type { QuizAnswers } from "../../../quiz/types";
-import { db } from "../../connection";
-import { type QuizResponse, quizResponse } from "../../schema";
 
 // Persist a completed quiz response. Idempotent: a second submission for the
 // same (userId, quizKey) is ignored (the unique index makes completion a single

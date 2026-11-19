@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
-import type { User } from "@/lib/db/schema";
 import type { LoginAttemptDecision, LoginIdentity } from "@/lib/rate-limit";
+import type { User } from "@/server/db/schema";
 
 type CredentialsInput = { email: string; password: string };
 

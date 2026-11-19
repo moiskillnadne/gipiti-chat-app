@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { User } from "@/lib/db/schema";
+import type { User } from "@/server/db/schema";
 
 type CredentialsInput = { email: string; password: string };
 

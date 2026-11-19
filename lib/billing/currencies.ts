@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
-import { type DatabaseExecutor, db } from "@/lib/db/connection";
-import { type Currency, currency } from "@/lib/db/schema";
+import { type DatabaseExecutor, db } from "@/server/db/connection";
+import { type Currency, currency } from "@/server/db/schema";
 
 /**
  * Fetch a currency dictionary row by ISO 4217 code. Inside a transaction, pass

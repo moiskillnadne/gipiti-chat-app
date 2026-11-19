@@ -14,7 +14,7 @@ const { signInMock } = vi.hoisted(() => ({
 // makes of that string. Every URL below was captured from the real `signIn`
 // (next-auth 5.0.0-beta.32, @auth/core 0.41.3) with this app's `pages` config.
 vi.mock("server-only", () => ({}));
-vi.mock("@/lib/db/connection", () => ({ db: {} }));
+vi.mock("@/server/db/connection", () => ({ db: {} }));
 vi.mock("@/app/(auth)/auth", () => ({ signIn: signInMock }));
 vi.mock("next/headers", () => ({ cookies: vi.fn(), headers: vi.fn() }));
 vi.mock("@/lib/flags", () => ({ isSignupEnabled: vi.fn() }));

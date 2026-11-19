@@ -90,7 +90,7 @@ const {
 
 // Safety net: nothing below may reach a real database.
 vi.mock("server-only", () => ({}));
-vi.mock("@/lib/db/connection", () => ({ db: {} }));
+vi.mock("@/server/db/connection", () => ({ db: {} }));
 
 vi.mock("@/app/(auth)/auth", () => ({ auth: vi.fn() }));
 // `after` callbacks (slot keep-alive, background title) are recorded, not run.

@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
+import { db } from "@/server/db/connection";
+import { vote } from "@/server/db/schema";
 import { ChatSDKError } from "../../../errors";
-import { db } from "../../connection";
-import { vote } from "../../schema";
 
 export async function getVotesByChatId({ id }: { id: string }) {
   try {

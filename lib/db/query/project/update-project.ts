@@ -1,8 +1,7 @@
 import { and, eq } from "drizzle-orm";
-
+import { db } from "@/server/db/connection";
+import { type Project, project } from "@/server/db/schema";
 import { ChatSDKError } from "../../../errors";
-import { db } from "../../connection";
-import { type Project, project } from "../../schema";
 
 export async function updateProject({
   id,
