@@ -1,6 +1,6 @@
 "use client";
 
-import type { Project, ProjectFile } from "@/lib/db/schema";
+import type { Project, ProjectFile } from "@/server/db/schema";
 
 import { EditorV1 } from "./styles-projects/editor-v1";
 

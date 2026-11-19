@@ -1,7 +1,7 @@
 import { and, desc, eq, gte, ne, sql } from "drizzle-orm";
 import { chatModels } from "@/lib/ai/models";
-import { db } from "@/lib/db/connection";
-import { chat, transaction } from "@/lib/db/schema";
+import { db } from "@/server/db/connection";
+import { chat, transaction } from "@/server/db/schema";
 import { type BalanceSummary, getBalance } from "./balance";
 
 // usage_debit rows are tagged by chargeUsage: web search/extract use these

@@ -33,7 +33,7 @@ const {
 
 // Minimal Drizzle stand-in: the select chain resolves to the due rows, the
 // update chain records the values passed to `.set()`.
-vi.mock("@/lib/db/connection", () => {
+vi.mock("@/server/db/connection", () => {
   const selectChain = {
     from: () => selectChain,
     innerJoin: () => selectChain,

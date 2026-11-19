@@ -6,16 +6,16 @@ import {
   getSubscriptionByCode,
   priceForCurrency,
 } from "@/lib/billing/subscriptions";
-import { db } from "@/lib/db/connection";
 import { getUserById } from "@/lib/db/query/user/get-by-id";
-import type { Subscription, User } from "@/lib/db/schema";
+import { db } from "@/server/db/connection";
+import type { Subscription, User } from "@/server/db/schema";
 
 import { POST } from "../route";
 
 const { insertValues } = vi.hoisted(() => ({ insertValues: vi.fn() }));
 
 vi.mock("@/app/(auth)/auth", () => ({ auth: vi.fn() }));
-vi.mock("@/lib/db/connection", () => ({
+vi.mock("@/server/db/connection", () => ({
   db: { insert: vi.fn(() => ({ values: insertValues })) },
 }));
 vi.mock("@/lib/db/query/user/get-by-id", () => ({ getUserById: vi.fn() }));

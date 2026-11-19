@@ -1,6 +1,6 @@
+import { db } from "@/server/db/connection";
+import { cancellationFeedback } from "@/server/db/schema";
 import { ChatSDKError } from "../../../errors";
-import { db } from "../../connection";
-import { cancellationFeedback } from "../../schema";
 
 export async function saveCancellationFeedback({
   userId,

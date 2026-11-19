@@ -23,7 +23,7 @@ export default defineConfig({
     // One database is shared by every file, and each file resets its tables.
     fileParallelism: false,
     env: {
-      // `lib/db/connection.ts` reads POSTGRES_URL once, at import.
+      // `server/db/connection.ts` reads POSTGRES_URL once, at import.
       POSTGRES_URL: testDatabase.connectionString,
       CLOUDPAYMENTS_PUBLIC_ID: "pk_integration_test",
       CLOUDPAYMENTS_API_SECRET: "integration-test-api-secret",

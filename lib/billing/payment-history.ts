@@ -1,6 +1,6 @@
 import { and, desc, eq, inArray } from "drizzle-orm";
-import { db } from "@/lib/db/connection";
-import { transaction } from "@/lib/db/schema";
+import { db } from "@/server/db/connection";
+import { transaction } from "@/server/db/schema";
 
 /** Transaction types that correspond to real charges from the user's card. */
 const CARD_PAYMENT_TYPES = [

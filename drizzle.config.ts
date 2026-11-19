@@ -1,8 +1,8 @@
 import { defineConfig } from "drizzle-kit";
 
 export default defineConfig({
-  schema: "./lib/db/schema.ts",
-  out: "./lib/db/migrations",
+  schema: "./server/db/schema.ts",
+  out: "./server/db/migrations",
   dialect: "postgresql",
   dbCredentials: {
     // biome-ignore lint: Forbidden non-null assertion.

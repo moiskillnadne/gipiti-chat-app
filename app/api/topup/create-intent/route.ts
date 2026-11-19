@@ -7,14 +7,14 @@ import {
   TOPUP_TESTER_MIN_MAJOR_UNITS,
 } from "@/lib/billing/constants";
 import { majorToMinorUnits } from "@/lib/billing/money";
-import { db } from "@/lib/db/connection";
 import { getUserById } from "@/lib/db/query/user/get-by-id";
-import { paymentIntent } from "@/lib/db/schema";
 import { isTopupEnabled } from "@/lib/flags";
 import { getLatestSubscription } from "@/lib/subscription/get-latest-subscription";
 import { deriveSubscriptionUiState } from "@/lib/subscription/subscription-state";
 import type { TopupIntentResponse } from "@/lib/types";
 import { createTopupIntentRequestSchema } from "@/lib/validation/topup";
+import { db } from "@/server/db/connection";
+import { paymentIntent } from "@/server/db/schema";
 
 const RUB_MINOR_UNITS = 2;
 const INTENT_TTL_MS = 30 * 60 * 1000;

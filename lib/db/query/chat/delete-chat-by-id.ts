@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
+import { db } from "@/server/db/connection";
+import { chat, message, stream, vote } from "@/server/db/schema";
 import { ChatSDKError } from "../../../errors";
-import { db } from "../../connection";
-import { chat, message, stream, vote } from "../../schema";
 
 export async function deleteChatById({ id }: { id: string }) {
   try {

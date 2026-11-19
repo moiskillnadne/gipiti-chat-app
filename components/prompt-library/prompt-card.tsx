@@ -1,12 +1,12 @@
 "use client";
 
 import { Star } from "lucide-react";
-import type { Prompt } from "@/lib/db/schema";
 import { useTranslations } from "@/lib/i18n/translate";
 import {
   getPromptCategory,
   getPromptModelMeta,
 } from "@/lib/prompts/prompt-meta";
+import type { Prompt } from "@/server/db/schema";
 
 const BRACKETS = /[[\]]/g;
 

@@ -3,14 +3,14 @@ import { and, eq } from "drizzle-orm";
 import { getMinorUnits } from "@/lib/billing/currencies";
 import { majorToMinorUnits } from "@/lib/billing/money";
 import { applyPaymentRefund } from "@/lib/billing/refund";
-import { db } from "@/lib/db/connection";
+import { cancelSubscription } from "@/lib/payments/cloudpayments";
+import type { CloudPaymentsRefundWebhook } from "@/lib/payments/cloudpayments-types";
+import { db } from "@/server/db/connection";
 import {
   type PaymentIntent,
   paymentIntent,
   userSubscription,
-} from "@/lib/db/schema";
-import { cancelSubscription } from "@/lib/payments/cloudpayments";
-import type { CloudPaymentsRefundWebhook } from "@/lib/payments/cloudpayments-types";
+} from "@/server/db/schema";
 
 import { toNumber, toTransactionId } from "./utils";
 

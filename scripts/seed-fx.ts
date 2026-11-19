@@ -1,7 +1,7 @@
 import { config } from "dotenv";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { fxRate } from "@/lib/db/schema";
+import { fxRate } from "@/server/db/schema";
 
 config({ path: ".env.local" });
 

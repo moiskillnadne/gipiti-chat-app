@@ -216,7 +216,7 @@ that.
   size limits server-side. Flag user-controlled URLs that are fetched
   server-side without an allowlist (SSRF).
 
-### 4.4 Database and query performance (`lib/db/`, any `db.` call)
+### 4.4 Database and query performance (`server/db/`, `lib/db/query/`, any `db.` call)
 
 - **Migrations.** These are hand-written SQL plus journal entries
   (`db:generate` is broken). Check:
@@ -238,7 +238,7 @@ that.
   instead of `tx` inside a transaction. Use a consistent lock order (Balance,
   then PaymentIntent) to avoid deadlocks.
 - **Errors.** Postgres SQLSTATE lives on `error.cause` (see
-  `lib/db/unique-violation.ts`). Code checking `error.code` directly is a bug.
+  `server/db/unique-violation.ts`). Code checking `error.code` directly is a bug.
   DB errors are logged, never returned to the client.
 - **Deprecated tables.** Use `Message_v2` and `Vote_v2`. `Document`'s PK is
   `(id, createdAt)`, so a lookup by `id` alone can return several rows.
@@ -349,7 +349,7 @@ mention them when the diff makes a fix cheap.
 - Schema: there is no index on `Message_v2.chatId`, `Chat.userId`,
   `Stream.chatId`, or `Document.userId`. Any new query filtering on these makes
   the gap worse.
-- `lib/db/connection.ts`: `postgres()` has no explicit pool `max` or timeouts.
+- `server/db/connection.ts`: `postgres()` has no explicit pool `max` or timeouts.
 
 ---
 

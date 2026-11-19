@@ -5,8 +5,8 @@ import {
   getSubscriptionByCode,
   priceForCurrency,
 } from "@/lib/billing/subscriptions";
-import type { Subscription } from "@/lib/db/schema";
 import type { CloudPaymentsWebhookPayload } from "@/lib/payments/cloudpayments-types";
+import type { Subscription } from "@/server/db/schema";
 
 import { handleCheckWebhook } from "../check";
 import { handlePayWebhook } from "../pay";
@@ -39,7 +39,7 @@ const { selectResults, insertValues, updateSet, dbMock } = vi.hoisted(() => {
   };
 });
 
-vi.mock("@/lib/db/connection", () => ({ db: dbMock }));
+vi.mock("@/server/db/connection", () => ({ db: dbMock }));
 vi.mock("@/lib/billing/subscriptions", () => ({
   getSubscriptionByCode: vi.fn(),
   priceForCurrency: vi.fn(),

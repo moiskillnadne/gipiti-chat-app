@@ -12,8 +12,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { WELCOME_GRANT_MAJOR_UNITS } from "@/lib/billing/constants";
-import { balance, currency, user } from "@/lib/db/schema";
 import { ChatSDKError } from "@/lib/errors";
+import { balance, currency, user } from "@/server/db/schema";
 
 type StoredRow = Record<string, unknown>;
 
@@ -119,7 +119,7 @@ const buildTx = () => ({
   },
 });
 
-vi.mock("@/lib/db/connection", () => ({
+vi.mock("@/server/db/connection", () => ({
   db: {
     select: rejectGlobalQuery,
     insert: rejectGlobalQuery,
@@ -132,7 +132,7 @@ vi.mock("@/lib/db/connection", () => ({
   },
 }));
 // bcrypt is slow on purpose; the hash itself is not under test.
-vi.mock("@/lib/db/utils", () => ({
+vi.mock("@/server/db/utils", () => ({
   generateHashedPassword: (password: string) => `hashed:${password}`,
 }));
 

@@ -1,5 +1,5 @@
 import { LOW_BALANCE_THRESHOLD_MINOR } from "@/lib/billing/constants";
-import type { UserSubscription } from "@/lib/db/schema";
+import type { UserSubscription } from "@/server/db/schema";
 
 export type SubscriptionUiState = "active" | "cancelled" | "past_due" | "none";
 

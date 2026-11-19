@@ -1,6 +1,6 @@
 // Database schema for gipiti-chat-app
 // Paste this into https://dbdiagram.io/d to render the ERD
-// Source: lib/db/schema.ts
+// Source: server/db/schema.ts
 //
 // Billing model: pure pay-per-use on a currency Balance (no tokens, no quotas,
 // no feature gating). Per-request charge = provider USD cost x live FX rate x

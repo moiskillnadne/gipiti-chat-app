@@ -14,7 +14,7 @@ import {
 // checked (`isUnavailable`). These tests cover what the actions do with that
 // answer; the limiter's own behaviour is in `lib/__tests__/rate-limit.test.ts`.
 vi.mock("server-only", () => ({}));
-vi.mock("@/lib/db/connection", () => ({ db: {} }));
+vi.mock("@/server/db/connection", () => ({ db: {} }));
 vi.mock("@/app/(auth)/auth", () => ({ signIn: vi.fn() }));
 vi.mock("next/headers", () => ({ cookies: vi.fn() }));
 vi.mock("@/lib/flags", () => ({ isSignupEnabled: vi.fn() }));

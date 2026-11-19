@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("server-only", () => ({}));
 vi.mock("@/app/(auth)/auth", () => ({ auth: mocks.auth }));
-vi.mock("@/lib/db/connection", () => ({ db: {} }));
+vi.mock("@/server/db/connection", () => ({ db: {} }));
 vi.mock("@/lib/billing/email-verification", () => ({
   isUserEmailVerified: mocks.isUserEmailVerified,
 }));

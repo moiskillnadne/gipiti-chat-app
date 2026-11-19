@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { memo } from "react";
-import type { Chat } from "@/lib/db/schema";
 import { useTranslations } from "@/lib/i18n/translate";
+import type { Chat } from "@/server/db/schema";
 import { MoreHorizontalIcon, TrashIcon } from "./icons";
 import {
   DropdownMenu,

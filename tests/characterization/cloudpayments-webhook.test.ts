@@ -12,7 +12,7 @@ import {
   getSubscriptionByCode,
   priceForCurrency,
 } from "@/lib/billing/subscriptions";
-import type { PaymentIntent, Subscription } from "@/lib/db/schema";
+import type { PaymentIntent, Subscription } from "@/server/db/schema";
 import { cancelSubscription } from "@/lib/payments/cloudpayments";
 import { getCloudPaymentsConfig } from "@/lib/payments/cloudpayments-config";
 
@@ -49,7 +49,7 @@ const { selectResults, insertValues, updateSet, dbMock } = vi.hoisted(() => {
 vi.mock("@/lib/payments/cloudpayments-config", () => ({
   getCloudPaymentsConfig: vi.fn(),
 }));
-vi.mock("@/lib/db/connection", () => ({ db: dbMock }));
+vi.mock("@/server/db/connection", () => ({ db: dbMock }));
 vi.mock("@/lib/db/query/user/get-by-id", () => ({ getUserById: vi.fn() }));
 vi.mock("@/lib/billing/balance", () => ({
   creditTopupForIntent: vi.fn(),

@@ -1,9 +1,9 @@
 "use client";
 
 import { useProject } from "@/contexts/project-context";
-import type { Project } from "@/lib/db/schema";
 import { useTranslations } from "@/lib/i18n/translate";
 import { PROJECT_TEMPLATES } from "@/lib/styles-projects/templates";
+import type { Project } from "@/server/db/schema";
 
 import {
   EntityGallery,

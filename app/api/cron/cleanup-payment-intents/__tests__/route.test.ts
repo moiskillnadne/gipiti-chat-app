@@ -18,7 +18,7 @@ const { dbState } = vi.hoisted(() => ({
 // Minimal Drizzle stand-in: `update().set().where().returning()` resolves to
 // the rows the UPDATE would return, `delete().where().returning()` to the rows
 // the DELETE would return. Which rows match is covered by the integration test.
-vi.mock("@/lib/db/connection", () => ({
+vi.mock("@/server/db/connection", () => ({
   db: {
     update: () => {
       dbState.updateCalls += 1;

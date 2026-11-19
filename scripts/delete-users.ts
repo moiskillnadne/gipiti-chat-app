@@ -3,7 +3,14 @@ import { config } from "dotenv";
 import { eq, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { chat, document, message, stream, user, vote } from "@/lib/db/schema";
+import {
+  chat,
+  document,
+  message,
+  stream,
+  user,
+  vote,
+} from "@/server/db/schema";
 
 config({
   path: ".env.local",

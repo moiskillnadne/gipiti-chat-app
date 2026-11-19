@@ -1,8 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { auth } from "@/app/(auth)/auth";
-import { db } from "@/lib/db/connection";
 import { saveCancellationFeedback } from "@/lib/db/query/subscription/save-cancellation-feedback";
-import { subscription, userSubscription } from "@/lib/db/schema";
 import {
   cancelSubscription,
   getSubscription,
@@ -11,6 +9,8 @@ import {
   VALID_REASON_CODES,
   validateReasonCodes,
 } from "@/lib/subscription/cancellation-reasons";
+import { db } from "@/server/db/connection";
+import { subscription, userSubscription } from "@/server/db/schema";
 
 type CancellationFeedback = {
   reasons: string[];

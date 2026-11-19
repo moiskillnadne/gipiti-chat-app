@@ -13,8 +13,8 @@ const isBlocked = (relativePath: string, isExistingFile = true): boolean =>
 describe("toProjectRelativePath", () => {
   it("relativizes absolute paths inside the project", () => {
     expect(
-      toProjectRelativePath("/repo/lib/db/schema.ts", PROJECT_DIRECTORY)
-    ).toBe("lib/db/schema.ts");
+      toProjectRelativePath("/repo/server/db/schema.ts", PROJECT_DIRECTORY)
+    ).toBe("server/db/schema.ts");
   });
 
   it("resolves relative paths against the project directory", () => {
@@ -67,23 +67,25 @@ describe("findViolatedRule — keys and certificates", () => {
 
 describe("findViolatedRule — migrations", () => {
   it("blocks editing an existing migration", () => {
-    expect(isBlocked("lib/db/migrations/0043_unique_user_email.sql")).toBe(
+    expect(isBlocked("server/db/migrations/0043_unique_user_email.sql")).toBe(
       true
     );
   });
 
   it("blocks editing an existing snapshot", () => {
-    expect(isBlocked("lib/db/migrations/meta/0043_snapshot.json")).toBe(true);
+    expect(isBlocked("server/db/migrations/meta/0043_snapshot.json")).toBe(
+      true
+    );
   });
 
   it("allows writing a new migration", () => {
-    expect(isBlocked("lib/db/migrations/0044_new_table.sql", false)).toBe(
+    expect(isBlocked("server/db/migrations/0044_new_table.sql", false)).toBe(
       false
     );
   });
 
   it("allows updating the migration journal", () => {
-    expect(isBlocked("lib/db/migrations/meta/_journal.json")).toBe(false);
+    expect(isBlocked("server/db/migrations/meta/_journal.json")).toBe(false);
   });
 
   it("leaves migrations-like folders elsewhere alone", () => {

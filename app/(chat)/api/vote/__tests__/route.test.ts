@@ -2,7 +2,7 @@ import type { Session } from "next-auth";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { auth } from "@/app/(auth)/auth";
-import type { Chat, DBMessage } from "@/lib/db/schema";
+import type { Chat, DBMessage } from "@/server/db/schema";
 
 import { PATCH } from "../route";
 

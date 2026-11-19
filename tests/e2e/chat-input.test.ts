@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 // Import schema types directly (schema doesn't have server-only)
-import { chat, user } from "../../lib/db/schema";
+import { chat, user } from "@/server/db/schema";
 import { TEST_URLS, TEST_USER, TIMEOUTS } from "../fixtures";
 import { LoginPage } from "../pages/auth";
 

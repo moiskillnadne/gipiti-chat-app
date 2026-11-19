@@ -40,7 +40,7 @@ const buildTx = () => ({
   }),
 });
 
-vi.mock("@/lib/db/connection", () => ({
+vi.mock("@/server/db/connection", () => ({
   db: {
     transaction: async (
       run: (tx: ReturnType<typeof buildTx>) => Promise<unknown>

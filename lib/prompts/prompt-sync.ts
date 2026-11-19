@@ -1,6 +1,6 @@
 import { eq, inArray } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { prompt } from "@/lib/db/schema";
+import { prompt } from "@/server/db/schema";
 import type { PromptSeed } from "./prompt-seed";
 
 /** Current catalog state, as read from the `Prompt` table. */

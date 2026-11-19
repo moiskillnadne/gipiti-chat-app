@@ -4,8 +4,8 @@ import { inArray } from "drizzle-orm";
 import { afterAll, afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { listActiveSubscriptionsWithPrices } from "@/lib/billing/subscriptions";
-import { db } from "@/lib/db/connection";
-import { currency, subscription, subscriptionPrice } from "@/lib/db/schema";
+import { db } from "@/server/db/connection";
+import { currency, subscription, subscriptionPrice } from "@/server/db/schema";
 import {
   closeDatabaseConnection,
   seedCurrency,

@@ -1,6 +1,6 @@
 import type { BalanceSummary } from "@/lib/billing/balance";
-import type { User } from "@/lib/db/schema";
 import type { Me } from "@/server/api/v1/_schemas/me";
+import type { User } from "@/server/db/schema";
 
 type MeInput = {
   user: User;

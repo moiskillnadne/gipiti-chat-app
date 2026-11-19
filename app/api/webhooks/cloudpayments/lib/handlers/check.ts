@@ -11,9 +11,9 @@ import {
   priceForCurrency,
 } from "@/lib/billing/subscriptions";
 import { isSubscriptionPurchaseAllowed } from "@/lib/billing/tester-plans";
-import { db } from "@/lib/db/connection";
-import { subscription, user, userSubscription } from "@/lib/db/schema";
 import type { CloudPaymentsCheckWebhook } from "@/lib/payments/cloudpayments-types";
+import { db } from "@/server/db/connection";
+import { subscription, user, userSubscription } from "@/server/db/schema";
 import {
   findTopupIntent,
   parseWebhookData,

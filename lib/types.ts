@@ -1,5 +1,6 @@
 import type { InferUITool, UIMessage } from "ai";
 import { z } from "zod";
+import type { Prompt } from "@/server/db/schema";
 import type { calculator } from "./ai/tools/calculator";
 import type { extractUrl } from "./ai/tools/extract-url";
 import type { generateCsvTool } from "./ai/tools/generate-csv";
@@ -9,7 +10,6 @@ import type { generateMarkdownTool } from "./ai/tools/generate-markdown";
 import type { generatePdfTool } from "./ai/tools/generate-pdf";
 import type { generateTxtTool } from "./ai/tools/generate-txt";
 import type { webSearch } from "./ai/tools/web-search";
-import type { Prompt } from "./db/schema";
 import type { AppUsage } from "./usage";
 
 export type DataPart = { type: "append-message"; message: string };

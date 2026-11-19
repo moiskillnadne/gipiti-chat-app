@@ -8,7 +8,7 @@ import {
   priceForCurrency,
 } from "@/lib/billing/subscriptions";
 import { getUserById } from "@/lib/db/query/user/get-by-id";
-import type { PaymentIntent, Subscription, User } from "@/lib/db/schema";
+import type { PaymentIntent, Subscription, User } from "@/server/db/schema";
 import { isTopupEnabled } from "@/lib/flags";
 import { checkPaymentStatusRateLimit } from "@/lib/rate-limit";
 import {
@@ -54,7 +54,7 @@ vi.mock("@/lib/flags", () => ({ isTopupEnabled: vi.fn() }));
 vi.mock("@/lib/rate-limit", () => ({
   checkPaymentStatusRateLimit: vi.fn(),
 }));
-vi.mock("@/lib/db/connection", () => ({ db: dbMock }));
+vi.mock("@/server/db/connection", () => ({ db: dbMock }));
 vi.mock("@/lib/db/query/user/get-by-id", () => ({ getUserById: vi.fn() }));
 vi.mock("@/lib/billing/balance", () => ({
   ensureBalance: vi.fn(),

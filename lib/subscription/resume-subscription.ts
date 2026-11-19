@@ -5,14 +5,14 @@ import {
   getActiveUserSubscription,
   priceForCurrency,
 } from "@/lib/billing/subscriptions";
-import { db } from "@/lib/db/connection";
 import { getUserById } from "@/lib/db/query/user/get-by-id";
-import { subscription, userSubscription } from "@/lib/db/schema";
 import {
   createSubscription,
   getSubscription,
 } from "@/lib/payments/cloudpayments";
 import type { CloudPaymentsInterval } from "@/lib/payments/cloudpayments-types";
+import { db } from "@/server/db/connection";
+import { subscription, userSubscription } from "@/server/db/schema";
 
 export type ResumeOutcome =
   /** A fresh CloudPayments recurring subscription was created. */

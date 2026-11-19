@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 // Import schema types directly
-import { user } from "../lib/db/schema";
+import { user } from "@/server/db/schema";
 import { TEST_USER } from "./fixtures";
 
 /**

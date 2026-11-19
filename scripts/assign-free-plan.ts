@@ -2,7 +2,12 @@ import { config } from "dotenv";
 import { and, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { balance, transaction, user, userSubscription } from "@/lib/db/schema";
+import {
+  balance,
+  transaction,
+  user,
+  userSubscription,
+} from "@/server/db/schema";
 
 config({ path: ".env.local" });
 

@@ -1,11 +1,11 @@
 import { and, desc, eq, ne } from "drizzle-orm";
-import { type DatabaseExecutor, db } from "@/lib/db/connection";
+import { type DatabaseExecutor, db } from "@/server/db/connection";
 import {
   balance,
   type PaymentIntent,
   paymentIntent,
   transaction,
-} from "@/lib/db/schema";
+} from "@/server/db/schema";
 import {
   DEFAULT_CURRENCY_CODE,
   EMAIL_CONFIRM_BONUS_MAJOR_UNITS,

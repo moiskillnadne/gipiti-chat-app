@@ -1,12 +1,12 @@
 import { and, asc, eq } from "drizzle-orm";
-import { db } from "@/lib/db/connection";
+import { db } from "@/server/db/connection";
 import {
   type Subscription,
   subscription,
   subscriptionPrice,
   type UserSubscription,
   userSubscription,
-} from "@/lib/db/schema";
+} from "@/server/db/schema";
 
 /**
  * Look up a subscription catalog entry by its stable code (e.g. "basic_monthly").

@@ -13,8 +13,8 @@ import {
 } from "react";
 import useSWR from "swr";
 import { saveProjectAsCookie } from "@/app/(chat)/actions";
-import type { Project } from "@/lib/db/schema";
 import { fetcher } from "@/lib/utils";
+import type { Project } from "@/server/db/schema";
 
 type ProjectContextValue = {
   currentProjectId: string | null;

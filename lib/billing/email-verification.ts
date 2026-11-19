@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 
-import { db } from "@/lib/db/connection";
-import { user } from "@/lib/db/schema";
+import { db } from "@/server/db/connection";
+import { user } from "@/server/db/schema";
 
 /**
  * Thrown when a grant that requires a confirmed email is requested for a user

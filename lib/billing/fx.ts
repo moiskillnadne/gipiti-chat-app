@@ -1,6 +1,6 @@
 import { desc, eq } from "drizzle-orm";
-import { type DatabaseExecutor, db } from "@/lib/db/connection";
-import { currency, fxRate } from "@/lib/db/schema";
+import { type DatabaseExecutor, db } from "@/server/db/connection";
+import { currency, fxRate } from "@/server/db/schema";
 import { getMinorUnits } from "./currencies";
 
 // Free, no-key USD-based rates API covering all our quote currencies.

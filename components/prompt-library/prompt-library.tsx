@@ -6,7 +6,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 import { useModel } from "@/contexts/model-context";
-import type { Prompt } from "@/lib/db/schema";
 import { useTranslations } from "@/lib/i18n/translate";
 import {
   getPromptModelMeta,
@@ -14,6 +13,7 @@ import {
 } from "@/lib/prompts/prompt-meta";
 import type { PromptsResponse } from "@/lib/types";
 import { fetcher } from "@/lib/utils";
+import type { Prompt } from "@/server/db/schema";
 import { PromptCard } from "./prompt-card";
 import { PromptDetailModal } from "./prompt-detail-modal";
 import { type PromptFilter, PromptFilterTabs } from "./prompt-filter-tabs";

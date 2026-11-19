@@ -1,6 +1,6 @@
+import { db } from "@/server/db/connection";
+import { stream } from "@/server/db/schema";
 import { ChatSDKError } from "../../../errors";
-import { db } from "../../connection";
-import { stream } from "../../schema";
 
 export async function createStreamId({
   streamId,
