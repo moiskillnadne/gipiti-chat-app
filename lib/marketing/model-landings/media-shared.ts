@@ -23,12 +23,16 @@ const pickStep = (modelName: string): LandingStep => ({
   text: "Переключитесь на модель в списке — в один клик, как и на любую из 30+.",
 });
 
+const DEFAULT_IMAGE_RESULT_HINT =
+  "Изображение появится прямо в чате — скачайте его или попросите правку.";
+
 const DEFAULT_IMAGE_PROMPT_HINT =
   "Обычными словами: что в кадре, в каком стиле и с каким настроением.";
 
 export const buildImageSteps = (
   modelName: string,
-  promptHint: string = DEFAULT_IMAGE_PROMPT_HINT
+  promptHint: string = DEFAULT_IMAGE_PROMPT_HINT,
+  resultHint: string = DEFAULT_IMAGE_RESULT_HINT
 ): LandingStep[] => [
   SIGNUP_STEP,
   pickStep(modelName),
@@ -38,7 +42,7 @@ export const buildImageSteps = (
   },
   {
     title: "Заберите результат",
-    text: "Изображение появится прямо в чате — скачайте его или попросите правку.",
+    text: resultHint,
   },
 ];
 

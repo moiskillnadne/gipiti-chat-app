@@ -1,5 +1,7 @@
 /**
- * Landings for the ByteDance video models: Seedance 2.5, 2.0 and 2.0 Fast.
+ * Landings for the ByteDance video models: Seedance 2.5 Flash, 2.5, 2.0 and
+ * 2.0 Fast. Seedance 2.5 Flash renders 720p clips with sound, 5 or 10 s, from
+ * text or one image — no 1080p, no 30 s, no reference or editing modes.
  *
  * Registry facts the copy follows: 5- or 10-second clips, six aspect ratios
  * and an optional image input (text-to-video or image-to-video).
@@ -12,12 +14,15 @@ import {
   sharedMediaFaq,
 } from "./media-shared";
 import {
+  GROK_IMAGINE_VIDEO_LITE_SLUG,
   KLING_25_TURBO_SLUG,
   KLING_30_SLUG,
+  SEEDANCE_25_FLASH_SLUG,
   SEEDANCE_25_SLUG,
   SEEDANCE_FAST_SLUG,
   SEEDANCE_SLUG,
   SEEDREAM_45_SLUG,
+  SEEDREAM_55_SLUG,
   VEO_SLUG,
   vpnBenefit,
 } from "./shared";
@@ -36,6 +41,108 @@ const aspectBenefit: LandingBenefit = {
 };
 
 export const bytedanceVideoLandings: ModelLanding[] = [
+  {
+    kind: "video",
+    slug: SEEDANCE_25_FLASH_SLUG,
+    modelId: "seedance-2.5-flash",
+    name: "Seedance 2.5 Flash",
+    vendor: "ByteDance",
+    accent: "sky",
+    badge: "ByteDance · Дешевле Seedance 2.5 · Видео",
+    h1Top: "Seedance 2.5 Flash —",
+    h1Gradient: "видео со звуком дешевле Seedance 2.5",
+    sub: "Облегчённая версия Seedance 2.5 уже в GIPITI — ролики 720p со звуком по описанию или из вашей картинки, на 5 или 10 секунд. Дешевле старшей модели, поэтому удобно пробовать сцены. Без VPN, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    ctaMain: "Попробовать Seedance 2.5 Flash",
+    metaTitle: "Seedance 2.5 Flash — видео со звуком от ByteDance | GIPITI",
+    metaDescription:
+      "Seedance 2.5 Flash в GIPITI — более доступная версия Seedance 2.5: ролики 720p со звуком на 5 или 10 секунд по тексту или картинке. Без VPN, оплата картами РФ.",
+    heroMedia: {
+      userMessage:
+        "Ролик: рыбацкая лодка выходит из тумана на спокойное озеро, плеск воды, рассветный свет, 16:9",
+      aiIntro: "Готово — **плеск воды** и рассветный свет уже в ролике:",
+      aspect: "16:9",
+      resultCaption: "Лодка выходит из тумана · рассвет, плеск воды",
+      resultMeta: "5 секунд · 720p · 16:9 · со звуком",
+    },
+    benefits: [
+      {
+        icon: "wallet",
+        title: "Дешевле Seedance 2.5",
+        text: "Flash — облегчённый вариант новой видеомодели ByteDance: по прайсу он стоит меньше, поэтому сцену можно сначала прогнать на нём.",
+      },
+      {
+        icon: "volume",
+        title: "Звук сразу в ролике",
+        text: "Модель создаёт звуковую дорожку вместе с картинкой: звуки сцены и атмосферу — озвучивать ролик отдельно не нужно.",
+      },
+      {
+        icon: "ratio",
+        title: "Шесть форматов, 5 или 10 секунд",
+        text: "От вертикального 9:16 до широкого 21:9; длительность и формат выбираете перед запуском. Качество — 720p.",
+      },
+      vpnBenefit,
+    ],
+    steps: buildVideoSteps(
+      "Seedance 2.5 Flash",
+      "Опишите, что происходит в кадре и что слышно, — или прикрепите одну картинку, которую нужно оживить."
+    ),
+    audience: [
+      {
+        title: "Реклама и товары",
+        text: "Короткие предметные ролики для карточки или рекламы: движение камеры и звук без съёмки.",
+        userMessage:
+          "Чашка чая на подоконнике, поднимается пар, за окном моросит дождь, камера медленно приближается",
+        aiReply: "**Ролик** · пар над чашкой, дождь за окном",
+      },
+      {
+        title: "Соцсети и Reels",
+        text: "Вертикальные клипы под ленту — проверьте идею за пару запросов.",
+        userMessage:
+          "Кондитер посыпает пудрой свежий круассан, замедленная съёмка, вертикальный кадр 9:16",
+        aiReply: "**Вертикальный ролик** · пудра на круассане, 9:16",
+      },
+      {
+        title: "Оживление иллюстраций",
+        text: "Превратите одну картинку в короткую сцену: движение, атмосфера и звук.",
+        userMessage:
+          "Оживи эту иллюстрацию: лисёнок крадётся по осеннему лесу, шуршат листья 📎 fox.png",
+        aiReply: "**Кадр ожил** · лисёнок в осеннем лесу",
+      },
+    ],
+    faq: [
+      {
+        question: "Что такое Seedance 2.5 Flash?",
+        answer:
+          "Seedance 2.5 Flash — более доступный по цене вариант видеомодели Seedance 2.5 от ByteDance: создаёт ролики со звуком по тексту или из одной картинки. В GIPITI она работает без VPN и с оплатой российскими картами.",
+      },
+      {
+        question: "Чем Flash отличается от Seedance 2.5?",
+        answer:
+          "Flash дешевле, и это главное отличие. Сцену удобно сначала проверить на ней, а понравившуюся идею повторить на Seedance 2.5 и сравнить результат. Обе модели есть в GIPITI.",
+      },
+      {
+        question: "Какой длины ролики и в каком качестве?",
+        answer:
+          "Ролик длится 5 или 10 секунд, качество — 720p, звук включён. Формат кадра — один из шести, от 9:16 до 21:9. Генерация занимает порядка минуты-двух, готовый ролик появится в чате.",
+      },
+      {
+        question: "Можно ли оживить свою картинку?",
+        answer:
+          "Да, прикрепите одно изображение и опишите, что должно происходить. Без вложения модель сделает ролик по одному тексту.",
+      },
+      ...sharedMediaFaq,
+    ],
+    otherModels: buildChips([
+      { name: "Seedance 2.5", tag: "Видео", slug: SEEDANCE_25_SLUG },
+      {
+        name: "Grok Imagine Video Lite",
+        tag: "Видео",
+        slug: GROK_IMAGINE_VIDEO_LITE_SLUG,
+      },
+      { name: "Veo 3.1", tag: "Видео", slug: VEO_SLUG },
+      { name: "Seedream 5.5", tag: "Изображения", slug: SEEDREAM_55_SLUG },
+    ]),
+  },
   {
     kind: "video",
     slug: SEEDANCE_25_SLUG,
@@ -109,6 +216,11 @@ export const bytedanceVideoLandings: ModelLanding[] = [
       ...sharedMediaFaq,
     ],
     otherModels: buildChips([
+      {
+        name: "Seedance 2.5 Flash",
+        tag: "Видео",
+        slug: SEEDANCE_25_FLASH_SLUG,
+      },
       { name: "Seedance 2.0", tag: "Видео", slug: SEEDANCE_SLUG },
       { name: "Veo 3.1", tag: "Видео", slug: VEO_SLUG },
       { name: "Kling 3.0", tag: "Видео", slug: KLING_30_SLUG },

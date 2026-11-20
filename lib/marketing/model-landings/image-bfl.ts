@@ -1,7 +1,9 @@
 /**
- * Landings for the Black Forest Labs image models — Flux 3 Image and Flux 2 Max.
+ * Landings for the Black Forest Labs image models — Flux 3 Image Klein, Flux 3
+ * Image and Flux 2 Max. Klein has a three-option aspect picker (1:1 default,
+ * 16:9, 9:16) and no multi-reference input, bounding boxes or 4K.
  *
- * Note: neither model takes generation settings — their API accepts only
+ * Note: Flux 3 Image and Flux 2 Max take no generation settings — their API accepts only
  * width/height and the gateway silently ignores aspect ratio, so the copy
  * never promises format control and the FAQ says so outright. Flux 3 Image
  * does follow shape words in the prompt (a "wide 16:9" prompt came back
@@ -16,17 +18,150 @@ import {
   sharedMediaFaq,
 } from "./media-shared";
 import {
+  FLUX_3_IMAGE_KLEIN_SLUG,
   FLUX_3_IMAGE_SLUG,
   FLUX_SLUG,
   FLUX_VIDEO_SLUG,
   GPT_IMAGE_25_SUNBURST_SLUG,
+  MAI_IMAGE_27_FLASH_SLUG,
   NANO_BANANA_PRO_SLUG,
+  RECRAFT_FLASH_SLUG,
   RECRAFT_SLUG,
   vpnBenefit,
 } from "./shared";
 import type { ModelLanding } from "./types";
 
 export const bflImageLandings: ModelLanding[] = [
+  {
+    kind: "image",
+    slug: FLUX_3_IMAGE_KLEIN_SLUG,
+    modelId: "flux-3-image-klein",
+    name: "Flux 3 Image Klein",
+    vendor: "Black Forest Labs",
+    accent: "teal",
+    badge: "Black Forest Labs · Быстрая и недорогая · Изображения",
+    h1Top: "Flux 3 Image Klein —",
+    h1Gradient: "компактная быстрая модель BFL",
+    sub: "Лёгкая версия Flux 3 от Black Forest Labs уже в GIPITI — рисует по описанию на русском и правит загруженные изображения, быстро и недорого. Квадрат, 16:9 или 9:16. Без VPN, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    ctaMain: "Попробовать Flux 3 Image Klein",
+    metaTitle: "Flux 3 Image Klein — быстрая нейросеть BFL | GIPITI",
+    metaDescription:
+      "Flux 3 Image Klein в GIPITI — компактная и недорогая модель Black Forest Labs для генерации и правки изображений, три формата кадра. Промпт на русском, без VPN.",
+    heroMedia: {
+      userMessage:
+        "Деревянный причал на туманном горном озере на рассвете, розовое небо, отражение в воде, формат 16:9",
+      aiIntro: "Готово. Могу сменить время суток или добавить лодку:",
+      aspect: "16:9",
+      resultCaption: "Причал на горном озере · рассветный туман",
+      resultMeta: "Фотореализм · формат 16:9",
+      sample: {
+        src: "/images/model-landings/flux-3-image-klein/misty-jetty.webp",
+        alt: "Деревянный причал уходит в туманное горное озеро на рассвете, розовое небо отражается в воде — изображение, созданное Flux 3 Image Klein в GIPITI",
+        width: 1280,
+        height: 723,
+      },
+    },
+    benefits: [
+      {
+        icon: "zap",
+        title: "Лёгкая модель — быстрый отклик",
+        text: "Klein — компактная версия Flux 3 Image с открытыми весами: картинка появляется быстро, поэтому удобно пробовать формулировки одну за другой.",
+      },
+      {
+        icon: "wallet",
+        title: "Недорогие пробы",
+        text: "Klein входит в число недорогих моделей изображений в GIPITI, поэтому идею можно проверить за несколько запросов, а удачный кадр потом повторить в Flux 3 Image.",
+      },
+      {
+        icon: "ratio",
+        title: "Квадрат, 16:9 и 9:16",
+        text: "Три формата кадра на выбор: квадрат по умолчанию, широкий и вертикальный. Формат работает и при правках картинок.",
+      },
+      vpnBenefit,
+    ],
+    steps: buildImageSteps(
+      "Flux 3 Image Klein",
+      "Опишите сцену и выберите формат — или прикрепите изображение и скажите, что в нём изменить."
+    ),
+    audience: [
+      {
+        title: "Кафе и фуд-блоги",
+        text: "Крупные планы блюд для меню, постов и тестов обложек — по десятку вариантов за раз.",
+        userMessage:
+          "Крупный план миски рамена: пар, мягкое яйцо, нори и зелёный лук, деревянный стол, тёплый свет, квадратный кадр",
+        aiReply: "**Фото блюда** · рамен с яйцом и нори",
+        sample: {
+          src: "/images/model-landings/flux-3-image-klein/ramen.webp",
+          alt: "Миска рамена с паром, половинкой яйца, листами нори и зелёным луком на деревянном столе рядом с палочками",
+          width: 900,
+          height: 900,
+        },
+      },
+      {
+        title: "Книжные магазины и интерьеры",
+        text: "Широкие кадры помещений для сайта и афиш: настроение и свет без выезда на съёмку.",
+        userMessage:
+          "Старый книжный магазин: высокие деревянные стеллажи, библиотечная лестница, тёплые лампы, кресло, формат 16:9",
+        aiReply: "**Интерьер** · книжный магазин, тёплый свет",
+        sample: {
+          src: "/images/model-landings/flux-3-image-klein/bookstore.webp",
+          alt: "Интерьер старого книжного магазина с высокими деревянными стеллажами, передвижной лестницей, латунными лампами и зелёным креслом",
+          width: 900,
+          height: 508,
+        },
+      },
+      {
+        title: "Постеры и сторис",
+        text: "Вертикальные иллюстрации под афишу или историю: один запрос, свой стиль.",
+        userMessage:
+          "Плоская постерная иллюстрация: ретро-паровоз на каменном виадуке среди заснеженных гор на рассвете, формат 9:16",
+        aiReply: "**Постер 9:16** · паровоз на виадуке в горах",
+        sample: {
+          src: "/images/model-landings/flux-3-image-klein/mountain-train.webp",
+          alt: "Иллюстрация в стиле ретро-постера: красный паровоз с вагонами едет по каменному виадуку среди заснеженных гор на фоне рассветного солнца",
+          width: 506,
+          height: 896,
+        },
+      },
+    ],
+    faq: [
+      {
+        question: "Что такое Flux 3 Image Klein?",
+        answer:
+          "Flux 3 Image Klein — компактная и быстрая модель Black Forest Labs с открытыми весами: создаёт изображения по тексту и правит загруженные. В GIPITI она доступна без VPN, с промптом на русском и оплатой российскими картами.",
+      },
+      {
+        question: "Чем Klein отличается от Flux 3 Image?",
+        answer:
+          "Klein — облегчённая версия: быстрая и недорогая, а Flux 3 Image — флагман семейства. Для проб и серий вариантов удобнее Klein, для финального кадра стоит сравнить результат с Flux 3 Image. Обе модели есть в GIPITI.",
+      },
+      {
+        question: "Какие форматы кадра можно выбрать?",
+        answer:
+          "Три: квадрат 1:1 (по умолчанию), 16:9 и 9:16. Выбранный формат действует и на правки загруженных изображений.",
+      },
+      {
+        question: "Можно ли загрузить несколько референсов или выбрать 4K?",
+        answer:
+          "Нет. В GIPITI в Klein прикрепляется одно изображение для правки, а размер кадра определяется выбранным форматом, без настройки 4K и без раскладки объектов по рамкам.",
+      },
+      ...sharedMediaFaq,
+    ],
+    otherModels: buildChips([
+      { name: "Flux 3 Image", tag: "Изображения", slug: FLUX_3_IMAGE_SLUG },
+      {
+        name: "MAI-Image 2.7 Flash",
+        tag: "Изображения",
+        slug: MAI_IMAGE_27_FLASH_SLUG,
+      },
+      {
+        name: "Recraft V4.1 Flash",
+        tag: "Изображения",
+        slug: RECRAFT_FLASH_SLUG,
+      },
+      { name: "Flux 2 Max", tag: "Изображения", slug: FLUX_SLUG },
+    ]),
+  },
   {
     kind: "image",
     slug: FLUX_3_IMAGE_SLUG,
@@ -138,6 +273,11 @@ export const bflImageLandings: ModelLanding[] = [
       ...sharedMediaFaq,
     ],
     otherModels: buildChips([
+      {
+        name: "Flux 3 Image Klein",
+        tag: "Изображения",
+        slug: FLUX_3_IMAGE_KLEIN_SLUG,
+      },
       { name: "Flux 2 Max", tag: "Изображения", slug: FLUX_SLUG },
       { name: "Flux 3 Video", tag: "Видео", slug: FLUX_VIDEO_SLUG },
       {
