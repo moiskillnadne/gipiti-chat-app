@@ -1,8 +1,8 @@
 /**
- * Landings for the OpenAI image models: GPT Image 2.5 Flare, GPT Image 2.5
- * Sunburst and GPT Image 2.
+ * Landings for the OpenAI image models: GPT Image 2.6 Flare and Sunburst,
+ * GPT Image 2.5 Flare and Sunburst, and GPT Image 2.
  *
- * Format claims follow the registry: all three expose the same three fixed
+ * Format claims follow the registry: all five expose the same three fixed
  * sizes (square, landscape, portrait) and four quality levels — not the ten
  * aspect ratios the Google models offer. Every render on the Sunburst landing
  * is an edit result: the prompt in the caption is the edit instruction, and
@@ -14,11 +14,15 @@ import {
   FLUX_SLUG,
   GPT_IMAGE_25_FLARE_SLUG,
   GPT_IMAGE_25_SUNBURST_SLUG,
+  GPT_IMAGE_26_FLARE_SLUG,
+  GPT_IMAGE_26_SUNBURST_SLUG,
   GPT_IMAGE_SLUG,
   GPT6_SOL_SLUG,
+  MAI_IMAGE_27_SLUG,
   NANO_BANANA_PRO_SLUG,
   NANO_BANANA_SLUG,
   SEEDREAM_45_SLUG,
+  SEEDREAM_55_SLUG,
   vpnBenefit,
 } from "./shared";
 import type { LandingBenefit, LandingFaqItem, ModelLanding } from "./types";
@@ -48,6 +52,275 @@ const flareVsSunburstFaq: LandingFaqItem = {
 };
 
 export const openaiImageLandings: ModelLanding[] = [
+  {
+    kind: "image",
+    slug: GPT_IMAGE_26_FLARE_SLUG,
+    modelId: "gpt-image-2.6-flare",
+    name: "GPT Image 2.6 Flare",
+    vendor: "OpenAI",
+    accent: "warm",
+    badge: "OpenAI · Интерактивная генерация · Изображения",
+    h1Top: "GPT Image 2.6 Flare —",
+    h1Gradient: "нейросеть OpenAI для быстрых итераций",
+    sub: "Модель OpenAI для интерактивной работы с картинками уже в GIPITI — рисуйте по описанию, смотрите результат, уточняйте и пробуйте снова без долгих пауз. Умеет и правки загруженных изображений. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    ctaMain: "Попробовать GPT Image 2.6 Flare",
+    metaTitle: "GPT Image 2.6 Flare — нейросеть OpenAI для картинок | GIPITI",
+    metaDescription:
+      "GPT Image 2.6 Flare в GIPITI — модель OpenAI для интерактивной генерации изображений: описали, посмотрели, уточнили. Промпт на русском, без VPN, оплата картами РФ.",
+    heroMedia: {
+      userMessage:
+        "Утренний прилавок фермерского рынка: ящики с апельсинами, лимонами и грейпфрутами, солнце сквозь навес, людей нет, альбомный формат",
+      aiIntro:
+        "Готово. Могу сменить время суток или добавить на прилавок зелень:",
+      aspect: "3:2",
+      resultCaption: "Рынок утром · апельсины, лимоны, грейпфруты",
+      resultMeta: "Качество high · альбомный формат",
+      sample: {
+        src: "/images/model-landings/gpt-image-2-6-flare/fruit-market.webp",
+        alt: "Деревянные ящики с апельсинами, лимонами и грейпфрутами на прилавке рынка под навесом в утреннем солнце — изображение, созданное GPT Image 2.6 Flare в GIPITI",
+        width: 1280,
+        height: 853,
+      },
+    },
+    benefits: [
+      {
+        icon: "zap",
+        title: "Создана для диалога с картинкой",
+        text: "Flare рассчитана на интерактивную работу: описали сцену, посмотрели результат, поправили формулировку и сразу запросили новый вариант.",
+      },
+      {
+        icon: "image",
+        title: "От набросков до готовых кадров",
+        text: "Четыре уровня качества: быстрый черновик, чтобы проверить идею, и высокое качество, когда картинка уходит в публикацию.",
+      },
+      {
+        icon: "ratio",
+        title: "Квадрат, альбомная и портретная",
+        text: "Ориентацию кадра выбираете перед генерацией — под пост, карточку, сторис или обложку статьи.",
+      },
+      vpnBenefit,
+    ],
+    steps: buildImageSteps(
+      "GPT Image 2.6 Flare",
+      "Напишите, что должно быть в кадре, и при необходимости укажите ориентацию и качество."
+    ),
+    audience: [
+      {
+        title: "Кафе и доставка еды",
+        text: "Аппетитные кадры для меню, сторис и акций — без фотосессии на каждое блюдо.",
+        userMessage:
+          "Квадратное фото для поста: стопка пышных панкейков с черникой и кленовым сиропом, вид сверху, розовый фон",
+        aiReply: "**Фото блюда** · панкейки с черникой на розовом",
+        sample: {
+          src: "/images/model-landings/gpt-image-2-6-flare/pancakes.webp",
+          alt: "Вид сверху на стопку панкейков с черникой и кленовым сиропом на тарелке на розовом фоне",
+          width: 900,
+          height: 900,
+        },
+      },
+      {
+        title: "Авторы рассылок и блогов",
+        text: "Вертикальные иллюстрации к материалам: по одному описанию, в нужной манере.",
+        userMessage:
+          "Уютная пастельная иллюстрация: рыжий кот спит на подоконнике среди растений, за окном дождь, вертикально",
+        aiReply: "**Иллюстрация** · кот на подоконнике, дождь за окном",
+        sample: {
+          src: "/images/model-landings/gpt-image-2-6-flare/cat-window.webp",
+          alt: "Пастельная иллюстрация: рыжий кот спит на подоконнике рядом с комнатными растениями, за окном идёт дождь",
+          width: 600,
+          height: 900,
+        },
+      },
+      {
+        title: "Мастера и небольшие бренды",
+        text: "Карточки товаров ручной работы в едином стиле — мягкий свет, чистый фон, нужная ориентация.",
+        userMessage:
+          "Янтарная стеклянная банка со свечой и сухая лаванда на льняной ткани, мягкий свет из окна, без надписей",
+        aiReply: "**Карточка товара** · свеча и лаванда на льне",
+        sample: {
+          src: "/images/model-landings/gpt-image-2-6-flare/candle-lavender.webp",
+          alt: "Горящая свеча в янтарной стеклянной банке рядом с пучком сухой лаванды на бежевой льняной ткани",
+          width: 900,
+          height: 900,
+        },
+      },
+    ],
+    faq: [
+      {
+        question: "Что такое GPT Image 2.6 Flare?",
+        answer:
+          "GPT Image 2.6 Flare — модель OpenAI для генерации и правки изображений по тексту и картинкам, рассчитанная на интерактивные сценарии. В GIPITI она работает без VPN, с интерфейсом на русском и оплатой российскими картами.",
+      },
+      {
+        question: "Чем GPT Image 2.6 Flare отличается от Sunburst?",
+        answer:
+          "Обе модели — одно поколение OpenAI и обе умеют и рисовать с нуля, и править загруженные картинки. Flare выбирайте для быстрого перебора идей и повседневных визуалов, Sunburst — когда нужна аккуратная правка готового изображения с сохранением остального кадра.",
+      },
+      {
+        question: "Можно ли выбрать формат и качество?",
+        answer:
+          "Да, перед генерацией. Формат — квадрат, альбомная или портретная ориентация. Качество — один из четырёх уровней: низкий подходит для черновиков, высокий — для финального кадра.",
+      },
+      {
+        question: "Можно ли сделать картинку с прозрачным фоном?",
+        answer:
+          "Нет, прозрачный фон в GIPITI для этой модели недоступен: изображение приходит с обычным фоном. Если нужен вырезанный объект, придётся убрать фон в графическом редакторе.",
+      },
+      ...sharedMediaFaq,
+    ],
+    otherModels: buildChips([
+      {
+        name: "GPT Image 2.6 Sunburst",
+        tag: "Изображения",
+        slug: GPT_IMAGE_26_SUNBURST_SLUG,
+      },
+      {
+        name: "GPT Image 2.5 Flare",
+        tag: "Изображения",
+        slug: GPT_IMAGE_25_FLARE_SLUG,
+      },
+      { name: "Nano Banana", tag: "Изображения", slug: NANO_BANANA_SLUG },
+      {
+        name: "Seedream 5.5",
+        tag: "Изображения",
+        slug: SEEDREAM_55_SLUG,
+      },
+    ]),
+  },
+  {
+    kind: "image",
+    slug: GPT_IMAGE_26_SUNBURST_SLUG,
+    modelId: "gpt-image-2.6-sunburst",
+    name: "GPT Image 2.6 Sunburst",
+    vendor: "OpenAI",
+    accent: "violet",
+    badge: "OpenAI · Точные правки · Изображения",
+    h1Top: "GPT Image 2.6 Sunburst —",
+    h1Gradient: "нейросеть OpenAI для точных правок",
+    sub: "Модель OpenAI для создания и редактирования изображений уже в GIPITI — прикрепите фото, опишите изменение словами и получите новую версию, в которой остальное осталось на месте. С нуля тоже рисует. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    ctaMain: "Попробовать GPT Image 2.6 Sunburst",
+    metaTitle: "GPT Image 2.6 Sunburst — правка изображений от OpenAI | GIPITI",
+    metaDescription:
+      "GPT Image 2.6 Sunburst в GIPITI — модель OpenAI для точного редактирования и генерации изображений по описанию на русском. Без VPN, оплата российскими картами.",
+    heroMedia: {
+      userMessage:
+        "Перекрась стену в мягкий шалфейно-зелёный, а чайник, чашки, стол и свет оставь как на фото 📎 kitchen.jpg",
+      aiIntro: "Готово — **стена перекрашена**, всё остальное на месте:",
+      aspect: "3:2",
+      resultCaption: "Кухня с чайником · стена шалфейно-зелёная",
+      resultMeta: "Редактирование · качество high · альбомный формат",
+      sample: {
+        src: "/images/model-landings/gpt-image-2-6-sunburst/sage-kitchen.webp",
+        alt: "Залитый утренним светом уголок кухни: белый чайник и две чашки на деревянном столе, стена окрашена в шалфейно-зелёный — результат правки в GPT Image 2.6 Sunburst в GIPITI",
+        width: 1280,
+        height: 853,
+      },
+    },
+    benefits: [
+      {
+        icon: "wand",
+        title: "Правка по описанию, без масок",
+        text: "Напишите, что поменять: цвет стены, фон, время года или сервировку. Выделять область вручную не нужно — модель сама находит, что менять.",
+      },
+      {
+        icon: "image",
+        title: "И создание с нуля",
+        text: "Нужна новая картинка, а не правка? Опишите сцену — Sunburst нарисует её с нуля.",
+      },
+      {
+        icon: "ratio",
+        title: "Три ориентации и четыре уровня качества",
+        text: "Квадрат, альбомный или портретный кадр, а качество — от чернового до высокого. Выбираете перед запуском.",
+      },
+      vpnBenefit,
+    ],
+    steps: buildImageSteps(
+      "GPT Image 2.6 Sunburst",
+      "Прикрепите изображение и опишите, что изменить, — или сразу опишите картинку с нуля."
+    ),
+    audience: [
+      {
+        title: "Мебель и декор",
+        text: "Покажите один и тот же предмет в разных обстановках, не устраивая новую съёмку.",
+        userMessage:
+          "Поставь этот стул на солнечный газон в саду рядом с кустами гортензии, сам стул не меняй 📎 chair.jpg",
+        aiReply: "**Готово** · стул в саду у гортензий",
+        sample: {
+          src: "/images/model-landings/gpt-image-2-6-sunburst/chair-garden.webp",
+          alt: "Деревянный стул с плетёным сиденьем на солнечном газоне в саду рядом с цветущими кустами гортензии",
+          width: 900,
+          height: 900,
+        },
+      },
+      {
+        title: "Туризм и недвижимость",
+        text: "Сезонные версии одного кадра: тот же дом летом и зимой, без ожидания снегопада.",
+        userMessage:
+          "Покажи этот домик зимой: снег на крыше и на лугу, лёгкий снегопад, холодный вечерний свет, горы оставь на месте 📎 cabin.jpg",
+        aiReply: "**Зимняя версия** · снег и вечерний свет",
+        sample: {
+          src: "/images/model-landings/gpt-image-2-6-sunburst/cabin-winter.webp",
+          alt: "Деревянный домик в горах зимой: снег на крыше и на лугу, заснеженные ели, вечернее небо",
+          width: 900,
+          height: 900,
+        },
+      },
+      {
+        title: "Рестораны и фуд-блоги",
+        text: "Новая подача того же блюда: другая посуда и декор без повторной готовки и съёмки.",
+        userMessage:
+          "Подай эту пасту на тёмной матовой тарелке и добавь листья свежего базилика 📎 pasta.jpg",
+        aiReply: "**Новая подача** · тёмная тарелка и базилик",
+        sample: {
+          src: "/images/model-landings/gpt-image-2-6-sunburst/pasta-plate.webp",
+          alt: "Вид сверху на спагетти с томатным соусом и листьями базилика на тёмной матовой тарелке на деревянном столе",
+          width: 900,
+          height: 600,
+        },
+      },
+    ],
+    faq: [
+      {
+        question: "Что такое GPT Image 2.6 Sunburst?",
+        answer:
+          "GPT Image 2.6 Sunburst — модель OpenAI, которая создаёт и редактирует изображения по тексту и загруженным картинкам. В GIPITI она доступна без VPN, с интерфейсом на русском и оплатой российскими картами.",
+      },
+      {
+        question: "Чем Sunburst 2.6 отличается от Flare 2.6?",
+        answer:
+          "Обе модели одного поколения и обе умеют и править, и рисовать с нуля. Sunburst берите для точных правок, где остальной кадр должен остаться прежним. Flare лучше подходит для быстрого перебора идей и повседневных визуалов.",
+      },
+      {
+        question: "Как отредактировать своё изображение?",
+        answer:
+          "Прикрепите файл к сообщению и напишите, что изменить: например, «поменяй фон» или «убери предмет справа». Новая версия появится в чате, а исходник останется в истории диалога.",
+      },
+      {
+        question: "Есть ли прозрачный фон?",
+        answer:
+          "Нет. Результат приходит с обычным фоном, прозрачный PNG модель в GIPITI не отдаёт.",
+      },
+      ...sharedMediaFaq,
+    ],
+    otherModels: buildChips([
+      {
+        name: "GPT Image 2.6 Flare",
+        tag: "Изображения",
+        slug: GPT_IMAGE_26_FLARE_SLUG,
+      },
+      {
+        name: "GPT Image 2.5 Sunburst",
+        tag: "Изображения",
+        slug: GPT_IMAGE_25_SUNBURST_SLUG,
+      },
+      {
+        name: "Nano Banana Pro",
+        tag: "Изображения",
+        slug: NANO_BANANA_PRO_SLUG,
+      },
+      { name: "MAI-Image 2.7", tag: "Изображения", slug: MAI_IMAGE_27_SLUG },
+    ]),
+  },
   {
     kind: "image",
     slug: GPT_IMAGE_25_FLARE_SLUG,
@@ -151,6 +424,11 @@ export const openaiImageLandings: ModelLanding[] = [
     ],
     otherModels: buildChips([
       {
+        name: "GPT Image 2.6 Flare",
+        tag: "Изображения",
+        slug: GPT_IMAGE_26_FLARE_SLUG,
+      },
+      {
         name: "GPT Image 2.5 Sunburst",
         tag: "Изображения",
         slug: GPT_IMAGE_25_SUNBURST_SLUG,
@@ -170,7 +448,7 @@ export const openaiImageLandings: ModelLanding[] = [
     badge: "OpenAI · Точное редактирование · Изображения",
     h1Top: "GPT Image 2.5 Sunburst\u00A0—",
     h1Gradient: "нейросеть OpenAI для правок изображений",
-    sub: "Новая модель OpenAI с упором на редактирование уже в GIPITI — прикрепите фото, опишите правку словами и получите результат без потери остальной сцены. Генерирует с нуля тоже. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: "Новая модель OpenAI с упором на редактирование уже в GIPITI — прикрепите фото, опишите правку словами и получите правку по описанию с сохранением остальной сцены. Генерирует с нуля тоже. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
     ctaMain: "Попробовать Sunburst",
     metaTitle:
       "GPT Image 2.5 Sunburst — точное редактирование изображений от OpenAI | GIPITI",
@@ -265,6 +543,11 @@ export const openaiImageLandings: ModelLanding[] = [
       ...sharedMediaFaq,
     ],
     otherModels: buildChips([
+      {
+        name: "GPT Image 2.6 Sunburst",
+        tag: "Изображения",
+        slug: GPT_IMAGE_26_SUNBURST_SLUG,
+      },
       {
         name: "GPT Image 2.5 Flare",
         tag: "Изображения",

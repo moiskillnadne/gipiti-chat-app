@@ -14,6 +14,7 @@ import {
   supportsThinkingConfig,
   supportsToolCalling,
 } from "@/lib/ai/models";
+import { omitUnsupportedPdfs } from "@/lib/ai/pdf-attachments";
 import { buildContextMessage, systemPrompt } from "@/lib/ai/prompts";
 import { myProvider } from "@/lib/ai/providers";
 import { resolveLatestImageUrl } from "@/lib/ai/resolve-latest-image";
@@ -211,8 +212,9 @@ async function streamTextTurn(
   // extracted text so the model can read them (providers only accept images and
   // PDFs as file parts). The stored user message keeps its file part, so the UI
   // still shows the attachment chip.
+  // A model that rejects PDFs gets a text note in place of every PDF part.
   const messagesForModel = await attachTextContentForModel(
-    await attachDocxContentForModel(ctx.uiMessages)
+    await attachDocxContentForModel(omitUnsupportedPdfs(ctx.uiMessages, model))
   );
   // A message the user stopped mid tool call must not replay the dangling call.
   const baseMessages = (

@@ -52,11 +52,11 @@ export const catalogSections: CatalogSection[] = [
     typePage: {
       h1Top: "Нейросети для работы",
       h1Gradient: "с текстом на русском",
-      sub: "GPT-6.1, Claude Opus 5.5, Gemini 4 Argon, Grok 4.7, Kimi K3.1 Pro, Qwen 3.8, Meta Muse, Mistral Large 4, DeepSeek V4 и другие — пишите тексты, анализируйте документы и решайте рабочие задачи на русском языке. Без VPN, оплата российскими картами.",
+      sub: "GPT-6.2, Claude Fable 5.2, Gemini 4 Neon, Grok 4.7, Kimi K3.1 Pro, Qwen 4 Max, Meta Muse, Mistral Large 4, DeepSeek V4 и другие — пишите тексты, анализируйте документы и решайте рабочие задачи на русском языке. Без VPN, оплата российскими картами.",
       metaTitle:
         "Нейросети для работы с текстом — GPT-6, Claude, Gemini, Grok, Qwen | GIPITI",
       metaDescription:
-        "Текстовые AI-модели в одном чате: GPT-6.1, Claude Opus 5.5, Gemini 4 Argon, Grok 4.7, Kimi K3.1 Pro, Meta Muse и Mistral Large 4. Без VPN, оплата картами РФ.",
+        "Текстовые AI-модели в одном чате: GPT-6.2, Claude Fable 5.2, Gemini 4 Neon, Grok 4.7, Kimi K3.1 Pro, Qwen 4 Max и Mistral Large 4. Без VPN, оплата картами РФ.",
     },
   },
   {
@@ -68,11 +68,11 @@ export const catalogSections: CatalogSection[] = [
     typePage: {
       h1Top: "Нейросети для генерации",
       h1Gradient: "изображений на русском",
-      sub: "Nano Banana 2.1, GPT Image 2.5, Flux 3 Image, Seedream 5.0 Pro, MAI-Image 2.6, Grok Imagine 2.0 и Recraft — создавайте и редактируйте изображения по описанию на русском языке. Без VPN, оплата российскими картами.",
+      sub: "Nano Banana 2.1, GPT Image 2.6, Flux 3 Image, Seedream 5.5, MAI-Image 2.7, Grok Imagine 2.0 и Recraft — создавайте и редактируйте изображения по описанию на русском языке. Без VPN, оплата российскими картами.",
       metaTitle:
         "Нейросети для генерации изображений — Nano Banana, GPT Image, Flux, Seedream | GIPITI",
       metaDescription:
-        "Генерация и редактирование изображений по описанию: Nano Banana, GPT Image 2.5, Flux 2 Max, Seedream 5.0 Pro, Recraft и Grok Imagine 2.0 в одной подписке. Без VPN, оплата российскими картами.",
+        "Генерация и редактирование изображений по описанию: Nano Banana, GPT Image 2.6, Flux 2 Max, Seedream 5.5, Recraft и Grok Imagine 2.0 в одной подписке. Без VPN, оплата российскими картами.",
     },
   },
   {
@@ -110,14 +110,35 @@ export const catalogSections: CatalogSection[] = [
 
 export const catalogModels: CatalogModel[] = [
   {
+    modelId: "gpt-6.2-sol",
+    name: "GPT-6.2 Sol",
+    vendor: "OpenAI",
+    provider: "openai",
+    category: "text",
+    description:
+      "Рассуждающая модель OpenAI на каждый день: текст, фото и PDF, глубина рассуждений на выбор и контекст около 1,05 млн токенов.",
+    tag: "Новинка",
+    hue: 250,
+  },
+  {
+    modelId: "gpt-6.2-astra",
+    name: "GPT-6.2 Astra",
+    vendor: "OpenAI",
+    provider: "openai",
+    category: "text",
+    description:
+      "Передовая модель OpenAI для сложного кода и профессиональной работы: дешевле GPT-6 Astra на 20%.",
+    tag: "Новинка",
+    hue: 250,
+  },
+  {
     modelId: "gpt-6.1-sol",
     name: "GPT-6.1 Sol",
     vendor: "OpenAI",
     provider: "openai",
     category: "text",
     description:
-      "Обновлённый флагман GPT-6: сложный код, агентные задачи и контекст на миллион токенов по прежней цене.",
-    tag: "Новинка",
+      "Предыдущая версия GPT-6 Sol: сложный код, агентные задачи и контекст на миллион токенов по той же цене, что у GPT-6.2 Sol.",
     hue: 250,
   },
   {
@@ -138,8 +159,7 @@ export const catalogModels: CatalogModel[] = [
     provider: "openai",
     category: "text",
     description:
-      "Самая мощная модель OpenAI: сложные рассуждения, код, исследования и работа с документами.",
-    tag: "Новинка",
+      "Предыдущая версия Astra: сложные рассуждения, код и документы. GPT-6.2 Astra стоит на 20% меньше.",
     hue: 250,
   },
   {
@@ -206,14 +226,24 @@ export const catalogModels: CatalogModel[] = [
     hue: 250,
   },
   {
+    modelId: "fable-5.2",
+    name: "Claude Fable 5.2",
+    vendor: "Anthropic",
+    provider: "anthropic",
+    category: "text",
+    description:
+      "Обновлённая премиальная модель Anthropic: агентный код, знания и исследования, на 20% дешевле Fable 5.1.",
+    tag: "Новинка",
+    hue: 30,
+  },
+  {
     modelId: "fable-5.1",
     name: "Claude Fable 5.1",
     vendor: "Anthropic",
     provider: "anthropic",
     category: "text",
     description:
-      "Премиальная модель Anthropic: многочасовые задачи по коду, работа со знаниями и исследования.",
-    tag: "Новинка",
+      "Предыдущая премиальная модель Anthropic: многочасовые задачи по коду, знания и исследования. Fable 5.2 стоит на 20% меньше.",
     hue: 30,
   },
   {
@@ -290,6 +320,39 @@ export const catalogModels: CatalogModel[] = [
     hue: 30,
   },
   {
+    modelId: "gemini-4-neon",
+    name: "Gemini 4 Neon",
+    vendor: "Google",
+    provider: "google",
+    category: "text",
+    description:
+      "Быстрая рассуждающая модель Google для кода, агентных и сложных задач: фото, PDF и контекст на миллион токенов.",
+    tag: "Новинка",
+    hue: 210,
+  },
+  {
+    modelId: "gemini-4-hydrogen",
+    name: "Gemini 4 Hydrogen",
+    vendor: "Google",
+    provider: "google",
+    category: "text",
+    description:
+      "Быстрая и недорогая мультимодальная модель Google для повседневных задач: фото, скриншоты, PDF и рассуждения.",
+    tag: "Новинка",
+    hue: 210,
+  },
+  {
+    modelId: "gemini-4-carbon",
+    name: "Gemini 4 Carbon",
+    vendor: "Google",
+    provider: "google",
+    category: "text",
+    description:
+      "Модель Google для сложной разработки, долгих агентных сценариев и защиты от киберугроз, в том числе поиска уязвимостей.",
+    tag: "Новинка",
+    hue: 210,
+  },
+  {
     modelId: "gemini-4-argon",
     name: "Gemini 4 Argon",
     vendor: "Google",
@@ -317,8 +380,7 @@ export const catalogModels: CatalogModel[] = [
     provider: "google",
     category: "text",
     description:
-      "Новейшая быстрая модель Google: уровень Pro в агентных задачах и коде при высокой скорости.",
-    tag: "Новинка",
+      "Быстрая модель Google поколения 3.8: уровень Pro в агентных задачах и коде при высокой скорости.",
     hue: 210,
   },
   {
@@ -467,14 +529,24 @@ export const catalogModels: CatalogModel[] = [
     hue: 295,
   },
   {
+    modelId: "qwen4-max",
+    name: "Qwen 4 Max",
+    vendor: "Alibaba",
+    provider: "alibaba",
+    category: "text",
+    description:
+      "Флагман Qwen нового поколения: сложный код, фронтенд и знания, контекст на миллион токенов. Читает изображения, но не PDF.",
+    tag: "Новинка",
+    hue: 65,
+  },
+  {
     modelId: "qwen3.8-max-prime",
     name: "Qwen 3.8 Max Prime",
     vendor: "Alibaba",
     provider: "alibaba",
     category: "text",
     description:
-      "Производительная версия флагмана Qwen: контекст на миллион токенов и ответы до 131 тысячи токенов.",
-    tag: "Новинка",
+      "Производительная версия флагмана Qwen прошлого поколения: контекст на миллион токенов и ответы до 131 тысячи токенов.",
     hue: 65,
   },
   {
@@ -484,8 +556,7 @@ export const catalogModels: CatalogModel[] = [
     provider: "alibaba",
     category: "text",
     description:
-      "Флагман Alibaba: программирование, длинные документы и профессиональные задачи от начала до конца.",
-    tag: "Новинка",
+      "Флагман Alibaba прошлого поколения: программирование, длинные документы и профессиональные задачи от начала до конца.",
     hue: 65,
   },
   {
@@ -508,6 +579,17 @@ export const catalogModels: CatalogModel[] = [
     description:
       "Быстрая мультимодальная модель Alibaba прошлого поколения: текст, изображения и агентные сценарии по низкой цене.",
     hue: 65,
+  },
+  {
+    modelId: "muse-ember",
+    name: "Muse Ember",
+    vendor: "Meta",
+    provider: "meta",
+    category: "text",
+    description:
+      "Недорогая мультимодальная модель Meta: рассуждает, читает фото и PDF, контекст около миллиона токенов.",
+    tag: "Новинка",
+    hue: 230,
   },
   {
     modelId: "muse-wonder-1.0",
@@ -629,14 +711,35 @@ export const catalogModels: CatalogModel[] = [
     hue: 90,
   },
   {
+    modelId: "gpt-image-2.6-flare",
+    name: "GPT Image 2.6 Flare",
+    vendor: "OpenAI",
+    provider: "openai",
+    category: "images",
+    description:
+      "Модель OpenAI для интерактивной работы с картинками: быстрый перебор идей, посты, карточки товаров и правки загруженных изображений.",
+    tag: "Новинка",
+    hue: 250,
+  },
+  {
+    modelId: "gpt-image-2.6-sunburst",
+    name: "GPT Image 2.6 Sunburst",
+    vendor: "OpenAI",
+    provider: "openai",
+    category: "images",
+    description:
+      "Модель OpenAI с упором на точное редактирование: правки по описанию с сохранением остальной сцены и генерация с нуля.",
+    tag: "Новинка",
+    hue: 250,
+  },
+  {
     modelId: "gpt-image-2.5-flare",
     name: "GPT Image 2.5 Flare",
     vendor: "OpenAI",
     provider: "openai",
     category: "images",
     description:
-      "Новая модель OpenAI для быстрой повседневной генерации: посты, карточки товаров, иллюстрации.",
-    tag: "Новинка",
+      "Предыдущее поколение Flare: быстрая повседневная генерация — посты, карточки товаров, иллюстрации.",
     hue: 250,
   },
   {
@@ -646,8 +749,7 @@ export const catalogModels: CatalogModel[] = [
     provider: "openai",
     category: "images",
     description:
-      "Новая модель OpenAI с упором на точное редактирование: правки без потери остальной сцены.",
-    tag: "Новинка",
+      "Предыдущее поколение Sunburst: точное редактирование, правки с сохранением остальной сцены.",
     hue: 250,
   },
   {
@@ -672,6 +774,17 @@ export const catalogModels: CatalogModel[] = [
     hue: 315,
   },
   {
+    modelId: "flux-3-image-klein",
+    name: "Flux 3 Image Klein",
+    vendor: "BFL",
+    provider: "bfl",
+    category: "images",
+    description:
+      "Компактная и быстрая версия Flux 3 от Black Forest Labs: генерация и правки изображений, три формата кадра, недорого.",
+    tag: "Новинка",
+    hue: 315,
+  },
+  {
     modelId: "flux-2-max",
     name: "Flux 2 Max",
     vendor: "BFL",
@@ -688,6 +801,17 @@ export const catalogModels: CatalogModel[] = [
     provider: "recraft",
     category: "images",
     description: "Векторная графика, логотипы, иконки и брендовые иллюстрации.",
+    hue: 275,
+  },
+  {
+    modelId: "recraft-v4.1-flash",
+    name: "Recraft V4.1 Flash",
+    vendor: "Recraft",
+    provider: "recraft",
+    category: "images",
+    description:
+      "Быстрая и недорогая модель Recraft для серий и проб: фото, портреты, атмосфера, коллажи и концепты логотипов.",
+    tag: "Новинка",
     hue: 275,
   },
   {
@@ -711,14 +835,24 @@ export const catalogModels: CatalogModel[] = [
     hue: 0,
   },
   {
+    modelId: "seedream-5.5",
+    name: "Seedream 5.5",
+    vendor: "ByteDance",
+    provider: "bytedance",
+    category: "images",
+    description:
+      "Новая модель ByteDance: афиши и визуалы с надписями, точное редактирование и восемь форматов кадра, результат без водяного знака.",
+    tag: "Новинка",
+    hue: 200,
+  },
+  {
     modelId: "seedream-5.0-pro",
     name: "Seedream 5.0 Pro",
     vendor: "ByteDance",
     provider: "bytedance",
     category: "images",
     description:
-      "Старшая модель ByteDance: фотореалистичные сцены, предметная съёмка и точное редактирование.",
-    tag: "Новинка",
+      "Старшая модель Seedream 5.0: фотореалистичные сцены, предметная съёмка и точное редактирование.",
     hue: 200,
   },
   {
@@ -742,14 +876,35 @@ export const catalogModels: CatalogModel[] = [
     hue: 200,
   },
   {
+    modelId: "mai-image-2.7",
+    name: "MAI-Image 2.7",
+    vendor: "Microsoft",
+    provider: "microsoft",
+    category: "images",
+    description:
+      "Модель Microsoft AI для генерации и точного редактирования изображений: три формата кадра, квадрат по умолчанию.",
+    tag: "Новинка",
+    hue: 120,
+  },
+  {
+    modelId: "mai-image-2.7-flash",
+    name: "MAI-Image 2.7 Flash",
+    vendor: "Microsoft",
+    provider: "microsoft",
+    category: "images",
+    description:
+      "Быстрая и более дешёвая версия MAI-Image 2.7: те же генерация и правки изображений, три формата кадра.",
+    tag: "Новинка",
+    hue: 120,
+  },
+  {
     modelId: "mai-image-2.6",
     name: "MAI-Image 2.6",
     vendor: "Microsoft",
     provider: "microsoft",
     category: "images",
     description:
-      "Модель Microsoft AI с упором на качество: генерация и точное редактирование объектов, надписей и композиции.",
-    tag: "Новинка",
+      "Предыдущая версия MAI-Image: генерация и точное редактирование объектов, надписей и композиции. Формат кадра у неё не выбирается — для этого есть MAI-Image 2.7.",
     hue: 120,
   },
   {
@@ -759,8 +914,7 @@ export const catalogModels: CatalogModel[] = [
     provider: "microsoft",
     category: "images",
     description:
-      "Быстрая и более дешёвая версия MAI-Image 2.6: те же генерация и правки изображений.",
-    tag: "Новинка",
+      "Предыдущая быстрая версия MAI-Image: те же генерация и правки, формат кадра не выбирается — для этого есть MAI-Image 2.7 Flash.",
     hue: 120,
   },
   {
@@ -804,6 +958,17 @@ export const catalogModels: CatalogModel[] = [
     category: "video",
     description:
       "Версия 1.5: оживляет готовое изображение в короткий ролик со звуком.",
+    hue: 0,
+  },
+  {
+    modelId: "grok-imagine-video-lite",
+    name: "Grok Imagine Video Lite",
+    vendor: "xAI",
+    provider: "xai",
+    category: "video",
+    description:
+      "Лёгкая версия Grok Imagine Video: ролики со звуком на 4, 8 или 12 секунд, дешевле полной версии.",
+    tag: "Новинка",
     hue: 0,
   },
   {
@@ -855,6 +1020,17 @@ export const catalogModels: CatalogModel[] = [
     category: "video",
     description:
       "Новое поколение видеомодели ByteDance: ролики со звуком по тексту или из картинки, точный контроль сцены.",
+    tag: "Новинка",
+    hue: 200,
+  },
+  {
+    modelId: "seedance-2.5-flash",
+    name: "Seedance 2.5 Flash",
+    vendor: "ByteDance",
+    provider: "bytedance",
+    category: "video",
+    description:
+      "Более доступная версия Seedance 2.5: ролики 720p со звуком на 5 или 10 секунд по тексту или из картинки.",
     tag: "Новинка",
     hue: 200,
   },

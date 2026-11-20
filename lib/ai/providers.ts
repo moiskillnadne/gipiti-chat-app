@@ -23,6 +23,14 @@ export const myProvider = customProvider({
       model: gateway.languageModel("openai/gpt-6.1-terra"),
       middleware: extractReasoningMiddleware({ tagName: "think" }),
     }),
+    "gpt-6.2-sol": wrapLanguageModel({
+      model: gateway.languageModel("openai/gpt-6.2-sol"),
+      middleware: extractReasoningMiddleware({ tagName: "think" }),
+    }),
+    "gpt-6.2-astra": wrapLanguageModel({
+      model: gateway.languageModel("openai/gpt-6.2-astra"),
+      middleware: extractReasoningMiddleware({ tagName: "think" }),
+    }),
     "gpt-6.1-sol": wrapLanguageModel({
       model: gateway.languageModel("openai/gpt-6.1-sol"),
       middleware: extractReasoningMiddleware({ tagName: "think" }),
@@ -72,6 +80,9 @@ export const myProvider = customProvider({
     // above. Wrapping it mangles the thoughtSignature on persisted assistant
     // turns and breaks multi-turn tool-call continuations (400 "Corrupted
     // thought signature").
+    "gemini-4-neon": gateway.languageModel("google/gemini-4-neon"),
+    "gemini-4-hydrogen": gateway.languageModel("google/gemini-4-hydrogen"),
+    "gemini-4-carbon": gateway.languageModel("google/gemini-4-carbon"),
     "gemini-4-argon": gateway.languageModel("google/gemini-4-argon"),
     "gemini-3.1-pro": gateway.languageModel("google/gemini-3.1-pro-preview"),
     "gemini-3.8-flash": gateway.languageModel("google/gemini-3.8-flash"),
@@ -89,6 +100,7 @@ export const myProvider = customProvider({
     "gemini-3.1-flash-lite-image": gateway.languageModel(
       "google/gemini-3.1-flash-lite-image"
     ),
+    "fable-5.2": gateway.languageModel("anthropic/claude-fable-5.2"),
     "fable-5.1": gateway.languageModel("anthropic/claude-fable-5.1"),
     "opus-5.5": gateway.languageModel("anthropic/claude-opus-5.5"),
     "opus-5": gateway.languageModel("anthropic/claude-opus-5"),
@@ -114,6 +126,7 @@ export const myProvider = customProvider({
     // <think> tags in the text stream, so no middleware wrapper.
     "kimi-k3.1-pro": gateway.languageModel("moonshotai/kimi-k3.1-pro"),
     "kimi-k3-fast": gateway.languageModel("moonshotai/kimi-k3-fast"),
+    "qwen4-max": gateway.languageModel("alibaba/qwen4-max"),
     "qwen3.8-max-prime": gateway.languageModel("alibaba/qwen3.8-max-prime"),
     "qwen3.8-max": gateway.languageModel("alibaba/qwen3.8-max"),
     "qwen3.8-flash": gateway.languageModel("alibaba/qwen3.8-flash"),
@@ -122,6 +135,7 @@ export const myProvider = customProvider({
     // (reasoning parts, no <think> tags in the text); Meta Muse keeps its
     // reasoning hidden (reasoning tokens billed, no reasoning text). Probed
     // 2026-10-29, so no extractReasoningMiddleware wrapper.
+    "muse-ember": gateway.languageModel("meta/muse-ember"),
     "muse-wonder-1.0": gateway.languageModel("meta/muse-wonder-1.0"),
     "muse-spark-1.3": gateway.languageModel("meta/muse-spark-1.3"),
     "mistral-large-4": gateway.languageModel("mistral/mistral-large-4"),

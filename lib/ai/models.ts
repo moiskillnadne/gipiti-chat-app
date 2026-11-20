@@ -14,6 +14,13 @@ export type ChatModelCapabilities = {
    * so they run without the app tool set.
    */
   toolCalling?: boolean;
+  /**
+   * Whether the model accepts PDF file parts. Undefined = supported. A model
+   * that rejects them (Qwen 4 Max answers with a hard "Only image file parts
+   * are supported" error) gets its PDFs replaced by a text note before the
+   * request, and the attach menu stops offering PDF.
+   */
+  pdfInput?: boolean;
 };
 
 export type ModelProvider =
@@ -309,6 +316,20 @@ const BYTEDANCE_IMAGE_GEN_CONFIG: ImageGenConfig = {
   },
 };
 
+// MAI-Image 2.7 / 2.7 Flash and FLUX 3 Image Klein: three ratios, all probed
+// 2026-11-20 on text-to-image and on an edit (1:1 -> 1024x1024, 16:9 ->
+// 1360x768, 9:16 -> 768x1360). Ratios beyond these were not probed.
+const THREE_RATIO_IMAGE_GEN_CONFIG: ImageGenConfig = {
+  aspectRatio: {
+    options: [
+      { value: "1:1", labelKey: "square" },
+      { value: "16:9", labelKey: "landscape169" },
+      { value: "9:16", labelKey: "portrait916" },
+    ],
+    default: "1:1",
+  },
+};
+
 // User-facing video sections. Values verified against the Vercel AI Gateway
 // video docs + provider docs (2026-07); the gateway forwards params verbatim
 // and enforces support server-side, so only documented values are offered.
@@ -572,6 +593,30 @@ export const chatModels: ChatModel[] = [
     thinkingConfig: GPT5_THINKING_CONFIG,
   },
   {
+    id: "gpt-6.2-sol",
+    name: "gpt62Sol.name",
+    description: "gpt62Sol.description",
+    provider: "openai",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+    thinkingConfig: GPT6_ALWAYS_REASONING_THINKING_CONFIG,
+  },
+  {
+    id: "gpt-6.2-astra",
+    name: "gpt62Astra.name",
+    description: "gpt62Astra.description",
+    provider: "openai",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+    thinkingConfig: GPT6_ALWAYS_REASONING_THINKING_CONFIG,
+  },
+  {
     id: "gpt-6.1-sol",
     name: "gpt61Sol.name",
     description: "gpt61Sol.description",
@@ -698,6 +743,44 @@ export const chatModels: ChatModel[] = [
     },
     showInUI: true,
     thinkingConfig: GPT5_THINKING_CONFIG,
+  },
+  {
+    id: "gemini-4-neon",
+    name: "gemini4Neon.name",
+    description: "gemini4Neon.description",
+    provider: "google",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+    thinkingConfig: GEMINI31_THINKING_CONFIG,
+  },
+  {
+    id: "gemini-4-hydrogen",
+    name: "gemini4Hydrogen.name",
+    description: "gemini4Hydrogen.description",
+    provider: "google",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+    thinkingConfig: GEMINI31_THINKING_CONFIG,
+  },
+  {
+    id: "gemini-4-carbon",
+    name: "gemini4Carbon.name",
+    description: "gemini4Carbon.description",
+    provider: "google",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+    // "low" switches thinking off entirely on this model (probed 2026-11-20),
+    // unlike Neon and Hydrogen where it is a lighter level.
+    thinkingConfig: GEMINI31_THINKING_CONFIG,
   },
   {
     id: "gemini-4-argon",
@@ -900,6 +983,49 @@ export const chatModels: ChatModel[] = [
     showInUI: true,
     imageGenConfig: XAI_IMAGE_GEN_CONFIG,
   },
+  // GPT Image 2.6: same call path and settings as 2.5. Cost follows the output
+  // tokens the model chooses. Measured maximum over the picker (probes
+  // 2026-11-20, 256x256 edit input, one sample per case): Sunburst $0.053
+  // (high, 1024x1024), Flare $0.094 (auto, 1024x1024). The rest of each
+  // estimate is headroom for larger edit inputs and other samples.
+  {
+    id: "gpt-image-2.6-sunburst",
+    name: "gptImage26Sunburst.name",
+    description: "gptImage26Sunburst.description",
+    provider: "openai",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+      imageGeneration: true,
+    },
+    showInUI: true,
+    providerOptions: {
+      openai: {
+        imageSize: "1024x1024",
+        imageQuality: "hd",
+      },
+    },
+    imageGenConfig: { ...OPENAI_IMAGE_GEN_CONFIG, estimatedCostUsd: 0.1 },
+  },
+  {
+    id: "gpt-image-2.6-flare",
+    name: "gptImage26Flare.name",
+    description: "gptImage26Flare.description",
+    provider: "openai",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+      imageGeneration: true,
+    },
+    showInUI: true,
+    providerOptions: {
+      openai: {
+        imageSize: "1024x1024",
+        imageQuality: "hd",
+      },
+    },
+    imageGenConfig: { ...OPENAI_IMAGE_GEN_CONFIG, estimatedCostUsd: 0.14 },
+  },
   {
     id: "gpt-image-2.5-flare",
     name: "gptImage25Flare.name",
@@ -956,6 +1082,18 @@ export const chatModels: ChatModel[] = [
       },
     },
     imageGenConfig: OPENAI_IMAGE_GEN_CONFIG,
+  },
+  {
+    id: "fable-5.2",
+    name: "fable52.name",
+    description: "fable52.description",
+    provider: "anthropic",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+    thinkingConfig: OPUS_THINKING_CONFIG,
   },
   {
     id: "fable-5.1",
@@ -1136,6 +1274,22 @@ export const chatModels: ChatModel[] = [
     showInUI: true,
   },
   {
+    id: "qwen4-max",
+    name: "qwen4Max.name",
+    description: "qwen4Max.description",
+    provider: "alibaba",
+    capabilities: {
+      reasoning: true,
+      attachments: true,
+      // Images only: a PDF part fails with "Only image file parts are
+      // supported" (probed 2026-11-20, rejected before any charge). Thinking is
+      // always on; top-level reasoningEffort is silently ignored, so there is no
+      // picker.
+      pdfInput: false,
+    },
+    showInUI: true,
+  },
+  {
     id: "qwen3.8-max-prime",
     name: "qwen38MaxPrime.name",
     description: "qwen38MaxPrime.description",
@@ -1179,6 +1333,19 @@ export const chatModels: ChatModel[] = [
     provider: "alibaba",
     capabilities: {
       reasoning: true,
+      attachments: true,
+    },
+    showInUI: true,
+  },
+  {
+    id: "muse-ember",
+    name: "museEmber.name",
+    description: "museEmber.description",
+    provider: "meta",
+    capabilities: {
+      reasoning: true,
+      // Images and PDF both read (probed 2026-11-20). The reasoning is hidden
+      // and always billed; reasoningEffort is silently ignored, so no picker.
       attachments: true,
     },
     showInUI: true,
@@ -1354,6 +1521,29 @@ export const chatModels: ChatModel[] = [
     },
   },
   {
+    id: "grok-imagine-video-lite",
+    name: "grokImagineVideoLite.name",
+    description: "grokImagineVideoLite.description",
+    provider: "xai",
+    capabilities: {
+      videoGeneration: true,
+      attachments: true,
+    },
+    showInUI: true,
+    videoGenConfig: {
+      gatewayModelId: "spacexai/grok-imagine-video-1.5-lite",
+      durationSeconds: 8,
+      // Text-to-video and image-to-video both probed OK 2026-11-20 (480p and
+      // 720p through providerOptions.xai.resolution, like the full model).
+      imageInput: "optional",
+      // Measured maximum: the longest clip offered (12 s) at the 720p rate of
+      // $0.03/s plus $0.01 for an image input (probed: a 4 s i2v clip billed
+      // $0.01 over t2v) = $0.37. The rest is headroom.
+      estimatedCostUsd: 0.4,
+      ...GROK_VIDEO_GEN_SECTIONS,
+    },
+  },
+  {
     id: "kling-v3.0-t2v",
     name: "klingV30T2v.name",
     description: "klingV30T2v.description",
@@ -1416,6 +1606,29 @@ export const chatModels: ChatModel[] = [
       durationSeconds: 5,
       imageInput: "unsupported",
       ...KLING_VIDEO_GEN_SECTIONS,
+    },
+  },
+  {
+    id: "seedance-2.5-flash",
+    name: "seedance25Flash.name",
+    description: "seedance25Flash.description",
+    provider: "bytedance",
+    capabilities: {
+      videoGeneration: true,
+      attachments: true,
+    },
+    showInUI: true,
+    videoGenConfig: {
+      gatewayModelId: "bytedance/seedance-2.5-flash",
+      durationSeconds: 5,
+      // Image-to-video probed OK 2026-11-20. With no resolution sent (the
+      // handler forwards none for bytedance ids) the gateway renders 720p:
+      // a 5 s clip cost $0.7623 (75 s) and the app's 10 s call $1.5183 (88 s).
+      // Measured maximum: the 10 s clip, the longest one offered ($1.5183);
+      // the rest is headroom.
+      imageInput: "optional",
+      estimatedCostUsd: 1.6,
+      ...SEEDANCE_VIDEO_GEN_SECTIONS,
     },
   },
   {
@@ -1521,6 +1734,26 @@ export const chatModels: ChatModel[] = [
     // gateway silently drops unknown params — same placebo risk as flux-2-max.
   },
   {
+    id: "flux-3-image-klein",
+    name: "flux3ImageKlein.name",
+    description: "flux3ImageKlein.description",
+    provider: "bfl",
+    capabilities: {
+      attachments: true,
+      imageGeneration: true,
+    },
+    showInUI: true,
+    // Ratio picker only, no size choice. validateImageGenSetting always fills
+    // the default ratio, so an edit never follows the input's size in the app:
+    // the highest cost reachable is the $0.009 size tier (probed 2026-11-20).
+    // The $0.036 seen for a 3000x2000 input came from a probe without a ratio
+    // and cannot happen here. The rest of the estimate is headroom.
+    imageGenConfig: {
+      ...THREE_RATIO_IMAGE_GEN_CONFIG,
+      estimatedCostUsd: 0.012,
+    },
+  },
+  {
     id: "flux-2-max",
     name: "flux2Max.name",
     description: "flux2Max.description",
@@ -1554,6 +1787,37 @@ export const chatModels: ChatModel[] = [
     },
     showInUI: true,
     imageGenConfig: RECRAFT_IMAGE_GEN_CONFIG,
+  },
+  {
+    id: "recraft-v4.1-flash",
+    name: "recraftV41Flash.name",
+    description: "recraftV41Flash.description",
+    provider: "recraft",
+    // Text-to-image only: an edit hard-errors on this id (probed 2026-11-20),
+    // so attachments stay off and the image handler never tries one. aspectRatio
+    // is dropped with a warning, so there is no picker either.
+    capabilities: {
+      imageGeneration: true,
+    },
+    showInUI: true,
+    imageGenConfig: { estimatedCostUsd: 0.007 },
+  },
+  {
+    id: "seedream-5.5",
+    name: "seedream55.name",
+    description: "seedream55.description",
+    provider: "bytedance",
+    capabilities: {
+      attachments: true,
+      imageGeneration: true,
+    },
+    showInUI: true,
+    // The ratio picker maps to `size` in the dedicated provider (5.5 drops
+    // aspectRatio with a warning). Measured maximum: $0.043, an edit at
+    // 1920x1920 with a 256x256 input (probed 2026-11-20; text-to-image bills
+    // $0.035 and every picker size is at least 3.69 MP). The rest is headroom
+    // for larger edit inputs.
+    imageGenConfig: { ...BYTEDANCE_IMAGE_GEN_CONFIG, estimatedCostUsd: 0.05 },
   },
   {
     id: "seedream-5.0-pro",
@@ -1591,10 +1855,45 @@ export const chatModels: ChatModel[] = [
     showInUI: true,
     imageGenConfig: BYTEDANCE_IMAGE_GEN_CONFIG,
   },
-  // MAI-Image: generation plus editing from reference images (Vercel
-  // changelog). No imageGenConfig: the aspect ratio is derived dynamically
-  // from the prompt and inputs and output tops out near 1.5K, so a ratio or
-  // quality picker could be a placebo.
+  // MAI-Image 2.7: unlike 2.6, an explicit aspectRatio is honoured on both
+  // generation and edits (probed 2026-11-20), so it gets a ratio picker. Costs
+  // are measured maxima (a 256x256 edit, one sample): $0.0354 for 2.7 and
+  // $0.0104 for Flash, with headroom for larger edit inputs added on top. The
+  // 2048x2048 size is not reachable from the app.
+  {
+    id: "mai-image-2.7",
+    name: "maiImage27.name",
+    description: "maiImage27.description",
+    provider: "microsoft",
+    capabilities: {
+      attachments: true,
+      imageGeneration: true,
+    },
+    showInUI: true,
+    imageGenConfig: {
+      ...THREE_RATIO_IMAGE_GEN_CONFIG,
+      estimatedCostUsd: 0.045,
+    },
+  },
+  {
+    id: "mai-image-2.7-flash",
+    name: "maiImage27Flash.name",
+    description: "maiImage27Flash.description",
+    provider: "microsoft",
+    capabilities: {
+      attachments: true,
+      imageGeneration: true,
+    },
+    showInUI: true,
+    imageGenConfig: {
+      ...THREE_RATIO_IMAGE_GEN_CONFIG,
+      estimatedCostUsd: 0.014,
+    },
+  },
+  // MAI-Image 2.6 / 2.6 Flash: generation plus editing from reference images
+  // (Vercel changelog). No imageGenConfig: the aspect ratio is derived
+  // dynamically from the prompt and inputs and output tops out near 1.5K, so a
+  // ratio or quality picker could be a placebo.
   {
     id: "mai-image-2.6",
     name: "maiImage26.name",
@@ -1699,14 +1998,19 @@ type DedicatedImageModelId =
   | "grok-imagine-image"
   | "grok-imagine-image-2.0"
   | "flux-3-image"
+  | "flux-3-image-klein"
   | "flux-2-max"
   | "flux-kontext-max"
   | "recraft-v4.1-pro"
+  | "recraft-v4.1-flash"
+  | "seedream-5.5"
   | "seedream-5.0-pro"
   | "seedream-5.0-lite"
   | "seedream-4.5"
   | "mai-image-2.6"
-  | "mai-image-2.6-flash";
+  | "mai-image-2.6-flash"
+  | "mai-image-2.7"
+  | "mai-image-2.7-flash";
 
 // The gateway serves xAI under the canonical "spacexai" namespace; the old
 // "xai/*" ids are only redirects, so ids here use "spacexai/*" (the Grok text
@@ -1715,11 +2019,18 @@ const DEDICATED_IMAGE_GATEWAY_MAP: Record<DedicatedImageModelId, string> = {
   "grok-imagine-image": "spacexai/grok-imagine-image",
   "grok-imagine-image-2.0": "spacexai/grok-imagine-image-2.0",
   "flux-3-image": "bfl/flux-3-image",
+  "flux-3-image-klein": "bfl/flux-3-image-klein",
+  "mai-image-2.7": "microsoft/mai-image-2.7",
+  "mai-image-2.7-flash": "microsoft/mai-image-2.7-flash",
   "mai-image-2.6": "microsoft/mai-image-2.6",
   "mai-image-2.6-flash": "microsoft/mai-image-2.6-flash",
   "flux-2-max": "bfl/flux-2-max",
   "flux-kontext-max": "bfl/flux-kontext-max",
   "recraft-v4.1-pro": "recraft/recraft-v4.1-pro",
+  // Served by the generic dedicated provider: recraft-client.ts hard-codes the
+  // Pro gateway id, so routing Flash through it would bill Pro.
+  "recraft-v4.1-flash": "recraft/recraft-v4.1-flash",
+  "seedream-5.5": "bytedance/seedream-5.5",
   "seedream-5.0-pro": "bytedance/seedream-5.0-pro",
   "seedream-5.0-lite": "bytedance/seedream-5.0-lite",
   "seedream-4.5": "bytedance/seedream-4.5",
@@ -1735,12 +2046,16 @@ export const getDedicatedImageGatewayModelId = (modelId: string): string => {
 };
 
 type OpenAIImageModelId =
+  | "gpt-image-2.6-flare"
+  | "gpt-image-2.6-sunburst"
   | "gpt-image-2.5-flare"
   | "gpt-image-2.5-sunburst"
   | "gpt-image-2";
 
 /** Gateway model ids backing the OpenAI gpt-image generation/edit flow. */
 const OPENAI_IMAGE_GATEWAY_MAP: Record<OpenAIImageModelId, string> = {
+  "gpt-image-2.6-flare": "openai/gpt-image-2.6-flare",
+  "gpt-image-2.6-sunburst": "openai/gpt-image-2.6-sunburst",
   "gpt-image-2.5-flare": "openai/gpt-image-2.5-flare",
   "gpt-image-2.5-sunburst": "openai/gpt-image-2.5-sunburst",
   "gpt-image-2": "openai/gpt-image-2",
@@ -1788,6 +2103,10 @@ export const supportsAttachments = (modelId: string) => {
   return model?.capabilities?.attachments ?? false;
 };
 
+/** False for models that reject PDF file parts (see `pdfInput`). */
+export const supportsPdfInput = (modelId: string): boolean =>
+  getModelById(modelId)?.capabilities?.pdfInput !== false;
+
 export const supportsToolCalling = (modelId: string): boolean =>
   getModelById(modelId)?.capabilities?.toolCalling !== false;
 
@@ -1824,6 +2143,8 @@ export type ReasoningSummary = (typeof REASONING_SUMMARY)[number];
 export const DEFAULT_REASONING_SUMMARY: ReasoningSummary = "auto";
 
 export const openaiModelIds = [
+  "gpt-6.2-sol",
+  "gpt-6.2-astra",
   "gpt-6.1-terra",
   "gpt-6.1-sol",
   "gpt-6-astra",
@@ -1860,6 +2181,9 @@ export const getOpenAIProviderOptions = (
 };
 
 export const googleModelIds = [
+  "gemini-4-neon",
+  "gemini-4-hydrogen",
+  "gemini-4-carbon",
   "gemini-4-argon",
   "gemini-3.1-pro",
   "gemini-3.8-flash",
@@ -1892,6 +2216,7 @@ export const getGoogleProviderOptions = (
 };
 
 export const anthropicModelIds = [
+  "fable-5.2",
   "fable-5.1",
   "opus-5.5",
   "opus-5",
@@ -2071,9 +2396,11 @@ export const validateThinkingSetting = (
 
 // Image generation setting helpers
 
+// A config that only carries `estimatedCostUsd` has nothing to pick, so it must
+// not render an empty settings pill.
 export const supportsImageGenConfig = (modelId: string): boolean => {
-  const model = getModelById(modelId);
-  return model?.imageGenConfig !== undefined;
+  const config = getModelById(modelId)?.imageGenConfig;
+  return Boolean(config?.quality || config?.aspectRatio || config?.style);
 };
 
 export const getDefaultImageGenSetting = (

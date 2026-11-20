@@ -20,19 +20,34 @@ const ACCEPT_BY_KIND: Record<AttachAccept, string> = {
   code: "text/markdown,text/plain,.md,.markdown,.txt,.ts,.tsx,.js,.jsx,.json,.css,.html",
 };
 
+const PDF_ACCEPT_TOKEN = "application/pdf,";
+
+/** The accept list of a kind; PDF is dropped for a model that rejects it. */
+const acceptFor = (kind: AttachAccept, isPdfSupported: boolean): string =>
+  isPdfSupported
+    ? ACCEPT_BY_KIND[kind]
+    : ACCEPT_BY_KIND[kind].replace(PDF_ACCEPT_TOKEN, "");
+
 /** Every accepted type, for the mobile single-button picker and drag-and-drop. */
-export const ALL_ATTACH_ACCEPT = [
-  ACCEPT_BY_KIND.image,
-  ACCEPT_BY_KIND.document,
-  ACCEPT_BY_KIND.code,
-].join(",");
+export const buildAllAttachAccept = (isPdfSupported: boolean): string =>
+  (["image", "document", "code"] as const)
+    .map((kind) => acceptFor(kind, isPdfSupported))
+    .join(",");
+
+export const ALL_ATTACH_ACCEPT = buildAllAttachAccept(true);
 
 type AttachMenuProps = {
   disabled?: boolean;
+  /** False for a model that rejects PDF files: the menu stops offering PDF. */
+  isPdfSupported?: boolean;
   onPick: (accept: string) => void;
 };
 
-export function AttachMenu({ disabled, onPick }: AttachMenuProps) {
+export function AttachMenu({
+  disabled,
+  isPdfSupported = true,
+  onPick,
+}: AttachMenuProps) {
   const tInput = useTranslations("chat.input");
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
@@ -54,7 +69,9 @@ export function AttachMenu({ disabled, onPick }: AttachMenuProps) {
       kind: "document",
       icon: <FileText className="size-3.5 text-ink-2" strokeWidth={1.6} />,
       name: tInput("attachDocument"),
-      desc: tInput("attachDocumentDesc"),
+      desc: tInput(
+        isPdfSupported ? "attachDocumentDesc" : "attachDocumentNoPdfDesc"
+      ),
     },
     {
       kind: "code",
@@ -75,7 +92,7 @@ export function AttachMenu({ disabled, onPick }: AttachMenuProps) {
         )}
         data-testid="attachments-button"
         disabled={disabled}
-        onClick={() => onPick(ALL_ATTACH_ACCEPT)}
+        onClick={() => onPick(buildAllAttachAccept(isPdfSupported))}
         type="button"
       >
         <Paperclip className="size-3.5" strokeWidth={1.6} />
@@ -112,7 +129,7 @@ export function AttachMenu({ disabled, onPick }: AttachMenuProps) {
             className="grid w-full grid-cols-[24px_1fr_auto] items-center gap-2.5 rounded-sm px-2.5 py-2 text-left text-[13px] text-ink transition-colors hover:bg-paper-2"
             key={item.kind}
             onClick={() => {
-              onPick(ACCEPT_BY_KIND[item.kind]);
+              onPick(acceptFor(item.kind, isPdfSupported));
               setOpen(false);
             }}
             type="button"

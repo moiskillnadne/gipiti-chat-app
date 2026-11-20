@@ -1,5 +1,6 @@
 /**
- * Landing for xAI Grok Imagine Video 1.5 (spacexai/grok-imagine-video-1.5).
+ * Landings for xAI Grok Imagine Video 1.5 and its cheaper Lite version
+ * (spacexai/grok-imagine-video-1.5-lite: same sections, 480p/720p, 4/8/12 s).
  *
  * Registry facts the copy follows: 4/8/12-second clips, seven aspect ratios,
  * 480p or 720p output and an optional image input; audio is generated with the
@@ -9,7 +10,9 @@
 import { buildChips, buildVideoSteps, sharedMediaFaq } from "./media-shared";
 import {
   GROK_IMAGINE_20_SLUG,
+  GROK_IMAGINE_VIDEO_LITE_SLUG,
   GROK_IMAGINE_VIDEO_SLUG,
+  SEEDANCE_25_FLASH_SLUG,
   SEEDANCE_25_SLUG,
   VEO_SLUG,
   vpnBenefit,
@@ -18,6 +21,112 @@ import {
 import type { ModelLanding } from "./types";
 
 export const xaiVideoLandings: ModelLanding[] = [
+  {
+    kind: "video",
+    slug: GROK_IMAGINE_VIDEO_LITE_SLUG,
+    modelId: "grok-imagine-video-lite",
+    name: "Grok Imagine Video Lite",
+    vendor: "xAI",
+    accent: "indigo",
+    badge: "xAI · Лёгкая версия · Видео",
+    h1Top: "Grok Imagine Video 1.5 Lite —",
+    h1Gradient: "короткие ролики со звуком от xAI",
+    sub: "Лёгкая версия видеомодели xAI уже в GIPITI — ролики на 4, 8 или 12 секунд со звуком по описанию или из вашей картинки, в 480p или 720p. Дешевле Grok Imagine Video, поэтому удобно перебирать идеи. Без VPN, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    ctaMain: "Попробовать Grok Imagine Video Lite",
+    metaTitle: "Grok Imagine Video Lite — видео со звуком от xAI | GIPITI",
+    metaDescription:
+      "Grok Imagine Video Lite в GIPITI — лёгкая и более доступная версия видеомодели xAI: ролики со звуком на 4, 8 или 12 секунд по тексту или картинке. Без VPN, оплата картами РФ.",
+    heroMedia: {
+      userMessage:
+        "Ролик: рыжий кот осторожно идёт по заснеженной крыше, падают хлопья снега, мягкий вечерний свет, 16:9",
+      aiIntro: "Готово — **скрип снега** и тихий ветер уже в ролике:",
+      aspect: "16:9",
+      resultCaption: "Кот на заснеженной крыше · вечерний свет",
+      resultMeta: "8 секунд · 480p · 16:9 · со звуком",
+    },
+    benefits: [
+      {
+        icon: "wallet",
+        title: "Дешевле Grok Imagine Video",
+        text: "Lite — облегчённая версия видеомодели xAI: клип обходится дешевле полной, поэтому идею можно проверять несколькими запусками подряд.",
+      },
+      {
+        icon: "volume",
+        title: "Звук создаётся вместе с видео",
+        text: "К картинке сразу добавляется звуковая дорожка — звуки сцены по описанию. Отдельная озвучка и монтаж не нужны.",
+      },
+      {
+        icon: "ratio",
+        title: "Семь форматов, 4, 8 или 12 секунд",
+        text: "Соотношение сторон, длительность и разрешение — 480p или 720p — выбираются в чате перед генерацией.",
+      },
+      vpnBenefit,
+    ],
+    steps: buildVideoSteps(
+      "Grok Imagine Video Lite",
+      "Опишите сцену и звук — или прикрепите одну картинку и скажите, как она должна ожить."
+    ),
+    audience: [
+      {
+        title: "Тест идей для клипов",
+        text: "Быстро посмотреть, как сцена выглядит и звучит, прежде чем делать финальную версию.",
+        userMessage:
+          "Чайка летит над маяком на закате, слышны ветер и шум волн, 16:9",
+        aiReply: "**Пробный ролик** · чайка над маяком",
+      },
+      {
+        title: "Вертикальные клипы",
+        text: "Короткие ролики под сторис и ленты в формате 9:16, с музыкой под настроение.",
+        userMessage:
+          "Капли дождя стекают по окну кофейни, внутри тёплый свет, негромкие звуки кофейни, вертикальный кадр 9:16",
+        aiReply: "**Вертикальный ролик** · дождь за окном кофейни",
+      },
+      {
+        title: "Оживление картинок",
+        text: "Открытки, иллюстрации и снимки превращаются в короткую сцену со звуком.",
+        userMessage:
+          "Оживи эту открытку: падает снег, на ёлке мигают гирлянды, слышен тихий звон 📎 card.jpg",
+        aiReply: "**Открытка ожила** · снег и огоньки гирлянд",
+      },
+    ],
+    faq: [
+      {
+        question: "Что такое Grok Imagine Video Lite?",
+        answer:
+          "Grok Imagine Video Lite — лёгкая версия видеомодели xAI: делает короткие ролики со звуком по тексту или из одной картинки. В GIPITI она доступна без VPN и с оплатой российскими картами.",
+      },
+      {
+        question: "Чем Lite отличается от Grok Imagine Video?",
+        answer:
+          "Lite дешевле. Форматы кадра, длительность 4, 8 или 12 секунд и выбор 480p или 720p в GIPITI у двух моделей одинаковые, так что одну сцену можно прогнать на обеих и сравнить.",
+      },
+      {
+        question: "Можно ли получить 1080p или ролик на 15 секунд?",
+        answer:
+          "Нет. В GIPITI доступны 480p и 720p, длительность — 4, 8 или 12 секунд. Для 1080p выберите другую модель, например Veo 3.1.",
+      },
+      {
+        question: "Нужно ли загружать картинку?",
+        answer:
+          "Нет, картинка необязательна. Можно описать сцену словами, а можно прикрепить одно изображение — тогда модель оживит его.",
+      },
+      ...sharedMediaFaq,
+    ],
+    otherModels: buildChips([
+      {
+        name: "Grok Imagine Video",
+        tag: "Видео",
+        slug: GROK_IMAGINE_VIDEO_SLUG,
+      },
+      {
+        name: "Seedance 2.5 Flash",
+        tag: "Видео",
+        slug: SEEDANCE_25_FLASH_SLUG,
+      },
+      { name: "Wan 3.0", tag: "Видео", slug: WAN_30_SLUG },
+      { name: "Veo 3.1", tag: "Видео", slug: VEO_SLUG },
+    ]),
+  },
   {
     kind: "video",
     slug: GROK_IMAGINE_VIDEO_SLUG,
@@ -105,6 +214,11 @@ export const xaiVideoLandings: ModelLanding[] = [
       ...sharedMediaFaq,
     ],
     otherModels: buildChips([
+      {
+        name: "Grok Imagine Video Lite",
+        tag: "Видео",
+        slug: GROK_IMAGINE_VIDEO_LITE_SLUG,
+      },
       {
         name: "Grok Imagine 2.0",
         tag: "Изображения",

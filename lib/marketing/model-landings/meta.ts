@@ -1,23 +1,142 @@
-/** Landings for the Meta text models: Muse Wonder 1.0 and Muse Spark 1.3. */
+/** Landings for the Meta text models: Muse Ember, Muse Wonder 1.0 and Muse Spark 1.3. */
 
 import {
   analystsAudience,
   buildSteps,
   DEEPSEEK_41_FLASH_SLUG,
   GEMINI_4_ARGON_SLUG,
+  GEMINI_4_HYDROGEN_SLUG,
   GEMINI_38_FLASH_SLUG,
+  GPT6_LUNA_SLUG,
   KIMI_K31_PRO_SLUG,
+  MUSE_EMBER_SLUG,
   MUSE_SPARK_13_SLUG,
   MUSE_WONDER_10_SLUG,
   OPUS_55_SLUG,
   priceFaq,
   QWEN_38_FLASH_SLUG,
+  sharedFaq,
   vpnBenefit,
   vpnFaq,
 } from "./shared";
 import type { ModelLanding } from "./types";
 
 export const metaLandings: ModelLanding[] = [
+  {
+    kind: "text",
+    slug: MUSE_EMBER_SLUG,
+    modelId: "muse-ember",
+    name: "Muse Ember",
+    vendor: "Meta",
+    accent: "emerald",
+    badge: "Meta · Новинка · Текст",
+    h1Top: "Meta Muse Ember —",
+    h1Gradient: "недорогая мультимодальная нейросеть Meta",
+    sub: "Мультимодальная модель Meta уже в GIPITI — рассуждает перед ответом, читает фото, скриншоты и PDF и держит контекст около миллиона токенов. Запросы к ней в разы дешевле, чем к Muse Spark 1.3 и Muse Wonder 1.0. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    ctaMain: "Попробовать Muse Ember",
+    metaTitle:
+      "Meta Muse Ember — недорогая нейросеть на русском без VPN | GIPITI",
+    metaDescription:
+      "Meta Muse Ember в GIPITI — недорогая мультимодальная модель с рассуждениями: фото, PDF, контекст около 1 млн токенов. Без VPN, на русском, оплата картами РФ.",
+    heroChat: {
+      userMessage:
+        "Вот фото расписания занятий — переложи его в таблицу по дням недели 📷 raspisanie.jpg",
+      aiIntro: "Разобрал фото и собрал таблицу. Неделя выглядит так:",
+      aiBullets: [
+        "**Понедельник** — три пары, начало в 9:00, вторая в аудитории 214",
+        "**Среда** — лабораторная, 14:30, нужен халат",
+        "**Пятница** — две пары и консультация, всё до обеда",
+      ],
+    },
+    benefits: [
+      {
+        icon: "wallet",
+        title: "Очень низкая цена запроса",
+        text: "Muse Ember — самая недорогая модель Meta в GIPITI: запросы к ней в разы дешевле, чем к Muse Spark 1.3, и в десятки раз дешевле, чем к Muse Wonder 1.0. Не жалко использовать для рутины и длинных диалогов.",
+      },
+      {
+        icon: "file-text",
+        title: "Фото, скриншоты и PDF",
+        text: "Прикрепите снимок расписания, скриншот страницы или PDF-файл — модель прочитает материал и ответит по содержимому прямо в чате.",
+      },
+      {
+        icon: "layers",
+        title: "Около миллиона токенов контекста",
+        text: "Длинная переписка, объёмный документ или подборка заметок помещаются в один диалог, а модель удерживает их целиком.",
+      },
+      vpnBenefit,
+    ],
+    steps: buildSteps(
+      "Muse Ember",
+      "Текстом на русском — или прикрепите фото, скриншот либо PDF."
+    ),
+    audience: [
+      {
+        title: "Студенты и школьники",
+        text: "Задачи с фото, конспекты и объяснения по шагам — за копейки.",
+        userMessage: "Объясни по шагам, как решается эта задача 📷 zadacha.jpg",
+        aiReply:
+          "Это задача на **проценты**. Сначала найдём, сколько стоил товар до скидки: 1 800 ÷ 0,75 = 2 400 ₽…",
+      },
+      {
+        title: "Самозанятые и малый бизнес",
+        text: "Письма клиентам, описания услуг и разбор документов без лишних расходов.",
+        userMessage:
+          "Напиши клиенту сообщение: мастер задерживается на час, предложи перенести визит",
+        aiReply:
+          "Здравствуйте! Мастер задерживается примерно на **час**. Если вам так неудобно, перенесём визит на любое время сегодня или завтра…",
+      },
+      {
+        title: "Те, кто много пишет и читает",
+        text: "Выжимки, черновики и сортировка заметок, когда запросов много, а бюджет ограничен.",
+        userMessage:
+          "Сделай краткую выжимку этого документа на пять пунктов 📄 report.pdf",
+        aiReply:
+          "Главное из документа: **бюджет выполнен на 94%**, сроки сдвинулись на две недели, а основной риск связан с…",
+      },
+    ],
+    faq: [
+      {
+        question: "Что такое Meta Muse Ember?",
+        answer:
+          "Muse Ember — мультимодальная модель Meta для диалогов, рассуждений и агентных сценариев. Она понимает текст, изображения и документы, умеет вызывать инструменты и работает с контекстом около миллиона токенов. В GIPITI доступна без VPN, на русском и с оплатой российскими картами.",
+      },
+      {
+        question:
+          "Чем Muse Ember отличается от Muse Spark 1.3 и Muse Wonder 1.0?",
+        answer:
+          "Ember заметно дешевле обеих: запросы к ней стоят в разы меньше, чем к Muse Spark 1.3, и в десятки раз меньше, чем к Muse Wonder 1.0. Wonder — старшая модель Meta для самых трудных многошаговых задач. Все три доступны в одном чате — переключайтесь в один клик.",
+      },
+      {
+        question: "Показывает ли модель свои рассуждения?",
+        answer:
+          "Нет: Ember рассуждает перед ответом, но ход рассуждений скрыт, и в чате вы видите только готовый текст. Токены, потраченные на размышление, входят в стоимость запроса — поэтому даже на простой вопрос цена чуть выше, чем у одного видимого ответа.",
+      },
+      ...sharedFaq,
+    ],
+    otherModels: [
+      {
+        name: "Muse Spark 1.3",
+        tag: "Текст",
+        href: `/models/${MUSE_SPARK_13_SLUG}`,
+      },
+      {
+        name: "Muse Wonder 1.0",
+        tag: "Текст",
+        href: `/models/${MUSE_WONDER_10_SLUG}`,
+      },
+      {
+        name: "Gemini 4 Hydrogen",
+        tag: "Текст",
+        href: `/models/${GEMINI_4_HYDROGEN_SLUG}`,
+      },
+      {
+        name: "GPT-6 Luna",
+        tag: "Текст",
+        href: `/models/${GPT6_LUNA_SLUG}`,
+      },
+    ],
+  },
   {
     kind: "text",
     slug: MUSE_WONDER_10_SLUG,
@@ -109,6 +228,7 @@ export const metaLandings: ModelLanding[] = [
       priceFaq,
     ],
     otherModels: [
+      { name: "Muse Ember", tag: "Текст", href: `/models/${MUSE_EMBER_SLUG}` },
       {
         name: "Muse Spark 1.3",
         tag: "Текст",
@@ -228,6 +348,7 @@ export const metaLandings: ModelLanding[] = [
       priceFaq,
     ],
     otherModels: [
+      { name: "Muse Ember", tag: "Текст", href: `/models/${MUSE_EMBER_SLUG}` },
       {
         name: "Muse Wonder 1.0",
         tag: "Текст",

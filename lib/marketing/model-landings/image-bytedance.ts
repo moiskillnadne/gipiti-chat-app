@@ -1,4 +1,8 @@
-/** Landings for the ByteDance image models: Seedream 5.0 Pro, 5.0 Lite and 4.5. */
+/**
+ * Landings for the ByteDance image models: Seedream 5.5, 5.0 Pro, 5.0 Lite
+ * and 4.5. Seedream 5.5 ships without a watermark (the app sends
+ * bytedance.watermark=false) and has no 4K or PDF input.
+ */
 
 import {
   buildChips,
@@ -10,9 +14,12 @@ import {
 import {
   FLUX_SLUG,
   GPT_IMAGE_25_SUNBURST_SLUG,
+  GPT_IMAGE_26_SUNBURST_SLUG,
   NANO_BANANA_SLUG,
+  SEEDANCE_25_FLASH_SLUG,
   SEEDANCE_25_SLUG,
   SEEDREAM_45_SLUG,
+  SEEDREAM_55_SLUG,
   SEEDREAM_LITE_SLUG,
   SEEDREAM_PRO_SLUG,
   vpnBenefit,
@@ -20,6 +27,144 @@ import {
 import type { ModelLanding } from "./types";
 
 export const bytedanceImageLandings: ModelLanding[] = [
+  {
+    kind: "image",
+    slug: SEEDREAM_55_SLUG,
+    modelId: "seedream-5.5",
+    name: "Seedream 5.5",
+    vendor: "ByteDance",
+    accent: "rose",
+    badge: "ByteDance · Надписи и правки · Изображения",
+    h1Top: "Seedream 5.5 —",
+    h1Gradient: "нейросеть ByteDance для афиш и правок",
+    sub: "Новая модель ByteDance для изображений уже в GIPITI — вписывает надписи в кадр, точно правит загруженные картинки и сохраняет облик объекта. Восемь форматов, результат без водяного знака. Без VPN, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    ctaMain: "Попробовать Seedream 5.5",
+    metaTitle: "Seedream 5.5 — нейросеть ByteDance для изображений | GIPITI",
+    metaDescription:
+      "Seedream 5.5 в GIPITI — модель ByteDance для афиш с надписями, маркетинговых визуалов и точного редактирования, восемь форматов кадра. Без VPN, оплата картами РФ.",
+    heroMedia: {
+      userMessage:
+        "Афиша джазового вечера: крупная надпись «ДЖАЗ НА КРЫШЕ», силуэт саксофона на фоне города на закате, бирюзовый и оранжевый, квадратный кадр",
+      aiIntro: "Готово — **заголовок** читается, макет можно дорабатывать:",
+      aspect: "1:1",
+      resultCaption: "Афиша «Джаз на крыше» · саксофон и закат",
+      resultMeta: "Афиша · формат 1:1",
+      sample: {
+        src: "/images/model-landings/seedream-5-5/jazz-poster.webp",
+        alt: "Афиша в стиле ретро: крупный заголовок «ДЖАЗ НА КРЫШЕ», саксофон на фоне городских крыш и оранжевого заката — изображение, созданное Seedream 5.5 в GIPITI",
+        width: 1280,
+        height: 1280,
+      },
+    },
+    benefits: [
+      {
+        icon: "palette",
+        title: "Надписи прямо в кадре",
+        text: "Заголовок афиши, вывеска или плакат — модель вписывает короткий текст в изображение. Проверьте написание в результате и при необходимости попросите поправить.",
+      },
+      {
+        icon: "wand",
+        title: "Точные правки с сохранением объекта",
+        text: "Загрузите картинку и опишите замену: другие цветы в вазе, новый цвет, другой фон. Предмет, который менять не просили, остаётся узнаваемым.",
+      },
+      {
+        icon: "ratio",
+        title: "Восемь форматов кадра",
+        text: "От квадрата до широкого 21:9, включая 16:9, 9:16, 4:3, 3:4, 3:2 и 2:3 — под баннер, афишу, карточку или сторис.",
+      },
+      vpnBenefit,
+    ],
+    steps: buildImageSteps(
+      "Seedream 5.5",
+      "Опишите кадр и, если нужна надпись, напишите её в кавычках; затем выберите формат."
+    ),
+    audience: [
+      {
+        title: "Кафе и рестораны",
+        text: "Вывески, штендеры и рекламные кадры с короткой надписью — без дизайнера и макета.",
+        userMessage:
+          "Штендер у кафе утром: на чёрной доске мелом написано «ЗАВТРАКИ», ниже нарисованы круассан и чашка кофе",
+        aiReply: "**Вывеска** · «ЗАВТРАКИ» мелом на доске",
+        sample: {
+          src: "/images/model-landings/seedream-5-5/chalkboard.webp",
+          alt: "Чёрная доска-штендер у кафе с меловой надписью «ЗАВТРАКИ» и рисунками круассана и чашки кофе в утреннем свете",
+          width: 900,
+          height: 900,
+        },
+      },
+      {
+        title: "Интерьерные студии",
+        text: "Атмосферные кадры комнат для каталога, соцсетей или презентации идеи клиенту.",
+        userMessage:
+          "Уголок для чтения: горчичное бархатное кресло у высокого окна, стопка книг на табурете, плед, за окном дождь, тёплая лампа",
+        aiReply: "**Интерьер** · кресло у окна, дождь",
+        sample: {
+          src: "/images/model-landings/seedream-5-5/reading-nook.webp",
+          alt: "Горчичное бархатное кресло с пледом и подушкой у высокого окна с каплями дождя, рядом стопка книг на табурете и лампа",
+          width: 900,
+          height: 900,
+        },
+      },
+      {
+        title: "Флористы и магазины декора",
+        text: "Новые варианты букета или композиции на том же снимке, без повторной съёмки.",
+        userMessage:
+          "Замени красные тюльпаны в стеклянной вазе на белые анемоны, вазу, стол, стену и свет оставь как есть 📎 vase.jpg",
+        aiReply: "**Правка** · анемоны вместо тюльпанов",
+        sample: {
+          src: "/images/model-landings/seedream-5-5/white-anemones.webp",
+          alt: "Прозрачная стеклянная ваза с белыми анемонами с тёмной серединкой на белом столе у светлой стены",
+          width: 900,
+          height: 900,
+        },
+      },
+    ],
+    faq: [
+      {
+        question: "Что такое Seedream 5.5?",
+        answer:
+          "Seedream 5.5 — модель ByteDance для создания изображений по тексту и по загруженным картинкам. Она рассчитана на дизайн и маркетинг: точные правки, сохранение облика объекта и надписи в кадре. В GIPITI доступна без VPN и с оплатой российскими картами.",
+      },
+      {
+        question: "Есть ли на изображениях водяной знак?",
+        answer:
+          "Нет. Результаты Seedream 5.5 в GIPITI приходят без водяного знака, их можно сразу скачивать и использовать в макетах.",
+      },
+      {
+        question: "Чем Seedream 5.5 отличается от 5.0 Pro?",
+        answer:
+          "5.5 — более новая версия, а 5.0 Pro остаётся в GIPITI. Форматы кадра и правки загруженных картинок у них те же, так что одну и ту же идею легко прогнать на обеих и выбрать вариант, который нравится больше.",
+      },
+      {
+        question: "Можно ли получить 4K или загрузить PDF?",
+        answer:
+          "Нет: размер кадра определяется выбранным форматом, 4K не предусмотрен, а документы PDF модель в GIPITI не принимает. Загружать можно изображения.",
+      },
+      ...sharedMediaFaq,
+    ],
+    otherModels: buildChips([
+      {
+        name: "Seedream 5.0 Pro",
+        tag: "Изображения",
+        slug: SEEDREAM_PRO_SLUG,
+      },
+      {
+        name: "Seedream 5.0 Lite",
+        tag: "Изображения",
+        slug: SEEDREAM_LITE_SLUG,
+      },
+      {
+        name: "GPT Image 2.6 Sunburst",
+        tag: "Изображения",
+        slug: GPT_IMAGE_26_SUNBURST_SLUG,
+      },
+      {
+        name: "Seedance 2.5 Flash",
+        tag: "Видео",
+        slug: SEEDANCE_25_FLASH_SLUG,
+      },
+    ]),
+  },
   {
     kind: "image",
     slug: SEEDREAM_PRO_SLUG,
@@ -128,6 +273,11 @@ export const bytedanceImageLandings: ModelLanding[] = [
     ],
     otherModels: buildChips([
       {
+        name: "Seedream 5.5",
+        tag: "Изображения",
+        slug: SEEDREAM_55_SLUG,
+      },
+      {
         name: "Seedream 5.0 Lite",
         tag: "Изображения",
         slug: SEEDREAM_LITE_SLUG,
@@ -144,14 +294,14 @@ export const bytedanceImageLandings: ModelLanding[] = [
     name: "Seedream 5.0 Lite",
     vendor: "ByteDance",
     accent: "blue",
-    badge: "ByteDance · Новое поколение · Изображения",
+    badge: "ByteDance · Быстро и недорого · Изображения",
     h1Top: "Seedream 5.0 Lite —",
     h1Gradient: "нейросеть ByteDance для картинок",
-    sub: "Новейшая модель ByteDance для изображений уже в GIPITI — точно понимает сложные описания и уверенно работает с русским промптом. Без VPN, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: "Быстрая и недорогая модель ByteDance для изображений уже в GIPITI — точно понимает сложные описания и уверенно работает с русским промптом. Без VPN, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
     ctaMain: "Попробовать Seedream 5.0 Lite",
     metaTitle: "Seedream 5.0 Lite — генерация изображений ByteDance | GIPITI",
     metaDescription:
-      "Seedream 5.0 Lite в GIPITI — новейшая модель ByteDance для генерации изображений по описанию на русском. Без VPN, оплата российскими картами. Дарим 200 ₽ новым пользователям.",
+      "Seedream 5.0 Lite в GIPITI — быстрая и недорогая модель ByteDance для генерации изображений по описанию на русском. Без VPN, оплата российскими картами. Дарим 200 ₽ новым пользователям.",
     heroMedia: {
       userMessage:
         "Витрина пекарни утром: круассаны на подносе, пар от кофе, солнце сбоку, квадратный кадр",
@@ -225,7 +375,7 @@ export const bytedanceImageLandings: ModelLanding[] = [
       {
         question: "Что такое Seedream 5.0 Lite?",
         answer:
-          "Seedream 5.0 Lite — новейшая модель ByteDance для генерации изображений: точно понимает сложные промпты и аккуратно собирает сцену. В GIPITI она доступна без VPN и с оплатой российскими картами.",
+          "Seedream 5.0 Lite — быстрая и недорогая модель ByteDance для генерации изображений: точно понимает сложные промпты и аккуратно собирает сцену. В GIPITI она доступна без VPN и с оплатой российскими картами.",
       },
       {
         question: "Чем Seedream 5.0 Lite отличается от Seedream 4.5?",

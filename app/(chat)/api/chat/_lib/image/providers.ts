@@ -13,6 +13,7 @@ import {
   getOpenAIImageGatewayModelId,
   isDedicatedImageModel,
   isOpenAIImageModel,
+  supportsAttachments,
 } from "@/lib/ai/models";
 import { myProvider } from "@/lib/ai/providers";
 import { generateRecraftImage, isRecraftModel } from "@/lib/ai/recraft-client";
@@ -341,6 +342,18 @@ const buildImageShapeParams = (
 };
 
 /**
+ * ByteDance stamps a visible "AI generated" mark bottom-right unless told not
+ * to (probed 2026-11-20 on Seedream 5.0 Pro and 5.5; with the option all four
+ * Seedream ids returned clean images and no warning).
+ */
+const buildImageProviderOptions = (
+  gatewayModelId: string
+): SharedV2ProviderOptions | undefined =>
+  gatewayModelId.startsWith("bytedance/")
+    ? { bytedance: { watermark: false } }
+    : undefined;
+
+/**
  * Dedicated gateway image models (grok-imagine-image, flux-2-max,
  * flux-kontext-max, seedream). Edits the latest chat image when one exists,
  * else text-to-image. Editing relies on the model accepting image input through
@@ -355,9 +368,14 @@ const dedicatedImageProvider: ImageProvider = async ({
   onReasoning,
 }): Promise<ImageGenResult> => {
   const gatewayModelId = getDedicatedImageGatewayModelId(modelId);
-  const latestImageUrl = resolveLatestImageUrl(uiMessages);
+  // A model without image input (Recraft V4.1 Flash) would hard-error on an
+  // edit, so an earlier image in the chat must not turn the turn into one.
+  const latestImageUrl = supportsAttachments(modelId)
+    ? resolveLatestImageUrl(uiMessages)
+    : undefined;
   onReasoning(latestImageUrl ? "Editing image..." : "Generating image...");
 
+  const providerOptions = buildImageProviderOptions(gatewayModelId);
   const shapeParams = buildImageShapeParams(
     gatewayModelId,
     settings?.aspectRatio
@@ -373,6 +391,7 @@ const dedicatedImageProvider: ImageProvider = async ({
         prompt: imagePrompt,
         abortSignal,
         ...shapeParams,
+        ...(providerOptions && { providerOptions }),
       })
   );
 
@@ -382,7 +401,8 @@ const dedicatedImageProvider: ImageProvider = async ({
 
   return {
     base64: result.image?.base64,
-    mediaType: DEFAULT_IMAGE_MEDIA_TYPE,
+    // Klein returns JPEG and Recraft Flash WebP; the type names the upload.
+    mediaType: result.image?.mediaType ?? DEFAULT_IMAGE_MEDIA_TYPE,
     usageMetadata: {
       promptTokenCount: result.usage.inputTokens ?? 0,
       candidatesTokenCount: result.usage.outputTokens ?? 0,
