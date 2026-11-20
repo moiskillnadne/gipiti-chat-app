@@ -8,7 +8,7 @@ import {
   checkVerificationResendRateLimit,
   getRateLimitResetMinutes,
   getRateLimitResetSeconds,
-} from "@/lib/rate-limit";
+} from "@/server/http/rate-limit";
 
 // In production the auth limiters refuse a request when they cannot be
 // checked (`isUnavailable`). These tests cover what the actions do with that
@@ -17,8 +17,8 @@ vi.mock("server-only", () => ({}));
 vi.mock("@/server/db/connection", () => ({ db: {} }));
 vi.mock("@/app/(auth)/auth", () => ({ signIn: vi.fn() }));
 vi.mock("next/headers", () => ({ cookies: vi.fn() }));
-vi.mock("@/lib/flags", () => ({ isSignupEnabled: vi.fn() }));
-vi.mock("@/lib/rate-limit", () => ({
+vi.mock("@/server/flags", () => ({ isSignupEnabled: vi.fn() }));
+vi.mock("@/server/http/rate-limit", () => ({
   checkPasswordResetRateLimit: vi.fn(),
   checkVerificationResendRateLimit: vi.fn(),
   getRateLimitResetMinutes: vi.fn(),

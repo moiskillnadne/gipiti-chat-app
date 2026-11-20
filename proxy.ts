@@ -3,7 +3,7 @@ import { getToken } from "next-auth/jwt";
 import { isMarkdownNegotiablePath } from "./lib/agent-discovery/markdown/paths";
 import { getAuthSecret } from "./lib/auth/secret";
 import { isDevelopmentEnvironment } from "./lib/constants";
-import { isSignupEnabled } from "./lib/flags";
+import { isSignupEnabled } from "./server/flags";
 
 const AUTH_ROUTES = [
   "/login",

@@ -9,18 +9,18 @@ import {
 } from "@/lib/billing/subscriptions";
 import { getActiveUserSubscription } from "@/lib/db/query/subscription/get-active-user-subscription";
 import { getUserById } from "@/lib/db/query/user/get-by-id";
-import { isSignupEnabled, isTopupEnabled } from "@/lib/flags";
 import type { CookieSession } from "@/server/api/_kit/context";
 import { createHandler } from "@/server/api/_kit/create-handler";
 import { KNOWN_MODEL_PROVIDERS } from "@/server/api/v1/_schemas/model";
 import { v1Router } from "@/server/api/v1/router";
 import type { Subscription, User, UserSubscription } from "@/server/db/schema";
+import { isSignupEnabled, isTopupEnabled } from "@/server/flags";
 
 // The handler, the router, the middlewares, the mappers and the model
 // registry are real. Only what reaches outside the process is replaced.
 vi.mock("server-only", () => ({}));
 vi.mock("@/server/db/connection", () => ({ db: {} }));
-vi.mock("@/lib/flags", () => ({
+vi.mock("@/server/flags", () => ({
   isSignupEnabled: vi.fn(),
   isTopupEnabled: { run: vi.fn() },
 }));

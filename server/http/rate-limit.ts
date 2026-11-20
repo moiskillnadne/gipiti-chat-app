@@ -1,6 +1,6 @@
 import { Ratelimit } from "@upstash/ratelimit";
-import { toRateLimitIpKey } from "@/lib/http/client-ip";
-import { getUpstashClient } from "@/lib/redis";
+import { toRateLimitIpKey } from "@/server/http/client-ip";
+import { getUpstashClient } from "@/server/integrations/redis/client";
 
 // POST /api/chat: requests per user per sliding window.
 const CHAT_REQUEST_LIMIT = 30;

@@ -28,7 +28,7 @@ import {
   checkVerificationResendRateLimit,
   getRateLimitResetMinutes,
   getRateLimitResetSeconds,
-} from "@/lib/rate-limit";
+} from "@/server/http/rate-limit";
 
 import {
   login,
@@ -62,8 +62,8 @@ vi.mock("next/headers", () => ({
     Promise.resolve({ get: cookieGetMock, delete: cookieDeleteMock }),
   headers: () => Promise.resolve(new Headers({ "x-forwarded-for": CLIENT_IP })),
 }));
-vi.mock("@/lib/flags", () => ({ isSignupEnabled: isSignupEnabledMock }));
-vi.mock("@/lib/rate-limit", () => ({
+vi.mock("@/server/flags", () => ({ isSignupEnabled: isSignupEnabledMock }));
+vi.mock("@/server/http/rate-limit", () => ({
   checkPasswordResetRateLimit: vi.fn(),
   checkRegisterRateLimit: vi.fn(),
   checkVerificationAttemptRateLimit: vi.fn(),

@@ -5,13 +5,13 @@ import { getAuthSecret } from "@/lib/auth/secret";
 import { RATE_LIMITED_SIGN_IN_CODE } from "@/lib/auth/sign-in-error-codes";
 import { DUMMY_PASSWORD } from "@/lib/constants";
 import { getActiveUserSubscription } from "@/lib/db/query/subscription/get-active-user-subscription";
-import { getClientIp } from "@/lib/http/client-ip";
+import type { User } from "@/server/db/schema";
+import { getClientIp } from "@/server/http/client-ip";
 import {
   beginLoginAttempt,
   recordFailedLogin,
   recordSuccessfulLogin,
-} from "@/lib/rate-limit";
-import type { User } from "@/server/db/schema";
+} from "@/server/http/rate-limit";
 import { getUserByEmail } from "../../lib/db/query/user/get-by-email";
 import { authConfig } from "./auth.config";
 

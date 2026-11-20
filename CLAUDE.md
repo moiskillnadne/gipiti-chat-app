@@ -51,9 +51,9 @@ pnpm exec tsx scripts/codemods/rewrite-imports.ts moves.json             # every
 pnpm format
 ```
 
-`moves.json` maps old paths to new ones (files or folders). The codemod covers `*.ts` and `*.tsx` only: paths in `package.json` scripts, configs and docs are changed by hand. Imports in `tests/characterization/` are deliberately not sorted by Biome, so that a move changes nothing there but the specifiers.
+`moves.json` maps old paths to new ones (files or folders). A folder entry counts as moved only when the old folder is gone: after moving its files one by one, remove the empty folder, or the codemod refuses to run. The codemod covers `*.ts` and `*.tsx` only: paths in `package.json` scripts, configs and docs are changed by hand. Imports in `tests/characterization/` are deliberately not sorted by Biome, so that a move changes nothing there but the specifiers.
 
-Moved so far: the database layer is `server/db/` (connection, schema, migrations, `migrate.ts`). The queries are still in `lib/db/query/` and move later, each with its domain.
+Moved so far: the database layer is `server/db/` (connection, schema, migrations, `migrate.ts`); the Redis client is `server/integrations/redis/client.ts`; rate limits, the client IP and `handleRouteError` are in `server/http/`; flags are `server/flags.ts`; the cron guard is `server/cron/`. The queries are still in `lib/db/query/` and move later, each with its domain.
 
 ## Architecture Overview
 
@@ -94,9 +94,9 @@ The route is a thin orchestrator; logic lives in `app/(chat)/api/chat/_lib/`:
 
 - NextAuth v5 Credentials (email/password), bcrypt-ts, dummy-password compare to prevent user enumeration; emails normalized (`lib/auth/`), unique on `lower(email)`.
 - JWT callbacks add `id`, `type`, `emailVerified`, `hasActiveSubscription`, `isTester` — these are **login-time snapshots**; read the DB for runtime tier decisions.
-- Registration → 6-digit email verification code via Resend; signup can be disabled by the `isSignupEnabled` Vercel Flag (`lib/flags.ts`).
+- Registration → 6-digit email verification code via Resend; signup can be disabled by the `isSignupEnabled` Vercel Flag (`server/flags.ts`).
 - A verification code is checked only against the account with the submitted email and dies after 5 checks (`lib/db/query/user/take-verification-attempt.ts`); a new code resets the counter.
-- Rate limits are in `lib/rate-limit.ts` (Upstash). The auth limiters (password reset, code resend, code check, login, sign-up) refuse the request in production when Upstash cannot be checked; chat and payment status let it through. The login and sign-up limits apply only when `VERCEL_ENV` is `production` or `preview`, because the e2e suite signs in with wrong passwords on purpose. Login limits live in `authorize` (`app/(auth)/auth.ts`).
+- Rate limits are in `server/http/rate-limit.ts` (Upstash). The auth limiters (password reset, code resend, code check, login, sign-up) refuse the request in production when Upstash cannot be checked; chat and payment status let it through. The login and sign-up limits apply only when `VERCEL_ENV` is `production` or `preview`, because the e2e suite signs in with wrong passwords on purpose. Login limits live in `authorize` (`app/(auth)/auth.ts`).
 - Sign-up refuses throwaway mailboxes (`lib/auth/disposable-email-domains.json`, a vendored list; delete a line to allow a domain).
 
 ### Client state
@@ -163,7 +163,7 @@ All require `Authorization: Bearer ${CRON_SECRET}`: `reset-quotas` (every 10 min
 
 ## Environment Variables
 
-See `.env.example` (`AUTH_SECRET`, `AI_GATEWAY_API_KEY`, `BLOB_READ_WRITE_TOKEN`, `POSTGRES_URL`, `REDIS_URL`, Resend vars, `NEXT_PUBLIC_APP_URL`, `FLAGS`/`FLAGS_SECRET`, `TAVILY_API_KEY`, `PROMPTS_SHEET_*`, `BLOG_PREVIEW_KEY`). Also needed but missing from the example: `CLOUDPAYMENTS_PUBLIC_ID`, `CLOUDPAYMENTS_API_SECRET`, `CRON_SECRET`. Redis (`lib/redis.ts`) accepts either `REDIS_URL` (+`REDIS_TOKEN`) or Upstash `KV_REST_API_URL` + `KV_REST_API_TOKEN`; without it resumable streams are disabled.
+See `.env.example` (`AUTH_SECRET`, `AI_GATEWAY_API_KEY`, `BLOB_READ_WRITE_TOKEN`, `POSTGRES_URL`, `REDIS_URL`, Resend vars, `NEXT_PUBLIC_APP_URL`, `FLAGS`/`FLAGS_SECRET`, `TAVILY_API_KEY`, `PROMPTS_SHEET_*`, `BLOG_PREVIEW_KEY`). Also needed but missing from the example: `CLOUDPAYMENTS_PUBLIC_ID`, `CLOUDPAYMENTS_API_SECRET`, `CRON_SECRET`. Redis (`server/integrations/redis/client.ts`) accepts either `REDIS_URL` (+`REDIS_TOKEN`) or Upstash `KV_REST_API_URL` + `KV_REST_API_TOKEN`; without it resumable streams are disabled.
 
 ## Common Gotchas
 

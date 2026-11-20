@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getClientIp, toRateLimitIpKey } from "@/lib/http/client-ip";
+import { getClientIp, toRateLimitIpKey } from "@/server/http/client-ip";
 
 const headersOf = (entries: Record<string, string>): Headers =>
   new Headers(entries);

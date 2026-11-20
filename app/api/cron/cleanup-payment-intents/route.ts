@@ -1,6 +1,6 @@
 import { and, eq, isNull, lte, or } from "drizzle-orm";
 
-import { isAuthorizedCronRequest } from "@/lib/cron/is-authorized-cron-request";
+import { isAuthorizedCronRequest } from "@/server/cron/is-authorized-cron-request";
 import { db } from "@/server/db/connection";
 import { paymentIntent } from "@/server/db/schema";
 

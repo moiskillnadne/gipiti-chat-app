@@ -1,6 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { LoginAttemptDecision, LoginIdentity } from "@/lib/rate-limit";
 import type { User } from "@/server/db/schema";
+import type {
+  LoginAttemptDecision,
+  LoginIdentity,
+} from "@/server/http/rate-limit";
 
 type CredentialsInput = { email: string; password: string };
 
@@ -58,7 +61,7 @@ vi.mock("@/lib/db/query/subscription/get-active-user-subscription", () => ({
 vi.mock("@/lib/db/query/user/get-by-email", () => ({
   getUserByEmail: getUserByEmailMock,
 }));
-vi.mock("@/lib/rate-limit", () => ({
+vi.mock("@/server/http/rate-limit", () => ({
   beginLoginAttempt: beginLoginAttemptMock,
   recordFailedLogin: recordFailedLoginMock,
   recordSuccessfulLogin: recordSuccessfulLoginMock,

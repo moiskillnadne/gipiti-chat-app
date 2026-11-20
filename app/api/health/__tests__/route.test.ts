@@ -13,11 +13,11 @@ const {
 }));
 
 vi.mock("@/server/db/connection", () => ({ db: { execute: executeMock } }));
-vi.mock("@/lib/redis", () => ({
+vi.mock("@/server/integrations/redis/client", () => ({
   getUpstashClient: () => ({ ping: pingMock }),
   isUpstashConfigured: isUpstashConfiguredMock,
 }));
-vi.mock("@/lib/rate-limit", () => ({
+vi.mock("@/server/http/rate-limit", () => ({
   isRateLimitingEnabled: isRateLimitingEnabledMock,
 }));
 
