@@ -1,18 +1,57 @@
-import { createGateway } from "@ai-sdk/gateway";
-import "dotenv/config";
+import { z } from "zod";
 
-type ModelType = "language" | "embedding" | "image";
+// The public catalog needs no API key. It is read directly because the
+// installed @ai-sdk/gateway validates `modelType` with a closed enum and
+// rejects the newer types (evaluation, realtime, extraction, reranking, speech,
+// transcription), so `getAvailableModels()` throws on the live catalog.
+const GATEWAY_MODELS_URL = "https://ai-gateway.vercel.sh/v1/models";
+
+// Open on purpose: a type the gateway adds later must not break the script.
+type ModelType = string;
+
+const gatewayModelSchema = z.object({
+  id: z.string(),
+  name: z.string().optional(),
+  description: z.string().optional(),
+  type: z.string(),
+  context_window: z.number().optional(),
+  max_tokens: z.number().optional(),
+  tags: z.array(z.string()).optional(),
+  // Present on language models; image and video models price differently.
+  pricing: z
+    .object({
+      input: z.string().optional(),
+      output: z.string().optional(),
+    })
+    .passthrough()
+    .optional(),
+});
+
+const gatewayResponseSchema = z.object({
+  data: z.array(gatewayModelSchema),
+});
 
 type GatewayModel = {
   id: string;
   name: string;
   description?: string;
   modelType: ModelType;
+  tags: string[];
+  contextWindow?: number;
+  maxOutputTokens?: number;
   pricing?: {
-    input: string;
-    output: string;
+    input?: string;
+    output?: string;
   };
 };
+
+// Types printed first, in this order; any other type follows alphabetically.
+const PREFERRED_TYPE_ORDER: ModelType[] = [
+  "language",
+  "embedding",
+  "image",
+  "video",
+];
 
 type FilterOptions = {
   provider?: string;
@@ -59,7 +98,7 @@ Usage: pnpm models:list [options]
 
 Options:
   --provider <name>   Filter by provider (openai, anthropic, google, xai, meta, etc.)
-  --type <type>       Filter by model type (language, embedding, image)
+  --type <type>       Filter by model type (language, embedding, image, video, ...)
   --tag <tag>         Filter by capability tag (reasoning, vision, tool-use, file-input)
   --help, -h          Show this help message
 
@@ -83,6 +122,9 @@ const filterModels = (
     if (options.type && model.modelType !== options.type) {
       return false;
     }
+    if (options.tag && !model.tags.includes(options.tag)) {
+      return false;
+    }
     return true;
   });
 };
@@ -100,6 +142,16 @@ const formatPrice = (price: string | undefined): string => {
     return `$${(num * 1_000_000).toFixed(3)}/M`;
   }
   return `$${perThousand.toFixed(4)}/K`;
+};
+
+// The catalog reports 0 for models without a token window (image, video).
+const formatTokenCount = (tokens: number | undefined): string => {
+  if (!tokens) {
+    return "N/A";
+  }
+  return tokens >= 1_000_000
+    ? `${(tokens / 1_000_000).toFixed(1)}M`
+    : `${Math.round(tokens / 1000)}K`;
 };
 
 const padRight = (str: string, length: number): string => {
@@ -122,15 +174,15 @@ const printTable = (models: GatewayModel[], title: string) => {
   }
 
   console.log(
-    `  ${padRight("ID", 35)} ${padRight("Name", 25)} ${padRight("Context", 10)} ${padRight("Max Out", 10)} ${padRight("Input Price", 12)}`
+    `  ${padRight("ID", 48)} ${padRight("Name", 25)} ${padRight("Context", 10)} ${padRight("Max Out", 10)} ${padRight("Input Price", 12)}`
   );
   console.log(`  ${divider}`);
 
   for (const model of models) {
-    const id = padRight(model.id, 35);
+    const id = padRight(model.id, 48);
     const name = padRight(model.name || "N/A", 25);
-    const context = padRight("N/A", 10);
-    const maxOut = padRight("N/A", 10);
+    const context = padRight(formatTokenCount(model.contextWindow), 10);
+    const maxOut = padRight(formatTokenCount(model.maxOutputTokens), 10);
     const inputPrice = padRight(formatPrice(model.pricing?.input), 12);
 
     console.log(`  ${id} ${name} ${context} ${maxOut} ${inputPrice}`);
@@ -139,21 +191,55 @@ const printTable = (models: GatewayModel[], title: string) => {
 
 const groupModelsByType = (
   models: GatewayModel[]
-): Record<ModelType, GatewayModel[]> => {
-  const groups: Record<ModelType, GatewayModel[]> = {
-    language: [],
-    embedding: [],
-    image: [],
-  };
+): Map<ModelType, GatewayModel[]> => {
+  const groups = new Map<ModelType, GatewayModel[]>();
 
   for (const model of models) {
-    const type = model.modelType || "language";
-    if (groups[type]) {
-      groups[type].push(model);
-    }
+    const group = groups.get(model.modelType) ?? [];
+    group.push(model);
+    groups.set(model.modelType, group);
   }
 
-  return groups;
+  const orderOf = (type: ModelType): number => {
+    const index = PREFERRED_TYPE_ORDER.indexOf(type);
+    return index === -1 ? PREFERRED_TYPE_ORDER.length : index;
+  };
+
+  return new Map(
+    [...groups.entries()].sort(
+      ([typeA], [typeB]) =>
+        orderOf(typeA) - orderOf(typeB) || typeA.localeCompare(typeB)
+    )
+  );
+};
+
+const fetchGatewayModels = async (): Promise<GatewayModel[]> => {
+  const response = await fetch(GATEWAY_MODELS_URL);
+  if (!response.ok) {
+    throw new Error(
+      `AI Gateway returned ${response.status} ${response.statusText} for ${GATEWAY_MODELS_URL}`
+    );
+  }
+
+  const parsed = gatewayResponseSchema.safeParse(await response.json());
+  if (!parsed.success) {
+    throw new Error(
+      `Unexpected AI Gateway catalog shape: ${parsed.error.message}`
+    );
+  }
+
+  return parsed.data.data.map((model) => ({
+    id: model.id,
+    name: model.name ?? model.id,
+    description: model.description,
+    modelType: model.type,
+    tags: model.tags ?? [],
+    contextWindow: model.context_window,
+    maxOutputTokens: model.max_tokens,
+    pricing: model.pricing
+      ? { input: model.pricing.input, output: model.pricing.output }
+      : undefined,
+  }));
 };
 
 const main = async () => {
@@ -164,55 +250,25 @@ const main = async () => {
     process.exit(0);
   }
 
-  const apiKey = process.env.AI_GATEWAY_API_KEY;
-  if (!apiKey) {
-    console.error("Error: AI_GATEWAY_API_KEY environment variable is not set");
-    console.error("\nSet it in your .env.local file or pass it inline:");
-    console.error("  AI_GATEWAY_API_KEY=your_key pnpm models:list");
-    process.exit(1);
-  }
-
   console.log("\nFetching models from Vercel AI Gateway...");
 
   try {
-    const gateway = createGateway({ apiKey });
-    const { models } = await gateway.getAvailableModels();
-
-    const gatewayModels: GatewayModel[] = models.map((m) => ({
-      id: m.id,
-      name: m.name,
-      description: m.description ?? undefined,
-      modelType: m.modelType as ModelType,
-      pricing: m.pricing
-        ? {
-            input: m.pricing.input,
-            output: m.pricing.output,
-          }
-        : undefined,
-    }));
+    const gatewayModels = await fetchGatewayModels();
 
     const filteredModels = filterModels(gatewayModels, options);
 
     console.log(`\n${"═".repeat(100)}`);
     console.log("  VERCEL AI GATEWAY MODELS");
     console.log(
-      `  Total: ${filteredModels.length} models${options.provider ? ` (provider: ${options.provider})` : ""}${options.type ? ` (type: ${options.type})` : ""}`
+      `  Total: ${filteredModels.length} models${options.provider ? ` (provider: ${options.provider})` : ""}${options.type ? ` (type: ${options.type})` : ""}${options.tag ? ` (tag: ${options.tag})` : ""}`
     );
     console.log(`${"═".repeat(100)}`);
 
     if (options.type) {
       printTable(filteredModels, options.type.toUpperCase());
     } else {
-      const grouped = groupModelsByType(filteredModels);
-
-      if (grouped.language.length > 0) {
-        printTable(grouped.language, "LANGUAGE MODELS");
-      }
-      if (grouped.embedding.length > 0) {
-        printTable(grouped.embedding, "EMBEDDING MODELS");
-      }
-      if (grouped.image.length > 0) {
-        printTable(grouped.image, "IMAGE MODELS");
+      for (const [type, models] of groupModelsByType(filteredModels)) {
+        printTable(models, `${type.toUpperCase()} MODELS`);
       }
     }
 
