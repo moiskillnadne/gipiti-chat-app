@@ -1,6 +1,6 @@
 ---
 date: 2026-11-19
-status: accepted
+status: done
 branch: chore/gipiti-233-move-tooling
 issue: GIPITI-233
 ---
@@ -132,3 +132,28 @@ Roadmap: Phase 3 status, the mapping table rows that P2 to P4 change, the Phase 
 - Preview checks listed under PRs 2, 3 and 4, from a browser signed in to Vercel.
 - After each merge: the production deployment is READY and the runtime log has no errors in the following hour (Vercel MCP `list_deployments`, `get_runtime_logs`); `/api/health` answers 200.
 - Rollback: revert the single PR; for a failed production deploy after PR 3, roll back to the previous deployment first.
+
+## Implementation notes (2026-11-19)
+
+Done: PR #294 (tooling and this plan), #295 (3b: the kit, `GET /api/v1/{config,models,plans,me,openapi.json}`), #296 (3a-1: the database layer in `server/db`), #297 (3a-2: Redis, rate limits, client IP, the route error handler, flags and the cron guard in `server/`). GIPITI-233.
+
+Where the work departed from this plan:
+
+- **P7 was narrowed.** The plan said every request with an `Authorization` header gets 401. As built, only a procedure that identifies the caller does that (`/plans`, `/me`). `/config`, `/models` and `/openapi.json` read no credentials, so a mobile client with a stale token can still fetch its config, which is where a forced update will be announced. Found by the review of #295; tests pin both sides.
+- **`/models` resolves names and descriptions to text.** The registry stores translation keys (`grok47.name`) and the web resolves them in the browser; an API client has no dictionary. Found on the local production build, not foreseen in the plan.
+- **HEAD is answered like GET, without the body.** No procedure is declared for HEAD, so the router alone answered 404 for a path that GET serves. Found by the review.
+- **A 5xx that oRPC raises itself is replaced by the plain 500.** Its message ("Output validation failed") passed through the error table. A 5xx that a contract declares still passes. Found by the review.
+- **`guards/require-auth.ts` was not written.** The required-principal check is a middleware in `_kit/middleware.ts` over `guards/principal.ts`; a second guard file had nothing of its own to hold.
+- **S14 was not run.** The agent's environment refused to download and build `swift-openapi-generator`, and no generator is installed. Recorded as open item 4 in `spike-findings.md`, with what the document already shows: both open enums are emitted as `type: string` with no `enum` keyword.
+- **P10 needed only the Biome override.** Turning import sorting off for `tests/characterization/**/*.test.ts` in `biome.jsonc` works in Biome 2.2.2, so the diff guard was not changed.
+- **The codemod counts.** 3a-1: 235 specifiers in 140 files, 101 files moved (the dry run before #295 said 230 in 137). 3a-2: 47 specifiers in 31 files, 9 files moved. `proxy.ts` keeps relative imports, so its one changed line was put back by hand as `./server/flags`.
+- **A folder entry in the move map needs the old folder gone.** After moving files of `lib/http` one by one the empty folder stayed and the codemod refused to run. Noted in `CLAUDE.md` under "Moving files".
+- **PR 4 was prepared on top of PR 3 and opened after it merged**, as one cherry-picked commit on a fresh branch from `main`, so that no PR was ever based on another PR's branch.
+- **The login-limit check on the preview for PR 4 was lighter than planned.** Not eleven wrong passwords, which spend the login budget of the owner's own address in the shared Upstash, but: `/api/health` reports Redis up and rate limiting enabled, one wrong-password sign-in goes through `authorize` and its limiter and answers "invalid credentials", the flags endpoint and a cron route answer 401 without their secrets, and a route that uses `handleRouteError` answers its 401. `rate-limit.ts` differs from the old file in import lines only, and its unit tests moved with it and pass.
+
+Verified in production after #295 and #296: the deployment is READY, the build log shows `tsx server/db/migrate && next build` and `Migrations completed`, `/api/health` reports the database and Redis up, `/api/v1/config`, `/plans` and `/me` (signed in) answer 200, an unknown path answers the 404 envelope, and the runtime log of each deployment has no error records.
+
+Left open:
+
+- **The Vercel Firewall and `/api/v1/*`** (owner): production answers some non-browser requests with a challenge page. To settle before the first request from the mobile app.
+- **S14**, before the first generated build of the mobile client.
