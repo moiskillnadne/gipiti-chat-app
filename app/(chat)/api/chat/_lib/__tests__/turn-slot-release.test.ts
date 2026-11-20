@@ -50,6 +50,7 @@ vi.mock("@/lib/ai/models", () => ({
   isAutoReasoning: () => false,
   isGoogleModel: () => false,
   isReasoningModelId: () => false,
+  supportsPdfInput: () => true,
   supportsThinkingConfig: () => false,
   supportsToolCalling: () => false,
   normalizeAspectRatio: (aspectRatio?: string) => aspectRatio,

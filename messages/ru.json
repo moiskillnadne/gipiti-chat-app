@@ -813,10 +813,12 @@
       "attachPhotoDesc": "PNG · JPG · WebP · до 10 МБ",
       "attachDocument": "Документ",
       "attachDocumentDesc": "PDF · DOCX · CSV",
+      "attachDocumentNoPdfDesc": "DOCX · CSV · эта модель не читает PDF",
       "attachCode": "Код или текст",
       "attachCodeDesc": "MD · TXT · TS · JS · JSON",
       "uploadTooLarge": "Файл больше 10 МБ — выберите файл поменьше.",
       "uploadUnsupportedType": "Поддерживаются JPEG, PNG, PDF, DOCX, CSV, MD, TXT и файлы с кодом.",
+      "pdfNotSupported": "Эта модель не читает PDF — файл не прикреплён. Выберите другую модель или вставьте текст.",
       "uploadTruncated": "Файл «{name}» очень большой: модель увидит только его начало (около 200 000 символов).",
       "kbdHintSend": "отправить",
       "kbdHintNewLine": "новая строка",
@@ -1421,17 +1423,25 @@
       "name": "Grok 4.3",
       "description": "Модель xAI с продвинутыми рассуждениями, работой с инструментами и поддержкой изображений."
     },
+    "gpt62Sol": {
+      "name": "GPT-6.2 Sol",
+      "description": "Рассуждающая модель OpenAI нового поколения: текст, изображения и инструменты, контекст около миллиона токенов."
+    },
+    "gpt62Astra": {
+      "name": "GPT-6.2 Astra",
+      "description": "Самая мощная модель OpenAI поколения GPT-6.2 — для сложного кода, профессиональных задач и работы с документами."
+    },
     "gpt61Terra": {
       "name": "GPT-6.1 Terra",
       "description": "Быстрая и экономичная модель OpenAI: работа с изображениями, точное управление компьютером и естественные тексты."
     },
     "gpt61Sol": {
       "name": "GPT-6.1 Sol",
-      "description": "Обновлённый флагман GPT-6 — сложный код, агентные задачи и контекст на миллион токенов по той же цене."
+      "description": "Сложный код, агентные задачи и контекст на миллион токенов — версия поколения GPT-6.1."
     },
     "gpt6Astra": {
       "name": "GPT-6 Astra",
-      "description": "Самая мощная и дорогая модель OpenAI — для сложных рассуждений, кода, исследований и работы с документами."
+      "description": "Мощная модель OpenAI поколения GPT-6 для сложных рассуждений, кода, исследований и работы с документами."
     },
     "gpt6Sol": {
       "name": "GPT-6 Sol",
@@ -1469,9 +1479,21 @@
       "name": "GPT-Codex 5.3",
       "description": "Специализированная модель OpenAI для кода с продвинутой генерацией и рассуждениями."
     },
+    "gemini4Neon": {
+      "name": "Gemini 4 Neon",
+      "description": "Быстрая мультимодальная модель Google с рассуждениями — для кода, агентных и сложных задач."
+    },
+    "gemini4Hydrogen": {
+      "name": "Gemini 4 Hydrogen",
+      "description": "Быстрая мультимодальная модель Google для рассуждений, кода и агентных сценариев."
+    },
+    "gemini4Carbon": {
+      "name": "Gemini 4 Carbon",
+      "description": "Рассуждающая модель Google для сложной разработки и длинных агентных сценариев: контекст до миллиона токенов."
+    },
     "gemini4Argon": {
       "name": "Gemini 4 Argon",
-      "description": "Новая модель Google для кода, агентных задач и сложных рассуждений: контекст до миллиона токенов и уровни глубины мышления."
+      "description": "Модель Google для кода, агентных задач и сложных рассуждений: контекст до миллиона токенов и уровни глубины мышления."
     },
     "gemini31Pro": {
       "name": "Gemini 3.1 Pro",
@@ -1479,7 +1501,7 @@
     },
     "gemini38Flash": {
       "name": "Gemini 3.8 Flash",
-      "description": "Новейшая быстрая модель Google: уровень Pro в агентных задачах и генерации кода при высокой скорости."
+      "description": "Быстрая модель Google: уровень Pro в агентных задачах и генерации кода при высокой скорости."
     },
     "gemini37Flash": {
       "name": "Gemini 3.7 Flash",
@@ -1496,6 +1518,10 @@
     "gemini35FlashLite": {
       "name": "Gemini 3.5 Flash Lite",
       "description": "Самая экономичная модель Google с рассуждениями — для простых и объёмных задач."
+    },
+    "fable52": {
+      "name": "Fable 5.2",
+      "description": "Версия Fable 5.2 — премиальная модель Anthropic для агентного программирования, работы со знаниями и исследований."
     },
     "fable51": {
       "name": "Fable 5.1",
@@ -1557,6 +1583,10 @@
       "name": "Kimi K3 Fast",
       "description": "Быстрая версия флагмана Moonshot AI: длинные задачи по программированию и контекст до миллиона токенов."
     },
+    "qwen4Max": {
+      "name": "Qwen 4 Max",
+      "description": "Флагман Alibaba нового поколения: программирование, агентные задачи и изображения."
+    },
     "qwen38MaxPrime": {
       "name": "Qwen 3.8 Max Prime",
       "description": "Быстрый вариант флагмана Alibaba: контекст до миллиона токенов, изображения и агентные сценарии."
@@ -1572,6 +1602,10 @@
     "qwen37Flash": {
       "name": "Qwen 3.7 Flash",
       "description": "Быстрая мультимодальная модель Alibaba прошлого поколения: текст, изображения и агентные сценарии по низкой цене."
+    },
+    "museEmber": {
+      "name": "Meta Muse Ember",
+      "description": "Мультимодальная модель Meta для диалогов и агентных задач: текст, изображения, документы и контекст около миллиона токенов."
     },
     "museWonder10": {
       "name": "Meta Muse Wonder 1.0",
@@ -1633,13 +1667,21 @@
       "name": "Grok Imagine",
       "description": "Быстрая генерация изображений от xAI."
     },
+    "gptImage26Sunburst": {
+      "name": "GPT Image 2.6 Sunburst",
+      "description": "Новая модель OpenAI с упором на точное редактирование: правки по описанию без потери деталей."
+    },
+    "gptImage26Flare": {
+      "name": "GPT Image 2.6 Flare",
+      "description": "Новая модель OpenAI для быстрой повседневной генерации изображений высокого качества."
+    },
     "gptImage25Flare": {
       "name": "GPT Image 2.5 Flare",
-      "description": "Новейшая модель OpenAI для быстрой повседневной генерации изображений высокого качества."
+      "description": "Модель OpenAI для быстрой повседневной генерации изображений высокого качества."
     },
     "gptImage25Sunburst": {
       "name": "GPT Image 2.5 Sunburst",
-      "description": "Новейшая модель OpenAI с упором на точное редактирование: правки по описанию без потери деталей."
+      "description": "Модель OpenAI с упором на точное редактирование: правки по описанию без потери деталей."
     },
     "gptImage2": {
       "name": "GPT Image 2",
@@ -1657,6 +1699,10 @@
       "name": "Grok Imagine Video",
       "description": "Модель xAI для генерации видео. Оживляет вашу картинку в короткий ролик со звуком по описанию."
     },
+    "grokImagineVideoLite": {
+      "name": "Grok Imagine Video Lite",
+      "description": "Облегчённая видеомодель xAI: ролики со звуком в 480p или 720p по описанию или из изображения."
+    },
     "klingV30T2v": {
       "name": "Kling 3.0",
       "description": "Флагманская модель Kling AI для генерации видео. Создаёт 5-секундные кинематографичные видео с озвучкой по текстовому описанию."
@@ -1672,6 +1718,10 @@
     "klingV25TurboT2v": {
       "name": "Kling 2.5 Turbo",
       "description": "Быстрая и доступная модель Kling AI. Создаёт 5-секундные видео по текстовому описанию."
+    },
+    "seedance25Flash": {
+      "name": "Seedance 2.5 Flash",
+      "description": "Быстрая версия Seedance 2.5 от ByteDance: ролики 720p со звуком по описанию или из изображения."
     },
     "seedance25": {
       "name": "Seedance 2.5",
@@ -1697,6 +1747,10 @@
       "name": "Flux 3 Image",
       "description": "Флагманская модель Black Forest Labs: генерация изображений и точное редактирование в одной модели."
     },
+    "flux3ImageKlein": {
+      "name": "Flux 3 Image Klein",
+      "description": "Компактная и быстрая модель Black Forest Labs: генерация и редактирование изображений."
+    },
     "flux2Max": {
       "name": "Flux 2 Max",
       "description": "Высококачественная генерация изображений от Black Forest Labs."
@@ -1709,6 +1763,14 @@
       "name": "Recraft v4.1 Pro",
       "description": "Генерация изображений с художественными стилями."
     },
+    "recraftV41Flash": {
+      "name": "Recraft v4.1 Flash",
+      "description": "Быстрая и недорогая генерация изображений по описанию от Recraft."
+    },
+    "seedream55": {
+      "name": "Seedream 5.5",
+      "description": "Новая модель ByteDance для изображений: реалистичные сцены и точное редактирование."
+    },
     "seedream50Pro": {
       "name": "Seedream 5.0 Pro",
       "description": "Старшая модель ByteDance для изображений: сложные реалистичные сцены и точное редактирование."
@@ -1720,6 +1782,14 @@
     "seedream45": {
       "name": "Seedream 4.5",
       "description": "Модель ByteDance для генерации и редактирования изображений с сохранением деталей, света и цвета."
+    },
+    "maiImage27": {
+      "name": "MAI-Image 2.7",
+      "description": "Модель Microsoft AI для генерации и редактирования изображений: формат на выбор — квадрат, 16:9 или 9:16."
+    },
+    "maiImage27Flash": {
+      "name": "MAI-Image 2.7 Flash",
+      "description": "Быстрая и более дешёвая версия MAI-Image 2.7: формат на выбор — квадрат, 16:9 или 9:16."
     },
     "maiImage26": {
       "name": "MAI-Image 2.6",

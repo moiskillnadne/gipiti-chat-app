@@ -35,6 +35,7 @@ vi.mock("@/lib/ai/models", () => ({
   getOpenAIImageGatewayModelId: (modelId: string) => modelId,
   isDedicatedImageModel: isDedicatedImageModelMock,
   isOpenAIImageModel: () => false,
+  supportsAttachments: () => true,
 }));
 vi.mock("@/lib/ai/providers", () => ({
   myProvider: { languageModel: (modelId: string) => ({ modelId }) },

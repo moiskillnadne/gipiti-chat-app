@@ -23,7 +23,11 @@ import { useModel } from "@/contexts/model-context";
 import { useWebSearch } from "@/contexts/web-search-context";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSpendBanner } from "@/hooks/use-spend-banner";
-import { supportsAttachments, supportsToolCalling } from "@/lib/ai/models";
+import {
+  supportsAttachments,
+  supportsPdfInput,
+  supportsToolCalling,
+} from "@/lib/ai/models";
 import { formatFileSize } from "@/lib/attachments/attachment-display";
 import { MAX_ATTACHMENT_NAME_LENGTH } from "@/lib/attachments/attachment-limits";
 import { readInputDraft, writeInputDraft } from "@/lib/chat/input-draft";
@@ -105,6 +109,7 @@ function PureMultimodalInput({
   const { currentModelId } = useModel();
   const { isWebSearchEnabled, toggleWebSearch } = useWebSearch();
   const canAttachFiles = supportsAttachments(currentModelId);
+  const isPdfSupported = supportsPdfInput(currentModelId);
   // Tool-less models (Perplexity Sonar) have search built in — the Tavily
   // web-search toggle would be dead UI for them.
   const canUseTools = supportsToolCalling(currentModelId);
@@ -263,15 +268,32 @@ function PureMultimodalInput({
     [setAttachments, uploadFile]
   );
 
+  // A model that rejects PDFs must not receive one, however it was added.
+  const dropUnsupportedPdfs = useCallback(
+    (files: File[]): File[] => {
+      if (isPdfSupported) {
+        return files;
+      }
+      const acceptedFiles = files.filter(
+        (file) => file.type !== "application/pdf"
+      );
+      if (acceptedFiles.length < files.length) {
+        toast.warning(tInput("pdfNotSupported"));
+      }
+      return acceptedFiles;
+    },
+    [isPdfSupported, tInput]
+  );
+
   const handleFileChange = useCallback(
     async (event: ChangeEvent<HTMLInputElement>) => {
-      const files = Array.from(event.target.files || []);
+      const files = dropUnsupportedPdfs(Array.from(event.target.files || []));
       await processFileList(files);
       if (event.target) {
         event.target.value = "";
       }
     },
-    [processFileList]
+    [dropUnsupportedPdfs, processFileList]
   );
 
   const handleAttachPick = useCallback((accept: string) => {
@@ -331,10 +353,12 @@ function PureMultimodalInput({
       event.preventDefault();
       dragCounterRef.current = 0;
       setIsDragging(false);
-      const files = Array.from(event.dataTransfer?.files ?? []);
+      const files = dropUnsupportedPdfs(
+        Array.from(event.dataTransfer?.files ?? [])
+      );
       await processFileList(files);
     },
-    [canAttachFiles, processFileList]
+    [canAttachFiles, dropUnsupportedPdfs, processFileList]
   );
 
   const isStreaming = status === "submitted" || status === "streaming";
@@ -447,6 +471,7 @@ function PureMultimodalInput({
         <div className="flex items-center gap-1 px-2.5 pt-2 pb-2.5">
           <AttachMenu
             disabled={status !== "ready" || !canAttachFiles}
+            isPdfSupported={isPdfSupported}
             onPick={handleAttachPick}
           />
           {canUseTools && (
