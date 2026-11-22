@@ -115,12 +115,14 @@ Module (`server/modules/auth/`):
 - `access-token.ts`: sign and verify with `jose` (already pinned at 6.2.17): HS256, header `kid`, claims `sub`, `sid`, `ver`, `iss`, `aud`, 15 minutes; verification also accepts `API_TOKEN_SECRET_PREVIOUS` (P15).
 - `sessions.ts` and `queries/`: `issueTokenPair` (creates the `AuthSession` and the first `RefreshToken`; 60-day sliding, 180-day absolute), `rotateRefreshToken` (one transaction, row lock on the session; P11), `revokeSession`, `revokeAllSessions` (with the version bump), `listSessions`, `resolveBearerSession` (verify, then one query for the session and the user's version; `last_used_at` written at most every 5 minutes).
 - The refresh token is 32 random bytes in base64url, stored through the existing `hashToken`.
+- From the review of this PR: a session (web cookie or API) is stamped with the token version read together with the credentials (`Account.tokenVersion`), and `createAuthSession` locks the account's row and refuses when the version has moved on, so a sign-in in flight during a password reset cannot outlive it; an account keeps at most 20 live sessions; a used refresh token that comes back is treated as a copy even after its expiry, and used tokens are kept as long as their session; the token secret is checked before a session or a rotation is written.
 
 Kit:
 
 - `guards/principal.ts`: a `Bearer` header is verified and never falls back to the cookie; an invalid one is 401; any other `Authorization` scheme is 401. Otherwise the cookie (P10).
-- `guards/csrf.ts` and its use in `middleware.ts` (P9).
-- `_kit/openapi.ts`: the `bearerAuth` security scheme. `common-errors.ts`: `TOO_MANY_REQUESTS`, `SERVICE_UNAVAILABLE`, and `UNAUTHORIZED` with an open-enum `data.reason`.
+- `guards/csrf.ts` and its use in `middleware.ts` (P9); a refusal is `FORBIDDEN` with `data.reason: "cross_site_request"`. The principal middlewares put a reason on every 401 too (`not_authenticated`, `invalid_token`, `unsupported_authorization`).
+- `_kit/openapi.ts`: the `bearerAuth` security scheme. `common-errors.ts`: `FORBIDDEN`, `TOO_MANY_REQUESTS`, `SERVICE_UNAVAILABLE`. The `UNAUTHORIZED` with an open-enum `data.reason` is declared by the auth contract itself (`v1/_schemas/auth.ts`), so `/me` and `/plans` keep the plain one.
+- `authenticateCredentials` tells `limiter_unavailable` apart from `rate_limited` (503 and 429 on the wire; the web form shows one message for both, as before). `/me`'s loader moves to `v1/me/load-me.ts`, shared with login.
 
 Endpoints (`server/api/v1/auth/{contract,router}.ts`, `auth/sessions/`, `_schemas/auth.ts`, a mapper):
 
@@ -128,7 +130,7 @@ Endpoints (`server/api/v1/auth/{contract,router}.ts`, `auth/sessions/`, `_schema
 |---|---|---|---|
 | `POST /auth/login` | none | 200 `{ user: Me, tokens }` | `UNAUTHORIZED/invalid_credentials`, `TOO_MANY_REQUESTS`, `SERVICE_UNAVAILABLE` |
 | `POST /auth/refresh` | refresh token in the body | 200 `{ tokens }` | `UNAUTHORIZED/{refresh_invalid,refresh_expired,session_revoked,refresh_reused}` |
-| `POST /auth/logout` | bearer | 204 | idempotent |
+| `POST /auth/logout` | bearer | 204 | idempotent; `UNAUTHORIZED/bearer_required` for a browser session |
 | `POST /auth/logout-all` | bearer or cookie | 204 | a cookie caller is signed out too |
 | `GET /auth/sessions` | bearer or cookie | 200 `{ items }` with `isCurrent` | mobile sessions only |
 | `DELETE /auth/sessions/{sessionId}` | bearer or cookie | 204 | `NOT_FOUND` (also for another user's session) |

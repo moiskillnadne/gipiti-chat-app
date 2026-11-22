@@ -1,3 +1,4 @@
+import { authContract } from "@/server/api/v1/auth/contract";
 import { configContract } from "@/server/api/v1/config/contract";
 import { meContract } from "@/server/api/v1/me/contract";
 import { modelsContract } from "@/server/api/v1/models/contract";
@@ -14,6 +15,7 @@ export const v1Contract = {
   models: modelsContract,
   plans: plansContract,
   me: meContract,
+  auth: authContract,
 };
 
 export const V1_PREFIX = "/api/v1";

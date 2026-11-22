@@ -66,7 +66,11 @@ export const {
           ip: request?.headers ? getClientIp(request.headers) : null,
         });
 
-        if (result.status === "rate_limited") {
+        // The form shows one message for both: try again later.
+        if (
+          result.status === "rate_limited" ||
+          result.status === "limiter_unavailable"
+        ) {
           throw new RateLimitedSignin();
         }
         if (result.status === "invalid_credentials") {
@@ -87,6 +91,9 @@ export const {
           emailVerified: userRecord.emailVerified,
           hasActiveSubscription: subscription !== null,
           isTester: userRecord.isTester,
+          // Read together with the password hash that was just checked; the
+          // `jwt` callback stamps the session with it.
+          tokenVersion: userRecord.tokenVersion,
         };
       },
     }),
@@ -100,9 +107,16 @@ export const {
         token.hasActiveSubscription = (user.hasActiveSubscription ??
           false) as boolean;
         token.isTester = (user.isTester ?? false) as boolean;
-        // The session records the token version it is issued under, read
-        // from the database: the cached number may be behind it.
-        token.ver = (await getTokenVersionForNewSession(token.id)) ?? 0;
+        // The session records the token version it is issued under: the one
+        // `authorize` read together with the password hash it checked. If
+        // the password was reset while this sign-in was in flight, the
+        // account has moved on and this session is refused on first use; a
+        // number read now would let a sign-in with the old password survive
+        // the reset.
+        token.ver =
+          user.tokenVersion ??
+          (await getTokenVersionForNewSession(token.id)) ??
+          0;
       } else if (!(await isSessionVersionCurrent(token))) {
         // The account's token version moved on since this session was issued
         // (a password reset, "log out everywhere"), or the account is gone.

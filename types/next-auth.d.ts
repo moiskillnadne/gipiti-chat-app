@@ -21,6 +21,8 @@ declare module "next-auth" {
     emailVerified: boolean;
     hasActiveSubscription: boolean;
     isTester: boolean;
+    /** The account's token version as `authorize` read it. */
+    tokenVersion?: number;
   }
 }
 
