@@ -413,6 +413,7 @@ export const MoreIcon = ({ size = 16 }: { size?: number }) => {
 export const TrashIcon = ({ size = 16 }: { size?: number }) => {
   return (
     <svg
+      aria-hidden="true"
       height={size}
       strokeLinejoin="round"
       style={{ color: "currentcolor" }}
@@ -737,6 +738,7 @@ export const SummarizeIcon = ({ size = 16 }: { size?: number }) => (
 
 export const SidebarLeftIcon = ({ size = 16 }: { size?: number }) => (
   <svg
+    aria-hidden="true"
     height={size}
     strokeLinejoin="round"
     style={{ color: "currentcolor" }}

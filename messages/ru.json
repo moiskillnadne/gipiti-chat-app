@@ -55,7 +55,8 @@
     "accessibility": {
       "scrollToBottom": "Прокрутить вниз",
       "resizeConsole": "Изменить размер консоли",
-      "toggleSidebar": "Переключить боковую панель",
+      "openSidebar": "Открыть боковую панель",
+      "closeSidebar": "Скрыть боковую панель",
       "previous": "Предыдущий",
       "next": "Следующий",
       "newChat": "Новый чат",
@@ -335,7 +336,9 @@
           "adjustment": "Корректировка"
         },
         "pagination": {
-          "showing": "Показано {start}-{end} из {total}"
+          "showing": "Показано {start}-{end} из {total}",
+          "previousPage": "Предыдущая страница",
+          "nextPage": "Следующая страница"
         }
       },
       "balance": {
@@ -1946,6 +1949,7 @@
     "title": "Найдите промпт",
     "titleEm": "под задачу",
     "searchPlaceholder": "Опишите задачу или ищите по теме, тегу, модели…",
+    "clearSearch": "Очистить поиск",
     "tabFavorites": "Избранное",
     "tabAll": "Все",
     "categoryText": "Текст",

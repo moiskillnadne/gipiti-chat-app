@@ -84,7 +84,10 @@ export function AppSidebar({ user }: { user: User | undefined }) {
             {user && (
               <Tooltip>
                 <TooltipTrigger asChild>
+                  {/* The tooltip repeats the name, so it must not also become the description */}
                   <Button
+                    aria-describedby={undefined}
+                    aria-label={t("deleteAllChats")}
                     className="size-[26px] rounded-sm p-0 text-ink-3 hover:bg-paper-3 hover:text-ink"
                     onClick={() => setShowDeleteAllDialog(true)}
                     type="button"

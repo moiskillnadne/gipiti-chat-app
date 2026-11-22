@@ -72,20 +72,22 @@ export function TokenHistoryTable() {
           </p>
           <div className="flex gap-2">
             <Button
+              aria-label={t("pagination.previousPage")}
               disabled={page === 0}
               onClick={() => goToPage(Math.max(0, page - 1))}
               size="sm"
               variant="outline"
             >
-              <ChevronLeftIcon className="h-4 w-4" />
+              <ChevronLeftIcon aria-hidden className="h-4 w-4" />
             </Button>
             <Button
+              aria-label={t("pagination.nextPage")}
               disabled={!data?.hasMore}
               onClick={() => goToPage(page + 1)}
               size="sm"
               variant="outline"
             >
-              <ChevronRightIcon className="h-4 w-4" />
+              <ChevronRightIcon aria-hidden className="h-4 w-4" />
             </Button>
           </div>
         </div>

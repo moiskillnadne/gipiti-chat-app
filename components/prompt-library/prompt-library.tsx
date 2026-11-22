@@ -199,11 +199,12 @@ export function PromptLibrary() {
         />
         {query ? (
           <button
+            aria-label={t("clearSearch")}
             className="inline-flex size-6 items-center justify-center rounded-full text-ink-3 transition-colors duration-fast ease-canon hover:bg-paper-2 hover:text-ink"
             onClick={() => updateQuery("")}
             type="button"
           >
-            <X className="size-3.5" />
+            <X aria-hidden className="size-3.5" />
           </button>
         ) : null}
       </div>
