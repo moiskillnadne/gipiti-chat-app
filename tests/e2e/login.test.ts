@@ -310,7 +310,7 @@ test.describe("Login Page", () => {
         "aria-describedby",
         "login-form-error"
       );
-      await expect(loginPage.emailInput).toBeFocused();
+      await expect(loginPage.passwordInput).toBeFocused();
 
       // Outlives the 4-second toast it replaced.
       await page.waitForTimeout(5000);
