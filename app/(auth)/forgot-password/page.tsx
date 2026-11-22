@@ -6,16 +6,23 @@ import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import { AuthPageHeader } from "@/components/auth-page-header";
 import { AuthPageLayout } from "@/components/auth-page-layout";
+import { FormError } from "@/components/form-error";
 import { SubmitButton } from "@/components/submit-button";
 import { toast } from "@/components/toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useTranslations } from "@/lib/i18n/translate";
 
+import { getForgotPasswordFormError } from "../_lib/form-errors";
+import { useAuthFormError } from "../_lib/use-auth-form-error";
 import {
   type ForgotPasswordActionState,
   requestPasswordReset,
 } from "../actions";
+
+const EMAIL_FIELD_ID = "email";
+const FORGOT_PASSWORD_FIELD_IDS = { email: EMAIL_FIELD_ID } as const;
+const FORGOT_PASSWORD_ERROR_ID = "forgot-password-form-error";
 
 // No `<Suspense>` here: the form must be part of the first HTML chunk. Under a
 // boundary that suspends on the server, React streams the form into a hidden
@@ -23,49 +30,31 @@ import {
 // the swap, renders a second copy on the client (GIPITI-229).
 export default function Page() {
   const t = useTranslations("auth.forgotPassword");
-  const tErrors = useTranslations("auth.errors");
   const router = useRouter();
 
   const [email, setEmail] = useState("");
   const [isSuccessful, setIsSuccessful] = useState(false);
+  const errorControls = useAuthFormError({
+    errorId: FORGOT_PASSWORD_ERROR_ID,
+    fieldIds: FORGOT_PASSWORD_FIELD_IDS,
+  });
 
   const [state, formAction] = useActionState<
     ForgotPasswordActionState,
     FormData
-  >(requestPasswordReset, { status: "idle" });
+  >(
+    (previousState, formData) =>
+      errorControls.runAction(
+        () => requestPasswordReset(previousState, formData),
+        getForgotPasswordFormError,
+        previousState
+      ),
+    { status: "idle" }
+  );
 
   useEffect(() => {
-    if (isSuccessful) {
-      return;
-    }
-
-    if (state.status === "failed") {
-      toast({
-        type: "error",
-        description: tErrors("emailSendFailed"),
-      });
-      return;
-    }
-
-    if (state.status === "rate_limited") {
-      toast({
-        type: "error",
-        description: state.resetMinutes
-          ? `${tErrors("rateLimitExceeded")} (${state.resetMinutes}min)`
-          : tErrors("rateLimitExceeded"),
-      });
-      return;
-    }
-
-    if (state.status === "invalid_data") {
-      toast({
-        type: "error",
-        description: tErrors("invalidData"),
-      });
-      return;
-    }
-
-    if (state.status !== "success") {
+    // Failures are shown inline by `errorControls`.
+    if (isSuccessful || state.status !== "success") {
       return;
     }
 
@@ -79,7 +68,7 @@ export default function Page() {
     setTimeout(() => {
       router.push("/login");
     }, 3000);
-  }, [state.status, state.resetMinutes, router, t, tErrors, isSuccessful]);
+  }, [state.status, router, t, isSuccessful]);
 
   const handleSubmit = (formData: FormData) => {
     setEmail(formData.get("email") as string);
@@ -90,9 +79,13 @@ export default function Page() {
     <AuthPageLayout>
       <AuthPageHeader subtitle={t("subtitle")} title={t("title")} />
 
-      <Form action={handleSubmit} className="flex flex-col gap-4 px-4 sm:px-16">
+      <Form
+        action={handleSubmit}
+        className="flex flex-col gap-4 px-4 sm:px-16"
+        {...errorControls.formProps}
+      >
         <div className="flex flex-col gap-2">
-          <Label className="font-normal text-zinc-600" htmlFor="email">
+          <Label className="font-normal text-zinc-600" htmlFor={EMAIL_FIELD_ID}>
             {t("emailLabel")}
           </Label>
 
@@ -102,13 +95,16 @@ export default function Page() {
             className="bg-muted text-md md:text-sm"
             defaultValue={email}
             disabled={isSuccessful}
-            id="email"
+            id={EMAIL_FIELD_ID}
             name="email"
             placeholder={t("emailPlaceholder")}
             required
             type="email"
+            {...errorControls.getFieldProps("email")}
           />
         </div>
+
+        <FormError id={errorControls.errorId} message={errorControls.message} />
 
         <SubmitButton isSuccessful={isSuccessful}>{t("submit")}</SubmitButton>
 

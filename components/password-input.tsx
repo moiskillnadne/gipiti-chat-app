@@ -24,6 +24,9 @@ type PasswordInputProps = {
   autoComplete?: string;
   autoFocus?: boolean;
   disabled?: boolean;
+  "aria-invalid"?: true;
+  /** Ids of extra descriptions, such as a form error; read before the checklist. */
+  "aria-describedby"?: string;
 };
 
 export function PasswordInput({
@@ -38,6 +41,8 @@ export function PasswordInput({
   autoComplete = "current-password",
   autoFocus = false,
   disabled = false,
+  "aria-invalid": ariaInvalid,
+  "aria-describedby": extraDescribedBy,
 }: PasswordInputProps) {
   const t = useTranslations("auth.validation");
   const [showPassword, setShowPassword] = useState(false);
@@ -47,6 +52,13 @@ export function PasswordInput({
   const shouldShowChecklist =
     showRequirements && (isFocused || value.length > 0);
   const shouldShowStrength = showRequirements && value.length > 0;
+  const describedBy =
+    [
+      extraDescribedBy,
+      showRequirements ? `${id}-requirements ${id}-strength` : undefined,
+    ]
+      .filter(Boolean)
+      .join(" ") || undefined;
 
   return (
     <div className="flex flex-col gap-2">
@@ -59,9 +71,8 @@ export function PasswordInput({
 
       <div className="relative">
         <Input
-          aria-describedby={
-            showRequirements ? `${id}-requirements ${id}-strength` : undefined
-          }
+          aria-describedby={describedBy}
+          aria-invalid={ariaInvalid}
           autoComplete={autoComplete}
           autoFocus={autoFocus}
           className="pr-10"

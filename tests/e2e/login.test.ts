@@ -6,12 +6,7 @@ import {
   TIMEOUTS,
   VALIDATION_DATA,
 } from "../fixtures";
-import {
-  getCurrentLocale,
-  getSessionCookie,
-  setLocale,
-  waitForToast,
-} from "../helpers";
+import { getCurrentLocale, getSessionCookie, setLocale } from "../helpers";
 import { LoginPage } from "../pages/auth";
 
 const CHAT_OR_LOGIN_URL_REGEX = /\/(chat|login)/;
@@ -156,7 +151,7 @@ test.describe("Login Page", () => {
         page.waitForURL(CHAT_OR_LOGIN_URL_REGEX, {
           timeout: TIMEOUTS.navigation,
         }),
-        waitForToast(page),
+        loginPage.waitForFormError(),
       ]);
     });
   });
@@ -296,33 +291,56 @@ test.describe("Login Page", () => {
   // 5. Authentication Flow - Failure (5 tests)
   // ==========================================================================
   test.describe("Authentication Flow - Failure", () => {
-    test("invalid credentials show error toast", async ({ page }) => {
-      await loginPage.login(INVALID_USER.email, INVALID_USER.password);
-      await waitForToast(page);
-
-      const toast = page.locator("[data-sonner-toast]");
-      await expect(toast).toBeVisible();
-    });
-
-    test("non-existent user shows same error as wrong password", async ({
+    test("invalid credentials show a persistent inline error", async ({
       page,
     }) => {
+      await loginPage.login(INVALID_USER.email, INVALID_USER.password);
+      await loginPage.waitForFormError();
+
+      await expect(loginPage.formError).toHaveAttribute("role", "alert");
+      await expect(loginPage.emailInput).toHaveAttribute(
+        "aria-invalid",
+        "true"
+      );
+      await expect(loginPage.passwordInput).toHaveAttribute(
+        "aria-invalid",
+        "true"
+      );
+      await expect(loginPage.passwordInput).toHaveAttribute(
+        "aria-describedby",
+        "login-form-error"
+      );
+      await expect(loginPage.emailInput).toBeFocused();
+
+      // Outlives the 4-second toast it replaced.
+      await page.waitForTimeout(5000);
+      await expect(loginPage.formError).not.toBeEmpty();
+    });
+
+    test("editing a field hides the inline error", async () => {
+      await loginPage.login(INVALID_USER.email, INVALID_USER.password);
+      await loginPage.waitForFormError();
+
+      await loginPage.passwordInput.press("End");
+      await loginPage.passwordInput.pressSequentially("x");
+
+      await expect(loginPage.formError).toBeEmpty();
+      await expect(loginPage.passwordInput).not.toHaveAttribute("aria-invalid");
+    });
+
+    test("non-existent user shows same error as wrong password", async () => {
       // First try non-existent user
       await loginPage.login("nonexistent@test.com", "WrongPassword123!");
-      await waitForToast(page);
+      await loginPage.waitForFormError();
 
-      const nonExistentError = await page
-        .locator("[data-sonner-toast]")
-        .textContent();
+      const nonExistentError = await loginPage.getFormErrorMessage();
 
       // Reload and try existing user with wrong password
       await loginPage.goto();
       await loginPage.login(TEST_USER.email, "WrongPassword123!");
-      await waitForToast(page);
+      await loginPage.waitForFormError();
 
-      const wrongPasswordError = await page
-        .locator("[data-sonner-toast]")
-        .textContent();
+      const wrongPasswordError = await loginPage.getFormErrorMessage();
 
       // Both should show the same error (prevents user enumeration)
       expect(nonExistentError).toBe(wrongPasswordError);
@@ -330,7 +348,7 @@ test.describe("Login Page", () => {
 
     test("form remains filled after error", async () => {
       await loginPage.login(INVALID_USER.email, INVALID_USER.password);
-      await loginPage.waitForErrorToast();
+      await loginPage.waitForFormError();
 
       const email = await loginPage.getEmailValue();
       const password = await loginPage.getPasswordValue();
@@ -342,7 +360,7 @@ test.describe("Login Page", () => {
     test("can retry after failure", async () => {
       // First attempt - fail
       await loginPage.login(INVALID_USER.email, INVALID_USER.password);
-      await loginPage.waitForErrorToast();
+      await loginPage.waitForFormError();
 
       // Wait for form to re-enable
       await loginPage.waitForLoadingComplete();
@@ -357,13 +375,13 @@ test.describe("Login Page", () => {
       expect(isEnabled).toBe(true);
     });
 
-    test("error toast displays translated message", async ({ page }) => {
+    test("form error displays translated message", async () => {
       await loginPage.login(INVALID_USER.email, INVALID_USER.password);
-      await waitForToast(page);
+      await loginPage.waitForFormError();
 
-      const toastText = await page.locator("[data-sonner-toast]").textContent();
+      const errorText = await loginPage.getFormErrorMessage();
       // Should contain translated error message (not empty)
-      expect(toastText?.length).toBeGreaterThan(0);
+      expect(errorText.length).toBeGreaterThan(0);
     });
   });
 
@@ -472,7 +490,7 @@ test.describe("Login Page", () => {
         page.waitForURL(CHAT_OR_LOGIN_URL_REGEX, {
           timeout: TIMEOUTS.navigation,
         }),
-        waitForToast(page),
+        loginPage.waitForFormError(),
       ]);
     });
   });
@@ -481,20 +499,18 @@ test.describe("Login Page", () => {
   // 8. Security (5 tests)
   // ==========================================================================
   test.describe("Security", () => {
-    test("same error message for invalid email vs wrong password", async ({
-      page,
-    }) => {
+    test("same error message for invalid email vs wrong password", async () => {
       // Non-existent email
       await loginPage.login("fake@notreal.com", "Password123!");
-      await waitForToast(page);
-      const error1 = await page.locator("[data-sonner-toast]").textContent();
+      await loginPage.waitForFormError();
+      const error1 = await loginPage.getFormErrorMessage();
 
       await loginPage.goto();
 
       // Existing email with wrong password
       await loginPage.login(TEST_USER.email, "WrongPassword!");
-      await waitForToast(page);
-      const error2 = await page.locator("[data-sonner-toast]").textContent();
+      await loginPage.waitForFormError();
+      const error2 = await loginPage.getFormErrorMessage();
 
       expect(error1).toBe(error2);
     });
@@ -608,15 +624,13 @@ test.describe("Login Page", () => {
       expect(russianTitle).toBeTruthy();
     });
 
-    test("error toast displays message in current locale", async ({ page }) => {
+    test("form error displays message in current locale", async ({ page }) => {
       // Test that error messages display in Russian
       await setLocale(page, "ru");
       await loginPage.goto();
       await loginPage.login(INVALID_USER.email, INVALID_USER.password);
-      await waitForToast(page);
-      const russianError = await page
-        .locator("[data-sonner-toast]")
-        .textContent();
+      await loginPage.waitForFormError();
+      const russianError = await loginPage.getFormErrorMessage();
 
       // Error message should not be empty
       expect(russianError?.length).toBeGreaterThan(0);
@@ -635,7 +649,7 @@ test.describe("Login Page", () => {
         page.waitForURL(CHAT_OR_LOGIN_URL_REGEX, {
           timeout: TIMEOUTS.navigation,
         }),
-        waitForToast(page),
+        loginPage.waitForFormError(),
       ]);
     });
 
@@ -679,7 +693,7 @@ test.describe("Login Page", () => {
 
     test("handles browser back after failed login", async ({ page }) => {
       await loginPage.login(INVALID_USER.email, INVALID_USER.password);
-      await loginPage.waitForErrorToast();
+      await loginPage.waitForFormError();
 
       // Navigate away and back
       await page.goto("/register");

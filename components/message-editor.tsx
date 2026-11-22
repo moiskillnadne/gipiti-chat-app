@@ -89,7 +89,7 @@ export function MessageEditor({
               });
             } catch {
               // Keep the editor open so the user does not lose the draft.
-              toast.error(t("actionFailed"));
+              toast.error(t("messageEditFailed"));
               setIsSubmitting(false);
               return;
             }
