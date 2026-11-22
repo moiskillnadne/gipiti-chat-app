@@ -24,10 +24,12 @@ describe("readStatusResponse", () => {
     ).toEqual({ kind: "succeeded", balanceTotalMinor: 250_000 });
   });
 
-  it("reads a failed intent as declined by the provider", () => {
+  it("keeps polling on a failed status after the widget reported success: it is not a decline", () => {
+    // Card 1 declined (intent marked failed), card 2 paid in the same widget,
+    // pay notification not there yet: the money may well be charged.
     expect(
       readStatusResponse({ status: "failed", failureReason: "Insufficient" })
-    ).toEqual({ kind: "declined" });
+    ).toBeNull();
   });
 
   it("does not read an expired intent as declined: the money may be charged", () => {
@@ -76,13 +78,6 @@ describe("stageFromPollResult", () => {
     ).toEqual({ name: "success", amountMajor: 1000, balanceTotalMinor: 5000 });
   });
 
-  it("maps a decline to the declined stage", () => {
-    expect(stageFromPollResult({ kind: "declined" }, payment)).toEqual({
-      name: "declined",
-      amountMajor: 1000,
-    });
-  });
-
   it.each(["timeout", "unreachable", "stoppedWaiting"] as const)(
     "maps an unconfirmed result (%s) to the unconfirmed stage",
     (cause) => {
@@ -109,13 +104,25 @@ describe("checkStatusOnce", () => {
     vi.restoreAllMocks();
   });
 
-  it("returns the confirmed outcome", async () => {
+  it("returns a confirmed success", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      Response.json({ status: "succeeded" })
+    );
+
+    await expect(checkStatusOnce("session-1")).resolves.toEqual({
+      kind: "succeeded",
+      balanceTotalMinor: 0,
+    });
+  });
+
+  it("reports a failed status as unconfirmed, never as a decline", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       Response.json({ status: "failed" })
     );
 
     await expect(checkStatusOnce("session-1")).resolves.toEqual({
-      kind: "declined",
+      kind: "unconfirmed",
+      cause: "timeout",
     });
   });
 

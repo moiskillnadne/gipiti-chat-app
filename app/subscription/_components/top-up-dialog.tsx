@@ -79,6 +79,10 @@ export function TopUpDialog({
   // Prevents onComplete — which also fires after success/fail — from
   // downgrading the stage back to "amount".
   const resolvedRef = useRef(false);
+  // Session id of the payment flow this dialog currently shows. Widget and
+  // polling callbacks of an abandoned flow (dialog closed, «Не ждать» before
+  // the widget answered, «Попробовать снова») compare against it and stop.
+  const flowSessionIdRef = useRef<string | null>(null);
 
   const stopPolling = useCallback(() => {
     abortRef.current?.abort();
@@ -87,8 +91,18 @@ export function TopUpDialog({
 
   useEffect(() => stopPolling, [stopPolling]);
 
+  // A payment finished in a widget the dialog no longer follows is credited
+  // by the webhook alone: re-read the page so the balance behind the dialog
+  // is current whenever it is opened again.
+  useEffect(() => {
+    if (isOpen) {
+      router.refresh();
+    }
+  }, [isOpen, router]);
+
   const resetFlow = useCallback(() => {
     stopPolling();
+    flowSessionIdRef.current = null;
     resolvedRef.current = false;
     setSubmitError(null);
     setStage({ name: "amount", isSubmitting: false });
@@ -112,6 +126,9 @@ export function TopUpDialog({
 
   const applyPollResult = useCallback(
     (result: PollResult, sessionId: string, amountMajor: number) => {
+      if (flowSessionIdRef.current !== sessionId) {
+        return;
+      }
       if (result.kind === "succeeded") {
         // Re-render the server page so the hero pools update behind us.
         router.refresh();
@@ -151,6 +168,10 @@ export function TopUpDialog({
           if (res.ok) {
             hasReachedServer = true;
             const data: PaymentStatusResponse = await res.json();
+            // Reset or reopened while the body was read: drop the result.
+            if (signal.aborted) {
+              return;
+            }
             const result = readStatusResponse(data);
 
             if (result) {
@@ -214,6 +235,9 @@ export function TopUpDialog({
       const widget = new window.cp.CloudPayments(createWidgetOptions(email));
 
       resolvedRef.current = false;
+      flowSessionIdRef.current = intent.sessionId;
+      const isCurrentFlow = (): boolean =>
+        flowSessionIdRef.current === intent.sessionId;
 
       widget.pay(
         "charge",
@@ -233,8 +257,24 @@ export function TopUpDialog({
         },
         {
           onSuccess: () => {
+            if (!isCurrentFlow()) {
+              // Paid in a widget the dialog stopped following: the webhook
+              // credits it; refresh so the page shows the new balance.
+              router.refresh();
+              return;
+            }
             resolvedRef.current = true;
+            // A card declined earlier in the same widget may have left the
+            // declined screen behind it: show the waiting screen again.
+            setStage({
+              name: "processing",
+              sessionId: intent.sessionId,
+              amountMajor,
+            });
             pollStatus(intent.sessionId, amountMajor).catch(() => {
+              if (!isCurrentFlow()) {
+                return;
+              }
               setStage(
                 unconfirmedStage(
                   { sessionId: intent.sessionId, amountMajor },
@@ -244,14 +284,20 @@ export function TopUpDialog({
             });
           },
           onFail: () => {
-            // The widget reports a declined charge: nothing was paid.
+            // The widget itself reports a declined charge.
+            if (!isCurrentFlow()) {
+              return;
+            }
             resolvedRef.current = true;
             setStage({ name: "declined", amountMajor });
           },
           onComplete: (paymentResult) => {
             // The user closed the widget without paying — return to the
             // amount stage. The pending intent expires server-side.
-            if (!(paymentResult?.success || resolvedRef.current)) {
+            if (
+              isCurrentFlow() &&
+              !(paymentResult?.success || resolvedRef.current)
+            ) {
               setStage({ name: "amount", isSubmitting: false });
             }
           },
@@ -267,10 +313,11 @@ export function TopUpDialog({
       setSubmitError(t("createError"));
       setStage({ name: "amount", isSubmitting: false });
     }
-  }, [amount, session, t, pollStatus]);
+  }, [amount, session, t, pollStatus, router]);
 
   const handleRetry = useCallback(() => {
     stopPolling();
+    flowSessionIdRef.current = null;
     resolvedRef.current = false;
     setStage({ name: "amount", isSubmitting: false });
   }, [stopPolling]);

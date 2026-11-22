@@ -13,7 +13,7 @@ export type TopupStage =
   | { name: "amount"; isSubmitting: boolean }
   | { name: "processing"; sessionId: string; amountMajor: number }
   | { name: "success"; amountMajor: number; balanceTotalMinor: number }
-  /** The provider declined the payment: nothing was charged. */
+  /** The widget itself reported a declined charge (`onFail`). */
   | { name: "declined"; amountMajor: number }
   /** Outcome unknown: the money may have been charged. */
   | {
@@ -25,17 +25,25 @@ export type TopupStage =
       hasRechecked: boolean;
     };
 
+/**
+ * What the status endpoint tells us after the widget reported a payment.
+ * There is no "declined" result: see `readStatusResponse`.
+ */
 export type PollResult =
   | { kind: "succeeded"; balanceTotalMinor: number }
-  | { kind: "declined" }
   | { kind: "unconfirmed"; cause: UnconfirmedCause }
   | { kind: "aborted" };
 
 type PaymentRef = { sessionId: string; amountMajor: number };
 
 /**
- * Reads one status response. Returns null while the payment is still pending.
- * `expired` is not a decline: the server reports a pending intent past its
+ * Reads one status response received after the widget reported a payment.
+ * Returns null while the payment is not confirmed yet (keep polling).
+ *
+ * `failed` is not a decline here: the widget can reuse one intent for several
+ * card attempts, so a declined first card leaves the intent `failed` while a
+ * second card succeeds, and the pay notification still credits a `failed`
+ * intent. `expired` is the same: the server reports a pending intent past its
  * deadline as expired, and a late pay notification can still credit it.
  */
 export const readStatusResponse = (
@@ -46,10 +54,6 @@ export const readStatusResponse = (
       kind: "succeeded",
       balanceTotalMinor: data.topup?.balanceTotalMinor ?? 0,
     };
-  }
-
-  if (data.status === "failed") {
-    return { kind: "declined" };
   }
 
   if (data.status === "expired") {
@@ -102,13 +106,15 @@ export const stageFromPollResult = (
         amountMajor: payment.amountMajor,
         balanceTotalMinor: result.balanceTotalMinor,
       };
-    case "declined":
-      return { name: "declined", amountMajor: payment.amountMajor };
     case "unconfirmed":
       return unconfirmedStage(payment, result.cause);
-    default:
-      // "aborted": the dialog was closed, nothing to show.
+    case "aborted":
+      // The dialog was closed or reset: nothing to show.
       return null;
+    default: {
+      const unhandled: never = result;
+      return unhandled;
+    }
   }
 };
 
@@ -117,7 +123,8 @@ export const buildStatusUrl = (sessionId: string): string =>
 
 /**
  * Asks for the status once, for the «check again» button. A failed request is
- * reported as `unreachable`; a still pending payment as `timeout`.
+ * reported as `unreachable`; an unconfirmed payment (including `failed`, see
+ * `readStatusResponse`) as `timeout`.
  */
 export const checkStatusOnce = async (
   sessionId: string,
