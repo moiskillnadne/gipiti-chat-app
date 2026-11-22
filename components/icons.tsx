@@ -334,6 +334,7 @@ export const MenuIcon = ({ size = 16 }: { size?: number }) => {
 export const PencilEditIcon = ({ size = 16 }: { size?: number }) => {
   return (
     <svg
+      aria-hidden="true"
       height={size}
       strokeLinejoin="round"
       style={{ color: "currentcolor" }}

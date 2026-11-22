@@ -54,8 +54,8 @@
     "accessibility": {
       "scrollToBottom": "Прокрутить вниз",
       "resizeConsole": "Изменить размер консоли",
-      "openSidebar": "Открыть боковую панель",
-      "closeSidebar": "Скрыть боковую панель",
+      "showSidebar": "Показать боковую панель",
+      "hideSidebar": "Скрыть боковую панель",
       "previous": "Предыдущий",
       "next": "Следующий",
       "newChat": "Новый чат",
@@ -1852,6 +1852,8 @@
   "editorShared": {
     "addBtn": "Добавить",
     "addItem": "Добавить {item}",
+    "editItem": "Изменить {item} {number}",
+    "deleteItem": "Удалить {item} {number}",
     "newSuffix": "новый",
     "usageMeta": "{count, plural, one {# использование} few {# использования} many {# использований} other {# использований}} · создан {date}",
     "nouns": {
@@ -1889,6 +1891,7 @@
       "uploading": "Загрузка…",
       "uploadError": "Не удалось загрузить файл",
       "deleteError": "Не удалось удалить файл",
+      "deleteFile": "Удалить файл {name}",
       "fileCount": "{count, plural, =0 {нет файлов} one {# файл} few {# файла} many {# файлов} other {# файлов}}"
     },
     "swatchPicker": {

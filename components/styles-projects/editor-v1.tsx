@@ -384,6 +384,10 @@ export function EditorV1(props: EditorV1Props) {
                       {editingIdx !== i && (
                         <span className="editor-v1-ex-actions">
                           <button
+                            aria-label={tShared("editItem", {
+                              item: itemNoun,
+                              number: String(i + 1).padStart(2, "0"),
+                            })}
                             className="editor-v1-btn editor-v1-btn-ghost editor-v1-btn-sm"
                             onClick={() => startEdit(i)}
                             type="button"
@@ -391,6 +395,10 @@ export function EditorV1(props: EditorV1Props) {
                             <PencilEditIcon size={13} />
                           </button>
                           <button
+                            aria-label={tShared("deleteItem", {
+                              item: itemNoun,
+                              number: String(i + 1).padStart(2, "0"),
+                            })}
                             className="editor-v1-btn editor-v1-btn-ghost editor-v1-btn-sm editor-v1-btn-danger"
                             onClick={() => setDeleteItemIdx(i)}
                             type="button"
@@ -403,6 +411,7 @@ export function EditorV1(props: EditorV1Props) {
                     {editingIdx === i ? (
                       <>
                         <textarea
+                          aria-label={`${itemLabelPrefix} ${String(i + 1).padStart(2, "0")}`}
                           autoFocus
                           maxLength={MAX_ITEM_LENGTH}
                           onChange={(e) => setDraftText(e.target.value)}
@@ -521,6 +530,7 @@ export function EditorV1(props: EditorV1Props) {
                       {formatFileSize(f.size)}
                     </span>
                     <button
+                      aria-label={tShared("files.deleteFile", { name: f.name })}
                       className="editor-v1-btn editor-v1-btn-ghost editor-v1-btn-sm editor-v1-btn-danger"
                       onClick={() => handleDeleteFile(f.id)}
                       type="button"

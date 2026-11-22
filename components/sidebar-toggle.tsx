@@ -16,7 +16,7 @@ export function SidebarToggle({
   const { isMobile, open, openMobile, toggleSidebar } = useSidebar();
   const t = useTranslations("common.accessibility");
   const isSidebarOpen = isMobile ? openMobile : open;
-  const label = t(isSidebarOpen ? "closeSidebar" : "openSidebar");
+  const label = t(isSidebarOpen ? "hideSidebar" : "showSidebar");
 
   return (
     <Tooltip>

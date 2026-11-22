@@ -201,7 +201,11 @@ export function PromptLibrary() {
           <button
             aria-label={t("clearSearch")}
             className="inline-flex size-6 items-center justify-center rounded-full text-ink-3 transition-colors duration-fast ease-canon hover:bg-paper-2 hover:text-ink"
-            onClick={() => updateQuery("")}
+            onClick={() => {
+              updateQuery("");
+              // The button unmounts once the query is empty; keep focus in the search
+              searchRef.current?.focus();
+            }}
             type="button"
           >
             <X aria-hidden className="size-3.5" />
