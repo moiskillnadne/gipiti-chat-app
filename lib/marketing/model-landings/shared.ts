@@ -181,7 +181,7 @@ export const buildSteps = (
 export const vpnFaq: LandingFaqItem = {
   question: "Нужен ли VPN или зарубежная карта?",
   answer:
-    "Нет. GIPITI работает из России без ограничений, оплата — картами МИР, Visa, MasterCard или через СБП.",
+    "Нет. GIPITI работает из России без VPN, оплата — российскими картами МИР, Visa или MasterCard.",
 };
 
 export const priceFaq: LandingFaqItem = {
@@ -200,7 +200,7 @@ export const sharedFaq: LandingFaqItem[] = [vpnFaq, priceFaq, documentsFaq];
 export const vpnBenefit: LandingBenefit = {
   icon: "shield",
   title: "Без VPN и зарубежных карт",
-  text: "Работает из России без ограничений. Оплата картами МИР, Visa, MasterCard или через СБП — в рублях.",
+  text: "Работает из России напрямую. Оплата картами МИР, Visa или MasterCard — в рублях.",
 };
 
 export const documentsBenefit: LandingBenefit = {

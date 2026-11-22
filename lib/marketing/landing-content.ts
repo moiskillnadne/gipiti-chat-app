@@ -100,6 +100,18 @@ export const NEW_USER_BONUS_BADGE_RU = `До\u00a0${formatRub(NEW_USER_BONUS_RUB
  */
 export const NEW_USER_BONUS_TERMS_RU = `${formatRub(WELCOME_GRANT_MAJOR_UNITS)} сразу после регистрации и ещё ${formatRub(EMAIL_CONFIRM_BONUS_MAJOR_UNITS + ONBOARDING_QUIZ_BONUS_MAJOR_UNITS)} за подтверждение email и короткий опрос`;
 
+/**
+ * What cancelling a subscription does to access and to the balance, for every
+ * surface that answers it (the home FAQ, the agent skill). Matches the cancel
+ * dialog (`auth.subscription.manage.cancel.*`) and the manage-subscription FAQ
+ * (`auth.subscription.faq.items.q4`): access lasts to the end of the paid
+ * period, then the cleanup cron zeroes the subscription pool; the top-up pool,
+ * which also holds the new-user bonuses, stays and the balance gate spends it
+ * with or without a subscription.
+ */
+export const SUBSCRIPTION_CANCELLATION_RU =
+  "Подписка действует до конца оплаченного периода, списаний с карты больше не будет. Отмена не возвращает деньги за уже оплаченный период. Когда период закончится, остаток подписки на балансе сгорит. Пополнения и бонусы останутся на балансе — их можно тратить и без подписки.";
+
 export const homeFeatures: HomeFeature[] = [
   {
     icon: "message-square",
@@ -149,7 +161,7 @@ export const homeFeatures: HomeFeature[] = [
 export const homeBenefits: HomeBenefit[] = [
   {
     icon: "globe",
-    title: "Без VPN и ограничений",
+    title: "Без VPN и блокировок",
     description:
       "Пользуйтесь из любой точки мира без региональных блокировок. VPN не нужен — просто откройте сайт и начните работать.",
   },
@@ -193,7 +205,7 @@ export const homeFaqItems: HomeFaqItem[] = [
   },
   {
     question: "Нужно ли платить, чтобы начать?",
-    answer: `Нет. Новым пользователям мы дарим ${NEW_USER_BONUS_UP_TO_RU} на баланс: ${NEW_USER_BONUS_BREAKDOWN_RU}. Этого достаточно, чтобы попробовать все функции платформы. Когда баланс закончится, вы можете пополнить его или оформить подписку.`,
+    answer: `Нет. Новым пользователям мы дарим ${NEW_USER_BONUS_UP_TO_RU} на баланс: ${NEW_USER_BONUS_BREAKDOWN_RU}. Этого достаточно, чтобы попробовать все функции платформы. Когда подаренный баланс закончится, оформите подписку: она зачисляет ${SUBSCRIPTION_PRICE_RUB} ₽ на баланс каждый месяц.`,
   },
   {
     question: "Какие платежные средства вы принимаете?",
@@ -203,19 +215,18 @@ export const homeFaqItems: HomeFaqItem[] = [
   {
     question: "Могу ли я отменить подписку?",
     answer:
-      "Да, вы можете отменить подписку в любой момент в настройках аккаунта. Отмена вступает в силу по окончании текущего оплаченного периода.",
+      "Да, вы можете отменить подписку в любой момент в личном кабинете. Отмена вступает в силу по окончании текущего оплаченного периода.",
   },
   {
     question: "Что будет если я отменю подписку?",
-    answer:
-      "После отмены подписка продолжает действовать до конца оплаченного периода — вы пользуетесь сервисом без ограничений. Когда период закончится, аккаунт и история чатов сохранятся, но для новых запросов потребуется активная подписка.",
+    answer: SUBSCRIPTION_CANCELLATION_RU,
   },
   {
     question: "Что входит в подписку?",
     answer: `Подписка включает доступ ко всем 70+ AI-моделям от 18 провайдеров (OpenAI, Google, Anthropic, xAI, Meta, DeepSeek, Alibaba, Moonshot AI, Mistral AI, Z.ai, MiniMax, Xiaomi, Perplexity, Microsoft, Kling AI, ByteDance, BFL, Recraft), генерацию изображений и видео, генерацию кода, анализ документов, поиск в интернете и режим рассуждений. Каждый месяц на ваш баланс зачисляется ${SUBSCRIPTION_PRICE_RUB} ₽ для всех функций.`,
   },
   {
-    question: "Как работают лимиты?",
-    answer: `Подписка зачисляет ${SUBSCRIPTION_PRICE_RUB} ₽ на баланс каждый месяц. Баланс расходуется на ваши запросы и ответы AI, а при необходимости его можно пополнить в любой момент. В личном кабинете вы всегда можете отслеживать текущий расход.`,
+    question: "Как расходуется баланс?",
+    answer: `Каждый запрос оплачивается с баланса по факту: цена зависит от модели и объёма запроса и ответа. Сначала тратится остаток подписки, затем пополнения и бонусы. Остаток подписки сгорает при продлении, когда на баланс зачисляются новые ${SUBSCRIPTION_PRICE_RUB} ₽, а пополнения и бонусы не сгорают. В личном кабинете видно каждое списание.`,
   },
 ];

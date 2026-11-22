@@ -5,7 +5,7 @@ import { useTranslations } from "@/lib/i18n/translate";
 import { cn } from "@/lib/utils";
 import { ChevronIcon } from "./plan-icons";
 
-const FAQ_ITEMS = ["q1", "q2", "q3", "q4", "q5", "q6"] as const;
+const FAQ_ITEMS = ["q1", "q2", "q3", "q4", "q5"] as const;
 
 function FAQItem({
   itemKey,

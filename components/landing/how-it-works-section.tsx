@@ -2,7 +2,10 @@
 
 import { motion } from "framer-motion";
 
-import { NEW_USER_BONUS_SHORT_RU } from "@/lib/marketing/landing-content";
+import {
+  NEW_USER_BONUS_SHORT_RU,
+  SUBSCRIPTION_PRICE_RUB,
+} from "@/lib/marketing/landing-content";
 
 import { FadeIn, staggerContainer, staggerItem } from "./fade-in";
 
@@ -20,8 +23,8 @@ const steps: Step[] = [
   },
   {
     step: 2,
-    title: "Выберите тариф",
-    description: `Подберите подходящий план или начните бесплатно. ${NEW_USER_BONUS_SHORT_RU}.`,
+    title: "Начните бесплатно",
+    description: `${NEW_USER_BONUS_SHORT_RU}. Дальше — подписка: ${SUBSCRIPTION_PRICE_RUB} ₽ на баланс каждый месяц.`,
   },
   {
     step: 3,
