@@ -115,7 +115,7 @@ export const EarlierStepsToggle = ({
       </span>
       <span className="font-medium">{label}</span>
       {hint && (
-        <span className="text-ink-4 normal-case tracking-normal">{hint}</span>
+        <span className="text-ink-3 normal-case tracking-normal">{hint}</span>
       )}
       <ChevronDownIcon
         className={cn(
@@ -356,7 +356,7 @@ export const ToolRunStep = ({
         <span
           className={cn(
             "shrink-0 pt-0.5 font-mono text-[10px]",
-            isActive ? "text-citrus-deep" : "text-ink-4"
+            isActive ? "text-citrus-ink" : "text-ink-3"
           )}
         >
           {trailing}

@@ -185,7 +185,7 @@ export function PromptLibrary() {
       <div className="mb-[18px] flex items-center gap-3 rounded-lg border border-rule bg-card px-[18px] py-[13px] shadow-sm transition-all duration-fast ease-canon focus-within:border-ink focus-within:ring-[3px] focus-within:ring-citrus-soft">
         <Search className="size-[18px] shrink-0 text-ink-3" />
         <input
-          className="min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-ink-4"
+          className="min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-ink-3"
           onChange={(event) => updateQuery(event.target.value)}
           placeholder={t("searchPlaceholder")}
           ref={searchRef}
@@ -193,7 +193,7 @@ export function PromptLibrary() {
         />
         {query ? (
           <button
-            className="inline-flex size-6 items-center justify-center rounded-full text-ink-4 transition-colors duration-fast ease-canon hover:bg-paper-2 hover:text-ink"
+            className="inline-flex size-6 items-center justify-center rounded-full text-ink-3 transition-colors duration-fast ease-canon hover:bg-paper-2 hover:text-ink"
             onClick={() => updateQuery("")}
             type="button"
           >

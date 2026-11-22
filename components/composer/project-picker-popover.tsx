@@ -79,18 +79,18 @@ export function ProjectPickerPopover() {
         <div className="flex items-center gap-2 border-rule border-b px-3 py-2.5">
           <Search className="size-3.5 text-ink-3" strokeWidth={1.6} />
           <input
-            className="flex-1 border-none bg-transparent text-[13px] text-ink outline-none placeholder:text-ink-4"
+            className="flex-1 border-none bg-transparent text-[13px] text-ink outline-none placeholder:text-ink-3"
             onChange={(event) => setQuery(event.target.value)}
             placeholder={tInput("searchProjects")}
             value={query}
           />
-          <kbd className="rounded border border-rule bg-paper-2 px-1.5 py-[2px] font-mono text-[9px] text-ink-4 uppercase tracking-[0.04em]">
+          <kbd className="rounded border border-rule bg-paper-2 px-1.5 py-[2px] font-mono text-[9px] text-ink-3 uppercase tracking-[0.04em]">
             esc
           </kbd>
         </div>
 
         <div className="flex max-h-72 flex-col gap-px overflow-y-auto p-1.5">
-          <div className="px-2.5 pt-1.5 pb-1 font-mono text-[9.5px] text-ink-4 uppercase tracking-[0.1em]">
+          <div className="px-2.5 pt-1.5 pb-1 font-mono text-[9.5px] text-ink-3 uppercase tracking-[0.1em]">
             {tInput("yourProjectsCount", { count: projects.length })}
           </div>
 
@@ -141,7 +141,7 @@ export function ProjectPickerPopover() {
                 {isSelected ? (
                   <Check className="size-3.5 text-ink" strokeWidth={2.4} />
                 ) : project.isDefault ? (
-                  <span className="font-mono text-[9.5px] text-ink-4 uppercase tracking-[0.06em]">
+                  <span className="font-mono text-[9.5px] text-ink-3 uppercase tracking-[0.06em]">
                     {tProjects("defaultBadge")}
                   </span>
                 ) : (

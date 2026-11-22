@@ -13,9 +13,9 @@ const badgeVariants = cva(
         ink: "bg-ink text-paper",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        success: "bg-citrus-soft/60 text-success",
-        info: "bg-info/10 text-info",
-        destructive: "bg-destructive/10 text-destructive",
+        success: "bg-citrus-soft/60 text-success-ink",
+        info: "bg-info/10 text-info-ink",
+        destructive: "bg-destructive/10 text-danger-ink",
         outline: "bg-transparent text-ink-2 ring-1 ring-rule-strong ring-inset",
       },
     },

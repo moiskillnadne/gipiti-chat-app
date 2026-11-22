@@ -242,7 +242,7 @@ const buildStep = ({
           <>
             {query && <StepQuery>{query}</StepQuery>}
             {state === "output-available" && toolPart.output?.error && (
-              <span className="text-destructive">
+              <span className="text-danger-ink">
                 {String(toolPart.output.error)}
               </span>
             )}
@@ -271,7 +271,7 @@ const buildStep = ({
         body: (
           <>
             {state === "output-available" && toolPart.output?.error && (
-              <span className="text-destructive">
+              <span className="text-danger-ink">
                 {String(toolPart.output.error)}
               </span>
             )}
@@ -298,7 +298,7 @@ const buildStep = ({
               {formatted ?? expression}
             </code>
             {error && (
-              <span className="ml-2 text-destructive">{String(error)}</span>
+              <span className="ml-2 text-danger-ink">{String(error)}</span>
             )}
           </>
         ),

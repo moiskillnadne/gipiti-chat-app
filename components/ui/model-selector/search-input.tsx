@@ -30,14 +30,14 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
         </svg>
         <input
           autoComplete="off"
-          className="flex-1 border-none bg-transparent text-[13px] text-ink outline-none placeholder:text-ink-4"
+          className="flex-1 border-none bg-transparent text-[13px] text-ink outline-none placeholder:text-ink-3"
           onChange={(event) => onChange(event.target.value)}
           placeholder={t("placeholder")}
           ref={ref}
           type="text"
           value={value}
         />
-        <kbd className="hidden rounded-xs border border-rule bg-paper-2 px-1.5 py-0.5 font-mono text-[9px] text-ink-4 uppercase tracking-[0.04em] sm:inline-block">
+        <kbd className="hidden rounded-xs border border-rule bg-paper-2 px-1.5 py-0.5 font-mono text-[9px] text-ink-3 uppercase tracking-[0.04em] sm:inline-block">
           {t("esc")}
         </kbd>
       </div>

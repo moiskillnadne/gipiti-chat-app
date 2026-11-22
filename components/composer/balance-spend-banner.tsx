@@ -37,7 +37,7 @@ export const BalanceSpendBanner = ({
       <span
         className={cn(
           "inline-flex shrink-0 items-center rounded-[6px] px-[9px] py-[5px] font-mono font-semibold text-[13px] tabular-nums tracking-[-0.02em]",
-          isWarning ? "bg-warn text-paper" : "bg-citrus text-ink"
+          isWarning ? "bg-warn-ink text-paper" : "bg-citrus text-ink"
         )}
       >
         {percent}%

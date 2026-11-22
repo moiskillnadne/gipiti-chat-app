@@ -87,7 +87,7 @@
 
 .pillWarn {
   background: var(--warn-soft);
-  color: var(--warn);
+  color: var(--warn-ink);
 }
 
 .pillWarn::before {
@@ -96,7 +96,7 @@
 
 .pillDone {
   background: var(--success-soft);
-  color: var(--success);
+  color: var(--success-ink);
 }
 
 .pillDone::before {
@@ -249,7 +249,7 @@
 }
 
 .rewardAmount {
-  color: var(--citrus-deep);
+  color: var(--citrus-ink);
   font-family: var(--font-mono);
   font-weight: 600;
 }
@@ -308,7 +308,7 @@
 .otpCellError {
   border-color: var(--danger);
   box-shadow: 0 0 0 3px var(--danger-soft);
-  color: var(--danger);
+  color: var(--danger-ink);
 }
 
 .otpCell:disabled {
@@ -356,11 +356,11 @@
 }
 
 .otpStatusError {
-  color: var(--danger);
+  color: var(--danger-ink);
 }
 
 .otpStatusOk {
-  color: var(--success);
+  color: var(--success-ink);
 }
 
 .otpStatusIdle {
@@ -493,7 +493,7 @@
   background: var(--success-soft);
   border: 1px solid var(--success);
   border-radius: 50%;
-  color: var(--success);
+  color: var(--success-ink);
   display: inline-flex;
   height: 56px;
   justify-content: center;
@@ -547,7 +547,7 @@
 }
 
 .creditPlus {
-  color: var(--success);
+  color: var(--success-ink);
 }
 
 /* ── mobile ── */

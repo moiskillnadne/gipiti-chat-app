@@ -56,7 +56,7 @@ export function PromptCard({
           className={`ml-auto inline-flex size-7 shrink-0 items-center justify-center rounded-sm transition-colors duration-fast ease-canon hover:bg-paper-2 ${
             isFavorite
               ? "text-citrus-deep"
-              : "text-ink-4 hover:text-citrus-deep"
+              : "text-ink-3 hover:text-citrus-deep"
           }`}
           onClick={(event) => {
             event.stopPropagation();

@@ -84,5 +84,5 @@ function highlightMatch(name: string, query: string): string {
   const before = escapeHtml(name.slice(0, index));
   const match = escapeHtml(name.slice(index, index + trimmed.length));
   const after = escapeHtml(name.slice(index + trimmed.length));
-  return `${before}<mark class="rounded-xs bg-citrus-soft text-citrus-deep px-px">${match}</mark>${after}`;
+  return `${before}<mark class="rounded-xs bg-citrus-soft text-citrus-ink px-px">${match}</mark>${after}`;
 }

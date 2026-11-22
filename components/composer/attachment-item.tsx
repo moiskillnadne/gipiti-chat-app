@@ -198,7 +198,7 @@ export function UploadingItem({
           {filename}
         </span>
         <span className="flex items-center gap-1.5 font-mono text-[10px] text-ink-3 uppercase tracking-[0.04em]">
-          <b className="font-medium text-citrus-deep">{uploadingLabel}</b>
+          <b className="font-medium text-citrus-ink">{uploadingLabel}</b>
           {sizeLabel && (
             <>
               <span className="size-[3px] rounded-full bg-ink-4" />

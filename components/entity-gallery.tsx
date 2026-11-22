@@ -341,7 +341,7 @@ export function EntityGallery<T extends GalleryEntity>({
           <div className="inline-flex min-w-[280px] items-center gap-2 rounded-md border border-rule bg-card px-3 py-1.5">
             <Search className="size-3.5 flex-shrink-0 text-ink-4" />
             <input
-              className="flex-1 border-0 bg-transparent text-[13px] outline-none placeholder:text-ink-4"
+              className="flex-1 border-0 bg-transparent text-[13px] outline-none placeholder:text-ink-3"
               onChange={(event) => setSearch(event.target.value)}
               placeholder={labels.searchPlaceholder}
               value={search}
@@ -504,10 +504,10 @@ function SectionHeading({ title, count, hint }: SectionHeadingProps) {
         {title}
       </h2>
       {typeof count === "number" ? (
-        <span className="font-mono text-[11px] text-ink-4">{count}</span>
+        <span className="font-mono text-[11px] text-ink-3">{count}</span>
       ) : null}
       {hint ? (
-        <span className="text-[11px] text-ink-4 italic">{hint}</span>
+        <span className="text-[11px] text-ink-3 italic">{hint}</span>
       ) : null}
     </div>
   );
@@ -578,7 +578,7 @@ function EntityCard<T extends GalleryEntity>({
         className={
           item.pinned
             ? "absolute top-3 right-3 inline-flex size-6 items-center justify-center rounded-sm text-citrus-deep"
-            : "absolute top-3 right-3 inline-flex size-6 items-center justify-center rounded-sm text-ink-4 opacity-0 transition-opacity duration-fast ease-canon hover:bg-paper-2 hover:text-ink group-focus-within:opacity-100 group-hover:opacity-100"
+            : "absolute top-3 right-3 inline-flex size-6 items-center justify-center rounded-sm text-ink-3 opacity-0 transition-opacity duration-fast ease-canon hover:bg-paper-2 hover:text-ink group-focus-within:opacity-100 group-hover:opacity-100"
         }
         onClick={(event) => {
           event.stopPropagation();
@@ -609,7 +609,7 @@ function EntityCard<T extends GalleryEntity>({
       </div>
 
       <div className="line-clamp-3 flex-1 text-[12.5px] text-ink-3 italic leading-[1.5]">
-        {preview ? preview : <span className="text-ink-4 not-italic">—</span>}
+        {preview ? preview : <span className="text-ink-3 not-italic">—</span>}
       </div>
 
       <div className="flex items-center justify-between border-rule border-t border-dashed pt-2.5 font-mono text-[10px] text-ink-3 uppercase tracking-[0.06em]">
@@ -644,7 +644,7 @@ function NewCard({ label, hint, onClick }: NewCardProps) {
     >
       <Plus className="size-4" />
       <span className="font-medium text-[13px]">{label}</span>
-      <span className="text-[11px] text-ink-4">{hint}</span>
+      <span className="text-[11px] text-ink-3">{hint}</span>
     </button>
   );
 }

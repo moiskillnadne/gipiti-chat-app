@@ -101,7 +101,7 @@ export function ChipRemoveButton({ onRemove, label }: ChipRemoveButtonProps) {
     <button
       aria-label={label}
       className={cn(
-        "mr-1 inline-flex size-5 shrink-0 items-center justify-center self-center rounded-full text-ink-4",
+        "mr-1 inline-flex size-5 shrink-0 items-center justify-center self-center rounded-full text-ink-3",
         "hover:bg-ink hover:text-paper"
       )}
       onClick={(event) => {

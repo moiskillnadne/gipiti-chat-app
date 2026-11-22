@@ -9,7 +9,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "bg-ink text-paper hover:bg-ink-2",
-        citrus: "bg-citrus text-ink hover:bg-citrus-deep hover:text-paper",
+        citrus: "bg-citrus text-ink hover:bg-citrus-ink hover:text-paper",
         secondary:
           "bg-transparent text-ink ring-1 ring-ink ring-inset hover:bg-ink hover:text-paper",
         destructive:

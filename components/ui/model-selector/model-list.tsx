@@ -29,7 +29,7 @@ export function ModelList({
     return (
       <div className="px-5 py-9 text-center text-[13px] text-ink-3">
         {tEmpty("title")}
-        <div className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.08em] text-ink-4">
+        <div className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.08em] text-ink-3">
           {tEmpty("hint")}
         </div>
       </div>
@@ -53,7 +53,7 @@ export function ModelList({
               ) : null}
               {group.label}
             </span>
-            <span className="font-mono text-[9px] text-ink-4">
+            <span className="font-mono text-[9px] text-ink-3">
               {group.models.length}
             </span>
           </div>

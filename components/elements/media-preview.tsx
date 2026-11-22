@@ -399,7 +399,7 @@ const DoneCard = ({
             </div>
           )}
           {metaLabel && (
-            <div className="mt-1.5 font-mono text-[10px] text-ink-4 uppercase tracking-[0.05em]">
+            <div className="mt-1.5 font-mono text-[10px] text-ink-3 uppercase tracking-[0.05em]">
               {metaLabel}
             </div>
           )}

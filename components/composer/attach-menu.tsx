@@ -142,7 +142,7 @@ export function AttachMenu({
               <span className="text-[11px] text-ink-3">{item.desc}</span>
             </span>
             {item.kbd && (
-              <kbd className="rounded border border-rule bg-paper-2 px-1.5 py-[2px] font-mono text-[9px] text-ink-4">
+              <kbd className="rounded border border-rule bg-paper-2 px-1.5 py-[2px] font-mono text-[9px] text-ink-3">
                 {item.kbd}
               </kbd>
             )}

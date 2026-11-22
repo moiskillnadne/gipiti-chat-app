@@ -131,7 +131,7 @@
 .cur {
   font-family: var(--font-mono);
   font-size: 10px;
-  color: var(--ink-4);
+  color: var(--ink-3);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   white-space: nowrap;
@@ -139,7 +139,7 @@
 
 .errMsg {
   font-size: 12px;
-  color: var(--danger);
+  color: var(--danger-ink);
   margin-top: 6px;
 }
 
@@ -177,7 +177,7 @@
 .fine {
   font-family: var(--font-mono);
   font-size: 10px;
-  color: var(--ink-4);
+  color: var(--ink-3);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   text-align: center;
@@ -210,7 +210,7 @@
 
 .orbOk {
   background: var(--success-soft);
-  color: var(--success);
+  color: var(--success-ink);
 }
 
 .orbBad {
