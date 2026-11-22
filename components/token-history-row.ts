@@ -61,7 +61,9 @@ const DEBIT_AMOUNT_CLASS = "text-ink";
 
 export const toHistoryRow = (transaction: Transaction): HistoryRow => {
   const isCredit = transaction.amount > 0;
-  const sign = isCredit ? "+" : "-";
+  const isDebit = transaction.amount < 0;
+  // A zero amount moved no money, so it carries no sign and reads neutral
+  const sign = isCredit ? "+" : isDebit ? "-" : "";
   const formattedAmount = formatCurrency(
     Math.abs(transaction.amount),
     transaction.currencyCode

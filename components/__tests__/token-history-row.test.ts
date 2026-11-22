@@ -35,6 +35,13 @@ describe("toHistoryRow", () => {
     expect(row.amountClassName).toBe("text-success-ink");
   });
 
+  it("formats a zero amount without a sign in the neutral colour", () => {
+    const row = toHistoryRow({ ...baseTransaction, amount: 0 });
+
+    expect(row.amountLabel).toBe("0 ₽");
+    expect(row.amountClassName).toBe("text-ink");
+  });
+
   it("uses the chat title, then the description, then nothing as the row title", () => {
     expect(toHistoryRow(baseTransaction).title).toBe("Бумажный кораблик");
     expect(toHistoryRow({ ...baseTransaction, chatTitle: null }).title).toBe(
