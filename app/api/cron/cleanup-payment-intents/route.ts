@@ -3,6 +3,7 @@ import { and, eq, isNull, lte, or } from "drizzle-orm";
 import { isAuthorizedCronRequest } from "@/server/cron/is-authorized-cron-request";
 import { db } from "@/server/db/connection";
 import { paymentIntent } from "@/server/db/schema";
+import { deleteDeadAuthRecords } from "@/server/modules/auth/queries/auth-sessions";
 
 const LOG_PREFIX = "[Cron:CleanupPaymentIntents]";
 
@@ -80,6 +81,10 @@ const deleteStaleUnpaidIntents = async (now: Date): Promise<number> => {
  * older than the retention period that record neither a payment nor a payment
  * problem (the exact rule is on `deleteStaleUnpaidIntents`). Succeeded intents
  * are never deleted.
+ *
+ * It also deletes API sessions a week past their absolute end and refresh
+ * tokens a week past their expiry (`deleteDeadAuthRecords`): housekeeping of
+ * the same kind, not worth a schedule of its own.
  */
 export async function GET(request: Request): Promise<Response> {
   if (!isAuthorizedCronRequest(request)) {
@@ -91,14 +96,17 @@ export async function GET(request: Request): Promise<Response> {
   try {
     const expired = await expireOverduePendingIntents(now);
     const deleted = await deleteStaleUnpaidIntents(now);
+    const deletedAuthRecords = await deleteDeadAuthRecords(now);
 
     console.log(
-      `${LOG_PREFIX} Marked ${expired} overdue pending intents as expired, deleted ${deleted} unpaid expired or failed intents older than ${UNPAID_INTENT_RETENTION_DAYS} days`
+      `${LOG_PREFIX} Marked ${expired} overdue pending intents as expired, deleted ${deleted} unpaid expired or failed intents older than ${UNPAID_INTENT_RETENTION_DAYS} days, deleted ${deletedAuthRecords.sessions} dead API sessions and ${deletedAuthRecords.refreshTokens} expired refresh tokens`
     );
 
     return Response.json({
       expired,
       deleted,
+      deletedAuthSessions: deletedAuthRecords.sessions,
+      deletedRefreshTokens: deletedAuthRecords.refreshTokens,
       timestamp: now.toISOString(),
       message: `Marked ${expired} payment intents as expired. Deleted ${deleted} old payment intents.`,
     });

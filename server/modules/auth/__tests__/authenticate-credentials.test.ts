@@ -128,6 +128,22 @@ describe("authenticateCredentials", () => {
     expect(compare).not.toHaveBeenCalled();
   });
 
+  it("answers limiter_unavailable when the limits cannot be checked", async () => {
+    // Arrange
+    vi.mocked(beginLoginAttempt).mockResolvedValue({
+      isAllowed: false,
+      isUnavailable: true,
+      shouldDelay: false,
+    });
+
+    // Act
+    const result = await authenticateCredentials(credentials);
+
+    // Assert
+    expect(result).toEqual({ status: "limiter_unavailable" });
+    expect(getUserByEmail).not.toHaveBeenCalled();
+  });
+
   it("holds the answer back for two seconds when the account is under attack", async () => {
     // Arrange
     vi.useFakeTimers();

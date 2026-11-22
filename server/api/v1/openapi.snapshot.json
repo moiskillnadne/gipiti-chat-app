@@ -1,10 +1,875 @@
 {
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "bearerFormat": "JWT",
+        "description": "`Authorization: Bearer <accessToken>`. Access tokens live 15 minutes; renew them with `POST /auth/refresh`.",
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
   "info": {
     "title": "GIPITI API",
     "version": "1.0.0"
   },
   "openapi": "3.1.1",
   "paths": {
+    "/auth/login": {
+      "post": {
+        "description": "For clients that are not the website: opens a session and answers with an access token and a refresh token. No credentials are needed to call it.\n\n401 `invalid_credentials` for a wrong password and for an unknown email alike. 429 when there were too many attempts for this account or from this address; 503 when that limit cannot be checked, in which case retry after a moment.",
+        "operationId": "auth.login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "client": {
+                    "properties": {
+                      "appVersion": {
+                        "maxLength": 32,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "deviceName": {
+                        "description": "Shown in the list of sessions, for example \"Anna's iPhone\".",
+                        "maxLength": 255,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "platform": {
+                        "enum": [
+                          "ios",
+                          "android"
+                        ],
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "platform"
+                    ],
+                    "type": "object"
+                  },
+                  "email": {
+                    "format": "email",
+                    "maxLength": 255,
+                    "type": "string"
+                  },
+                  "password": {
+                    "maxLength": 200,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "email",
+                  "password",
+                  "client"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "tokens": {
+                      "properties": {
+                        "accessToken": {
+                          "description": "Sent as `Authorization: Bearer <accessToken>`. Treat it as opaque.",
+                          "type": "string"
+                        },
+                        "accessTokenExpiresAt": {
+                          "description": "ISO 8601, UTC. Refresh a little before this moment.",
+                          "type": "string"
+                        },
+                        "refreshToken": {
+                          "description": "Trades for a new pair at `POST /auth/refresh`, once. Keep it in the device's secure storage.",
+                          "type": "string"
+                        },
+                        "refreshTokenExpiresAt": {
+                          "description": "ISO 8601, UTC.",
+                          "type": "string"
+                        },
+                        "tokenType": {
+                          "description": "One of: Bearer. Clients must accept other values.",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "tokenType",
+                        "accessToken",
+                        "accessTokenExpiresAt",
+                        "refreshToken",
+                        "refreshTokenExpiresAt"
+                      ],
+                      "type": "object"
+                    },
+                    "user": {
+                      "properties": {
+                        "balance": {
+                          "anyOf": [
+                            {
+                              "properties": {
+                                "subscription": {
+                                  "description": "Credited on each renewal; spent first; reset on renewal.",
+                                  "properties": {
+                                    "amountMinor": {
+                                      "maximum": 9007199254740991,
+                                      "minimum": -9007199254740991,
+                                      "type": "integer"
+                                    },
+                                    "currencyCode": {
+                                      "maxLength": 3,
+                                      "minLength": 3,
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "amountMinor",
+                                    "currencyCode"
+                                  ],
+                                  "type": "object"
+                                },
+                                "topup": {
+                                  "description": "Top-ups and bonuses; never resets.",
+                                  "properties": {
+                                    "amountMinor": {
+                                      "maximum": 9007199254740991,
+                                      "minimum": -9007199254740991,
+                                      "type": "integer"
+                                    },
+                                    "currencyCode": {
+                                      "maxLength": 3,
+                                      "minLength": 3,
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "amountMinor",
+                                    "currencyCode"
+                                  ],
+                                  "type": "object"
+                                },
+                                "total": {
+                                  "properties": {
+                                    "amountMinor": {
+                                      "maximum": 9007199254740991,
+                                      "minimum": -9007199254740991,
+                                      "type": "integer"
+                                    },
+                                    "currencyCode": {
+                                      "maxLength": 3,
+                                      "minLength": 3,
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "amountMinor",
+                                    "currencyCode"
+                                  ],
+                                  "type": "object"
+                                }
+                              },
+                              "required": [
+                                "subscription",
+                                "topup",
+                                "total"
+                              ],
+                              "type": "object"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "Null until the account has a balance row."
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "emailVerified": {
+                          "type": "boolean"
+                        },
+                        "features": {
+                          "properties": {
+                            "topup": {
+                              "description": "One-time balance top-up is offered to this user.",
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "topup"
+                          ],
+                          "type": "object"
+                        },
+                        "hasActiveSubscription": {
+                          "type": "boolean"
+                        },
+                        "id": {
+                          "type": "string"
+                        },
+                        "isTester": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "email",
+                        "emailVerified",
+                        "isTester",
+                        "hasActiveSubscription",
+                        "balance",
+                        "features"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "user",
+                    "tokens"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: TOO_MANY_REQUESTS. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "429"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: SERVICE_UNAVAILABLE. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "503"
+          }
+        },
+        "summary": "Sign in with email and password",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "description": "Needs an access token (401 `bearer_required` for a browser session: the website signs out through its own sign-out). The access token and the session's refresh tokens stop working at once. Safe to repeat.",
+        "operationId": "auth.logout",
+        "responses": {
+          "204": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {},
+                    {
+                      "not": {}
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          }
+        },
+        "summary": "End the session of this access token",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/logout-all": {
+      "post": {
+        "description": "Ends every session of the account: every app and every browser, the caller's own included. Needs an access token or a browser session.",
+        "operationId": "auth.logoutAll",
+        "responses": {
+          "204": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {},
+                    {
+                      "not": {}
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: FORBIDDEN. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "403"
+          }
+        },
+        "summary": "Sign out everywhere",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "description": "The refresh token in the body is the credential; no `Authorization` header is needed. It works once: the answer carries the next refresh token.\n\nMake one refresh at a time and share its result. A second request with the same token within 30 seconds still gets a pair (the answer to the first may have been lost), at most twice. Later than that the token counts as copied, the session is revoked and the user has to sign in again.\n\n401 reasons: `refresh_invalid` (not a refresh token of ours, or retried too often), `refresh_expired` (unused for 60 days, or the session is 180 days old), `session_revoked` (logout, password change), `refresh_reused` (see above).",
+        "operationId": "auth.refresh",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "refreshToken": {
+                    "maxLength": 200,
+                    "minLength": 20,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "refreshToken"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "tokens": {
+                      "properties": {
+                        "accessToken": {
+                          "description": "Sent as `Authorization: Bearer <accessToken>`. Treat it as opaque.",
+                          "type": "string"
+                        },
+                        "accessTokenExpiresAt": {
+                          "description": "ISO 8601, UTC. Refresh a little before this moment.",
+                          "type": "string"
+                        },
+                        "refreshToken": {
+                          "description": "Trades for a new pair at `POST /auth/refresh`, once. Keep it in the device's secure storage.",
+                          "type": "string"
+                        },
+                        "refreshTokenExpiresAt": {
+                          "description": "ISO 8601, UTC.",
+                          "type": "string"
+                        },
+                        "tokenType": {
+                          "description": "One of: Bearer. Clients must accept other values.",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "tokenType",
+                        "accessToken",
+                        "accessTokenExpiresAt",
+                        "refreshToken",
+                        "refreshTokenExpiresAt"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "tokens"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          }
+        },
+        "summary": "Trade a refresh token for a new pair",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/sessions": {
+      "get": {
+        "description": "Sessions of API clients that can still be used, most recently used first. Browser sessions are not listed: they have no entry of their own and end only all together, through `POST /auth/logout-all` or a password change. Needs an access token or a browser session.",
+        "operationId": "auth.sessions.list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "properties": {
+                          "appVersion": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "createdAt": {
+                            "description": "ISO 8601, UTC.",
+                            "type": "string"
+                          },
+                          "deviceName": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "id": {
+                            "type": "string"
+                          },
+                          "isCurrent": {
+                            "description": "The session this request was made with.",
+                            "type": "boolean"
+                          },
+                          "lastUsedAt": {
+                            "description": "ISO 8601, UTC. Updated at most every 5 minutes.",
+                            "type": "string"
+                          },
+                          "platform": {
+                            "anyOf": [
+                              {
+                                "description": "One of: ios, android. Clients must accept other values.",
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "platform",
+                          "deviceName",
+                          "appVersion",
+                          "createdAt",
+                          "lastUsedAt",
+                          "isCurrent"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          }
+        },
+        "summary": "The apps signed in to this account",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/sessions/{sessionId}": {
+      "delete": {
+        "description": "Ends one session from the list. 404 when the account has no live session with this id, which is also the answer for a session of another account.",
+        "operationId": "auth.sessions.revoke",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sessionId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {},
+                    {
+                      "not": {}
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: FORBIDDEN. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "403"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: NOT_FOUND. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "404"
+          }
+        },
+        "summary": "Sign one app out",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/config": {
       "get": {
         "operationId": "config.get",

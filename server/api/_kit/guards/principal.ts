@@ -1,4 +1,6 @@
 import type { InitialContext } from "@/server/api/_kit/context";
+import { getCookieSessionUserId } from "@/server/modules/auth/cookie-session";
+import { resolveBearerSession } from "@/server/modules/auth/sessions";
 
 /** Who is calling. */
 export type Principal = {
@@ -8,44 +10,70 @@ export type Principal = {
   via: "cookie" | "bearer" | "in-process";
 };
 
+export type PrincipalRejection =
+  /** A bearer token that is not ours, has expired, or whose session ended. */
+  | "invalid_token"
+  /** An `Authorization` header that is not `Bearer <token>`. */
+  | "unsupported_authorization";
+
 export type PrincipalResolution =
   | { kind: "principal"; principal: Principal }
   | { kind: "anonymous" }
-  | { kind: "rejected"; reason: "bearer_not_supported" };
+  | { kind: "rejected"; reason: PrincipalRejection };
 
 const AUTHORIZATION_HEADER = "authorization";
+const BEARER_PATTERN = /^Bearer +(\S+)$/i;
 
 /**
  * Work out who is calling from the request.
  *
  * A request that carries an `Authorization` header is judged by that header
- * alone; its cookies are never consulted, so a client cannot end up acting as
- * the browser's user by accident. Bearer tokens are not issued yet (roadmap
- * Phase 4), so for now such a request is rejected.
+ * alone. Its cookies are never consulted, not even when the token is bad: a
+ * client must not end up acting as the browser's user by accident, and a
+ * request that tried to prove who it is and failed is refused, not treated
+ * as anonymous.
  *
  * Without the header, the session cookie decides.
  */
 export const resolvePrincipal = async ({
   request,
   transport,
-  getCookieSession,
 }: Pick<
   InitialContext,
-  "request" | "transport" | "getCookieSession"
+  "request" | "transport"
 >): Promise<PrincipalResolution> => {
-  if (request.headers.has(AUTHORIZATION_HEADER)) {
-    return { kind: "rejected", reason: "bearer_not_supported" };
+  const authorization = request.headers.get(AUTHORIZATION_HEADER);
+
+  if (authorization !== null) {
+    const accessToken = BEARER_PATTERN.exec(authorization.trim())?.[1];
+    if (!accessToken) {
+      return { kind: "rejected", reason: "unsupported_authorization" };
+    }
+
+    const session = await resolveBearerSession(accessToken);
+    if (!session) {
+      return { kind: "rejected", reason: "invalid_token" };
+    }
+
+    return {
+      kind: "principal",
+      principal: {
+        userId: session.userId,
+        sessionId: session.sessionId,
+        via: "bearer",
+      },
+    };
   }
 
-  const session = await getCookieSession();
-  if (!session) {
+  const userId = await getCookieSessionUserId();
+  if (!userId) {
     return { kind: "anonymous" };
   }
 
   return {
     kind: "principal",
     principal: {
-      userId: session.userId,
+      userId,
       sessionId: null,
       via: transport === "in-process" ? "in-process" : "cookie",
     },

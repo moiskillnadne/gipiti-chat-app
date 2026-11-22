@@ -15,6 +15,13 @@ const { dbState } = vi.hoisted(() => ({
   },
 }));
 
+// The session housekeeping has its own queries and its own integration test.
+vi.mock("@/server/modules/auth/queries/auth-sessions", () => ({
+  deleteDeadAuthRecords: vi
+    .fn()
+    .mockResolvedValue({ sessions: 4, refreshTokens: 5 }),
+}));
+
 // Minimal Drizzle stand-in: `update().set().where().returning()` resolves to
 // the rows the UPDATE would return, `delete().where().returning()` to the rows
 // the DELETE would return. Which rows match is covered by the integration test.
@@ -124,6 +131,8 @@ describe("GET /api/cron/cleanup-payment-intents", () => {
     expect(body).toEqual({
       expired: 3,
       deleted: 2,
+      deletedAuthSessions: 4,
+      deletedRefreshTokens: 5,
       timestamp: expect.any(String),
       message:
         "Marked 3 payment intents as expired. Deleted 2 old payment intents.",

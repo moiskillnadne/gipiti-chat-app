@@ -66,7 +66,11 @@ export const {
           ip: request?.headers ? getClientIp(request.headers) : null,
         });
 
-        if (result.status === "rate_limited") {
+        // The form shows one message for both: try again later.
+        if (
+          result.status === "rate_limited" ||
+          result.status === "limiter_unavailable"
+        ) {
           throw new RateLimitedSignin();
         }
         if (result.status === "invalid_credentials") {

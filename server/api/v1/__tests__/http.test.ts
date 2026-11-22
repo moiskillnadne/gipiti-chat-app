@@ -8,12 +8,13 @@ import {
   type SubscriptionWithPrices,
 } from "@/lib/billing/subscriptions";
 import { getActiveUserSubscription } from "@/lib/db/query/subscription/get-active-user-subscription";
-import type { CookieSession } from "@/server/api/_kit/context";
 import { createHandler } from "@/server/api/_kit/create-handler";
 import { KNOWN_MODEL_PROVIDERS } from "@/server/api/v1/_schemas/model";
 import { v1Router } from "@/server/api/v1/router";
 import type { Subscription, User, UserSubscription } from "@/server/db/schema";
 import { isSignupEnabled, isTopupEnabled } from "@/server/flags";
+import { getCookieSessionUserId } from "@/server/modules/auth/cookie-session";
+import { resolveBearerSession } from "@/server/modules/auth/sessions";
 import { getUserById } from "@/server/modules/users/queries/get-by-id";
 
 // The handler, the router, the middlewares, the mappers and the model
@@ -23,6 +24,12 @@ vi.mock("@/server/db/connection", () => ({ db: {} }));
 vi.mock("@/server/flags", () => ({
   isSignupEnabled: vi.fn(),
   isTopupEnabled: { run: vi.fn() },
+}));
+vi.mock("@/server/modules/auth/cookie-session", () => ({
+  getCookieSessionUserId: vi.fn(),
+}));
+vi.mock("@/server/modules/auth/sessions", () => ({
+  resolveBearerSession: vi.fn(),
 }));
 vi.mock("@/lib/billing/currencies", () => ({ getMinorUnits: vi.fn() }));
 vi.mock("@/lib/billing/subscriptions", () => ({
@@ -43,11 +50,15 @@ const OPENAPI_DOCUMENT = { openapi: "3.1.1", paths: {} };
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
-const getCookieSession = vi.fn<() => Promise<CookieSession | null>>();
+const SESSION_ID = "9d1b3f0c-1b7e-4a52-7c0a-6e5d4c3b2a1d";
+const ACCESS_TOKEN = "header.payload.signature";
+const BEARER = { authorization: `Bearer ${ACCESS_TOKEN}` };
+
+/** The reader of the browser session, as the principal guard calls it. */
+const getCookieSession = vi.mocked(getCookieSessionUserId);
 
 const handlers = createHandler(v1Router, {
   prefix: PREFIX,
-  getCookieSession,
   openApiDocument: OPENAPI_DOCUMENT,
 });
 
@@ -85,12 +96,21 @@ const catalogEntry = (
 });
 
 const signIn = (): void => {
-  getCookieSession.mockResolvedValue({ userId: USER_ID });
+  getCookieSession.mockResolvedValue(USER_ID);
+};
+
+/** The access token in `BEARER` stands for the user from here on. */
+const acceptBearerToken = (): void => {
+  vi.mocked(resolveBearerSession).mockResolvedValue({
+    userId: USER_ID,
+    sessionId: SESSION_ID,
+  });
 };
 
 beforeEach(() => {
   vi.clearAllMocks();
   getCookieSession.mockResolvedValue(null);
+  vi.mocked(resolveBearerSession).mockResolvedValue(null);
   vi.mocked(isSignupEnabled).mockResolvedValue(true);
   vi.mocked(isTopupEnabled.run).mockResolvedValue(false);
   vi.mocked(getMinorUnits).mockResolvedValue(2);
@@ -233,13 +253,12 @@ describe("the v1 handler", () => {
       signIn();
 
       // Act
-      const response = await call(path, {
-        headers: { authorization: "Bearer some.jwt.token" },
-      });
+      const response = await call(path, { headers: BEARER });
 
       // Assert
       expect(response.status).toBe(200);
       expect(getCookieSession).not.toHaveBeenCalled();
+      expect(resolveBearerSession).not.toHaveBeenCalled();
     }
   );
 
@@ -452,15 +471,29 @@ describe("GET /plans", () => {
     expect(body.items[0].displayName).toBe("basic_monthly");
   });
 
-  it("refuses a request with an Authorization header instead of treating it as anonymous", async () => {
+  it("refuses a token that is not accepted instead of treating the caller as anonymous", async () => {
+    // Act
+    const response = await call("/plans", { headers: BEARER });
+
+    // Assert
+    expect(response.status).toBe(401);
+    expect(await response.json()).toMatchObject({
+      code: "UNAUTHORIZED",
+      data: { reason: "invalid_token" },
+    });
+  });
+
+  it("refuses an Authorization header of another scheme", async () => {
     // Act
     const response = await call("/plans", {
-      headers: { authorization: "Bearer some.jwt.token" },
+      headers: { authorization: "Basic dXNlcjpwYXNz" },
     });
 
     // Assert
     expect(response.status).toBe(401);
-    expect((await response.json()).code).toBe("UNAUTHORIZED");
+    expect((await response.json()).data).toEqual({
+      reason: "unsupported_authorization",
+    });
   });
 });
 
@@ -479,19 +512,33 @@ describe("GET /me", () => {
     expect(getUserById).not.toHaveBeenCalled();
   });
 
-  it("refuses a bearer header even when a browser session is present", async () => {
+  it("refuses a token that is not accepted even when a browser session is present", async () => {
     // Arrange
     signIn();
 
     // Act
-    const response = await call("/me", {
-      headers: { authorization: "Bearer some.jwt.token" },
-    });
+    const response = await call("/me", { headers: BEARER });
 
     // Assert
     expect(response.status).toBe(401);
+    expect((await response.json()).data).toEqual({ reason: "invalid_token" });
     expect(getCookieSession).not.toHaveBeenCalled();
     expect(getUserById).not.toHaveBeenCalled();
+  });
+
+  it("answers a caller with an access token, without a browser session", async () => {
+    // Arrange
+    acceptBearerToken();
+    vi.mocked(getUserById).mockResolvedValue(userRow());
+
+    // Act
+    const response = await call("/me", { headers: BEARER });
+
+    // Assert
+    expect(response.status).toBe(200);
+    expect((await response.json()).id).toBe(USER_ID);
+    expect(resolveBearerSession).toHaveBeenCalledWith(ACCESS_TOKEN);
+    expect(getCookieSession).not.toHaveBeenCalled();
   });
 
   it("returns the user from the database with the balance as money", async () => {

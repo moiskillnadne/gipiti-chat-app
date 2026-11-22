@@ -119,8 +119,9 @@ Module (`server/modules/auth/`):
 Kit:
 
 - `guards/principal.ts`: a `Bearer` header is verified and never falls back to the cookie; an invalid one is 401; any other `Authorization` scheme is 401. Otherwise the cookie (P10).
-- `guards/csrf.ts` and its use in `middleware.ts` (P9).
-- `_kit/openapi.ts`: the `bearerAuth` security scheme. `common-errors.ts`: `TOO_MANY_REQUESTS`, `SERVICE_UNAVAILABLE`, and `UNAUTHORIZED` with an open-enum `data.reason`.
+- `guards/csrf.ts` and its use in `middleware.ts` (P9); a refusal is `FORBIDDEN` with `data.reason: "cross_site_request"`. The principal middlewares put a reason on every 401 too (`not_authenticated`, `invalid_token`, `unsupported_authorization`).
+- `_kit/openapi.ts`: the `bearerAuth` security scheme. `common-errors.ts`: `FORBIDDEN`, `TOO_MANY_REQUESTS`, `SERVICE_UNAVAILABLE`. The `UNAUTHORIZED` with an open-enum `data.reason` is declared by the auth contract itself (`v1/_schemas/auth.ts`), so `/me` and `/plans` keep the plain one.
+- `authenticateCredentials` tells `limiter_unavailable` apart from `rate_limited` (503 and 429 on the wire; the web form shows one message for both, as before). `/me`'s loader moves to `v1/me/load-me.ts`, shared with login.
 
 Endpoints (`server/api/v1/auth/{contract,router}.ts`, `auth/sessions/`, `_schemas/auth.ts`, a mapper):
 
@@ -128,7 +129,7 @@ Endpoints (`server/api/v1/auth/{contract,router}.ts`, `auth/sessions/`, `_schema
 |---|---|---|---|
 | `POST /auth/login` | none | 200 `{ user: Me, tokens }` | `UNAUTHORIZED/invalid_credentials`, `TOO_MANY_REQUESTS`, `SERVICE_UNAVAILABLE` |
 | `POST /auth/refresh` | refresh token in the body | 200 `{ tokens }` | `UNAUTHORIZED/{refresh_invalid,refresh_expired,session_revoked,refresh_reused}` |
-| `POST /auth/logout` | bearer | 204 | idempotent |
+| `POST /auth/logout` | bearer | 204 | idempotent; `UNAUTHORIZED/bearer_required` for a browser session |
 | `POST /auth/logout-all` | bearer or cookie | 204 | a cookie caller is signed out too |
 | `GET /auth/sessions` | bearer or cookie | 200 `{ items }` with `isCurrent` | mobile sessions only |
 | `DELETE /auth/sessions/{sessionId}` | bearer or cookie | 204 | `NOT_FOUND` (also for another user's session) |

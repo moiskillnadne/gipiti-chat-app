@@ -23,8 +23,10 @@ export type CredentialsInput = {
 export type AuthenticateCredentialsResult =
   | { status: "authenticated"; account: Account }
   | { status: "invalid_credentials" }
-  /** Refused by a login limit, or the limits could not be checked. */
-  | { status: "rate_limited" };
+  /** Too many attempts for this account or from this address. */
+  | { status: "rate_limited" }
+  /** The login limits could not be checked, so the attempt is refused. */
+  | { status: "limiter_unavailable" };
 
 const wait = (milliseconds: number): Promise<void> =>
   new Promise((resolve) => {
@@ -68,7 +70,9 @@ export const authenticateCredentials = async ({
 
   const attempt = await beginLoginAttempt(identity);
   if (!attempt.isAllowed) {
-    return { status: "rate_limited" };
+    return {
+      status: attempt.isUnavailable ? "limiter_unavailable" : "rate_limited",
+    };
   }
   if (attempt.shouldDelay) {
     await wait(THROTTLED_LOGIN_DELAY_MS);

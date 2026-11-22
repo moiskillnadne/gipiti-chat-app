@@ -9,7 +9,6 @@ type HandlerRouter = ConstructorParameters<
 type CreateHandlerOptions = {
   /** The URL prefix the router is mounted at, for example `/api/v1`. */
   prefix: `/${string}`;
-  getCookieSession: InitialContext["getCookieSession"];
   /** Served as JSON at `<prefix>/openapi.json`. */
   openApiDocument?: unknown;
 };
@@ -74,13 +73,12 @@ const withoutBody = (response: Response): Response =>
  * ```ts
  * export const { GET, POST, PUT, PATCH, DELETE, HEAD } = createHandler(router, {
  *   prefix: "/api/v1",
- *   getCookieSession,
  * });
  * ```
  */
 export const createHandler = (
   router: HandlerRouter,
-  { prefix, getCookieSession, openApiDocument }: CreateHandlerOptions
+  { prefix, openApiDocument }: CreateHandlerOptions
 ): RouteHandlers => {
   const handler = new OpenAPIHandler<InitialContext>(router);
 
@@ -100,7 +98,7 @@ export const createHandler = (
 
     const { matched, response } = await handler.handle(request, {
       prefix,
-      context: { request, transport: "http", requestId, getCookieSession },
+      context: { request, transport: "http", requestId },
     });
 
     return matched ? response : notFoundResponse();
