@@ -7,6 +7,7 @@ type SignedInUser = {
   emailVerified: boolean;
   hasActiveSubscription: boolean;
   isTester: boolean;
+  tokenVersion?: number;
 };
 
 type JwtCallbackParams = {
@@ -184,7 +185,40 @@ describe("auth jwt callback and the token version", () => {
     isTester: false,
   };
 
-  it("records the account's version, as the database has it, in a new session", async () => {
+  it("stamps a new session with the version authorize read, not with the one the account has now", async () => {
+    // Arrange: the password was reset while the sign-in was in flight.
+    getTokenVersionForNewSessionMock.mockResolvedValue(4);
+
+    // Act
+    const token = await runJwtCallbackOnLiveSession({
+      token: { email: USER_EMAIL } as JWT,
+      user: { ...signedInUser, tokenVersion: 3 },
+      trigger: "signIn",
+    });
+
+    // Assert: stale by design, so the session is refused on first use.
+    expect(token.ver).toBe(3);
+    expect(getTokenVersionForNewSessionMock).not.toHaveBeenCalled();
+    // A session being issued is not checked against itself.
+    expect(isSessionVersionCurrentMock).not.toHaveBeenCalled();
+  });
+
+  it("stamps version 0 as 0, not as a missing value", async () => {
+    // Arrange
+    getTokenVersionForNewSessionMock.mockResolvedValue(7);
+
+    // Act
+    const token = await runJwtCallbackOnLiveSession({
+      token: { email: USER_EMAIL } as JWT,
+      user: { ...signedInUser, tokenVersion: 0 },
+      trigger: "signIn",
+    });
+
+    // Assert
+    expect(token.ver).toBe(0);
+  });
+
+  it("reads the database for a sign-in that carries no version", async () => {
     // Arrange
     getTokenVersionForNewSessionMock.mockResolvedValue(3);
 

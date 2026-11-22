@@ -49,6 +49,19 @@ const errorBodySchemaOf = (
   } as const;
 };
 
+/**
+ * How a client that is not a browser page proves who it is: the access token
+ * from `POST /auth/login`, `/auth/register` or `/auth/refresh`. Which
+ * operations need it is said in each operation's description.
+ */
+const BEARER_SECURITY_SCHEME = {
+  type: "http",
+  scheme: "bearer",
+  bearerFormat: "JWT",
+  description:
+    "`Authorization: Bearer <accessToken>`. Access tokens live 15 minutes; renew them with `POST /auth/refresh`.",
+} as const;
+
 /** The same value with object keys in alphabetical order, at every depth. */
 const sortKeysDeep = (value: JsonValue): JsonValue => {
   if (Array.isArray(value)) {
@@ -83,6 +96,7 @@ export const generateOpenApiDocument = async ({
   const document = await generator.generate(contract, {
     info: { title, version },
     servers: [{ url: serverUrl }],
+    components: { securitySchemes: { bearerAuth: BEARER_SECURITY_SCHEME } },
     customErrorResponseBodySchema: (definedErrors) =>
       errorBodySchemaOf(definedErrors),
   });

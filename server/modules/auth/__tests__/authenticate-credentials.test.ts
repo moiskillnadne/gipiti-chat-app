@@ -35,6 +35,7 @@ const storedUser = {
   password: "stored-hash",
   emailVerified: true,
   isTester: false,
+  tokenVersion: 2,
 };
 const asUser = (row: Partial<User>): User => row as User;
 
@@ -69,6 +70,8 @@ describe("authenticateCredentials", () => {
         email: EMAIL,
         emailVerified: true,
         isTester: false,
+        // The version the row had when the password was checked.
+        tokenVersion: 2,
       },
     });
     expect(compare).toHaveBeenCalledWith(PASSWORD, "stored-hash");
@@ -126,6 +129,22 @@ describe("authenticateCredentials", () => {
     expect(result).toEqual({ status: "rate_limited" });
     expect(getUserByEmail).not.toHaveBeenCalled();
     expect(compare).not.toHaveBeenCalled();
+  });
+
+  it("answers limiter_unavailable when the limits cannot be checked", async () => {
+    // Arrange
+    vi.mocked(beginLoginAttempt).mockResolvedValue({
+      isAllowed: false,
+      isUnavailable: true,
+      shouldDelay: false,
+    });
+
+    // Act
+    const result = await authenticateCredentials(credentials);
+
+    // Assert
+    expect(result).toEqual({ status: "limiter_unavailable" });
+    expect(getUserByEmail).not.toHaveBeenCalled();
   });
 
   it("holds the answer back for two seconds when the account is under attack", async () => {

@@ -1,3 +1,4 @@
+import { authRouter } from "@/server/api/v1/auth/router";
 import { configRouter } from "@/server/api/v1/config/router";
 import { v1 } from "@/server/api/v1/implementer";
 import { meRouter } from "@/server/api/v1/me/router";
@@ -10,4 +11,5 @@ export const v1Router = v1.router({
   models: modelsRouter,
   plans: plansRouter,
   me: meRouter,
+  auth: authRouter,
 });
