@@ -1,9 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { isMarkdownNegotiablePath } from "./lib/agent-discovery/markdown/paths";
-import { getAuthSecret } from "./lib/auth/secret";
-import { isDevelopmentEnvironment } from "./lib/constants";
+import { isDevelopmentEnvironment } from "./server/env";
 import { isSignupEnabled } from "./server/flags";
+import { getAuthSecret } from "./server/modules/auth/secret";
 
 const AUTH_ROUTES = [
   "/login",

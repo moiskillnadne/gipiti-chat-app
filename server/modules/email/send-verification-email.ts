@@ -1,0 +1,110 @@
+import { randomInt } from "node:crypto";
+import { emailConfig, resend } from "@/server/integrations/resend/client";
+import { setEmailVerificationCode } from "@/server/modules/users/queries/set-email-verification-code";
+import { hashToken } from "../auth/reset-token";
+import {
+  getEmailVerificationHtml,
+  getEmailVerificationSubject,
+  getEmailVerificationText,
+} from "./templates/email-verification";
+
+type SendVerificationEmailParams = {
+  email: string;
+};
+
+/**
+ * Generate a cryptographically secure 6-digit verification code
+ * @returns 6-digit string code
+ */
+export function generateVerificationCode(): string {
+  // The upper bound is exclusive.
+  const code = randomInt(100_000, 1_000_000);
+  return code.toString();
+}
+
+/**
+ * Create a verification code with expiry (30 minutes)
+ * @returns Object with plain code, hashed code, and expiry date
+ */
+export function createVerificationCode(): {
+  code: string;
+  hashedCode: string;
+  expiresAt: Date;
+} {
+  const code = generateVerificationCode();
+  const hashedCode = hashToken(code);
+  const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+
+  return {
+    code,
+    hashedCode,
+    expiresAt,
+  };
+}
+
+/**
+ * Send email verification code
+ * @param params Email address
+ * @returns Success status and any error message
+ */
+export async function sendVerificationEmail({
+  email,
+}: SendVerificationEmailParams): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  try {
+    // Generate verification code
+    const { code, hashedCode, expiresAt } = createVerificationCode();
+
+    // Store hashed code in database
+    await setEmailVerificationCode({
+      email,
+      hashedCode,
+      expiresAt,
+    });
+
+    const subject = getEmailVerificationSubject();
+
+    const html = getEmailVerificationHtml({
+      code,
+      email,
+    });
+
+    const text = getEmailVerificationText({
+      code,
+      email,
+    });
+
+    // Send email via Resend
+    const response = await resend.emails.send({
+      from: emailConfig.from,
+      to: email,
+      subject,
+      html,
+      text,
+    });
+
+    if (response.error) {
+      console.error("Failed to send verification email:", response.error);
+      return {
+        success: false,
+        error: response.error.message,
+      };
+    }
+
+    console.info(
+      `[SendVerificationEmail] Verification email sent successfully to ${email}`
+    );
+
+    return {
+      success: true,
+    };
+  } catch (error) {
+    console.error("Error sending verification email:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}

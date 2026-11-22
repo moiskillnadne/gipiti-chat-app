@@ -2,8 +2,8 @@ import { vercelAdapter } from "@flags-sdk/vercel";
 import type { ReadonlyHeaders } from "flags";
 import { dedupe, flag } from "flags/next";
 import { getToken } from "next-auth/jwt";
-import { getAuthSecret } from "@/lib/auth/secret";
-import { isDevelopmentEnvironment } from "@/lib/constants";
+import { isDevelopmentEnvironment } from "@/server/env";
+import { getAuthSecret } from "@/server/modules/auth/secret";
 
 export const isSignupEnabled = flag<boolean>({
   key: "isSignupEnabled",

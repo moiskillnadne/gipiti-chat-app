@@ -5,22 +5,22 @@ import { grantEmailVerificationBonus } from "@/lib/billing/balance";
 import {
   createUser,
   DuplicateEmailError,
-} from "@/lib/db/query/user/create-user";
-import { getUserByEmail } from "@/lib/db/query/user/get-by-email";
-import { getUserByResetToken } from "@/lib/db/query/user/get-user-by-reset-token";
-import { markEmailAsVerified } from "@/lib/db/query/user/mark-email-as-verified";
-import { setPasswordResetToken } from "@/lib/db/query/user/set-password-reset-token";
-import { takeVerificationAttempt } from "@/lib/db/query/user/take-verification-attempt";
-import { updateUserPassword } from "@/lib/db/query/user/update-user-password";
+} from "@/server/modules/users/queries/create-user";
+import { getUserByEmail } from "@/server/modules/users/queries/get-by-email";
+import { getUserByResetToken } from "@/server/modules/users/queries/get-user-by-reset-token";
+import { markEmailAsVerified } from "@/server/modules/users/queries/mark-email-as-verified";
+import { setPasswordResetToken } from "@/server/modules/users/queries/set-password-reset-token";
+import { takeVerificationAttempt } from "@/server/modules/users/queries/take-verification-attempt";
+import { updateUserPassword } from "@/server/modules/users/queries/update-user-password";
 import type { User } from "@/server/db/schema";
 import { generateHashedPassword } from "@/server/db/utils";
-import { sendPasswordChangedEmail } from "@/lib/email/send-password-changed";
-import { sendPasswordResetEmail } from "@/lib/email/send-password-reset";
-import { sendVerificationEmail } from "@/lib/email/send-verification-email";
+import { sendPasswordChangedEmail } from "@/server/modules/email/send-password-changed";
+import { sendPasswordResetEmail } from "@/server/modules/email/send-password-reset";
+import { sendVerificationEmail } from "@/server/modules/email/send-verification-email";
 import {
   getRegistrationGeoFromHeaders,
   sanitizeLanguage,
-} from "@/lib/geo/registration-geo";
+} from "@/server/modules/auth/registration-geo";
 import {
   checkPasswordResetRateLimit,
   checkRegisterRateLimit,
@@ -56,7 +56,7 @@ const { signInMock, isSignupEnabledMock, cookieGetMock, cookieDeleteMock } =
 
 vi.mock("server-only", () => ({}));
 vi.mock("@/server/db/connection", () => ({ db: {} }));
-vi.mock("@/app/(auth)/auth", () => ({ signIn: signInMock }));
+vi.mock("@/server/modules/auth/next-auth", () => ({ signIn: signInMock }));
 vi.mock("next/headers", () => ({
   cookies: () =>
     Promise.resolve({ get: cookieGetMock, delete: cookieDeleteMock }),
@@ -71,7 +71,7 @@ vi.mock("@/server/http/rate-limit", () => ({
   getRateLimitResetMinutes: vi.fn(),
   getRateLimitResetSeconds: vi.fn(),
 }));
-vi.mock("@/lib/geo/registration-geo", () => ({
+vi.mock("@/server/modules/auth/registration-geo", () => ({
   getRegistrationGeoFromHeaders: vi.fn(),
   sanitizeLanguage: vi.fn(),
 }));
@@ -79,43 +79,43 @@ vi.mock("@/lib/billing/balance", () => ({
   grantEmailVerificationBonus: vi.fn(),
 }));
 vi.mock("@/server/db/utils", () => ({ generateHashedPassword: vi.fn() }));
-vi.mock("@/lib/db/query/user/get-by-email", () => ({
+vi.mock("@/server/modules/users/queries/get-by-email", () => ({
   getUserByEmail: vi.fn(),
 }));
-vi.mock("@/lib/db/query/user/get-user-by-reset-token", () => ({
+vi.mock("@/server/modules/users/queries/get-user-by-reset-token", () => ({
   getUserByResetToken: vi.fn(),
 }));
-vi.mock("@/lib/db/query/user/take-verification-attempt", () => ({
+vi.mock("@/server/modules/users/queries/take-verification-attempt", () => ({
   MAX_EMAIL_VERIFICATION_ATTEMPTS: 5,
   takeVerificationAttempt: vi.fn(),
 }));
-vi.mock("@/lib/db/query/user/mark-email-as-verified", () => ({
+vi.mock("@/server/modules/users/queries/mark-email-as-verified", () => ({
   markEmailAsVerified: vi.fn(),
 }));
-vi.mock("@/lib/db/query/user/update-user-password", () => ({
+vi.mock("@/server/modules/users/queries/update-user-password", () => ({
   updateUserPassword: vi.fn(),
 }));
-vi.mock("@/lib/db/query/user/set-password-reset-token", () => ({
+vi.mock("@/server/modules/users/queries/set-password-reset-token", () => ({
   setPasswordResetToken: vi.fn(),
 }));
 // The action tells a lost signup race apart with `instanceof`, so the error
 // class stays the real one; only the insert itself is replaced.
-vi.mock("@/lib/db/query/user/create-user", async () => {
+vi.mock("@/server/modules/users/queries/create-user", async () => {
   const actual = await vi.importActual<
-    typeof import("@/lib/db/query/user/create-user")
-  >("@/lib/db/query/user/create-user");
+    typeof import("@/server/modules/users/queries/create-user")
+  >("@/server/modules/users/queries/create-user");
   return {
     DuplicateEmailError: actual.DuplicateEmailError,
     createUser: vi.fn(),
   };
 });
-vi.mock("@/lib/email/send-verification-email", () => ({
+vi.mock("@/server/modules/email/send-verification-email", () => ({
   sendVerificationEmail: vi.fn(),
 }));
-vi.mock("@/lib/email/send-password-reset", () => ({
+vi.mock("@/server/modules/email/send-password-reset", () => ({
   sendPasswordResetEmail: vi.fn(),
 }));
-vi.mock("@/lib/email/send-password-changed", () => ({
+vi.mock("@/server/modules/email/send-password-changed", () => ({
   sendPasswordChangedEmail: vi.fn(),
 }));
 

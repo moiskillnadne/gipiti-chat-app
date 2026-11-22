@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
-import { auth } from "@/app/(auth)/auth";
 import { Chat } from "@/components/chat";
 import { generateUUID } from "@/lib/utils";
+import { auth } from "@/server/modules/auth/next-auth";
 
 export default async function Page() {
   const session = await auth();

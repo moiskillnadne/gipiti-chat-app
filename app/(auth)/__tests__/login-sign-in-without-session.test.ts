@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { authConfig } from "@/app/(auth)/auth.config";
+import { authConfig } from "@/server/modules/auth/next-auth.config";
 
 type SignInOptions = { email: string; password: string; redirect: boolean };
 
@@ -15,23 +15,23 @@ const { signInMock } = vi.hoisted(() => ({
 // (next-auth 5.0.0-beta.32, @auth/core 0.41.3) with this app's `pages` config.
 vi.mock("server-only", () => ({}));
 vi.mock("@/server/db/connection", () => ({ db: {} }));
-vi.mock("@/app/(auth)/auth", () => ({ signIn: signInMock }));
+vi.mock("@/server/modules/auth/next-auth", () => ({ signIn: signInMock }));
 vi.mock("next/headers", () => ({ cookies: vi.fn(), headers: vi.fn() }));
 vi.mock("@/server/flags", () => ({ isSignupEnabled: vi.fn() }));
 vi.mock("@/server/http/rate-limit", () => ({}));
-vi.mock("@/lib/db/query/user/get-by-email", () => ({
+vi.mock("@/server/modules/users/queries/get-by-email", () => ({
   getUserByEmail: vi.fn(),
 }));
-vi.mock("@/lib/db/query/user/set-password-reset-token", () => ({
+vi.mock("@/server/modules/users/queries/set-password-reset-token", () => ({
   setPasswordResetToken: vi.fn(),
 }));
-vi.mock("@/lib/email/send-verification-email", () => ({
+vi.mock("@/server/modules/email/send-verification-email", () => ({
   sendVerificationEmail: vi.fn(),
 }));
-vi.mock("@/lib/email/send-password-reset", () => ({
+vi.mock("@/server/modules/email/send-password-reset", () => ({
   sendPasswordResetEmail: vi.fn(),
 }));
-vi.mock("@/lib/email/send-password-changed", () => ({
+vi.mock("@/server/modules/email/send-password-changed", () => ({
   sendPasswordChangedEmail: vi.fn(),
 }));
 

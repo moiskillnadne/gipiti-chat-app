@@ -1,8 +1,7 @@
 import type { Session } from "next-auth";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-import { auth } from "@/app/(auth)/auth";
 import type { Chat, DBMessage } from "@/server/db/schema";
+import { auth } from "@/server/modules/auth/next-auth";
 
 import { PATCH } from "../route";
 
@@ -14,7 +13,7 @@ const { getChatByIdMock, getMessageByIdMock, voteMessageMock } = vi.hoisted(
   })
 );
 
-vi.mock("@/app/(auth)/auth", () => ({ auth: vi.fn() }));
+vi.mock("@/server/modules/auth/next-auth", () => ({ auth: vi.fn() }));
 vi.mock("@/lib/db/query/chat/get-chat-by-id", () => ({
   getChatById: getChatByIdMock,
 }));

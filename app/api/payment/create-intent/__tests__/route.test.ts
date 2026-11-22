@@ -1,24 +1,25 @@
 import type { Session } from "next-auth";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-import { auth } from "@/app/(auth)/auth";
 import {
   getSubscriptionByCode,
   priceForCurrency,
 } from "@/lib/billing/subscriptions";
-import { getUserById } from "@/lib/db/query/user/get-by-id";
 import { db } from "@/server/db/connection";
 import type { Subscription, User } from "@/server/db/schema";
+import { auth } from "@/server/modules/auth/next-auth";
+import { getUserById } from "@/server/modules/users/queries/get-by-id";
 
 import { POST } from "../route";
 
 const { insertValues } = vi.hoisted(() => ({ insertValues: vi.fn() }));
 
-vi.mock("@/app/(auth)/auth", () => ({ auth: vi.fn() }));
+vi.mock("@/server/modules/auth/next-auth", () => ({ auth: vi.fn() }));
 vi.mock("@/server/db/connection", () => ({
   db: { insert: vi.fn(() => ({ values: insertValues })) },
 }));
-vi.mock("@/lib/db/query/user/get-by-id", () => ({ getUserById: vi.fn() }));
+vi.mock("@/server/modules/users/queries/get-by-id", () => ({
+  getUserById: vi.fn(),
+}));
 vi.mock("@/lib/billing/subscriptions", () => ({
   getSubscriptionByCode: vi.fn(),
   priceForCurrency: vi.fn(),

@@ -76,7 +76,7 @@ vi.mock("@/lib/ai/tools/generate-markdown", () => ({
 vi.mock("@/lib/ai/tools/generate-pdf", () => ({ generatePdf: vi.fn() }));
 vi.mock("@/lib/ai/tools/generate-txt", () => ({ generateTxt: vi.fn() }));
 vi.mock("@/lib/ai/tools/web-search", () => ({ webSearch: vi.fn() }));
-vi.mock("@/lib/constants", () => ({
+vi.mock("@/server/env", () => ({
   isGeminiSignatureDebugEnabled: false,
   isProductionEnvironment: false,
 }));

@@ -40,9 +40,10 @@ const TEST_FILE_PATTERN =
   /(?:^|\/)(?:__tests__|__integration__)\/|\.test\.tsx?$|^tests\//;
 
 const LEGACY_CLIENT_DIRS = ["components/", "hooks/", "contexts/"];
-// `server/db/` is where `lib/db` moves in Phase 3a; both are listed so the
-// rule keeps guarding the database layer while the move is in flight.
-const LEGACY_SERVER_CODE = ["lib/db/", "server/db/", "app/(auth)/auth"];
+// `lib/db/` still holds the queries that have not moved with their domain
+// yet. `server/modules/` is where the auth module and each domain's queries
+// land (roadmap Phases 4 to 6).
+const LEGACY_SERVER_CODE = ["lib/db/", "server/db/", "server/modules/"];
 
 const FSD_LAYERS = [
   "app",

@@ -1,13 +1,12 @@
 import { put } from "@vercel/blob";
 import { NextResponse } from "next/server";
-
-import { auth } from "@/app/(auth)/auth";
 import {
   decodeTextFile,
   isTextAttachmentTruncated,
   resolveTextAttachmentMediaType,
 } from "@/lib/ai/text-attachments";
 import { MAX_ATTACHMENT_BYTES } from "@/lib/attachments/attachment-limits";
+import { auth } from "@/server/modules/auth/next-auth";
 
 // Binary types are validated by the browser-reported MIME type. Text files
 // (.md, .txt, .csv, code) are validated by extension instead — see

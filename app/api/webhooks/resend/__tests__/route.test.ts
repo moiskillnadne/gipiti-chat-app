@@ -9,7 +9,7 @@ const { emailClientState, verifyMock, receivingGetMock, forwardEmailMock } =
     forwardEmailMock: vi.fn(),
   }));
 
-vi.mock("@/lib/email/client", () => ({
+vi.mock("@/server/integrations/resend/client", () => ({
   resend: {
     webhooks: { verify: verifyMock },
     emails: { receiving: { get: receivingGetMock } },
@@ -18,7 +18,7 @@ vi.mock("@/lib/email/client", () => ({
     return emailClientState.webhookSecret;
   },
 }));
-vi.mock("@/lib/email/forward-email", () => ({
+vi.mock("@/server/modules/email/forward-email", () => ({
   forwardEmail: forwardEmailMock,
 }));
 

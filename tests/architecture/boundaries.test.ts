@@ -83,12 +83,12 @@ describe("legacy layout rules", () => {
     // Act
     const keys = violationKeys({
       "lib/ai/entitlements.ts":
-        'import type { UserType } from "@/app/(auth)/auth";',
+        'import type { ChatActionState } from "@/app/(chat)/actions";',
     });
 
     // Assert
     expect(keys).toEqual([
-      "lib-imports-app: lib/ai/entitlements.ts -> app/(auth)/auth",
+      "lib-imports-app: lib/ai/entitlements.ts -> app/(chat)/actions",
     ]);
   });
 
@@ -98,12 +98,12 @@ describe("legacy layout rules", () => {
       "components/chat.tsx":
         '"use client";\nimport { db } from "@/lib/db/connection";',
       "app/(chat)/page-client.tsx":
-        '"use client";\nimport { auth } from "@/app/(auth)/auth";',
+        '"use client";\nimport { auth } from "@/server/modules/auth/next-auth";',
     });
 
     // Assert
     expect(keys).toEqual([
-      "client-imports-server-code: app/(chat)/page-client.tsx -> app/(auth)/auth",
+      "client-imports-server-code: app/(chat)/page-client.tsx -> server/modules/auth/next-auth",
       "client-imports-server-code: components/chat.tsx -> lib/db/connection",
     ]);
   });
@@ -142,7 +142,7 @@ describe("legacy layout rules", () => {
     // Act
     const keys = violationKeys({
       "lib/billing/__tests__/refund.test.ts":
-        'import { auth } from "@/app/(auth)/auth";',
+        'import { deleteTrailingMessages } from "@/app/(chat)/actions";',
     });
 
     // Assert

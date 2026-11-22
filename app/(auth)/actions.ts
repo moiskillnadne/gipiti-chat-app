@@ -2,31 +2,8 @@
 
 import { cookies, headers } from "next/headers";
 import { z } from "zod";
-import { isDisposableEmail } from "@/lib/auth/disposable-email-domains";
-import {
-  createPasswordResetToken,
-  hashToken,
-  verifyToken,
-} from "@/lib/auth/reset-token";
-import { isRateLimitedSignInError } from "@/lib/auth/sign-in-error-codes";
 import { grantEmailVerificationBonus } from "@/lib/billing/balance";
-import { getUserByEmail } from "@/lib/db/query/user/get-by-email";
-import { getUserByResetToken } from "@/lib/db/query/user/get-user-by-reset-token";
-import { markEmailAsVerified } from "@/lib/db/query/user/mark-email-as-verified";
-import {
-  MAX_EMAIL_VERIFICATION_ATTEMPTS,
-  takeVerificationAttempt,
-} from "@/lib/db/query/user/take-verification-attempt";
-import { updateUserPassword } from "@/lib/db/query/user/update-user-password";
-import { sendPasswordChangedEmail } from "@/lib/email/send-password-changed";
-import { sendPasswordResetEmail } from "@/lib/email/send-password-reset";
-import { sendVerificationEmail } from "@/lib/email/send-verification-email";
-import {
-  getRegistrationGeoFromHeaders,
-  sanitizeLanguage,
-} from "@/lib/geo/registration-geo";
 import { UTM_COOKIE_NAME } from "@/lib/utm/constants";
-import { parseUtmCookie } from "@/lib/utm/parse-utm-cookie";
 import { generateHashedPassword } from "@/server/db/utils";
 import { isSignupEnabled } from "@/server/flags";
 import { getClientIp } from "@/server/http/client-ip";
@@ -38,12 +15,35 @@ import {
   getRateLimitResetMinutes,
   getRateLimitResetSeconds,
 } from "@/server/http/rate-limit";
+import { isDisposableEmail } from "@/server/modules/auth/disposable-email-domains";
+import { signIn } from "@/server/modules/auth/next-auth";
+import { parseUtmCookie } from "@/server/modules/auth/parse-utm-cookie";
+import {
+  getRegistrationGeoFromHeaders,
+  sanitizeLanguage,
+} from "@/server/modules/auth/registration-geo";
+import {
+  createPasswordResetToken,
+  hashToken,
+  verifyToken,
+} from "@/server/modules/auth/reset-token";
+import { isRateLimitedSignInError } from "@/server/modules/auth/sign-in-error-codes";
+import { sendPasswordChangedEmail } from "@/server/modules/email/send-password-changed";
+import { sendPasswordResetEmail } from "@/server/modules/email/send-password-reset";
+import { sendVerificationEmail } from "@/server/modules/email/send-verification-email";
 import {
   createUser,
   DuplicateEmailError,
-} from "../../lib/db/query/user/create-user";
-import { setPasswordResetToken } from "../../lib/db/query/user/set-password-reset-token";
-import { signIn } from "./auth";
+} from "@/server/modules/users/queries/create-user";
+import { getUserByEmail } from "@/server/modules/users/queries/get-by-email";
+import { getUserByResetToken } from "@/server/modules/users/queries/get-user-by-reset-token";
+import { markEmailAsVerified } from "@/server/modules/users/queries/mark-email-as-verified";
+import { setPasswordResetToken } from "@/server/modules/users/queries/set-password-reset-token";
+import {
+  MAX_EMAIL_VERIFICATION_ATTEMPTS,
+  takeVerificationAttempt,
+} from "@/server/modules/users/queries/take-verification-attempt";
+import { updateUserPassword } from "@/server/modules/users/queries/update-user-password";
 
 // Login schema - less strict to allow existing users with older passwords
 const loginFormSchema = z.object({
@@ -108,7 +108,7 @@ type SignInOutcome = string | { error?: string; ok?: boolean } | undefined;
  * where a signed-in user is sent. The `error` query parameter is not used
  * because it is missing in the second case and present after a successful
  * sign-in from `/login?error=...`. If `pages.error` is ever configured in
- * `auth.config.ts`, that path has to be recognised here as well.
+ * `next-auth.config.ts`, that path has to be recognised here as well.
  */
 const hasSignInEndedWithoutSession = (outcome: SignInOutcome): boolean => {
   if (typeof outcome !== "string") {

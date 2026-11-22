@@ -2,7 +2,6 @@
 
 import { cookies } from "next/headers";
 import { z } from "zod";
-import { auth } from "@/app/(auth)/auth";
 import {
   IMAGE_ASPECT_COOKIE_PREFIX,
   IMAGE_QUALITY_COOKIE_PREFIX,
@@ -15,6 +14,7 @@ import {
 } from "@/lib/ai/models";
 import { deleteTrailingMessagesForUser } from "@/lib/chat/delete-trailing-messages";
 import { ChatSDKError } from "@/lib/errors";
+import { auth } from "@/server/modules/auth/next-auth";
 
 export async function saveChatModelAsCookie(model: string) {
   const cookieStore = await cookies();

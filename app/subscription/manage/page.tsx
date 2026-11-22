@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import { auth } from "@/app/(auth)/auth";
 import { getBalance } from "@/lib/billing/balance";
 import { getMinorUnits } from "@/lib/billing/currencies";
 import { formatCurrency } from "@/lib/billing/money";
@@ -20,6 +19,7 @@ import {
   formatRuDateTime,
   formatRuDayMonth,
 } from "@/lib/utils/format-billing";
+import { auth } from "@/server/modules/auth/next-auth";
 import dash from "../_components/dashboard.module.css";
 import { CancelledBanner } from "./_components/cancelled-banner";
 import styles from "./_components/manage.module.css";

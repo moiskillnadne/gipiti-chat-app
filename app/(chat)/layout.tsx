@@ -26,7 +26,7 @@ import {
   VIDEO_MODE_COOKIE_PREFIX,
   VIDEO_RESOLUTION_COOKIE_PREFIX,
 } from "@/lib/ai/models";
-import { auth } from "../(auth)/auth";
+import { auth } from "@/server/modules/auth/next-auth";
 
 export default async function Layout({
   children,
