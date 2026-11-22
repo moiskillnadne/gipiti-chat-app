@@ -1,5 +1,5 @@
 import { getActiveUserSubscription } from "@/lib/db/query/subscription/get-active-user-subscription";
-import { getUserById } from "@/lib/db/query/user/get-by-id";
+import { getUserById } from "@/server/modules/users/queries/get-by-id";
 
 /**
  * Determine whether a user is on the free tier using a fresh database read.

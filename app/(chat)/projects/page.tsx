@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { AccountPageTopNav } from "@/components/account-page-top-nav";
 import { ProjectManager } from "@/components/project-manager";
-import { auth } from "../../(auth)/auth";
+import { auth } from "@/server/modules/auth/next-auth";
 
 export default async function ProjectsPage() {
   const session = await auth();

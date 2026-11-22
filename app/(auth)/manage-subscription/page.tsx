@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { auth } from "@/app/(auth)/auth";
 import { AccountPageTopNav } from "@/components/account-page-top-nav";
+import { auth } from "@/server/modules/auth/next-auth";
 import { ManageSubscriptionPageClient } from "./manage-subscription-page-client";
 
 export default async function ManageSubscriptionPage() {

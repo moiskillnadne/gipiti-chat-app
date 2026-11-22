@@ -1,21 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-import { getUserByEmail } from "@/lib/db/query/user/get-by-email";
-import { sendPasswordResetEmail } from "@/lib/email/send-password-reset";
-import { sendVerificationEmail } from "@/lib/email/send-verification-email";
 import {
   checkPasswordResetRateLimit,
   checkVerificationResendRateLimit,
   getRateLimitResetMinutes,
   getRateLimitResetSeconds,
 } from "@/server/http/rate-limit";
+import { sendPasswordResetEmail } from "@/server/modules/email/send-password-reset";
+import { sendVerificationEmail } from "@/server/modules/email/send-verification-email";
+import { getUserByEmail } from "@/server/modules/users/queries/get-by-email";
 
 // In production the auth limiters refuse a request when they cannot be
 // checked (`isUnavailable`). These tests cover what the actions do with that
 // answer; the limiter's own behaviour is in `lib/__tests__/rate-limit.test.ts`.
 vi.mock("server-only", () => ({}));
 vi.mock("@/server/db/connection", () => ({ db: {} }));
-vi.mock("@/app/(auth)/auth", () => ({ signIn: vi.fn() }));
+vi.mock("@/server/modules/auth/next-auth", () => ({ signIn: vi.fn() }));
 vi.mock("next/headers", () => ({ cookies: vi.fn() }));
 vi.mock("@/server/flags", () => ({ isSignupEnabled: vi.fn() }));
 vi.mock("@/server/http/rate-limit", () => ({
@@ -24,19 +23,19 @@ vi.mock("@/server/http/rate-limit", () => ({
   getRateLimitResetMinutes: vi.fn(),
   getRateLimitResetSeconds: vi.fn(),
 }));
-vi.mock("@/lib/db/query/user/get-by-email", () => ({
+vi.mock("@/server/modules/users/queries/get-by-email", () => ({
   getUserByEmail: vi.fn(),
 }));
-vi.mock("@/lib/db/query/user/set-password-reset-token", () => ({
+vi.mock("@/server/modules/users/queries/set-password-reset-token", () => ({
   setPasswordResetToken: vi.fn(),
 }));
-vi.mock("@/lib/email/send-verification-email", () => ({
+vi.mock("@/server/modules/email/send-verification-email", () => ({
   sendVerificationEmail: vi.fn(),
 }));
-vi.mock("@/lib/email/send-password-reset", () => ({
+vi.mock("@/server/modules/email/send-password-reset", () => ({
   sendPasswordResetEmail: vi.fn(),
 }));
-vi.mock("@/lib/email/send-password-changed", () => ({
+vi.mock("@/server/modules/email/send-password-changed", () => ({
   sendPasswordChangedEmail: vi.fn(),
 }));
 

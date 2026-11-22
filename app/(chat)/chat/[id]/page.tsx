@@ -1,9 +1,9 @@
 import { notFound, redirect } from "next/navigation";
-import { auth } from "@/app/(auth)/auth";
 import { Chat } from "@/components/chat";
 import { getChatById } from "@/lib/db/query/chat/get-chat-by-id";
 import { getMessagesByChatId } from "@/lib/db/query/chat/get-messages-by-chat-id";
 import { convertToUIMessages, isValidUUID } from "@/lib/utils";
+import { auth } from "@/server/modules/auth/next-auth";
 
 export default async function Page(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;

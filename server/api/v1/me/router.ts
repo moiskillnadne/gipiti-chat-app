@@ -1,10 +1,10 @@
 import { getBalance } from "@/lib/billing/balance";
 import { getActiveUserSubscription } from "@/lib/db/query/subscription/get-active-user-subscription";
-import { getUserById } from "@/lib/db/query/user/get-by-id";
 import { requireAuth } from "@/server/api/_kit/middleware";
 import { toMeDto } from "@/server/api/v1/_mappers/me";
 import { v1 } from "@/server/api/v1/implementer";
 import { isTopupEnabled } from "@/server/flags";
+import { getUserById } from "@/server/modules/users/queries/get-by-id";
 
 export const meRouter = {
   get: v1.me.get.use(requireAuth).handler(async ({ context, errors }) => {

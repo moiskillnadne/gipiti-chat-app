@@ -1,7 +1,7 @@
-import { auth } from "@/app/(auth)/auth";
 import { getChatById } from "@/lib/db/query/chat/get-chat-by-id";
 import { ChatSDKError } from "@/lib/errors";
 import type { Chat } from "@/server/db/schema";
+import { auth } from "@/server/modules/auth/next-auth";
 import { stopBodySchema } from "../../_lib/stop-body";
 import { requestChatStop } from "../../_lib/stop-signal";
 

@@ -1,7 +1,7 @@
 import type { Session } from "next-auth";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { auth } from "@/app/(auth)/auth";
+import { auth } from "@/server/modules/auth/next-auth";
 import { DEFAULT_CHAT_MODEL } from "@/lib/ai/models";
 
 import { chatPost } from "./targets/chat-post";
@@ -92,7 +92,7 @@ const {
 vi.mock("server-only", () => ({}));
 vi.mock("@/server/db/connection", () => ({ db: {} }));
 
-vi.mock("@/app/(auth)/auth", () => ({ auth: vi.fn() }));
+vi.mock("@/server/modules/auth/next-auth", () => ({ auth: vi.fn() }));
 // `after` callbacks (slot keep-alive, background title) are recorded, not run.
 vi.mock("next/server", async () => {
   const actual =

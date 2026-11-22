@@ -5,7 +5,6 @@ import {
   getActiveUserSubscription,
   priceForCurrency,
 } from "@/lib/billing/subscriptions";
-import { getUserById } from "@/lib/db/query/user/get-by-id";
 import {
   createSubscription,
   getSubscription,
@@ -13,6 +12,7 @@ import {
 import type { CloudPaymentsInterval } from "@/lib/payments/cloudpayments-types";
 import { db } from "@/server/db/connection";
 import { subscription, userSubscription } from "@/server/db/schema";
+import { getUserById } from "@/server/modules/users/queries/get-by-id";
 
 export type ResumeOutcome =
   /** A fresh CloudPayments recurring subscription was created. */

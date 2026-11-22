@@ -8,13 +8,13 @@ import {
   type SubscriptionWithPrices,
 } from "@/lib/billing/subscriptions";
 import { getActiveUserSubscription } from "@/lib/db/query/subscription/get-active-user-subscription";
-import { getUserById } from "@/lib/db/query/user/get-by-id";
 import type { CookieSession } from "@/server/api/_kit/context";
 import { createHandler } from "@/server/api/_kit/create-handler";
 import { KNOWN_MODEL_PROVIDERS } from "@/server/api/v1/_schemas/model";
 import { v1Router } from "@/server/api/v1/router";
 import type { Subscription, User, UserSubscription } from "@/server/db/schema";
 import { isSignupEnabled, isTopupEnabled } from "@/server/flags";
+import { getUserById } from "@/server/modules/users/queries/get-by-id";
 
 // The handler, the router, the middlewares, the mappers and the model
 // registry are real. Only what reaches outside the process is replaced.
@@ -29,7 +29,9 @@ vi.mock("@/lib/billing/subscriptions", () => ({
   listActiveSubscriptionsWithPrices: vi.fn(),
 }));
 vi.mock("@/lib/billing/balance", () => ({ getBalance: vi.fn() }));
-vi.mock("@/lib/db/query/user/get-by-id", () => ({ getUserById: vi.fn() }));
+vi.mock("@/server/modules/users/queries/get-by-id", () => ({
+  getUserById: vi.fn(),
+}));
 vi.mock("@/lib/db/query/subscription/get-active-user-subscription", () => ({
   getActiveUserSubscription: vi.fn(),
 }));

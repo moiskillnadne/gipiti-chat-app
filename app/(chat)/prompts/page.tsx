@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { AccountPageTopNav } from "@/components/account-page-top-nav";
 import { PromptLibrary } from "@/components/prompt-library/prompt-library";
-import { auth } from "../../(auth)/auth";
+import { auth } from "@/server/modules/auth/next-auth";
 
 export default async function PromptsPage() {
   const session = await auth();

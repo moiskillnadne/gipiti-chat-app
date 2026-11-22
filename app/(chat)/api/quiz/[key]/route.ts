@@ -1,4 +1,3 @@
-import { auth } from "@/app/(auth)/auth";
 import { grantQuizBonus } from "@/lib/billing/balance";
 import { isUserEmailVerified } from "@/lib/billing/email-verification";
 import { createQuizResponse } from "@/lib/db/query/quiz/create-quiz-response";
@@ -7,6 +6,7 @@ import { ChatSDKError } from "@/lib/errors";
 import { getTranslations } from "@/lib/i18n/translate";
 import { getQuizDefinition } from "@/lib/quiz/registry";
 import type { QuizAnswers } from "@/lib/quiz/types";
+import { auth } from "@/server/modules/auth/next-auth";
 
 type RouteContext = { params: Promise<{ key: string }> };
 

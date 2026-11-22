@@ -1,12 +1,12 @@
 import { ChevronLeftIcon } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { auth } from "@/app/(auth)/auth";
 import { TokenHistoryTable } from "@/components/token-history-table";
 import { TokenUsageSummary } from "@/components/token-usage-summary";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getTranslations } from "@/lib/i18n/translate";
+import { auth } from "@/server/modules/auth/next-auth";
 
 export default async function UsageHistoryPage() {
   const session = await auth();

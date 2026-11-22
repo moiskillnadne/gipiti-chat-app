@@ -1,8 +1,8 @@
-import { auth } from "@/app/(auth)/auth";
 import {
   getTransactionsWithChats,
   getUsageSummary,
 } from "@/lib/db/queries-transactions";
+import { auth } from "@/server/modules/auth/next-auth";
 
 export async function GET(request: Request) {
   const session = await auth();

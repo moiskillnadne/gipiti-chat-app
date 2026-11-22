@@ -36,7 +36,7 @@ export const user = pgTable(
     emailVerificationCode: varchar("email_verification_code", { length: 255 }),
     emailVerificationCodeExpiry: timestamp("email_verification_code_expiry"),
     // Checks made against the current code; a new code resets it. See
-    // lib/db/query/user/take-verification-attempt.ts.
+    // server/modules/users/queries/take-verification-attempt.ts.
     emailVerificationAttempts: integer("email_verification_attempts")
       .default(0)
       .notNull(),
@@ -61,7 +61,7 @@ export const user = pgTable(
   },
   (table) => ({
     // One account per address, case-insensitively. Emails are normalised on
-    // write (see lib/auth/normalize-email.ts), but the index is functional so
+    // write (see server/modules/auth/normalize-email.ts), but the index is functional so
     // it also constrains legacy mixed-case rows without a data backfill, and
     // closes the race where two concurrent registrations both pass the
     // application-level "does this user exist?" check.

@@ -28,11 +28,11 @@ import { generateMarkdown } from "@/lib/ai/tools/generate-markdown";
 import { generatePdf } from "@/lib/ai/tools/generate-pdf";
 import { generateTxt } from "@/lib/ai/tools/generate-txt";
 import { webSearch } from "@/lib/ai/tools/web-search";
+import type { AppUsage } from "@/lib/usage";
 import {
   isGeminiSignatureDebugEnabled,
   isProductionEnvironment,
-} from "@/lib/constants";
-import type { AppUsage } from "@/lib/usage";
+} from "@/server/env";
 import { chargeUsageSafe } from "../charge";
 import type { ChatTurnContext, StreamWriter } from "../context";
 import {

@@ -50,7 +50,9 @@ vi.mock("@/lib/payments/cloudpayments-config", () => ({
   getCloudPaymentsConfig: vi.fn(),
 }));
 vi.mock("@/server/db/connection", () => ({ db: dbMock }));
-vi.mock("@/lib/db/query/user/get-by-id", () => ({ getUserById: vi.fn() }));
+vi.mock("@/server/modules/users/queries/get-by-id", () => ({
+  getUserById: vi.fn(),
+}));
 vi.mock("@/lib/billing/balance", () => ({
   creditTopupForIntent: vi.fn(),
   ensureBalance: vi.fn(),

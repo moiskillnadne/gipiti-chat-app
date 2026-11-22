@@ -1,4 +1,3 @@
-import { auth } from "@/app/(auth)/auth";
 import type { CookieSession } from "@/server/api/_kit/context";
 import { createHandler } from "@/server/api/_kit/create-handler";
 import { V1_PREFIX } from "@/server/api/v1/contract";
@@ -6,6 +5,7 @@ import openApiDocument from "@/server/api/v1/openapi.snapshot.json" with {
   type: "json",
 };
 import { v1Router } from "@/server/api/v1/router";
+import { auth } from "@/server/modules/auth/next-auth";
 
 // Every v1 procedure answers through this one function. Streaming chat
 // routes, which need a longer limit, get route files of their own.

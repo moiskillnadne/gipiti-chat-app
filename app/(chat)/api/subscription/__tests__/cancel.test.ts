@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("server-only", () => ({}));
-vi.mock("@/app/(auth)/auth", () => ({ auth: mocks.auth }));
+vi.mock("@/server/modules/auth/next-auth", () => ({ auth: mocks.auth }));
 vi.mock("@/server/db/connection", () => {
   const select = () => ({
     from: () => ({

@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 // client and the CloudPayments client. None of them is exercised here: the
 // tests only look at what the modules export.
 vi.mock("server-only", () => ({}));
-vi.mock("@/app/(auth)/auth", () => ({ auth: vi.fn() }));
+vi.mock("@/server/modules/auth/next-auth", () => ({ auth: vi.fn() }));
 vi.mock("@/server/db/connection", () => ({ db: {} }));
 vi.mock("@/lib/billing/balance", () => ({
   getBalance: vi.fn(),

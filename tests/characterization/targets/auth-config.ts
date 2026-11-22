@@ -3,4 +3,4 @@
  * `NextAuth(...)` with the app's config, which the test captures through a
  * mocked `next-auth`. See `cloudpayments-webhook.ts`.
  */
-export { auth, signIn, signOut } from "@/app/(auth)/auth";
+export { auth, signIn, signOut } from "@/server/modules/auth/next-auth";

@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { auth } from "@/app/(auth)/auth";
 import { getChatById } from "@/lib/db/query/chat/get-chat-by-id";
 import { getMessageById } from "@/lib/db/query/chat/get-message-by-id";
 import { getVotesByChatId } from "@/lib/db/query/chat/get-votes-by-chat-id";
 import { voteMessage } from "@/lib/db/query/chat/vote-message";
 import { ChatSDKError } from "@/lib/errors";
+import { auth } from "@/server/modules/auth/next-auth";
 
 const voteRequestSchema = z.object({
   chatId: z.string().uuid(),

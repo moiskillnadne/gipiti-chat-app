@@ -1,13 +1,13 @@
 import type { Session } from "next-auth";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { auth } from "@/app/(auth)/auth";
+import { auth } from "@/server/modules/auth/next-auth";
 import { ensureBalance, getBalance } from "@/lib/billing/balance";
 import {
   getSubscriptionByCode,
   priceForCurrency,
 } from "@/lib/billing/subscriptions";
-import { getUserById } from "@/lib/db/query/user/get-by-id";
+import { getUserById } from "@/server/modules/users/queries/get-by-id";
 import type { PaymentIntent, Subscription, User } from "@/server/db/schema";
 import { isTopupEnabled } from "@/server/flags";
 import { checkPaymentStatusRateLimit } from "@/server/http/rate-limit";
@@ -49,13 +49,15 @@ const { selectResults, insertValues, dbMock } = vi.hoisted(() => {
   };
 });
 
-vi.mock("@/app/(auth)/auth", () => ({ auth: vi.fn() }));
+vi.mock("@/server/modules/auth/next-auth", () => ({ auth: vi.fn() }));
 vi.mock("@/server/flags", () => ({ isTopupEnabled: vi.fn() }));
 vi.mock("@/server/http/rate-limit", () => ({
   checkPaymentStatusRateLimit: vi.fn(),
 }));
 vi.mock("@/server/db/connection", () => ({ db: dbMock }));
-vi.mock("@/lib/db/query/user/get-by-id", () => ({ getUserById: vi.fn() }));
+vi.mock("@/server/modules/users/queries/get-by-id", () => ({
+  getUserById: vi.fn(),
+}));
 vi.mock("@/lib/billing/balance", () => ({
   ensureBalance: vi.fn(),
   getBalance: vi.fn(),

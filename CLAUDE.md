@@ -53,14 +53,16 @@ pnpm format
 
 `moves.json` maps old paths to new ones (files or folders). A folder entry counts as moved only when the old folder is gone: after moving its files one by one, remove the empty folder, or the codemod refuses to run. The codemod covers `*.ts` and `*.tsx` only: paths in `package.json` scripts, configs and docs are changed by hand. Imports in `tests/characterization/` are deliberately not sorted by Biome, so that a move changes nothing there but the specifiers.
 
-Moved so far: the database layer is `server/db/` (connection, schema, migrations, `migrate.ts`); the Redis client is `server/integrations/redis/client.ts`; rate limits, the client IP and `handleRouteError` are in `server/http/`; flags are `server/flags.ts`; the cron guard is `server/cron/`. The queries are still in `lib/db/query/` and move later, each with its domain.
+Moved so far: the database layer is `server/db/` (connection, schema, migrations, `migrate.ts`); the Redis client is `server/integrations/redis/client.ts`; rate limits, the client IP and `handleRouteError` are in `server/http/`; flags are `server/flags.ts`; the cron guard is `server/cron/`; the env booleans (`isProductionEnvironment`, …) are `server/env.ts`. The auth module is `server/modules/auth/` (NextAuth as `next-auth.ts` and `next-auth.config.ts`, email normalisation, reset tokens, the disposable-domain list, registration geo); the user queries are `server/modules/users/queries/`; the email senders and templates are `server/modules/email/`; the Resend client is `server/integrations/resend/`. The other queries are still in `lib/db/query/` and move later, each with its domain. Still in `lib/` because client code imports them: `lib/auth/safe-redirect-path.ts`, `lib/utm/constants.ts`, `lib/validation/password.ts`.
+
+Code under `server/modules/` may not import `next` (`next/headers`, `next/server`, …), `@orpc/*` or `server/api/` (`tests/architecture`). `next-auth` is allowed.
 
 ## Architecture Overview
 
 ### Route groups
 
 - `app/(chat)` — the authenticated app (chat, projects, prompt library) and its APIs under `app/(chat)/api/*`
-- `app/(auth)` — login/register/reset, NextAuth config (`auth.ts`, `auth.config.ts`), manage-subscription + payment hook
+- `app/(auth)` — login/register/reset pages and their server actions, the NextAuth route (the config itself is `server/modules/auth/next-auth.ts`), manage-subscription + payment hook
 - `app/(marketing)` — public landing, `/models` catalog + per-model landings (data in `lib/marketing/`), blog (`content/blog/*.md`)
 - `app/subscription` — balance/usage dashboard, email verification
 - `app/api` — cron, webhooks (CloudPayments, Resend), payment/top-up intents, health, log, agent-markdown
@@ -92,12 +94,12 @@ The route is a thin orchestrator; logic lives in `app/(chat)/api/chat/_lib/`:
 
 ### Authentication
 
-- NextAuth v5 Credentials (email/password), bcrypt-ts, dummy-password compare to prevent user enumeration; emails normalized (`lib/auth/`), unique on `lower(email)`.
+- NextAuth v5 Credentials (email/password), bcrypt-ts, dummy-password compare to prevent user enumeration; emails normalized (`server/modules/auth/normalize-email.ts`), unique on `lower(email)`. `auth`, `signIn` and `signOut` come from `@/server/modules/auth/next-auth`.
 - JWT callbacks add `id`, `type`, `emailVerified`, `hasActiveSubscription`, `isTester` — these are **login-time snapshots**; read the DB for runtime tier decisions.
 - Registration → 6-digit email verification code via Resend; signup can be disabled by the `isSignupEnabled` Vercel Flag (`server/flags.ts`).
-- A verification code is checked only against the account with the submitted email and dies after 5 checks (`lib/db/query/user/take-verification-attempt.ts`); a new code resets the counter.
-- Rate limits are in `server/http/rate-limit.ts` (Upstash). The auth limiters (password reset, code resend, code check, login, sign-up) refuse the request in production when Upstash cannot be checked; chat and payment status let it through. The login and sign-up limits apply only when `VERCEL_ENV` is `production` or `preview`, because the e2e suite signs in with wrong passwords on purpose. Login limits live in `authorize` (`app/(auth)/auth.ts`).
-- Sign-up refuses throwaway mailboxes (`lib/auth/disposable-email-domains.json`, a vendored list; delete a line to allow a domain).
+- A verification code is checked only against the account with the submitted email and dies after 5 checks (`server/modules/users/queries/take-verification-attempt.ts`); a new code resets the counter.
+- Rate limits are in `server/http/rate-limit.ts` (Upstash). The auth limiters (password reset, code resend, code check, login, sign-up) refuse the request in production when Upstash cannot be checked; chat and payment status let it through. The login and sign-up limits apply only when `VERCEL_ENV` is `production` or `preview`, because the e2e suite signs in with wrong passwords on purpose. Login limits live in `authorize` (`server/modules/auth/next-auth.ts`).
+- Sign-up refuses throwaway mailboxes (`server/modules/auth/disposable-email-domains.json`, a vendored list; delete a line to allow a domain).
 
 ### Client state
 

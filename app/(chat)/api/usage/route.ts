@@ -1,9 +1,9 @@
-import { auth } from "@/app/(auth)/auth";
 import { getBalance } from "@/lib/billing/balance";
 import { getMinorUnits } from "@/lib/billing/currencies";
 import { formatCurrency } from "@/lib/billing/money";
 import { getSpendProgress } from "@/lib/billing/spend";
 import { getActiveUserSubscription } from "@/lib/billing/subscriptions";
+import { auth } from "@/server/modules/auth/next-auth";
 
 export async function GET() {
   const session = await auth();

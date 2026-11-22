@@ -243,7 +243,7 @@ that.
 - **Deprecated tables.** Use `Message_v2` and `Vote_v2`. `Document`'s PK is
   `(id, createdAt)`, so a lookup by `id` alone can return several rows.
 
-### 4.5 Auth and security (`app/(auth)/`, `lib/auth/`, `proxy.ts`, every route handler and server action)
+### 4.5 Auth and security (`app/(auth)/`, `server/modules/auth/`, `proxy.ts`, every route handler and server action)
 
 - **Authentication.** Every `app/**/api/**/route.ts` and `"use server"` action
   calls `auth()` and returns `unauthorized` before touching data, except

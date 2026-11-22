@@ -1,5 +1,4 @@
 import crypto from "node:crypto";
-import { auth } from "@/app/(auth)/auth";
 import { DEFAULT_CURRENCY_CODE } from "@/lib/billing/constants";
 import {
   getSubscriptionByCode,
@@ -10,6 +9,7 @@ import type { PaymentIntentResponse } from "@/lib/types";
 import { createSubscriptionIntentRequestSchema } from "@/lib/validation/subscription-intent";
 import { db } from "@/server/db/connection";
 import { paymentIntent } from "@/server/db/schema";
+import { auth } from "@/server/modules/auth/next-auth";
 
 /**
  * Generate a unique session ID for payment intent

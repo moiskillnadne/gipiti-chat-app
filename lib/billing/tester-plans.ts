@@ -1,4 +1,4 @@
-import { getUserById } from "@/lib/db/query/user/get-by-id";
+import { getUserById } from "@/server/modules/users/queries/get-by-id";
 
 /**
  * Subscription codes that only internal testers (`User.isTester`) may buy.

@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import { auth } from "@/app/(auth)/auth";
 import { getBalance } from "@/lib/billing/balance";
 import {
   EMAIL_CONFIRM_BONUS_MAJOR_UNITS,
@@ -29,6 +28,7 @@ import {
   formatRuDayMonthShort,
   formatRuDayTime,
 } from "@/lib/utils/format-billing";
+import { auth } from "@/server/modules/auth/next-auth";
 import { BalanceHero } from "./_components/balance-hero";
 import styles from "./_components/dashboard.module.css";
 import { FreeSideCard } from "./_components/free-side-card";

@@ -1,6 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { resend, resendWebhookSecret } from "@/lib/email/client";
-import { forwardEmail } from "@/lib/email/forward-email";
+import {
+  resend,
+  resendWebhookSecret,
+} from "@/server/integrations/resend/client";
+import { forwardEmail } from "@/server/modules/email/forward-email";
 
 type EmailReceivedEvent = {
   type: "email.received";
