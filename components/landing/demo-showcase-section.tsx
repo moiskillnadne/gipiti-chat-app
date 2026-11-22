@@ -234,10 +234,10 @@ export const DemoShowcaseSection = () => {
                   type="button"
                 >
                   {isActive && (
-                    // The border, not the fill, carries the state: zinc-500 is ≥3:1 against
+                    // The border, not the fill, carries the state: zinc-400 is ≥3:1 against
                     // the tablist backdrop and the pill fill (1.4.11), unlike zinc-800 alone.
                     <motion.div
-                      className="absolute inset-0 rounded-lg border border-zinc-500 bg-zinc-800"
+                      className="absolute inset-0 rounded-lg border border-zinc-400 bg-zinc-800"
                       layoutId="demo-tab-indicator"
                       transition={{
                         type: "spring",
@@ -259,6 +259,8 @@ export const DemoShowcaseSection = () => {
           className="relative"
           id={panelId}
           role="tabpanel"
+          // biome-ignore lint/a11y/noNoninteractiveTabindex: APG tabpanel without focusable content must be in the tab sequence
+          tabIndex={0}
         >
           {/* Glow behind mockup */}
           <div className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 size-[400px] rounded-full bg-indigo-500/10 blur-3xl" />

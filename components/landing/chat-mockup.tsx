@@ -174,6 +174,8 @@ const colorizePythonLine = (line: string): React.ReactNode[] => {
   return tokens;
 };
 
+const HANGING_INDENT_CH = 2;
+
 const MockCodeBlockRenderer = ({ codeBlock }: { codeBlock: MockCodeBlock }) => {
   const lines = codeBlock.code.split("\n");
 
@@ -183,12 +185,24 @@ const MockCodeBlockRenderer = ({ codeBlock }: { codeBlock: MockCodeBlock }) => {
         <span className="text-xs text-zinc-400">{codeBlock.language}</span>
         <CopyIcon className="size-3.5 text-zinc-500" />
       </div>
-      <pre className="overflow-x-auto bg-zinc-950 p-4 font-mono text-xs leading-relaxed">
-        {lines.map((line, i) => (
-          <div key={`line-${i.toString()}`}>
-            {line === "" ? "\n" : colorizePythonLine(line)}
-          </div>
-        ))}
+      <pre className="whitespace-pre-wrap break-words bg-zinc-950 p-3 font-mono text-xs leading-relaxed sm:p-4">
+        {lines.map((line, i) => {
+          const code = line.trimStart();
+          const indentWidth = line.length - code.length;
+          // Lines wrap instead of scrolling sideways, so the indent is drawn as padding with a
+          // hanging indent: wrapped rows stay under their own line, not at the left edge.
+          return (
+            <div
+              key={`line-${i.toString()}`}
+              style={{
+                paddingLeft: `${indentWidth + HANGING_INDENT_CH}ch`,
+                textIndent: `-${HANGING_INDENT_CH}ch`,
+              }}
+            >
+              {code === "" ? "\n" : colorizePythonLine(code)}
+            </div>
+          );
+        })}
       </pre>
     </div>
   );
@@ -235,7 +249,10 @@ export const ChatMockup = ({
             whileInView={{ opacity: 1, y: 0 }}
           >
             <div
-              className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+              className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                // A code sample wraps instead of scrolling, so it gets the full row on phones.
+                msg.codeBlock ? "max-w-full sm:max-w-[80%]" : "max-w-[80%]"
+              } ${
                 msg.role === "user"
                   ? "bg-indigo-500/20 text-indigo-100"
                   : "bg-zinc-800 text-zinc-300"
