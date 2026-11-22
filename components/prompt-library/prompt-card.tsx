@@ -56,6 +56,7 @@ export function PromptCard({
           {category ? t(category.labelKey) : prompt.category}
         </span>
         <button
+          aria-label={t("favorite")}
           aria-pressed={isFavorite}
           className={`ml-auto inline-flex size-7 shrink-0 items-center justify-center rounded-sm transition-colors duration-fast ease-canon hover:bg-paper-2 ${
             isFavorite ? "text-citrus-deep" : "text-ink-3 hover:text-citrus-ink"
@@ -68,6 +69,7 @@ export function PromptCard({
           type="button"
         >
           <Star
+            aria-hidden
             className="size-4"
             fill={isFavorite ? "currentColor" : "none"}
           />

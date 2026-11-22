@@ -540,6 +540,7 @@ export const MoreHorizontalIcon = ({ size = 16 }: { size?: number }) => {
 
 export const HelpIcon = ({ size = 16 }: { size?: number }) => (
   <svg
+    aria-hidden="true"
     fill="none"
     height={size}
     stroke="currentColor"

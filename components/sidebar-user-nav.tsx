@@ -102,6 +102,7 @@ export function SidebarUserNav({ user }: { user: User }) {
       </Tooltip>
       <div className="flex items-center gap-0.5 pr-3">
         <Link
+          aria-label={tSupport("linkText")}
           className="inline-flex size-7 items-center justify-center rounded-sm text-ink-3 transition-colors duration-fast ease-canon hover:bg-paper-3 hover:text-ink"
           href="/legal/support"
           title={tSupport("linkText")}
@@ -109,13 +110,14 @@ export function SidebarUserNav({ user }: { user: User }) {
           <HelpIcon size={14} />
         </Link>
         <button
+          aria-label={t("navigation.signOut")}
           className="inline-flex size-7 items-center justify-center rounded-sm text-ink-3 transition-colors duration-fast ease-canon hover:bg-paper-3 hover:text-ink"
           data-testid="user-nav-item-auth"
           onClick={handleSignOut}
           title={t("navigation.signOut")}
           type="button"
         >
-          <LogOut size={14} />
+          <LogOut aria-hidden size={14} />
         </button>
       </div>
     </div>
