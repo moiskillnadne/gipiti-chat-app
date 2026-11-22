@@ -1,10 +1,11 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { type KeyboardEvent, useId, useRef, useState } from "react";
 
 import { type ChatMessage, ChatMockup } from "./chat-mockup";
 import { FadeIn } from "./fade-in";
+import { getTabIndexForKey } from "./tab-keyboard";
 
 type DemoTab = {
   id: string;
@@ -161,14 +162,41 @@ const demoTabs: DemoTab[] = [
 
 export const DemoShowcaseSection = () => {
   const [activeTab, setActiveTab] = useState(demoTabs[0].id);
-  const activeDemo =
-    demoTabs.find((tab) => tab.id === activeTab) ?? demoTabs[0];
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const idPrefix = useId();
+  const headingId = `${idPrefix}-heading`;
+  const panelId = `${idPrefix}-panel`;
+  const getTabId = (tabId: string): string => `${idPrefix}-tab-${tabId}`;
+
+  const activeIndex = Math.max(
+    demoTabs.findIndex((tab) => tab.id === activeTab),
+    0
+  );
+  const activeDemo = demoTabs[activeIndex];
+
+  // Automatic activation: the panel renders instantly, so focus and selection move together.
+  const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>): void => {
+    const nextIndex = getTabIndexForKey(
+      event.key,
+      activeIndex,
+      demoTabs.length
+    );
+    if (nextIndex === null) {
+      return;
+    }
+    event.preventDefault();
+    setActiveTab(demoTabs[nextIndex].id);
+    tabRefs.current[nextIndex]?.focus();
+  };
 
   return (
     <section className="px-4 py-20">
       <div className="mx-auto max-w-5xl">
         <FadeIn>
-          <h2 className="mb-4 text-center font-bold text-3xl text-white md:text-4xl">
+          <h2
+            className="mb-4 text-center font-bold text-3xl text-white md:text-4xl"
+            id={headingId}
+          >
             Смотрите в действии
           </h2>
           <p className="mx-auto mb-12 max-w-2xl text-center text-zinc-400">
@@ -178,33 +206,60 @@ export const DemoShowcaseSection = () => {
 
         {/* Tabs */}
         <FadeIn delay={0.2}>
-          <div className="relative mb-10 flex flex-wrap justify-center gap-1 rounded-xl bg-zinc-900/50 p-1.5">
-            {demoTabs.map((tab) => (
-              <button
-                className={`relative z-10 rounded-lg px-4 py-2.5 font-medium text-sm transition-colors ${
-                  activeTab === tab.id
-                    ? "text-white"
-                    : "text-zinc-400 hover:text-zinc-300"
-                }`}
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                type="button"
-              >
-                {activeTab === tab.id && (
-                  <motion.div
-                    className="absolute inset-0 rounded-lg bg-zinc-800"
-                    layoutId="demo-tab-indicator"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
-                  />
-                )}
-                <span className="relative z-10">{tab.label}</span>
-              </button>
-            ))}
+          <div
+            aria-labelledby={headingId}
+            className="relative mb-10 flex flex-wrap justify-center gap-1 rounded-xl bg-zinc-900/50 p-1.5"
+            role="tablist"
+          >
+            {demoTabs.map((tab, tabIndex) => {
+              const isActive = tab.id === activeDemo.id;
+              return (
+                <button
+                  aria-controls={panelId}
+                  aria-selected={isActive}
+                  className={`relative z-10 min-h-11 rounded-lg px-4 py-2.5 font-medium text-sm transition-colors md:min-h-10 ${
+                    isActive
+                      ? "text-white"
+                      : "text-zinc-400 hover:text-zinc-300"
+                  }`}
+                  id={getTabId(tab.id)}
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  onKeyDown={handleTabKeyDown}
+                  ref={(element) => {
+                    tabRefs.current[tabIndex] = element;
+                  }}
+                  role="tab"
+                  tabIndex={isActive ? 0 : -1}
+                  type="button"
+                >
+                  {isActive && (
+                    // The border, not the fill, carries the state: zinc-500 is ≥3:1 against
+                    // the tablist backdrop and the pill fill (1.4.11), unlike zinc-800 alone.
+                    <motion.div
+                      className="absolute inset-0 rounded-lg border border-zinc-500 bg-zinc-800"
+                      layoutId="demo-tab-indicator"
+                      transition={{
+                        type: "spring",
+                        bounce: 0.2,
+                        duration: 0.5,
+                      }}
+                    />
+                  )}
+                  <span className="relative z-10">{tab.label}</span>
+                </button>
+              );
+            })}
           </div>
         </FadeIn>
 
         {/* Demo content */}
-        <div className="relative">
+        <div
+          aria-labelledby={getTabId(activeDemo.id)}
+          className="relative"
+          id={panelId}
+          role="tabpanel"
+        >
           {/* Glow behind mockup */}
           <div className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 size-[400px] rounded-full bg-indigo-500/10 blur-3xl" />
 
