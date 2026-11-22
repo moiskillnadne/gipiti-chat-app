@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { grantEmailVerificationBonus } from "@/lib/billing/balance";
+import {
+  grantDeferredWelcomeBonus,
+  grantEmailVerificationBonus,
+} from "@/lib/billing/balance";
 import type { User } from "@/server/db/schema";
 import { checkVerificationAttemptRateLimit } from "@/server/http/rate-limit";
 import { hashToken } from "@/server/modules/auth/reset-token";
@@ -10,6 +13,7 @@ import { markEmailAsVerified } from "@/server/modules/users/queries/mark-email-a
 import { takeVerificationAttempt } from "@/server/modules/users/queries/take-verification-attempt";
 
 vi.mock("@/lib/billing/balance", () => ({
+  grantDeferredWelcomeBonus: vi.fn(),
   grantEmailVerificationBonus: vi.fn(),
 }));
 vi.mock("@/server/http/rate-limit", () => ({
@@ -50,8 +54,9 @@ beforeEach(() => {
     success: true,
   });
   vi.mocked(takeVerificationAttempt).mockResolvedValue(attempt(1));
-  vi.mocked(markEmailAsVerified).mockResolvedValue([]);
+  vi.mocked(markEmailAsVerified).mockResolvedValue([userRow({})]);
   vi.mocked(grantEmailVerificationBonus).mockResolvedValue(bonusCredit);
+  vi.mocked(grantDeferredWelcomeBonus).mockResolvedValue(bonusCredit);
 });
 
 describe("verifyEmailCode", () => {
@@ -60,7 +65,13 @@ describe("verifyEmailCode", () => {
     const result = await verifyEmailCode({ email: EMAIL, code: CODE });
 
     // Assert
-    expect(result).toEqual({ status: "verified", isBonusGranted: true });
+    expect(result).toEqual({
+      status: "verified",
+      isBonusGranted: true,
+      isWelcomeGrantCredited: false,
+    });
+    // A website account got its welcome grant at registration.
+    expect(grantDeferredWelcomeBonus).not.toHaveBeenCalled();
     expect(markEmailAsVerified).toHaveBeenCalledExactlyOnceWith({
       email: EMAIL,
     });
@@ -77,7 +88,10 @@ describe("verifyEmailCode", () => {
     const result = await verifyEmailCode({ email: EMAIL, code: CODE });
 
     // Assert
-    expect(result).toEqual({ status: "verified", isBonusGranted: false });
+    expect(result).toMatchObject({
+      status: "verified",
+      isBonusGranted: false,
+    });
   });
 
   it("still verifies the email when paying the bonus throws", async () => {
@@ -91,7 +105,63 @@ describe("verifyEmailCode", () => {
     const result = await verifyEmailCode({ email: EMAIL, code: CODE });
 
     // Assert
-    expect(result).toEqual({ status: "verified", isBonusGranted: false });
+    expect(result).toMatchObject({
+      status: "verified",
+      isBonusGranted: false,
+    });
+  });
+
+  it("credits the welcome grant an API sign-up was waiting for", async () => {
+    // Arrange
+    vi.mocked(markEmailAsVerified).mockResolvedValue([
+      userRow({ signupPlatform: "ios" }),
+    ]);
+
+    // Act
+    const result = await verifyEmailCode({ email: EMAIL, code: CODE });
+
+    // Assert
+    expect(grantDeferredWelcomeBonus).toHaveBeenCalledExactlyOnceWith(USER_ID);
+    expect(result).toEqual({
+      status: "verified",
+      isBonusGranted: true,
+      isWelcomeGrantCredited: true,
+    });
+  });
+
+  it("reports no welcome grant when the account was not owed one after all", async () => {
+    // Arrange
+    vi.mocked(markEmailAsVerified).mockResolvedValue([
+      userRow({ signupPlatform: "android" }),
+    ]);
+    vi.mocked(grantDeferredWelcomeBonus).mockResolvedValue(null);
+
+    // Act
+    const result = await verifyEmailCode({ email: EMAIL, code: CODE });
+
+    // Assert
+    expect(result).toMatchObject({ isWelcomeGrantCredited: false });
+  });
+
+  it("still verifies the email, and still pays the bonus, when the welcome grant throws", async () => {
+    // Arrange
+    vi.spyOn(console, "error").mockReturnValue(undefined);
+    vi.mocked(markEmailAsVerified).mockResolvedValue([
+      userRow({ signupPlatform: "ios" }),
+    ]);
+    vi.mocked(grantDeferredWelcomeBonus).mockRejectedValue(
+      new Error("balance locked")
+    );
+
+    // Act
+    const result = await verifyEmailCode({ email: EMAIL, code: CODE });
+
+    // Assert
+    expect(result).toEqual({
+      status: "verified",
+      isBonusGranted: true,
+      isWelcomeGrantCredited: false,
+    });
   });
 
   it("answers invalid_code with the guesses left for a wrong code", async () => {

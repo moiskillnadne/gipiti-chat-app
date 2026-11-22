@@ -5,11 +5,13 @@ import {
   type PaymentIntent,
   paymentIntent,
   transaction,
+  user,
 } from "@/server/db/schema";
 import {
   DEFAULT_CURRENCY_CODE,
   EMAIL_CONFIRM_BONUS_MAJOR_UNITS,
   USAGE_MARKUP,
+  WELCOME_GRANT_MAJOR_UNITS,
 } from "./constants";
 import { getMinorUnits } from "./currencies";
 import { assertEmailVerified } from "./email-verification";
@@ -481,6 +483,83 @@ export async function grantEmailVerificationBonus(
       topupBalanceAfter: newTopup,
       transactionId: credit.id,
     };
+  });
+}
+
+/**
+ * Credit the welcome grant that an API sign-up did not get at registration.
+ *
+ * A website sign-up is paid its welcome grant in the transaction that creates
+ * the account. An account created through the API (`User.signup_platform` is
+ * set) is paid here instead, once its email is verified.
+ *
+ * Returns null, and credits nothing, unless all of these hold, checked on the
+ * locked balance row so that concurrent callers cannot double-credit:
+ *
+ * - the account has a sign-up platform (a website or older account either
+ *   got the grant at registration or predates it, and must not get one now);
+ * - its email is verified;
+ * - it has no `welcome` transaction yet.
+ */
+export async function grantDeferredWelcomeBonus(
+  userId: string
+): Promise<BalanceChangeResult | null> {
+  await ensureBalance(userId);
+
+  const summary = await getBalance(userId);
+  const currencyCode = summary?.currencyCode ?? DEFAULT_CURRENCY_CODE;
+  const minorUnits = await getMinorUnits(currencyCode);
+  const amount = majorToMinorUnits(WELCOME_GRANT_MAJOR_UNITS, minorUnits);
+
+  return await db.transaction(async (tx) => {
+    // The lock: a second caller waits here and then finds the transaction.
+    const [row] = await tx
+      .select({ userId: balance.userId })
+      .from(balance)
+      .where(eq(balance.userId, userId))
+      .for("update")
+      .limit(1);
+
+    if (!row) {
+      throw new Error(`Balance not found for user ${userId}`);
+    }
+
+    const [account] = await tx
+      .select({
+        signupPlatform: user.signupPlatform,
+        emailVerified: user.emailVerified,
+      })
+      .from(user)
+      .where(eq(user.id, userId))
+      .limit(1);
+
+    if (!(account?.signupPlatform && account.emailVerified)) {
+      return null;
+    }
+
+    const [existing] = await tx
+      .select({ id: transaction.id })
+      .from(transaction)
+      .where(
+        and(eq(transaction.userId, userId), eq(transaction.type, "welcome"))
+      )
+      .limit(1);
+
+    if (existing) {
+      return null;
+    }
+
+    // The same transaction row a website sign-up gets, on this transaction.
+    return await creditBalance(
+      {
+        userId,
+        pool: "topup",
+        amount,
+        type: "welcome",
+        description: "Welcome grant",
+      },
+      tx
+    );
   });
 }
 

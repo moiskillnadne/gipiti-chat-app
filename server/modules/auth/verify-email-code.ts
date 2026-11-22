@@ -1,4 +1,7 @@
-import { grantEmailVerificationBonus } from "@/lib/billing/balance";
+import {
+  grantDeferredWelcomeBonus,
+  grantEmailVerificationBonus,
+} from "@/lib/billing/balance";
 import { checkVerificationAttemptRateLimit } from "@/server/http/rate-limit";
 import { verifyToken } from "@/server/modules/auth/reset-token";
 import { getUserByEmail } from "@/server/modules/users/queries/get-by-email";
@@ -9,8 +12,16 @@ import {
 } from "@/server/modules/users/queries/take-verification-attempt";
 
 export type VerifyEmailCodeResult =
-  /** `isBonusGranted` is false when the bonus was paid before, or failed. */
-  | { status: "verified"; isBonusGranted: boolean }
+  /**
+   * `isBonusGranted`: the email-confirmation bonus was credited now (false
+   * when it was paid before, or failed). `isWelcomeGrantCredited`: the
+   * welcome grant an API sign-up had been waiting for was credited now.
+   */
+  | {
+      status: "verified";
+      isBonusGranted: boolean;
+      isWelcomeGrantCredited: boolean;
+    }
   /**
    * A wrong code; `attemptsLeft` more guesses before the code dies. It is 0
    * when there was no live code to guess against (none was ever sent, or no
@@ -58,6 +69,23 @@ const grantBonus = async (userId: string): Promise<boolean> => {
 };
 
 /**
+ * Credits the welcome grant of an account that signed up through the API
+ * and did not get it at registration. Best-effort and idempotent, like the
+ * bonus above; `grantDeferredWelcomeBonus` checks again, under a lock, that
+ * the account is owed one.
+ */
+const grantDeferredWelcome = async (userId: string): Promise<boolean> => {
+  try {
+    const grant = await grantDeferredWelcomeBonus(userId);
+
+    return grant !== null;
+  } catch (grantError) {
+    console.error("Failed to grant the deferred welcome grant:", grantError);
+    return false;
+  }
+};
+
+/**
  * Checks a 6-digit verification code against the account with this email
  * and, when it matches, marks the email verified and pays the bonus.
  *
@@ -95,10 +123,16 @@ export const verifyEmailCode = async ({
       : { status: "expired_code" };
   }
 
-  await markEmailAsVerified({ email });
+  const [verifiedUser] = await markEmailAsVerified({ email });
+
+  // Only an account created through the API is owed a welcome grant here.
+  const isWelcomeGrantCredited = verifiedUser?.signupPlatform
+    ? await grantDeferredWelcome(attempt.userId)
+    : false;
 
   return {
     status: "verified",
     isBonusGranted: await grantBonus(attempt.userId),
+    isWelcomeGrantCredited,
   };
 };

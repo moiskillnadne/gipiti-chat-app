@@ -7,6 +7,7 @@ import { isAcceptablePassword } from "@/server/modules/auth/password-policy";
 import type { RegistrationGeo } from "@/server/modules/auth/registration-geo";
 import {
   createUser,
+  createUserWithDeferredWelcomeGrant,
   DuplicateEmailError,
 } from "@/server/modules/users/queries/create-user";
 import { getUserByEmail } from "@/server/modules/users/queries/get-by-email";
@@ -19,6 +20,13 @@ export type RegisterUserInput = {
   ip: string | null;
   utm?: UtmData;
   geo: RegistrationGeo;
+  /**
+   * Set for a sign-up through the API (`ios`, `android`). Such an account
+   * gets its welcome grant when the email is verified, not now: the API is
+   * easy to script, and the platform is whatever the caller says it is, so
+   * the rule depends on the door that was used, not on the value.
+   */
+  signupPlatform?: string;
 };
 
 export type RegisterUserResult =
@@ -46,6 +54,7 @@ export const registerUser = async ({
   ip,
   utm,
   geo,
+  signupPlatform,
 }: RegisterUserInput): Promise<RegisterUserResult> => {
   // Sign-up can be switched off remotely.
   if (!(await isSignupEnabled())) {
@@ -74,7 +83,15 @@ export const registerUser = async ({
   }
 
   try {
-    const user = await createUser(email, password, utm, geo);
+    const user = signupPlatform
+      ? await createUserWithDeferredWelcomeGrant({
+          email,
+          password,
+          utmData: utm,
+          registrationGeo: geo,
+          signupPlatform,
+        })
+      : await createUser(email, password, utm, geo);
 
     return { status: "registered", account: toAccount(user) };
   } catch (error) {
