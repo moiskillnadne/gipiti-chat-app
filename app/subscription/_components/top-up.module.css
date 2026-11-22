@@ -218,6 +218,11 @@
   color: var(--danger);
 }
 
+.orbWarn {
+  background: var(--warn-soft);
+  color: var(--warn-ink);
+}
+
 .resultTitle {
   font-family: var(--font-display);
   font-size: 22px;

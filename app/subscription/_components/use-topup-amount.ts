@@ -60,5 +60,6 @@ export function useTopupAmount(
  * Format a MAJOR-unit ruble amount the way the design does: "1 000 ₽".
  */
 export function formatRubMajor(amount: number): string {
-  return `${amount.toLocaleString("ru-RU")} ₽`;
+  // A non-breaking space keeps the sign on the line of the number.
+  return `${amount.toLocaleString("ru-RU")}\u00A0₽`;
 }
