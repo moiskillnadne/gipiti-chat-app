@@ -1,6 +1,6 @@
 ---
 date: 2026-11-22
-status: accepted
+status: done
 branch: chore/gipiti-263-auth-move-preparation
 issue: GIPITI-263
 session: 4693d346-d6e1-4c17-8c91-f2d2f42edc76
@@ -216,3 +216,38 @@ One docs PR: the roadmap's Phase 4 status line and the corrections this plan fou
 - The preview checks listed per PR, from the browser pane. Any step that creates an account or types a password on a preview is confirmed with the owner at that moment.
 - After each merge: the production deployment is READY, the runtime log has no errors in the following hour, `/api/health` answers 200, and signing in on `gipiti.ru` works (the owner's own browser session is enough: it must survive every deploy of this phase).
 - Rollback: revert the single PR. Migrations `0047` and `0048` are additive and stay.
+
+## Implementation notes (2026-11-22)
+
+Done: PR #301 (preparation and this plan), #302 (4a: the auth module, user queries and email in `server/`), #303 (4b: auth services), #304 (4c: token version, migration `0047`), #305 (4d-1: tokens, sessions, the bearer principal, six endpoints), #306 (4e: the deferred welcome grant, migration `0048`), #307 (4d-2: six account endpoints, the Playwright API flow). GIPITI-263. The owner approved the plan and the merge of #301, then asked for the remaining PRs to be prepared and merged when green while he was away; each was merged after CI, the `review` agent's findings and its own checks.
+
+Where the work departed from this plan (each is also noted in place above):
+
+- **Order: 4e before 4d-2.** With the deferred grant merged first, the register endpoint defers from its first deploy, and there was no hour in which the JSON endpoint paid at once.
+- **PR 1, geo.** `getRegistrationGeoFromHeaders` takes the function that yields the headers, not the headers: it stays asynchronous as the characterization test mocks it, and its fallback on a failed read stays.
+- **PR 3, one intended change of behaviour.** A UTM cookie with a literal `%` in a value made sign-up answer "failed" (a second `decodeURIComponent` threw). It is read as it is now. Found by the review; everything else in that PR is pinned by the unchanged characterization suites.
+- **PR 4, the version of a new session.** First read from the cache, then (review) from the database, then (review of PR 5) taken from what `authorize` read together with the password hash. The last one is what closes the race below.
+- **PR 4, a failed version lookup keeps the session** (P5), instead of "treated as signed out": ending it deletes the cookie on `/api/auth/session`, so a database blip would sign out every open tab.
+- **PR 5, a sign-in in flight during a password reset** could outlive the reset. Found by the review. A session, web or API, is stamped with the token version read with the credentials; `createAuthSession` locks the account's row (`FOR NO KEY UPDATE`) and refuses when the version has moved on.
+- **PR 5, additions from the review**: at most 20 live API sessions per account; a used refresh token that comes back after its expiry revokes the session, and used tokens are kept as long as their session; the token secret is checked before anything is written; the cron reports the intent cleanup even when the session cleanup fails.
+- **PR 7, verification and the deferred grant are one transaction.** Best effort, as planned, would have lost the grant for good on one failure, since a verified account has no code to enter. Found by the review.
+- **PR 6**: `password/change` has no `revokeOtherSessions` flag and answers `{ tokens, sessionRenewed }`, never failing once the password is changed (review); `verify` answers 503 when its limit cannot be checked; `forgot` answers 202 also when the mail could not be sent.
+- **Not written**: a rate limiter for refresh (P16, as planned); `guards/rate-limit.ts`, `client-version.ts`, `raw-route.ts`, `server-caller.ts` (the phases that first need them).
+
+Checks that could not be run as planned, and what stood in for them:
+
+- **Preview steps that create an account or type a real password** (register, the verification mail, the reset mail, the bearer flow on a preview) were not run: the owner was away, and they need his go-ahead. In their place: the Playwright API flow (`tests/routes/auth-flow.test.ts`, also green in CI), the same flow and the password change driven against a local dev server and the local database, and on each preview what needs no account (health, the made-up sign-in through `authorize`, the 401, 403 and 500 answers).
+- **The preview of #307 was not opened in the browser**: the browser pane refused the new preview host, which needs the owner's approval there. Its build and CI, with the Playwright API flow, are green.
+- **`API_TOKEN_SECRET` is not set in Vercel.** On Production and on previews, `POST /auth/login` with a correct password, `POST /auth/register`, `POST /auth/refresh` and any request with a `Bearer` header answer a sanitised 500 until it is. The website and the cookie path are unaffected, and no client calls these endpoints yet. Checked on the preview of #305.
+- **p95 of `GET /api/history` a day before and a day after #304** needs a day to pass. Right after the deploy, five calls from the owner's signed-in browser took 99 to 237 ms after one cold call.
+
+Verified in production after the merges: each deployment succeeded; `/api/health` reports the database and Redis up; the build applied migrations `0047` and `0048`; the owner's session, a cookie issued before the phase, kept working through every deploy (`/api/auth/session`, `/api/v1/me`, `/api/history`, `/chat`); `GET /api/v1/auth/sessions` answers 200 for that cookie; the runtime error log of the three hours of merges holds two entries, both the expected `API_TOKEN_SECRET is not set` from the check of #305's preview.
+
+Left open:
+
+- **`API_TOKEN_SECRET`** (owner): set it in Vercel, a different value for Production and for Preview (preview databases are branches of production, so with one shared value a production access token would be accepted by a preview). Then run the bearer flow once on a preview.
+- **The Vercel Firewall and `/api/v1/*`** (owner, from Phase 3): `curl https://gipiti.ru/api/v1/config` was answered with the 429 challenge page on 2026-11-22, so a client that is not a browser cannot reach the API yet.
+- **The p95 comparison** for #304, after a day of traffic.
+- **The email-confirmation bonus** is still credited best effort after verification, with no retry (older than this phase; the welcome grant of an API sign-up no longer has that weakness).
+- **Pre-existing limits noted by the reviews**, shared with the website: one verification mail a minute with no daily cap; anyone can spend an address's five reset requests an hour; bcrypt reads the first 72 bytes of a password.
+- **`lib/email/add-contact-to-segment.ts`** moved to `server/integrations/resend/` although nothing imports it (P17): keep or delete is the owner's call.

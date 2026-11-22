@@ -253,10 +253,10 @@ core/
 | `lib/db/{connection,schema,migrate,utils,unique-violation}.ts`, `lib/db/migrations` | `server/db/**` | 3a, done (#296) |
 | `lib/db/query/<d>`, `lib/db/queries-transactions.ts` | `server/modules/<d>/queries` | with the domain: users 4a, chat 5a, projects 5b, prompts and quiz 5c, billing and subscription 5d, documents 6a |
 | `lib/{redis,rate-limit,api/handle-route-error,flags}.ts`, `lib/http/client-ip.ts`, `lib/cron/*` | `server/{integrations/redis/client.ts,http/*,flags.ts,cron/*}` | 3a, done (#297) |
-| `lib/constants.ts` (server part) | `server/env.ts` | 4 (a split, not a move) |
+| `lib/constants.ts` | `server/env.ts` | 4a, done (#302): a plain move, after `DUMMY_PASSWORD` left the file for the auth module (#301) |
 | `lib/i18n`, `messages/`, `lib/ai/models.ts`, `lib/billing/{money,constants}`, `lib/errors.ts`, `lib/attachments/attachment-limits`, `lib/validation/password` | `core/*` | each file when a v1 contract first imports it; `lib/ai/models.ts` needs its `@ai-sdk/*` types split off first |
-| `app/(auth)/{auth,auth.config}.ts`, `lib/auth/**`, `lib/geo`, `lib/utm/parse-utm-cookie` | `server/modules/auth/**` (`next-auth.ts`, `next-auth.config.ts`); the `[...nextauth]` route re-exports | 4a |
-| `lib/email/**` | `server/modules/email`, `server/integrations/resend` | 4a |
+| `app/(auth)/{auth,auth.config}.ts`, `lib/auth/**` (server part), `lib/geo`, `lib/utm/parse-utm-cookie`, `lib/db/query/user` | `server/modules/auth/**` (`next-auth.ts`, `next-auth.config.ts`), `server/modules/users/queries`; the `[...nextauth]` route re-exports. `lib/auth/safe-redirect-path.ts`, `lib/utm/constants.ts` and `lib/validation/password.ts` are imported by client code and wait for Phase 11 | 4a, done (#302) |
+| `lib/email/**` | `server/modules/email`, `server/integrations/resend` | 4a, done (#302) |
 | `lib/chat/delete-trailing-messages`, chat queries | `server/modules/chat` | 5a |
 | `lib/projects`, upload helpers | `server/modules/{projects,uploads}` | 5b |
 | `lib/prompts` (server), `lib/quiz` (server) | `server/modules/{prompts,quiz}`; quiz registry → `core/quiz` | 5c |
@@ -362,11 +362,11 @@ Legend: **v1** = new endpoint; the legacy URL becomes a thin wrapper with a hit 
 | Refresh token | 32 random bytes base64url, stored SHA-256 (reuse `hashToken`, `lib/auth/reset-token.ts`), rotated on every refresh; 60-day sliding, 180-day absolute (Q7). |
 | Parallel refresh (M3) | Within 30 s of a rotation, presenting the just-rotated token mints a **sibling** pair in the same session (at most 2 siblings per rotation). No plaintext is stored. After 30 s, presenting a used token = reuse → revoke the session (`revoked_reason='refresh_reused'`). The client must refresh single-flight (README). |
 | Per-request check (bearer) | Verify JWS → load `AuthSession` by `sid` + `User.token_version` → reject if revoked, expired or `ver` differs. No TTL cache (m6). `last_used_at` written at most every 5 min. |
-| Cookie path (M2, F13) | The NextAuth `jwt` callback reads the user's `token_version` on every `auth()` and returns `null` on mismatch, which clears the cookie (`session.js:53-55`). A missing `ver` claim on existing cookies counts as `0`, so no current user is logged out. The read goes through `server/modules/auth/token-version.ts`: Redis `GET tv:<userId>` with explicit `DEL` on every bump (write-through), DB fallback when Redis is absent. This is an extra lookup per authenticated web request; measure p95 in Phase 4 (Verification). |
+| Cookie path (M2, F13) | The NextAuth `jwt` callback compares the cookie's `ver` claim with the user's `token_version` on every `auth()` and returns `null` on mismatch. That clears the cookie only on `GET /api/auth/session` (`session.js:53-55`); `auth()` in a page or a route handler drops the `Set-Cookie`, so **`proxy.ts` makes the same check and deletes a stale cookie**, or a revoked visitor would loop between `/login` and `/chat` (found in Phase 4). A missing `ver` claim counts as `0`, so no current user is logged out. A new session is stamped with the version that was read together with the password hash, not with one read later. The read goes through `server/modules/auth/token-version.ts`: Redis `tv:<userId>`, written through on every bump with a 10-minute expiry as a bound, database on a miss; when neither can be read the session is kept. This is an extra lookup per authenticated web request; p95 is measured after Phase 4 (Verification). |
 | Principal | `type Principal = { userId: string; sessionId: string \| null; via: "bearer" \| "cookie" \| "in-process" }`. Entitlements are read from the DB where needed. |
 | Resolution | `Authorization` header present → bearer only (invalid → 401, never fall back to cookie). Otherwise `auth()` (cookie). |
 | NextAuth changes | `jwt` adds `ver` and checks it. The client-controlled `update` overrides (`auth.ts:115-126`) and all `console.log`s go (Phase 1b). `authorize` calls `authenticateCredentials()` and gets the IP from its `request` argument (`@auth/core@0.41.3 providers/credentials.d.ts:45,53`). |
-| Flags | `server/flags.ts` `identify` accepts an explicit principal for API calls (S7). |
+| Flags | API code passes the principal explicitly: `flag.run({ identify: { user: { id } } })` (S7; in use since Phase 3b). `identify` in `server/flags.ts` stays cookie-based for pages. |
 
 ### DB changes (hand-written; `pnpm db:generate` is broken)
 
@@ -374,7 +374,8 @@ Legend: **v1** = new endpoint; the legacy URL becomes a thin wrapper with a hit 
 |---|---|---|
 | `0046_email_verification_attempts.sql` | `User.email_verification_attempts integer NOT NULL DEFAULT 0` | 1f |
 | `0047_auth_sessions.sql` | `User.token_version integer NOT NULL DEFAULT 0`; `AuthSession` (id uuid pk, user_id fk cascade, client_kind, device_name, platform, app_version, created_ip, created_at, last_used_at, absolute_expires_at, revoked_at, revoked_reason; partial index on user_id where revoked_at is null); `RefreshToken` (id, session_id fk cascade, token_hash varchar(64) unique, parent_id, created_at, expires_at, used_at) — DDL per `research-auth.md` §2, plus `parent_id` for siblings | 4c |
-| `0048_account_deletion.sql` | `User.deleted_at timestamptz NULL`, `User.deletion_requested_at timestamptz NULL` | 9 |
+| `0048_user_signup_platform.sql` | `User.signup_platform varchar(16) NULL`: set for a sign-up through the API, whose welcome grant waits for the verified email | 4e, done (#306) |
+| `0049_account_deletion.sql` | `User.deleted_at timestamptz NULL`, `User.deletion_requested_at timestamptz NULL` | 9 |
 
 Every migration gets its `meta/_journal.json` entry and schema types in the same PR. Rule: **a migration file is never edited after its PR has had a preview build** (M11). The `cleanup-payment-intents` cron also deletes refresh tokens expired more than 7 days ago.
 
@@ -392,7 +393,7 @@ Every migration gets its `meta/_journal.json` entry and schema types in the same
 | `POST /auth/email-verification/verify` | bearer or cookie | `{ code: /^\d{6}$/ }` | 200 `{ emailVerified, bonusGranted }` | `BAD_REQUEST/{invalid_code (data.attemptsLeft),expired_code}`, `TOO_MANY_REQUESTS/too_many_attempts`, `CONFLICT/already_verified` |
 | `POST /auth/password/forgot` | none | `{ email }` | 202 always | `TOO_MANY_REQUESTS` |
 | `POST /auth/password/reset` | none | `{ token, password }` | 204 (revokes sessions, bumps `token_version`) | `BAD_REQUEST/{invalid_token,weak_password}` |
-| `POST /auth/password/change` | bearer or cookie | `{ currentPassword, newPassword, revokeOtherSessions? }` | 204; with revoke, a cookie caller gets a fresh NextAuth session (re-`signIn`), a bearer caller a new pair | `UNAUTHORIZED/invalid_credentials`, `BAD_REQUEST/weak_password` |
+| `POST /auth/password/change` | bearer or cookie | `{ currentPassword, newPassword }` | 200 `{ tokens: TokenPair \| null }`: every other session ends; a bearer caller gets a new pair, a cookie caller a fresh NextAuth session and `tokens: null` | `UNAUTHORIZED/invalid_credentials`, `BAD_REQUEST/weak_password`, `TOO_MANY_REQUESTS`, `SERVICE_UNAVAILABLE` (the current password is checked under the login limits) |
 | `GET /me` | bearer or cookie | — | `{ id, email, emailVerified, isTester, hasActiveSubscription, balance }` (DB-fresh) | `UNAUTHORIZED` |
 | `POST /me/deletion` | bearer or cookie | `{ password }` | 202 `{ scheduledAt }` | `UNAUTHORIZED/invalid_credentials` |
 
@@ -580,6 +581,7 @@ Legend: **[R]** pure move (`git mv` + scripted specifier rewrite `scripts/codemo
 - **Rollback**: 3a revert the single commit; if a production deploy fails after merge, `vercel rollback` to the previous deployment. Migration state is unchanged because 3a adds no migration. 3b: delete the catch-all.
 
 ### Phase 4 — Auth v1 [R then B, M] (6-8 days)
+- **Status: done (2026-11-22).** Merged as PRs #301 (preparation), #302 (4a), #303 (4b), #304 (4c), #305 (4d-1), #306 (4e, before 4d-2 on purpose), #307 (4d-2). Plan, decisions and deviations: `docs/plans/2026-11-22-phase-4-auth-v1-the-auth-module-in-server-revocabl.md` (GIPITI-263). What changed against the list below: `proxy.ts` checks the token version too and deletes a stale cookie (the `jwt` callback alone would loop a revoked visitor between `/login` and `/chat`); a session is stamped with the version read together with the password, so a sign-in in flight during a reset cannot outlive it; every sign-up through `POST /auth/register` gets its welcome grant at email verification, in one transaction with it (owner decision, replaces Q5); `POST /auth/password/change` answers 200 with a new pair and has no `revokeOtherSessions` flag; an account keeps at most 20 API sessions; `lib/auth/safe-redirect-path.ts`, `lib/utm/constants.ts` and `lib/validation/password.ts` stay in `lib/` until Phase 11, and `lib/constants.ts` moved whole to `server/env.ts`. Left for the owner: set `API_TOKEN_SECRET` in Vercel (a different value for Production and for Preview), without which the token endpoints answer 500; the Vercel Firewall question for `/api/v1/*` from Phase 3 is still open.
 - **4a [R]**: `app/(auth)/{auth,auth.config}.ts`, `lib/auth`, `lib/geo`, `lib/email` → `server/modules/{auth,email}`, `server/integrations/resend`; the `[...nextauth]` route re-exports.
 - **4b [B]**: auth services (`authenticateCredentials`, `registerUser`, `issueTokenPair`, `rotateRefreshToken`, `revokeSession`, `verifyEmailCode`, `sendVerificationCode`, `requestPasswordReset`, `resetPassword`, `changePassword`); actions and `authorize` call them (web behaviour unchanged).
 - **4c [B]**: migration `0047`; `token-version.ts`; `jwt` callback `ver` check (M2).
@@ -697,7 +699,7 @@ On 2026-11-15 the owner accepted the recommended default for every open question
 | Q2 | Resource naming: plural REST (`GET /api/v1/chats` for history) or literal paths like `/api/v1/chat/history`? | Plural REST; folders mirror it (`server/api/v1/chats`). |
 | Q3 | Publish the v1 spec: link from `/.well-known/api-catalog` (reverses `docs/agent-discovery.md`) or serve `/api/v1/openapi.json` unlinked? | Unlinked + committed snapshot; revisit at mobile GA. |
 | Q4 | Preferences: device-local (client cookie writes; mobile on device) or DB-synced across devices? | Device-local; `/me/preferences` can be added later. |
-| Q5 | Defer the 50 RUB welcome grant until email verification for mobile (`ios`/`android`) registrations? | Yes for mobile; web unchanged; revisit for web after watching the grants metric. |
+| Q5 | Defer the 50 RUB welcome grant until email verification for mobile (`ios`/`android`) registrations? | Changed on 2026-11-20 for Phase 4: every registration through `POST /api/v1/auth/register` is deferred, because the platform is whatever the caller names. The endpoint accepts `ios` and `android` only; `web` and the rule for the web form are decided in Phase 7. The website's server action is unchanged. |
 | Q6 | Keep `email_taken` on register (enumeration) or move to verify-first? | Keep, with (email, IP) and /64 limits. |
 | Q7 | Refresh lifetime 60-day sliding / 180-day absolute? | Yes. |
 | Q8 | Auth endpoints fail closed (503) in production when the limiter is missing or erroring? | Yes for login, register, verify, send and forgot; open elsewhere. |
