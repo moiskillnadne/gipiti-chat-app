@@ -1,7 +1,7 @@
-import { and, eq, gt, isNull, lt, sql } from "drizzle-orm";
+import { and, desc, eq, gt, inArray, isNull, lt, or, sql } from "drizzle-orm";
 
 import { ChatSDKError } from "@/lib/errors";
-import { db } from "@/server/db/connection";
+import { type DatabaseExecutor, db } from "@/server/db/connection";
 import {
   type AuthSession,
   authSession,
@@ -10,6 +10,7 @@ import {
 } from "@/server/db/schema";
 import {
   DEAD_SESSION_RETENTION_MS,
+  MAX_LIVE_SESSIONS_PER_ACCOUNT,
   refreshTokenExpiryOf,
   SESSION_ABSOLUTE_TTL_MS,
   type SessionRevocationReason,
@@ -20,6 +21,12 @@ const databaseError = (message: string): ChatSDKError =>
 
 export type NewAuthSessionInput = {
   userId: string;
+  /**
+   * The account's token version as it was read together with the
+   * credentials that were checked. The session is not opened when the
+   * account has a different one by now.
+   */
+  expectedTokenVersion: number;
   clientKind: string;
   platform: string | null;
   deviceName: string | null;
@@ -40,10 +47,24 @@ export type CreatedAuthSession = {
 /**
  * Opens a session with its first refresh token, in one transaction.
  *
- * @returns null when the account does not exist
+ * The transaction first locks the account's row. That makes it take turns
+ * with a password reset and with "log out everywhere", which update that
+ * row: either this session is committed before they run, and they revoke it,
+ * or they finish first, the version has moved on, and no session is opened.
+ * Without the lock a sign-in that was checking the old password while the
+ * password was being reset would come out with a session that outlives the
+ * reset. It also makes the sign-ins of one account take turns, so the cap
+ * below holds.
+ *
+ * The lock is `FOR NO KEY UPDATE`: it excludes those updates but not the
+ * foreign-key checks of rows being inserted for the same account elsewhere.
+ *
+ * @returns null when the account does not exist or its token version is no
+ * longer `expectedTokenVersion`
  */
 export async function createAuthSession({
   userId,
+  expectedTokenVersion,
   clientKind,
   platform,
   deviceName,
@@ -57,9 +78,10 @@ export async function createAuthSession({
       const [account] = await tx
         .select({ tokenVersion: user.tokenVersion })
         .from(user)
-        .where(eq(user.id, userId));
+        .where(eq(user.id, userId))
+        .for("no key update");
 
-      if (!account) {
+      if (!account || account.tokenVersion !== expectedTokenVersion) {
         return null;
       }
 
@@ -93,6 +115,8 @@ export async function createAuthSession({
         expiresAt: refreshTokenExpiresAt,
       });
 
+      await deleteSessionsBeyondTheCap(tx, userId, now);
+
       return {
         sessionId: session.id,
         tokenVersion: account.tokenVersion,
@@ -103,6 +127,43 @@ export async function createAuthSession({
     throw databaseError("Failed to create auth session");
   }
 }
+
+/**
+ * Keeps an account at `MAX_LIVE_SESSIONS_PER_ACCOUNT` live sessions by
+ * deleting the ones that have gone unused the longest. Deleted, not revoked:
+ * a revoked row would stay for months, and the point is that signing in over
+ * and over cannot grow the tables. Called under the lock on the account's
+ * row, so two sign-ins cannot both think there is room.
+ */
+const deleteSessionsBeyondTheCap = async (
+  tx: DatabaseExecutor,
+  userId: string,
+  now: Date
+): Promise<void> => {
+  const surplus = await tx
+    .select({ id: authSession.id })
+    .from(authSession)
+    .where(
+      and(
+        eq(authSession.userId, userId),
+        isNull(authSession.revokedAt),
+        gt(authSession.absoluteExpiresAt, now)
+      )
+    )
+    .orderBy(desc(authSession.lastUsedAt), desc(authSession.createdAt))
+    .offset(MAX_LIVE_SESSIONS_PER_ACCOUNT);
+
+  if (surplus.length === 0) {
+    return;
+  }
+
+  await tx.delete(authSession).where(
+    inArray(
+      authSession.id,
+      surplus.map((session) => session.id)
+    )
+  );
+};
 
 export type AuthSessionState = Pick<
   AuthSession,
@@ -267,11 +328,15 @@ export type DeletedAuthRecords = {
 };
 
 /**
- * Housekeeping: deletes sessions a week past their absolute end (their
- * refresh tokens go with them) and refresh tokens a week past their expiry.
+ * Housekeeping. Deletes, a week after they died:
  *
- * A used refresh token is kept until it expires, not deleted when it is
- * replaced: presenting it again is how a copied token is noticed.
+ * - sessions past their absolute end, and sessions that were revoked (their
+ *   refresh tokens go with them);
+ * - refresh tokens that expired without ever being used.
+ *
+ * A **used** refresh token is not deleted here. It stays for as long as its
+ * session does: presenting it again is how a copied token is noticed, and
+ * the copy may be presented months after the token was replaced.
  */
 export async function deleteDeadAuthRecords(
   now: Date
@@ -281,17 +346,23 @@ export async function deleteDeadAuthRecords(
   try {
     const deletedSessions = await db
       .delete(authSession)
-      .where(lt(authSession.absoluteExpiresAt, cutoff))
-      .returning({ id: authSession.id });
+      .where(
+        or(
+          lt(authSession.absoluteExpiresAt, cutoff),
+          lt(authSession.revokedAt, cutoff)
+        )
+      );
 
     const deletedTokens = await db
       .delete(refreshToken)
-      .where(lt(refreshToken.expiresAt, cutoff))
-      .returning({ id: refreshToken.id });
+      .where(
+        and(isNull(refreshToken.usedAt), lt(refreshToken.expiresAt, cutoff))
+      );
 
+    // The count of affected rows; no row is read back.
     return {
-      sessions: deletedSessions.length,
-      refreshTokens: deletedTokens.length,
+      sessions: deletedSessions.count,
+      refreshTokens: deletedTokens.count,
     };
   } catch (_error) {
     throw databaseError("Failed to delete dead auth records");

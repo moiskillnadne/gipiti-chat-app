@@ -133,6 +133,55 @@ describe("access tokens", () => {
     expect(await verifyAccessToken(token)).toBeNull();
   });
 
+  it("refuses a token signed with HS512, although the key and the key id are ours", async () => {
+    // Arrange: only HS256 is accepted, whatever the header asks for.
+    const token = await new SignJWT({
+      sid: CLAIMS.sessionId,
+      ver: CLAIMS.tokenVersion,
+    })
+      .setProtectedHeader({
+        alg: "HS512",
+        kid: getApiTokenKeys().current.keyId,
+      })
+      .setSubject(CLAIMS.userId)
+      .setIssuer("gipiti")
+      .setAudience("gipiti-api")
+      .setExpirationTime("15m")
+      .sign(new TextEncoder().encode(SECRET.repeat(2)));
+
+    // Act and assert
+    expect(await verifyAccessToken(token)).toBeNull();
+  });
+
+  it.each(["none", "RS256"])(
+    "refuses a token that claims the algorithm %s and names our key id",
+    async (algorithm) => {
+      // Arrange: a hand-built token; the signature part is not a valid HS256
+      // signature, and the header asks for another algorithm.
+      const encode = (value: object): string =>
+        Buffer.from(JSON.stringify(value)).toString("base64url");
+      const header = encode({
+        alg: algorithm,
+        kid: getApiTokenKeys().current.keyId,
+        typ: "JWT",
+      });
+      const payload = encode({
+        sub: CLAIMS.userId,
+        sid: CLAIMS.sessionId,
+        ver: CLAIMS.tokenVersion,
+        iss: "gipiti",
+        aud: "gipiti-api",
+        exp: Math.floor(Date.now() / ONE_SECOND_MS) + 900,
+      });
+      const signature = algorithm === "none" ? "" : "forged-signature";
+
+      // Act and assert
+      expect(
+        await verifyAccessToken(`${header}.${payload}.${signature}`)
+      ).toBeNull();
+    }
+  );
+
   it("refuses a token whose payload was changed after signing", async () => {
     // Arrange
     const { token } = await signAccessToken(CLAIMS);

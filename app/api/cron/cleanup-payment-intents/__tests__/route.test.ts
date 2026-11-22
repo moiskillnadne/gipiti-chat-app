@@ -16,10 +16,11 @@ const { dbState } = vi.hoisted(() => ({
 }));
 
 // The session housekeeping has its own queries and its own integration test.
+const { deleteDeadAuthRecordsMock } = vi.hoisted(() => ({
+  deleteDeadAuthRecordsMock: vi.fn(),
+}));
 vi.mock("@/server/modules/auth/queries/auth-sessions", () => ({
-  deleteDeadAuthRecords: vi
-    .fn()
-    .mockResolvedValue({ sessions: 4, refreshTokens: 5 }),
+  deleteDeadAuthRecords: deleteDeadAuthRecordsMock,
 }));
 
 // Minimal Drizzle stand-in: `update().set().where().returning()` resolves to
@@ -82,6 +83,9 @@ describe("GET /api/cron/cleanup-payment-intents", () => {
     dbState.updateCalls = 0;
     dbState.deleteCalls = 0;
     dbState.deleteError = null;
+    deleteDeadAuthRecordsMock
+      .mockReset()
+      .mockResolvedValue({ sessions: 4, refreshTokens: 5 });
   });
 
   it("returns 401 without the cron secret and touches nothing", async () => {
@@ -138,6 +142,30 @@ describe("GET /api/cron/cleanup-payment-intents", () => {
         "Marked 3 payment intents as expired. Deleted 2 old payment intents.",
     });
     expect(Number.isNaN(Date.parse(body.timestamp))).toBe(false);
+  });
+
+  it("still reports the intent cleanup when the session cleanup fails", async () => {
+    // Arrange
+    dbState.expiredRows = buildRows(3);
+    dbState.deletedRows = buildRows(2);
+    deleteDeadAuthRecordsMock.mockRejectedValue(new Error("db down"));
+
+    // Act
+    const response = await callCron(`Bearer ${CRON_SECRET}`);
+    const body = await response.json();
+
+    // Assert
+    expect(response.status).toBe(200);
+    expect(body).toMatchObject({
+      expired: 3,
+      deleted: 2,
+      deletedAuthSessions: null,
+      deletedRefreshTokens: null,
+    });
+    expect(console.error).toHaveBeenCalledWith(
+      expect.stringContaining("API session cleanup failed"),
+      expect.any(Error)
+    );
   });
 
   it("uses one UPDATE and one DELETE however many intents match", async () => {

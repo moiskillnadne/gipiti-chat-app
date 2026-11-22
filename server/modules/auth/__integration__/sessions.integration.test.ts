@@ -30,6 +30,8 @@ const REFRESH_TTL_DAYS = 60;
 const SESSION_TTL_DAYS = 180;
 const GRACE_SECONDS = 30;
 const PARALLEL_REFRESHES = 5;
+const MAX_LIVE_SESSIONS = 20;
+const RACING_ACCOUNTS = 8;
 /** One rotation and two siblings: what one refresh token can produce. */
 const MAX_PAIRS_FROM_ONE_TOKEN = 3;
 
@@ -52,13 +54,22 @@ const seedUser = async (): Promise<string> => {
   return created.id;
 };
 
+/**
+ * Signs in the way the login endpoint does: with the token version that was
+ * read together with the credentials.
+ */
 const signIn = async (userId: string, now = new Date()): Promise<TokenPair> => {
-  const tokens = await issueTokenPair({
-    userId,
-    client: CLIENT,
-    ip: CLIENT_IP,
-    now,
-  });
+  const tokenVersion = await getUserTokenVersion(userId);
+  const tokens =
+    tokenVersion === null
+      ? null
+      : await issueTokenPair({
+          userId,
+          tokenVersion,
+          client: CLIENT,
+          ip: CLIENT_IP,
+          now,
+        });
   if (!tokens) {
     throw new Error("the seeded account was not found");
   }
@@ -153,10 +164,96 @@ describe("API sessions against a real database", () => {
       expect(stored[0].tokenHash).not.toBe(tokens.refreshToken);
     });
 
+    it("opens no session when the account's token version moved on since the credentials were checked", async () => {
+      // Arrange: the password was reset between the check and here.
+      const userId = await seedUser();
+      await updateUserPassword({ userId, hashedPassword: "new-hash" });
+
+      // Act
+      const tokens = await issueTokenPair({
+        userId,
+        tokenVersion: 0,
+        client: CLIENT,
+        ip: CLIENT_IP,
+      });
+
+      // Assert
+      expect(tokens).toBeNull();
+      expect(await db.select().from(authSession)).toEqual([]);
+    });
+
+    it("never leaves a usable session behind when a sign-in races a password reset", async () => {
+      // Arrange
+      const userIds = await Promise.all(
+        Array.from({ length: RACING_ACCOUNTS }, () => seedUser())
+      );
+
+      // Act: for each account, a sign-in with the old version and a reset,
+      // started together, in both orders.
+      const outcomes = await Promise.all(
+        userIds.map(async (userId, index) => {
+          const signInWithOldVersion = issueTokenPair({
+            userId,
+            tokenVersion: 0,
+            client: CLIENT,
+            ip: CLIENT_IP,
+          });
+          const reset = updateUserPassword({
+            userId,
+            hashedPassword: "new-hash",
+          });
+          const [tokens] =
+            index % 2 === 0
+              ? await Promise.all([signInWithOldVersion, reset])
+              : (await Promise.all([reset, signInWithOldVersion])).reverse();
+          return tokens as TokenPair | null;
+        })
+      );
+
+      // Assert: whichever came first, the old password's session is dead.
+      for (const tokens of outcomes) {
+        if (tokens === null) {
+          continue;
+        }
+        expect(await resolveBearerSession(tokens.accessToken)).toBeNull();
+        expect(await refreshStatus(tokens.refreshToken)).toBe(
+          "session_revoked"
+        );
+      }
+      const liveSessions = (await db.select().from(authSession)).filter(
+        (session) => session.revokedAt === null
+      );
+      expect(liveSessions).toEqual([]);
+    });
+
+    it("keeps an account at 20 live sessions by dropping the one unused the longest", async () => {
+      // Arrange
+      const userId = await seedUser();
+      const start = new Date();
+      const oldest = await signIn(userId, start);
+
+      // Act
+      for (let index = 1; index <= MAX_LIVE_SESSIONS; index++) {
+        await signIn(userId, timeAfter(start, index * MINUTE_MS));
+      }
+
+      // Assert
+      const sessions = await db.select().from(authSession);
+      expect(sessions).toHaveLength(MAX_LIVE_SESSIONS);
+      expect(
+        sessions.some(
+          (session) => session.createdAt.getTime() === start.getTime()
+        )
+      ).toBe(false);
+      // Deleted, not revoked: its refresh token is simply unknown now.
+      expect(await refreshStatus(oldest.refreshToken)).toBe("refresh_invalid");
+    });
+
     it("answers null for an account that does not exist", async () => {
       // Act
       const tokens = await issueTokenPair({
         userId: randomUUID(),
+        tokenVersion: 0,
         client: CLIENT,
         ip: null,
       });
@@ -286,6 +383,25 @@ describe("API sessions against a real database", () => {
 
       // Assert
       expect(status).toBe("refresh_expired");
+    });
+
+    it("treats a used token that comes back after it expired as a copy, and revokes the session", async () => {
+      // Arrange: someone rotated the token; its owner's app then stayed
+      // closed for more than the token's 60 days.
+      const userId = await seedUser();
+      const start = new Date();
+      const first = await signIn(userId, start);
+      const thiefs = await refresh(first.refreshToken, start);
+      const afterExpiry = timeAfter(start, (REFRESH_TTL_DAYS + 1) * DAY_MS);
+
+      // Act
+      const status = await refreshStatus(first.refreshToken, afterExpiry);
+
+      // Assert
+      expect(status).toBe("refresh_reused");
+      expect(await refreshStatus(thiefs.refreshToken, start)).toBe(
+        "session_revoked"
+      );
     });
 
     it("starts the 60 days anew on each refresh, but never past the session's 180", async () => {
@@ -531,38 +647,59 @@ describe("API sessions against a real database", () => {
         timeAfter(absoluteEnd, 8 * DAY_MS)
       );
 
-      // Assert: the refresh tokens died long before (60 days after sign-in)
-      // and go first; the session row stays a week past its own end.
-      expect(tooEarly).toEqual({ sessions: 0, refreshTokens: 2 });
+      // Assert: the unused token of the pair expired long before and goes
+      // first; the used one stays as long as the session does.
+      expect(tooEarly).toEqual({ sessions: 0, refreshTokens: 1 });
       expect(sessionsLeftEarly).toHaveLength(1);
       expect(deleted).toEqual({ sessions: 1, refreshTokens: 0 });
       expect(await db.select().from(authSession)).toEqual([]);
       expect(await db.select().from(refreshToken)).toEqual([]);
     });
 
-    it("deletes a refresh token a week past its expiry and keeps a used one until then", async () => {
+    it("deletes a revoked session a week after it was revoked", async () => {
       // Arrange
+      const userId = await seedUser();
+      const start = new Date();
+      const tokens = await signIn(userId, start);
+      const kept = await signIn(userId, start);
+      const { id: sessionId } = await readSessionOf(tokens);
+      await endSession({ userId, sessionId, now: start });
+
+      // Act
+      const tooEarly = await deleteDeadAuthRecords(
+        timeAfter(start, 6 * DAY_MS)
+      );
+      const deleted = await deleteDeadAuthRecords(timeAfter(start, 8 * DAY_MS));
+
+      // Assert
+      expect(tooEarly.sessions).toBe(0);
+      expect(deleted.sessions).toBe(1);
+      expect(await resolveBearerSession(kept.accessToken)).not.toBeNull();
+    });
+
+    it("keeps a used refresh token of a live session however old, and deletes an unused one a week past its expiry", async () => {
+      // Arrange: the first token is used on day 30; the second never is.
       const userId = await seedUser();
       const start = new Date();
       const first = await signIn(userId, start);
       const day30 = timeAfter(start, 30 * DAY_MS);
       await refresh(first.refreshToken, day30);
-      const firstTokenExpiry = timeAfter(start, REFRESH_TTL_DAYS * DAY_MS);
+      const secondTokenExpiry = timeAfter(day30, REFRESH_TTL_DAYS * DAY_MS);
 
-      // Act: the first token is used, but still inside its own 60 days.
-      const whileKept = await deleteDeadAuthRecords(
-        timeAfter(firstTokenExpiry, 6 * DAY_MS)
+      // Act
+      const whileAlive = await deleteDeadAuthRecords(
+        timeAfter(secondTokenExpiry, 6 * DAY_MS)
       );
       const whenDead = await deleteDeadAuthRecords(
-        timeAfter(firstTokenExpiry, 8 * DAY_MS)
+        timeAfter(secondTokenExpiry, 8 * DAY_MS)
       );
 
-      // Assert
-      expect(whileKept).toEqual({ sessions: 0, refreshTokens: 0 });
+      // Assert: the used token is what a later copy would be checked against.
+      expect(whileAlive).toEqual({ sessions: 0, refreshTokens: 0 });
       expect(whenDead).toEqual({ sessions: 0, refreshTokens: 1 });
       const remaining = await db.select().from(refreshToken);
       expect(remaining).toHaveLength(1);
-      expect(remaining[0].tokenHash).not.toBe(hashToken(first.refreshToken));
+      expect(remaining[0].tokenHash).toBe(hashToken(first.refreshToken));
     });
   });
 });

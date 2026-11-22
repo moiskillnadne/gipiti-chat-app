@@ -115,6 +115,7 @@ Module (`server/modules/auth/`):
 - `access-token.ts`: sign and verify with `jose` (already pinned at 6.2.17): HS256, header `kid`, claims `sub`, `sid`, `ver`, `iss`, `aud`, 15 minutes; verification also accepts `API_TOKEN_SECRET_PREVIOUS` (P15).
 - `sessions.ts` and `queries/`: `issueTokenPair` (creates the `AuthSession` and the first `RefreshToken`; 60-day sliding, 180-day absolute), `rotateRefreshToken` (one transaction, row lock on the session; P11), `revokeSession`, `revokeAllSessions` (with the version bump), `listSessions`, `resolveBearerSession` (verify, then one query for the session and the user's version; `last_used_at` written at most every 5 minutes).
 - The refresh token is 32 random bytes in base64url, stored through the existing `hashToken`.
+- From the review of this PR: a session (web cookie or API) is stamped with the token version read together with the credentials (`Account.tokenVersion`), and `createAuthSession` locks the account's row and refuses when the version has moved on, so a sign-in in flight during a password reset cannot outlive it; an account keeps at most 20 live sessions; a used refresh token that comes back is treated as a copy even after its expiry, and used tokens are kept as long as their session; the token secret is checked before a session or a rotation is written.
 
 Kit:
 

@@ -96,26 +96,31 @@ export async function rotateRefreshToken({
       if (session.revokedAt) {
         return { status: "session_revoked" };
       }
+
+      const isWithinGraceTime =
+        token.usedAt !== null &&
+        now.getTime() - token.usedAt.getTime() <= REFRESH_REUSE_GRACE_MS;
+
+      // Asked before "is it expired": a used token that comes back long
+      // after it was replaced is a copy however old it is, and whoever used
+      // it first may still hold a live branch of the session.
+      if (token.usedAt && !isWithinGraceTime) {
+        await tx
+          .update(authSession)
+          .set({
+            revokedAt: now,
+            revokedReason: SESSION_REVOCATION_REASONS.refreshReused,
+          })
+          .where(eq(authSession.id, session.id));
+
+        return { status: "reused" };
+      }
+
       if (token.expiresAt <= now || session.absoluteExpiresAt <= now) {
         return { status: "expired" };
       }
 
       if (token.usedAt) {
-        const isWithinGraceTime =
-          now.getTime() - token.usedAt.getTime() <= REFRESH_REUSE_GRACE_MS;
-
-        if (!isWithinGraceTime) {
-          await tx
-            .update(authSession)
-            .set({
-              revokedAt: now,
-              revokedReason: SESSION_REVOCATION_REASONS.refreshReused,
-            })
-            .where(eq(authSession.id, session.id));
-
-          return { status: "reused" };
-        }
-
         const [children] = await tx
           .select({ total: count() })
           .from(refreshToken)

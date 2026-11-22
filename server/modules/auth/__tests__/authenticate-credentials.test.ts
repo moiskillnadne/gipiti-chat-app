@@ -35,6 +35,7 @@ const storedUser = {
   password: "stored-hash",
   emailVerified: true,
   isTester: false,
+  tokenVersion: 2,
 };
 const asUser = (row: Partial<User>): User => row as User;
 
@@ -69,6 +70,8 @@ describe("authenticateCredentials", () => {
         email: EMAIL,
         emailVerified: true,
         isTester: false,
+        // The version the row had when the password was checked.
+        tokenVersion: 2,
       },
     });
     expect(compare).toHaveBeenCalledWith(PASSWORD, "stored-hash");

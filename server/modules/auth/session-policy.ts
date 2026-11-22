@@ -25,6 +25,13 @@ export const MAX_SIBLING_TOKENS = 2;
 /** `AuthSession.last_used_at` is written at most this often. */
 export const SESSION_TOUCH_INTERVAL_MS = 5 * MILLISECONDS_PER_MINUTE;
 
+/**
+ * An account keeps this many live API sessions. Signing in beyond it removes
+ * the session that has gone unused the longest. Without a cap, a loop of
+ * correct-password sign-ins would fill the tables.
+ */
+export const MAX_LIVE_SESSIONS_PER_ACCOUNT = 20;
+
 /** Dead sessions and refresh tokens are deleted this long after they died. */
 export const DEAD_SESSION_RETENTION_MS = 7 * MILLISECONDS_PER_DAY;
 

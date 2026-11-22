@@ -16,8 +16,8 @@ import {
 type CleanupResponseBody = {
   expired: number;
   deleted: number;
-  deletedAuthSessions: number;
-  deletedRefreshTokens: number;
+  deletedAuthSessions: number | null;
+  deletedRefreshTokens: number | null;
   timestamp: string;
   message: string;
 };

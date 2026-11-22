@@ -84,11 +84,13 @@ const ME: Me = {
   balance: null,
   features: { topup: false },
 };
+const TOKEN_VERSION = 3;
 const ACCOUNT = {
   id: USER_ID,
   email: EMAIL,
   emailVerified: true,
   isTester: false,
+  tokenVersion: TOKEN_VERSION,
 };
 
 const handlers = createHandler(v1Router, { prefix: PREFIX });
@@ -157,8 +159,10 @@ describe("POST /auth/login", () => {
       password: PASSWORD,
       ip: CLIENT_IP,
     });
+    // The session is issued under the version read with the credentials.
     expect(issueTokenPair).toHaveBeenCalledExactlyOnceWith({
       userId: USER_ID,
+      tokenVersion: TOKEN_VERSION,
       client: CLIENT,
       ip: CLIENT_IP,
     });
@@ -216,7 +220,7 @@ describe("POST /auth/login", () => {
     }
   );
 
-  it("answers 401 when the account vanished after the password check", async () => {
+  it("answers 401 when the password was reset, or the account vanished, after the password check", async () => {
     // Arrange
     vi.mocked(issueTokenPair).mockResolvedValue(null);
 
@@ -364,6 +368,28 @@ describe("POST /auth/logout", () => {
     // Assert
     expect(response.status).toBe(401);
     expect((await response.json()).data).toEqual({ reason: "invalid_token" });
+  });
+});
+
+describe("a request with an access token while the token secret is missing", () => {
+  it("answers a sanitised 500, not 401, so the client keeps its session", async () => {
+    // Arrange
+    vi.spyOn(console, "error").mockReturnValue(undefined);
+    vi.mocked(resolveBearerSession).mockRejectedValue(
+      new Error("API_TOKEN_SECRET is not set")
+    );
+
+    // Act
+    const response = await call("/auth/sessions", {
+      method: "GET",
+      headers: BEARER,
+    });
+    const body = await response.json();
+
+    // Assert
+    expect(response.status).toBe(500);
+    expect(JSON.stringify(body)).not.toContain("API_TOKEN_SECRET");
+    expect(listSessions).not.toHaveBeenCalled();
   });
 });
 

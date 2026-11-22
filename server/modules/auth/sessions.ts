@@ -4,6 +4,7 @@ import {
   signAccessToken,
   verifyAccessToken,
 } from "@/server/modules/auth/access-token";
+import { getApiTokenKeys } from "@/server/modules/auth/api-token-secret";
 import {
   createAuthSession,
   getAuthSessionState,
@@ -60,24 +61,36 @@ const createRefreshToken = (): { token: string; tokenHash: string } => {
 /**
  * Opens an API session for an account whose credentials were just checked.
  *
- * @returns null when the account vanished in between
+ * `tokenVersion` is the account's token version as it was read together with
+ * the credentials. No session is opened when the account has moved on from
+ * it since (a password reset, "log out everywhere"): a sign-in that was in
+ * flight during a reset must not outlive the reset.
+ *
+ * @returns null when the account vanished or its token version moved on
  * @throws ApiTokenSecretError in production when the token secret is missing
  */
 export const issueTokenPair = async ({
   userId,
+  tokenVersion,
   client,
   ip,
   now = new Date(),
 }: {
   userId: string;
+  tokenVersion: number;
   client: SessionClient;
   ip: string | null;
   now?: Date;
 }): Promise<TokenPair | null> => {
+  // Before anything is written: a session that could not be given its
+  // access token would be left behind.
+  getApiTokenKeys();
+
   const refresh = createRefreshToken();
 
   const session = await createAuthSession({
     userId,
+    expectedTokenVersion: tokenVersion,
     clientKind: MOBILE_CLIENT_KIND,
     platform: client.platform,
     deviceName: client.deviceName ?? null,
@@ -130,6 +143,11 @@ export const refreshTokenPair = async ({
   refreshToken: string;
   now?: Date;
 }): Promise<RefreshTokenPairResult> => {
+  // Before the token is spent: if the new access token could not be signed,
+  // the client would have burnt its refresh token for nothing, and its
+  // retries would end in a revoked session.
+  getApiTokenKeys();
+
   const next = createRefreshToken();
 
   const rotation = await rotateRefreshToken({

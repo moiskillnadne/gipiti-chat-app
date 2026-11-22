@@ -32,11 +32,17 @@ export const authRouter = {
       throw errors.UNAUTHORIZED({ data: { reason: "invalid_credentials" } });
     }
 
-    const { id: userId } = result.account;
-    const tokens = await issueTokenPair({ userId, client: input.client, ip });
+    const { id: userId, tokenVersion } = result.account;
+    const tokens = await issueTokenPair({
+      userId,
+      tokenVersion,
+      client: input.client,
+      ip,
+    });
     const user = tokens ? await loadMe(userId) : null;
 
-    // The account was deleted between the password check and here.
+    // Between the password check and here the account was deleted, or its
+    // password was reset: the password that was checked is no longer good.
     if (!(tokens && user)) {
       throw errors.UNAUTHORIZED({ data: { reason: "invalid_credentials" } });
     }

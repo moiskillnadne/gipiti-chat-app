@@ -3,7 +3,10 @@ import { and, eq, isNull, lte, or } from "drizzle-orm";
 import { isAuthorizedCronRequest } from "@/server/cron/is-authorized-cron-request";
 import { db } from "@/server/db/connection";
 import { paymentIntent } from "@/server/db/schema";
-import { deleteDeadAuthRecords } from "@/server/modules/auth/queries/auth-sessions";
+import {
+  type DeletedAuthRecords,
+  deleteDeadAuthRecords,
+} from "@/server/modules/auth/queries/auth-sessions";
 
 const LOG_PREFIX = "[Cron:CleanupPaymentIntents]";
 
@@ -76,15 +79,38 @@ const deleteStaleUnpaidIntents = async (now: Date): Promise<number> => {
 };
 
 /**
+ * Deletes dead API sessions and refresh tokens. A failure is logged under
+ * its own name and answered as null: the payment-intent cleanup has already
+ * been committed by then, and its counts must still be reported.
+ */
+const deleteDeadAuthRecordsSafely = async (
+  now: Date
+): Promise<DeletedAuthRecords | null> => {
+  try {
+    const deletedAuthRecords = await deleteDeadAuthRecords(now);
+
+    console.log(
+      `${LOG_PREFIX} Deleted ${deletedAuthRecords.sessions} dead API sessions and ${deletedAuthRecords.refreshTokens} unused expired refresh tokens`
+    );
+
+    return deletedAuthRecords;
+  } catch (error) {
+    console.error(`${LOG_PREFIX} API session cleanup failed:`, error);
+    return null;
+  }
+};
+
+/**
  * Payment-intent housekeeping, scheduled hourly in `vercel.json`: expires
  * pending intents past their deadline, then deletes failed and expired ones
  * older than the retention period that record neither a payment nor a payment
  * problem (the exact rule is on `deleteStaleUnpaidIntents`). Succeeded intents
  * are never deleted.
  *
- * It also deletes API sessions a week past their absolute end and refresh
- * tokens a week past their expiry (`deleteDeadAuthRecords`): housekeeping of
- * the same kind, not worth a schedule of its own.
+ * It also deletes dead API sessions and refresh tokens
+ * (`deleteDeadAuthRecords`): housekeeping of the same kind, not worth a
+ * schedule of its own. That part reports its own failure and never turns the
+ * answer about payment intents into an error.
  */
 export async function GET(request: Request): Promise<Response> {
   if (!isAuthorizedCronRequest(request)) {
@@ -96,17 +122,17 @@ export async function GET(request: Request): Promise<Response> {
   try {
     const expired = await expireOverduePendingIntents(now);
     const deleted = await deleteStaleUnpaidIntents(now);
-    const deletedAuthRecords = await deleteDeadAuthRecords(now);
+    const deletedAuthRecords = await deleteDeadAuthRecordsSafely(now);
 
     console.log(
-      `${LOG_PREFIX} Marked ${expired} overdue pending intents as expired, deleted ${deleted} unpaid expired or failed intents older than ${UNPAID_INTENT_RETENTION_DAYS} days, deleted ${deletedAuthRecords.sessions} dead API sessions and ${deletedAuthRecords.refreshTokens} expired refresh tokens`
+      `${LOG_PREFIX} Marked ${expired} overdue pending intents as expired, deleted ${deleted} unpaid expired or failed intents older than ${UNPAID_INTENT_RETENTION_DAYS} days`
     );
 
     return Response.json({
       expired,
       deleted,
-      deletedAuthSessions: deletedAuthRecords.sessions,
-      deletedRefreshTokens: deletedAuthRecords.refreshTokens,
+      deletedAuthSessions: deletedAuthRecords?.sessions ?? null,
+      deletedRefreshTokens: deletedAuthRecords?.refreshTokens ?? null,
       timestamp: now.toISOString(),
       message: `Marked ${expired} payment intents as expired. Deleted ${deleted} old payment intents.`,
     });
