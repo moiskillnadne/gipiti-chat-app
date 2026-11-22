@@ -568,6 +568,38 @@ describe("API sessions against a real database", () => {
       expect(await refreshStatus(tokens.refreshToken)).toBe("session_revoked");
     });
 
+    it("after a password change, opens a session only under the version the change produced", async () => {
+      // Arrange
+      const userId = await seedUser();
+      const before = await signIn(userId);
+
+      // Act: what `POST /auth/password/change` does for a bearer caller.
+      const [updated] = await updateUserPassword({
+        userId,
+        hashedPassword: "new-hash",
+      });
+      const underOldVersion = await issueTokenPair({
+        userId,
+        tokenVersion: updated.tokenVersion - 1,
+        client: CLIENT,
+        ip: CLIENT_IP,
+      });
+      const underNewVersion = await issueTokenPair({
+        userId,
+        tokenVersion: updated.tokenVersion,
+        client: CLIENT,
+        ip: CLIENT_IP,
+      });
+
+      // Assert
+      expect(underOldVersion).toBeNull();
+      expect(underNewVersion).not.toBeNull();
+      expect(await resolveBearerSession(before.accessToken)).toBeNull();
+      expect(
+        await resolveBearerSession(underNewVersion?.accessToken ?? "")
+      ).toMatchObject({ userId });
+    });
+
     it("lets the account sign in again afterwards, under the new version", async () => {
       // Arrange
       const userId = await seedUser();

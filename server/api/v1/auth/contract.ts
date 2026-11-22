@@ -10,22 +10,50 @@ import {
   loginOutputSchema,
   refreshInputSchema,
   refreshOutputSchema,
-  unauthorizedReasonDataSchema,
+  registerInputSchema,
+  registerOutputSchema,
 } from "@/server/api/v1/_schemas/auth";
+import {
+  badRequestWithReason,
+  conflictWithReason,
+  forbiddenWithReason,
+  tooManyRequestsWithRetry,
+  unauthorizedWithReason,
+} from "@/server/api/v1/_schemas/auth-errors";
+import { emailVerificationContract } from "@/server/api/v1/auth/email-verification/contract";
+import { passwordContract } from "@/server/api/v1/auth/password/contract";
 import { authSessionsContract } from "@/server/api/v1/auth/sessions/contract";
 
 const AUTH_TAGS = ["auth"];
 
-/** A 401 of the auth endpoints always says why, in `data.reason`. */
-const unauthorizedWithReason = {
-  UNAUTHORIZED: {
-    status: 401,
-    message: "Authentication failed.",
-    data: unauthorizedReasonDataSchema,
-  },
-} as const;
-
 export const authContract = {
+  register: oc
+    .errors({
+      ...badRequestWithReason,
+      ...forbiddenWithReason,
+      ...conflictWithReason,
+      ...tooManyRequestsWithRetry,
+      ...serviceUnavailableError,
+    })
+    .route({
+      method: "POST",
+      path: "/auth/register",
+      successStatus: 201,
+      summary: "Create an account",
+      description: [
+        "For clients that are not the website: creates the account and signs it in. No credentials are needed to call it.",
+        "",
+        "The welcome grant is **not** credited here. It is credited, together with the email-confirmation bonus, when the email is verified (`POST /auth/email-verification/send`, then `/verify`); the amounts are in `GET /config`.",
+        "",
+        "If a call failed and the next one answers 409 `email_taken`, the first one did create the account: sign in with `POST /auth/login`.",
+        "",
+        "403 `signup_disabled` when registration is switched off. 409 `email_taken`. 400 `weak_password` or `disposable_email` (throwaway mailboxes are refused). 429 when too many accounts were created from this address; 503 when that limit cannot be checked.",
+      ].join("\n"),
+      tags: AUTH_TAGS,
+    })
+    .input(registerInputSchema)
+    .output(registerOutputSchema),
+
   login: oc
     .errors({
       ...unauthorizedWithReason,
@@ -85,4 +113,6 @@ export const authContract = {
   }),
 
   sessions: authSessionsContract,
+  emailVerification: emailVerificationContract,
+  password: passwordContract,
 };

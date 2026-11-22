@@ -236,6 +236,21 @@ describe("verifyEmailCode", () => {
     }
   );
 
+  it("answers limiter_unavailable, not rate_limited, when the limit cannot be checked", async () => {
+    // Arrange
+    vi.mocked(checkVerificationAttemptRateLimit).mockResolvedValue({
+      success: false,
+      isUnavailable: true,
+    });
+
+    // Act
+    const result = await verifyEmailCode({ email: EMAIL, code: CODE });
+
+    // Assert
+    expect(result).toEqual({ status: "limiter_unavailable" });
+    expect(takeVerificationAttempt).not.toHaveBeenCalled();
+  });
+
   it("answers rate_limited without spending an attempt", async () => {
     // Arrange
     vi.mocked(checkVerificationAttemptRateLimit).mockResolvedValue({

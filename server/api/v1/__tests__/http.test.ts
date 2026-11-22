@@ -31,6 +31,26 @@ vi.mock("@/server/modules/auth/cookie-session", () => ({
 vi.mock("@/server/modules/auth/sessions", () => ({
   resolveBearerSession: vi.fn(),
 }));
+// The router also holds the account endpoints, whose services reach the mail
+// sender. They have their own suite (`account-http.test.ts`).
+vi.mock("@/server/modules/auth/change-password", () => ({
+  changePassword: vi.fn(),
+}));
+vi.mock("@/server/modules/auth/register-user", () => ({
+  registerUser: vi.fn(),
+}));
+vi.mock("@/server/modules/auth/request-password-reset", () => ({
+  requestPasswordReset: vi.fn(),
+}));
+vi.mock("@/server/modules/auth/reset-password", () => ({
+  resetPassword: vi.fn(),
+}));
+vi.mock("@/server/modules/auth/send-verification-code", () => ({
+  sendVerificationCode: vi.fn(),
+}));
+vi.mock("@/server/modules/auth/verify-email-code", () => ({
+  verifyEmailCode: vi.fn(),
+}));
 vi.mock("@/lib/billing/currencies", () => ({ getMinorUnits: vi.fn() }));
 vi.mock("@/lib/billing/subscriptions", () => ({
   listActiveSubscriptionsWithPrices: vi.fn(),

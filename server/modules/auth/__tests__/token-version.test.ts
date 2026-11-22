@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { getUpstashClient } from "@/server/integrations/redis/client";
 import {
+  forgetTokenVersionOlderThan,
   getTokenVersion,
   getTokenVersionForNewSession,
   isSessionVersionCurrent,
@@ -20,7 +21,7 @@ const USER_ID = "user-1";
 const CACHE_KEY = `tv:${USER_ID}`;
 const CACHE_SECONDS = 600;
 
-const redis = { get: vi.fn(), set: vi.fn() };
+const redis = { get: vi.fn(), set: vi.fn(), del: vi.fn() };
 type UpstashClient = NonNullable<ReturnType<typeof getUpstashClient>>;
 
 const useRedis = (): void => {
@@ -198,6 +199,54 @@ describe("getTokenVersionForNewSession", () => {
     await expect(getTokenVersionForNewSession(USER_ID)).rejects.toThrow(
       "db down"
     );
+  });
+});
+
+describe("forgetTokenVersionOlderThan", () => {
+  it("drops a cached version that is behind the one a session was just issued under", async () => {
+    // Arrange: a bump whose cache write was lost.
+    useRedis();
+    redis.get.mockResolvedValue(1);
+
+    // Act
+    await forgetTokenVersionOlderThan(USER_ID, 2);
+
+    // Assert
+    expect(redis.del).toHaveBeenCalledExactlyOnceWith(CACHE_KEY);
+    // Dropped, never written: the number in hand may itself be a moment old.
+    expect(redis.set).not.toHaveBeenCalled();
+  });
+
+  it.each<[string, number | null]>([
+    ["equal", 2],
+    ["ahead, because the account moved on meanwhile", 3],
+    ["absent", null],
+  ])("leaves the cache alone when its version is %s", async (_case, cached) => {
+    // Arrange
+    useRedis();
+    redis.get.mockResolvedValue(cached);
+
+    // Act
+    await forgetTokenVersionOlderThan(USER_ID, 2);
+
+    // Assert
+    expect(redis.del).not.toHaveBeenCalled();
+  });
+
+  it("does not throw when Redis is missing or failing", async () => {
+    // Act and assert: no Redis
+    await expect(
+      forgetTokenVersionOlderThan(USER_ID, 2)
+    ).resolves.toBeUndefined();
+
+    // Arrange
+    useRedis();
+    redis.get.mockRejectedValue(new Error("redis down"));
+
+    // Act and assert: a failed read
+    await expect(
+      forgetTokenVersionOlderThan(USER_ID, 2)
+    ).resolves.toBeUndefined();
   });
 });
 

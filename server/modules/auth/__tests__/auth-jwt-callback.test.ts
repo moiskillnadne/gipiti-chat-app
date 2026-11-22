@@ -27,12 +27,14 @@ const {
   captured,
   getActiveUserSubscriptionMock,
   getUserByEmailMock,
+  forgetTokenVersionOlderThanMock,
   getTokenVersionForNewSessionMock,
   isSessionVersionCurrentMock,
 } = vi.hoisted(() => ({
   captured: { config: undefined as CapturedAuthConfig | undefined },
   getActiveUserSubscriptionMock: vi.fn(),
   getUserByEmailMock: vi.fn(),
+  forgetTokenVersionOlderThanMock: vi.fn(),
   getTokenVersionForNewSessionMock: vi.fn(),
   isSessionVersionCurrentMock: vi.fn(),
 }));
@@ -62,6 +64,7 @@ vi.mock("@/server/modules/users/queries/get-by-email", () => ({
   getUserByEmail: getUserByEmailMock,
 }));
 vi.mock("@/server/modules/auth/token-version", () => ({
+  forgetTokenVersionOlderThan: forgetTokenVersionOlderThanMock,
   getTokenVersionForNewSession: getTokenVersionForNewSessionMock,
   isSessionVersionCurrent: isSessionVersionCurrentMock,
 }));
@@ -100,6 +103,7 @@ const runJwtCallbackOnLiveSession = async (
 };
 
 beforeEach(() => {
+  forgetTokenVersionOlderThanMock.mockReset().mockResolvedValue(undefined);
   getTokenVersionForNewSessionMock.mockReset().mockResolvedValue(0);
   isSessionVersionCurrentMock.mockReset().mockResolvedValue(true);
 });
@@ -198,6 +202,12 @@ describe("auth jwt callback and the token version", () => {
 
     // Assert: stale by design, so the session is refused on first use.
     expect(token.ver).toBe(3);
+    // A cache entry behind the session's own version is dropped; one that is
+    // ahead of it, as here, is not touched by that.
+    expect(forgetTokenVersionOlderThanMock).toHaveBeenCalledExactlyOnceWith(
+      USER_ID,
+      3
+    );
     expect(getTokenVersionForNewSessionMock).not.toHaveBeenCalled();
     // A session being issued is not checked against itself.
     expect(isSessionVersionCurrentMock).not.toHaveBeenCalled();

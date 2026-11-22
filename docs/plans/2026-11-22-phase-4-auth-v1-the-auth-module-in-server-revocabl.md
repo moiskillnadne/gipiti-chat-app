@@ -158,6 +158,19 @@ Verify: `pnpm check`; `pnpm test:integration`. Local production build against th
 
 The email for send and verify comes from the principal's user row, never from the body. Register takes UTM from the body and geo from the request headers. A new service `changePassword` reuses the transaction of P7.
 
+As built, where it differs from the table above:
+
+- `POST /auth/password/change` takes no `revokeOtherSessions` flag: a changed password always ends every other session (P7), and the caller gets a new one of the kind it came with. The current password is checked through `authenticateCredentials`, so guessing it here is held back by the login limits.
+- `POST /auth/password/change` answers `{ tokens, sessionRenewed }`. Once the password is changed nothing fails the request any more: if the caller's new session cannot be opened (the new cookie through Auth.js, or the new pair), the answer is still 200 with `sessionRenewed: false`, and the user signs in again with the new password (found by the review; before, that was a 500 or a silent sign-out).
+- `POST /auth/email-verification/verify` answers 503, not 429, when its limit cannot be checked (`verifyEmailCode` gained `limiter_unavailable`).
+- A session issued while the cached token version is behind the database (a bump whose cache write was lost) would be refused until the cache expired; the `jwt` callback now drops such a stale entry when it issues a session (`forgetTokenVersionOlderThan`).
+- `POST /auth/password/forgot` answers 202 also when the mail could not be sent: another answer would say that the address has an account. The service logs the failure.
+- `POST /auth/email-verification/send` answers 503 when the mail provider refuses or the limit cannot be checked, and 429 with `data.retryAfterSeconds`.
+- `POST /auth/email-verification/verify` also answers `welcomeGrantCredited`.
+- `POST /auth/register` checks that sessions can be issued (the token secret) before it creates the account: an account whose first sign-in then failed would have its email taken with nobody signed in.
+- The error maps with a `data.reason` live in `v1/_schemas/auth-errors.ts` (the contract zone).
+- `playwright.yml` needs no `API_TOKEN_SECRET`: the Playwright server is `next dev`, where the development value is used. The test seeds the `RUB` currency row, which no migration creates.
+
 Tests: HTTP tests per endpoint and error. Playwright API project, new `tests/routes/auth-flow.test.ts`: register, verify (the test writes a known code hash to the database instead of sending mail), login, `/me`, refresh, reuse rejected, logout. `playwright.yml` gets a CI-only `API_TOKEN_SECRET`.
 
 Verify: `pnpm check`; `pnpm test:integration`; `pnpm exec playwright test tests/routes/auth-flow.test.ts`; `pnpm api:spec` leaves no diff. Preview: register a throwaway account, receive the code by mail, verify, change the password (asks the owner first).
