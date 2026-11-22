@@ -18,9 +18,9 @@ export const landingLoginLink: LandingNavLink = {
   href: "/login",
 };
 
-// The primary action of the header and the mobile menu. Same label as the
-// start CTAs on the page, so one action reads one way everywhere.
+// The one "start" action of the marketing site: the header, the mobile menu
+// and every start CTA on the landing and the models pages read this label.
 export const landingRegisterLink: LandingNavLink = {
-  label: "Попробовать бесплатно",
+  label: "Начать бесплатно",
   href: "/register",
 };

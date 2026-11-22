@@ -39,7 +39,6 @@ export const perplexityLandings: ModelLanding[] = [
     h1Top: "Perplexity Sonar —",
     h1Gradient: "нейросеть с поиском в интернете",
     sub: `Нейросеть Perplexity со встроенным поиском уже в GIPITI — свежие ответы со ссылками на источники. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать Sonar",
     metaTitle: "Perplexity Sonar — нейросеть с поиском в интернете | GIPITI",
     metaDescription:
       "Perplexity Sonar в GIPITI — нейросеть со встроенным поиском в интернете: свежие ответы со ссылками на источники. Без VPN, на русском, оплата российскими картами.",

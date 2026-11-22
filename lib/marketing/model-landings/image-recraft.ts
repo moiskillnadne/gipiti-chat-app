@@ -37,7 +37,6 @@ export const recraftImageLandings: ModelLanding[] = [
     h1Top: "Recraft V4.1 Flash —",
     h1Gradient: "быстрые кадры и концепты логотипов",
     sub: `Быстрая и недорогая модель Recraft уже в GIPITI — фотографии, портреты, атмосферные сцены, коллажи и концепты логотипов по описанию на русском. Подходит для больших серий и частых проб. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать Recraft V4.1 Flash",
     metaTitle: "Recraft V4.1 Flash — быстрая нейросеть для картинок | GIPITI",
     metaDescription:
       "Recraft V4.1 Flash в GIPITI — быстрая и недорогая генерация изображений: фото, портреты, атмосферные сцены, коллажи и концепты логотипов. Без VPN, оплата картами РФ.",
@@ -172,7 +171,6 @@ export const recraftImageLandings: ModelLanding[] = [
     h1Top: "Recraft v4.1 Pro —",
     h1Gradient: "нейросеть для логотипов и иконок",
     sub: `Модель Recraft уже в GIPITI — логотипы, иконки и брендовые иллюстрации в чистом графическом стиле по описанию на русском. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать Recraft v4.1 Pro",
     metaTitle: "Recraft v4.1 Pro — нейросеть для логотипов и иконок | GIPITI",
     metaDescription:
       "Recraft v4.1 Pro в GIPITI — генерация логотипов, иконок и брендовых иллюстраций в векторном стиле по описанию на русском. Без VPN, оплата российскими картами.",

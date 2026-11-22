@@ -35,7 +35,6 @@ export const googleImageLandings: ModelLanding[] = [
     h1Top: "Nano Banana 2.1 —",
     h1Gradient: "новая нейросеть Google для картинок",
     sub: `Новое поколение Nano Banana уже в GIPITI — рисует по описанию на русском, переносит товар в другую сцену и правит готовые изображения в качестве до 4K. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать Nano Banana 2.1",
     metaTitle: "Nano Banana 2.1 — нейросеть Google для картинок | GIPITI",
     metaDescription:
       "Nano Banana 2.1 в GIPITI — новая модель Google: генерация и редактирование изображений на русском в 1K, 2K и 4K, десять форматов. Без VPN, оплата картами РФ.",
@@ -161,7 +160,6 @@ export const googleImageLandings: ModelLanding[] = [
     h1Top: "Nano Banana —",
     h1Gradient: "нейросеть для картинок на русском",
     sub: `Самая популярная модель Google для изображений уже в GIPITI — рисует по описанию и точно правит готовые картинки. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать Nano Banana",
     metaTitle: "Nano Banana — нейросеть для генерации изображений | GIPITI",
     metaDescription: `Nano Banana в GIPITI — генерация и редактирование изображений по описанию на русском: замена фона, стиля и деталей. Без VPN, оплата российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     heroMedia: {
@@ -286,7 +284,6 @@ export const googleImageLandings: ModelLanding[] = [
     h1Top: "Nano Banana Pro —",
     h1Gradient: "точная генерация изображений",
     sub: `Продвинутая модель Google для изображений уже в GIPITI — точно следует сложному описанию и аккуратно пишет текст прямо на картинке. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать Nano Banana Pro",
     metaTitle: "Nano Banana Pro — генерация изображений с текстом | GIPITI",
     metaDescription:
       "Nano Banana Pro в GIPITI — продвинутая модель Google для изображений: точное следование промпту, надписи на картинке и качество до 4K. Без VPN, оплата российскими картами.",
@@ -412,7 +409,6 @@ export const googleImageLandings: ModelLanding[] = [
     h1Top: "Nano Banana Lite —",
     h1Gradient: "быстрая генерация картинок",
     sub: `Самая лёгкая модель Google для изображений уже в GIPITI — быстрые картинки по минимальной цене, когда нужно перебрать десяток вариантов. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать Nano Banana Lite",
     metaTitle: "Nano Banana Lite — быстрая генерация изображений | GIPITI",
     metaDescription:
       "Nano Banana Lite в GIPITI — самая недорогая модель Google для картинок: быстрые генерации и черновики в разрешении 1K. Без VPN, на русском, оплата российскими картами.",

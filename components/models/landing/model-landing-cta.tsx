@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 import { NEW_USER_BONUS_TERMS_RU } from "@/lib/marketing/landing-content";
+import { landingRegisterLink } from "@/lib/marketing/landing-nav-links";
 import type { ModelLanding } from "@/lib/marketing/model-landings/types";
-
 import { accentClasses } from "./accent-styles";
 
 export const ModelLandingCta = ({ landing }: { landing: ModelLanding }) => {
@@ -29,8 +29,9 @@ export const ModelLandingCta = ({ landing }: { landing: ModelLanding }) => {
             <Link
               className={`inline-flex items-center justify-center rounded-full px-8 py-4 font-semibold text-lg text-white shadow-lg transition-shadow hover:shadow-xl ${accent.primaryButton}`}
               href="/register"
+              prefetch={false}
             >
-              Начать бесплатно
+              {landingRegisterLink.label}
             </Link>
             <p className="mt-5 text-sm text-zinc-500">
               Без VPN · Оплата в рублях · Отмена в любой момент

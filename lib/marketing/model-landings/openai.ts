@@ -50,7 +50,6 @@ export const openaiLandings: ModelLanding[] = [
     h1Top: "GPT-6.2 Sol —",
     h1Gradient: "рассуждающая нейросеть OpenAI на каждый день",
     sub: `Модель OpenAI с рассуждениями уже в GIPITI — текст, фото и PDF, многошаговые задачи с инструментами и контекст около 1,05 млн токенов. Глубину рассуждений выбираете сами. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать GPT-6.2 Sol",
     metaTitle: "GPT-6.2 Sol — нейросеть OpenAI на русском без VPN | GIPITI",
     metaDescription:
       "GPT-6.2 Sol в GIPITI — модель OpenAI с рассуждениями: текст, фото, PDF и контекст 1,05 млн токенов. Глубину рассуждений выбираете сами. Без VPN, оплата картами РФ.",
@@ -162,7 +161,6 @@ export const openaiLandings: ModelLanding[] = [
     h1Top: "GPT-6.2 Astra —",
     h1Gradient: "передовая нейросеть OpenAI для сложного кода",
     sub: `Передовая модель OpenAI для программирования и профессиональной работы уже в GIPITI — пишет и правит код, разбирает документы и ведёт сложные многошаговые задачи. Запросы к ней на 20% дешевле, чем к GPT-6 Astra. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать GPT-6.2 Astra",
     metaTitle: "GPT-6.2 Astra — нейросеть OpenAI для сложного кода | GIPITI",
     metaDescription:
       "GPT-6.2 Astra в GIPITI — передовая модель OpenAI для сложного кода и профессиональной работы: контекст 1,05 млн токенов, PDF и фото. Без VPN, оплата картами РФ.",
@@ -270,7 +268,6 @@ export const openaiLandings: ModelLanding[] = [
     h1Top: "GPT-6.1 Sol —",
     h1Gradient: "флагман OpenAI поколения GPT-6.1",
     sub: `Sol поколения GPT-6.1 остаётся в GIPITI — сложный код, профессиональные задачи и многошаговые агентные сценарии с контекстом на миллион токенов. Новее неё — GPT-6.2 Sol по той же цене. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать GPT-6.1 Sol",
     metaTitle: "GPT-6.1 Sol — предыдущая версия Sol от OpenAI без VPN | GIPITI",
     metaDescription:
       "GPT-6.1 Sol в GIPITI — модель OpenAI поколения GPT-6.1: сложный код, профессиональные задачи и агентные сценарии, контекст на миллион токенов. Новее — GPT-6.2 Sol по той же цене. Без VPN, оплата картами РФ.",
@@ -360,7 +357,6 @@ export const openaiLandings: ModelLanding[] = [
     h1Top: "GPT-6.1 Terra —",
     h1Gradient: "быстрая и экономичная модель OpenAI",
     sub: `Свежая модель OpenAI, вышедшая 26 октября, уже в GIPITI — быстрые ответы, понимание изображений и естественный живой текст по доступной цене. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать GPT-6.1 Terra",
     metaTitle: "GPT-6.1 Terra — нейросеть OpenAI на русском без VPN | GIPITI",
     metaDescription:
       "GPT-6.1 Terra в GIPITI — новая быстрая модель OpenAI: тексты, анализ изображений и контекст около 1 млн токенов. Без VPN, на русском, оплата картами РФ.",
@@ -471,7 +467,6 @@ export const openaiLandings: ModelLanding[] = [
     h1Top: "GPT-6 Astra —",
     h1Gradient: "мощная нейросеть OpenAI поколения GPT-6",
     sub: `Astra поколения GPT-6 остаётся в GIPITI — сложные рассуждения, код, исследования и работа с документами. Это премиальная модель: запросы к ней в пять раз дороже, чем к GPT-6 Sol. Новее неё — GPT-6.2 Astra. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать GPT-6 Astra",
     metaTitle: "GPT-6 Astra — мощная нейросеть OpenAI без VPN | GIPITI",
     metaDescription: `GPT-6 Astra в GIPITI — мощная модель OpenAI поколения GPT-6: сложные рассуждения, код, исследования и документы, контекст на миллион токенов. Новее — GPT-6.2 Astra. Без VPN, на русском, оплата российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     heroChat: {
@@ -564,7 +559,6 @@ export const openaiLandings: ModelLanding[] = [
     h1Top: "GPT-6 Sol —",
     h1Gradient: "флагман поколения GPT-6",
     sub: `Флагман нового поколения GPT-6 уже в GIPITI — сложный код, многошаговые агентные задачи и контекст на миллион токенов. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать GPT-6 Sol",
     metaTitle: "GPT-6 Sol — нейросеть OpenAI на русском без VPN | GIPITI",
     metaDescription: `GPT-6 Sol — флагман нового поколения OpenAI в GIPITI: сложный код, агентные задачи и контекст на миллион токенов. Без VPN, на русском, оплата российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     heroChat: {
@@ -648,7 +642,6 @@ export const openaiLandings: ModelLanding[] = [
     h1Top: "GPT-6 Luna —",
     h1Gradient: "быстрая нейросеть нового поколения",
     sub: `Быстрая модель нового поколения GPT-6 уже в GIPITI — рассуждает перед ответом и стоит меньше любой другой модели OpenAI в каталоге. Переписка, выжимки и объёмные задачи. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать GPT-6 Luna",
     metaTitle:
       "GPT-6 Luna — быстрая нейросеть OpenAI на русском без VPN | GIPITI",
     metaDescription:
@@ -728,7 +721,6 @@ export const openaiLandings: ModelLanding[] = [
     h1Top: "GPT-5.6 Sol —",
     h1Gradient: "умный чат на русском",
     sub: `Самая мощная модель серии GPT-5.6 уже в GIPITI — глубокие рассуждения, программирование и работа с большими документами. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать GPT-5.6 Sol",
     metaTitle: "GPT-5.6 Sol — умный чат на русском без VPN | GIPITI",
     metaDescription: `GPT-5.6 Sol — флагман серии GPT-5.6 от OpenAI в GIPITI: глубокие рассуждения, программирование и анализ документов. Без VPN, на русском, оплата российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     heroChat: {
@@ -812,7 +804,6 @@ export const openaiLandings: ModelLanding[] = [
     h1Top: "GPT-5.6 Terra —",
     h1Gradient: "нейросеть для текста без VPN",
     sub: `Сбалансированная модель серии GPT-5.6 уже в GIPITI — уровень прошлого флагмана вдвое дешевле. Пишите тексты, анализируйте документы и решайте рабочие задачи. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать GPT-5.6 Terra",
     metaTitle: "GPT-5.6 Terra — нейросеть OpenAI для работы без VPN | GIPITI",
     metaDescription:
       "GPT-5.6 Terra — сбалансированная модель OpenAI в GIPITI: уровень прошлого флагмана вдвое дешевле. Тексты, документы и рабочие задачи. Без VPN, на русском, оплата российскими картами.",
@@ -885,7 +876,6 @@ export const openaiLandings: ModelLanding[] = [
     h1Top: "GPT-5.6 Luna —",
     h1Gradient: "быстрая нейросеть на русском",
     sub: `Самая быстрая модель серии GPT-5.6 уже в GIPITI — мгновенные ответы по низкой цене. Переписка, тексты и быстрые задачи. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать GPT-5.6 Luna",
     metaTitle: "GPT-5.6 Luna — быстрая нейросеть OpenAI на русском | GIPITI",
     metaDescription:
       "GPT-5.6 Luna — самая быстрая и доступная модель серии GPT-5.6 в GIPITI: мгновенные ответы по низкой цене. Без VPN, на русском, оплата российскими картами.",
@@ -966,7 +956,6 @@ export const openaiLandings: ModelLanding[] = [
     h1Top: "GPT-5.5 —",
     h1Gradient: "нейросеть OpenAI на русском",
     sub: `Флагман OpenAI прошлого поколения уже в GIPITI — сложные рассуждения, длинные тексты и работа с документами. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать GPT-5.5",
     metaTitle: "GPT-5.5 — нейросеть OpenAI на русском без VPN | GIPITI",
     metaDescription: `GPT-5.5 в GIPITI — проверенный флагман OpenAI: сложные рассуждения, длинные тексты и анализ документов. Без VPN, на русском, оплата российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     heroChat: {

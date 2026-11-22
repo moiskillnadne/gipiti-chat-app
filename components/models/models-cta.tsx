@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { NEW_USER_BONUS_TERMS_RU } from "@/lib/marketing/landing-content";
+import { landingRegisterLink } from "@/lib/marketing/landing-nav-links";
 
 export const ModelsCta = () => (
   <section className="px-4 py-16">
@@ -20,8 +21,9 @@ export const ModelsCta = () => (
           <Link
             className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-8 py-4 font-semibold text-lg text-white shadow-indigo-500/30 shadow-lg transition-shadow hover:shadow-indigo-500/40 hover:shadow-xl"
             href="/register"
+            prefetch={false}
           >
-            Начать бесплатно
+            {landingRegisterLink.label}
           </Link>
           <p className="mt-5 text-sm text-zinc-500">
             Без VPN · Оплата в рублях · Отмена в любой момент

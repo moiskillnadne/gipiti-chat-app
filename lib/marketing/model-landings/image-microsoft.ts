@@ -49,7 +49,6 @@ export const microsoftImageLandings: ModelLanding[] = [
     h1Top: "MAI-Image 2.7 —",
     h1Gradient: "новая нейросеть Microsoft для картинок",
     sub: `Диффузионная модель Microsoft AI для генерации и точного редактирования изображений уже в GIPITI — фотореалистичные сцены по описанию на русском и правки загруженных картинок. Три формата кадра на выбор. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать MAI-Image 2.7",
     metaTitle: "MAI-Image 2.7 — нейросеть Microsoft для изображений | GIPITI",
     metaDescription:
       "MAI-Image 2.7 в GIPITI — генерация изображений и точное редактирование от Microsoft AI, три формата кадра. Промпт на русском, без VPN, оплата картами РФ.",
@@ -183,7 +182,6 @@ export const microsoftImageLandings: ModelLanding[] = [
     h1Top: "MAI-Image 2.7 Flash —",
     h1Gradient: "быстрая и недорогая модель Microsoft",
     sub: `Облегчённая версия MAI-Image 2.7 уже в GIPITI — те же генерация и правки по описанию на русском, но быстрее и дешевле. Удобно, когда идей много и каждую хочется увидеть. Квадрат, 16:9 или 9:16. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать MAI-Image 2.7 Flash",
     metaTitle: "MAI-Image 2.7 Flash — быстрая нейросеть Microsoft | GIPITI",
     metaDescription:
       "MAI-Image 2.7 Flash в GIPITI — быстрая и недорогая генерация и правка изображений от Microsoft AI, три формата кадра. Промпт на русском, без VPN, оплата картами РФ.",
@@ -317,7 +315,6 @@ export const microsoftImageLandings: ModelLanding[] = [
     h1Top: "MAI-Image 2.6 —",
     h1Gradient: "нейросеть Microsoft для изображений",
     sub: `Модель Microsoft AI для генерации и редактирования изображений уже в GIPITI — точно меняет объекты, надписи и композицию по описанию на русском. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать MAI-Image 2.6",
     metaTitle: "MAI-Image 2.6 — нейросеть Microsoft для картинок | GIPITI",
     metaDescription:
       "MAI-Image 2.6 в GIPITI — генерация и точное редактирование изображений от Microsoft AI: объекты, надписи, композиция. Без VPN, на русском, оплата картами РФ.",
@@ -447,7 +444,6 @@ export const microsoftImageLandings: ModelLanding[] = [
     h1Top: "MAI-Image 2.6 Flash —",
     h1Gradient: "быстрые картинки от Microsoft",
     sub: `Быстрая версия MAI-Image 2.6 уже в GIPITI — те же генерация и правки по описанию на русском, но быстрее и дешевле. Подходит, чтобы перебрать десяток идей за вечер. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать MAI-Image 2.6 Flash",
     metaTitle:
       "MAI-Image 2.6 Flash — предыдущая версия Flash от Microsoft | GIPITI",
     metaDescription:

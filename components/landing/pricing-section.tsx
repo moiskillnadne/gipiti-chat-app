@@ -9,7 +9,7 @@ import {
   pricingFeatures,
   SUBSCRIPTION_PRICE_RUB,
 } from "@/lib/marketing/landing-content";
-
+import { landingRegisterLink } from "@/lib/marketing/landing-nav-links";
 import { FadeIn } from "./fade-in";
 
 export const PricingSection = () => (
@@ -70,8 +70,9 @@ export const PricingSection = () => (
                 <Link
                   className="inline-flex w-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-8 py-4 font-semibold text-lg text-white shadow-indigo-500/25 shadow-lg transition-all hover:shadow-2xl hover:shadow-indigo-500/30 sm:w-auto"
                   href="/register"
+                  prefetch={false}
                 >
-                  Попробовать бесплатно
+                  {landingRegisterLink.label}
                 </Link>
               </motion.div>
 

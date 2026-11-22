@@ -1,5 +1,5 @@
 import Link from "next/link";
-
+import { landingRegisterLink } from "@/lib/marketing/landing-nav-links";
 import {
   type CatalogSection,
   pluralizeModels,
@@ -55,8 +55,9 @@ export const ModelsTypeHero = ({
           <Link
             className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-8 py-4 font-semibold text-lg text-white shadow-indigo-500/30 shadow-lg transition-shadow hover:shadow-indigo-500/40 hover:shadow-xl"
             href="/register"
+            prefetch={false}
           >
-            Попробовать бесплатно
+            {landingRegisterLink.label}
           </Link>
           <Link
             className="inline-flex items-center justify-center rounded-full border border-zinc-700 px-7 py-4 font-medium text-base text-zinc-200 transition-colors hover:border-zinc-500"

@@ -39,7 +39,6 @@ export const bytedanceImageLandings: ModelLanding[] = [
     h1Top: "Seedream 5.5 —",
     h1Gradient: "нейросеть ByteDance для афиш и правок",
     sub: `Новая модель ByteDance для изображений уже в GIPITI — вписывает надписи в кадр, точно правит загруженные картинки и сохраняет облик объекта. Восемь форматов, результат без водяного знака. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать Seedream 5.5",
     metaTitle: "Seedream 5.5 — нейросеть ByteDance для изображений | GIPITI",
     metaDescription:
       "Seedream 5.5 в GIPITI — модель ByteDance для афиш с надписями, маркетинговых визуалов и точного редактирования, восемь форматов кадра. Без VPN, оплата картами РФ.",
@@ -177,7 +176,6 @@ export const bytedanceImageLandings: ModelLanding[] = [
     h1Top: "Seedream 5.0 Pro —",
     h1Gradient: "фотореализм и точное редактирование",
     sub: `Старшая модель ByteDance для изображений уже в GIPITI — сложные реалистичные сцены, аккуратный свет и точный контроль правок. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать Seedream 5.0 Pro",
     metaTitle: "Seedream 5.0 Pro — генерация изображений ByteDance | GIPITI",
     metaDescription:
       "Seedream 5.0 Pro в GIPITI — старшая модель ByteDance: фотореалистичные сцены, предметная съёмка и точное редактирование по описанию на русском. Без VPN, оплата российскими картами.",
@@ -299,7 +297,6 @@ export const bytedanceImageLandings: ModelLanding[] = [
     h1Top: "Seedream 5.0 Lite —",
     h1Gradient: "нейросеть ByteDance для картинок",
     sub: `Быстрая и недорогая модель ByteDance для изображений уже в GIPITI — точно понимает сложные описания и уверенно работает с русским промптом. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать Seedream 5.0 Lite",
     metaTitle: "Seedream 5.0 Lite — генерация изображений ByteDance | GIPITI",
     metaDescription: `Seedream 5.0 Lite в GIPITI — быстрая и недорогая модель ByteDance для генерации изображений по описанию на русском. Без VPN, оплата российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     heroMedia: {
@@ -411,7 +408,6 @@ export const bytedanceImageLandings: ModelLanding[] = [
     h1Top: "Seedream 4.5 —",
     h1Gradient: "редактирование изображений по описанию",
     sub: `Модель ByteDance уже в GIPITI — правит готовые изображения, сохраняя детали, свет и цвет, и уверенно работает с текстом на картинке. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать Seedream 4.5",
     metaTitle: "Seedream 4.5 — редактирование изображений нейросетью | GIPITI",
     metaDescription:
       "Seedream 4.5 в GIPITI — генерация и точное редактирование изображений с сохранением деталей, света и цвета. Без VPN, на русском, оплата российскими картами.",

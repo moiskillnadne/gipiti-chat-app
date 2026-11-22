@@ -16,7 +16,7 @@ import type { ElementType } from "react";
 
 import type { HomeFeatureIcon } from "@/lib/marketing/landing-content";
 import { homeFeatures } from "@/lib/marketing/landing-content";
-
+import { landingRegisterLink } from "@/lib/marketing/landing-nav-links";
 import { FadeIn, staggerContainer, staggerItem } from "./fade-in";
 
 const featureIcons: Record<HomeFeatureIcon, ElementType> = {
@@ -79,8 +79,9 @@ export const FeaturesSection = () => (
           <Link
             className="inline-flex items-center gap-2 text-indigo-400 transition-colors hover:text-indigo-300"
             href="/register"
+            prefetch={false}
           >
-            Попробовать бесплатно
+            {landingRegisterLink.label}
             <span aria-hidden="true">&rarr;</span>
           </Link>
         </div>

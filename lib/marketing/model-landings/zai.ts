@@ -26,7 +26,6 @@ export const zaiLandings: ModelLanding[] = [
     h1Top: "GLM-5.3 —",
     h1Gradient: "нейросеть Z.ai для кода на русском",
     sub: `Модель Z.ai (Zhipu AI) для сложной разработки уже в GIPITI — многошаговые задачи по коду, проверка приложений на уязвимости и контекст около миллиона токенов. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать GLM-5.3",
     metaTitle: "GLM-5.3 — нейросеть Z.ai (Zhipu) для кода | GIPITI",
     metaDescription:
       "GLM-5.3 от Z.ai (Zhipu AI) в GIPITI — нейросеть для кода, агентных задач и аудита безопасности с контекстом около 1 млн токенов. Без VPN, на русском.",

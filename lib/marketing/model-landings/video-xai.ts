@@ -33,7 +33,6 @@ export const xaiVideoLandings: ModelLanding[] = [
     h1Top: "Grok Imagine Video 1.5 Lite —",
     h1Gradient: "короткие ролики со звуком от xAI",
     sub: `Лёгкая версия видеомодели xAI уже в GIPITI — ролики на 4, 8 или 12 секунд со звуком по описанию или из вашей картинки, в 480p или 720p. Дешевле Grok Imagine Video, поэтому удобно перебирать идеи. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать Grok Imagine Video Lite",
     metaTitle: "Grok Imagine Video Lite — видео со звуком от xAI | GIPITI",
     metaDescription:
       "Grok Imagine Video Lite в GIPITI — лёгкая и более доступная версия видеомодели xAI: ролики со звуком на 4, 8 или 12 секунд по тексту или картинке. Без VPN, оплата картами РФ.",
@@ -139,7 +138,6 @@ export const xaiVideoLandings: ModelLanding[] = [
     h1Top: "Grok Imagine Video 1.5 —",
     h1Gradient: "ролики со звуком от xAI",
     sub: `Видеомодель xAI в версии 1.5 уже в GIPITI — короткие ролики со звуком из вашей картинки, до 12 секунд. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать Grok Imagine Video",
     metaTitle: "Grok Imagine Video 1.5 — видео со звуком от xAI | GIPITI",
     metaDescription:
       "Grok Imagine Video 1.5 в GIPITI — оживление картинки в ролик со звуком до 12 секунд, семь форматов кадра. Без VPN, на русском, оплата картами РФ.",

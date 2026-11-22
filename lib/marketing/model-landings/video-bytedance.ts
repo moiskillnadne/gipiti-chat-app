@@ -53,7 +53,6 @@ export const bytedanceVideoLandings: ModelLanding[] = [
     h1Top: "Seedance 2.5 Flash —",
     h1Gradient: "видео со звуком дешевле Seedance 2.5",
     sub: `Облегчённая версия Seedance 2.5 уже в GIPITI — ролики 720p со звуком по описанию или из вашей картинки, на 5 или 10 секунд. Дешевле старшей модели, поэтому удобно пробовать сцены. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать Seedance 2.5 Flash",
     metaTitle: "Seedance 2.5 Flash — видео со звуком от ByteDance | GIPITI",
     metaDescription:
       "Seedance 2.5 Flash в GIPITI — более доступная версия Seedance 2.5: ролики 720p со звуком на 5 или 10 секунд по тексту или картинке. Без VPN, оплата картами РФ.",
@@ -155,7 +154,6 @@ export const bytedanceVideoLandings: ModelLanding[] = [
     h1Top: "Seedance 2.5 —",
     h1Gradient: "новое поколение видео со звуком",
     sub: `Новейшая видеомодель ByteDance уже в GIPITI — ролики со звуком по описанию или из вашего изображения, с точным контролем сцены и связным повествованием. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать Seedance 2.5",
     metaTitle: "Seedance 2.5 — нейросеть для генерации видео | GIPITI",
     metaDescription:
       "Seedance 2.5 в GIPITI — новое поколение генерации видео со звуком по тексту или из изображения, точный контроль сцены. Без VPN, на русском, оплата российскими картами.",
@@ -239,7 +237,6 @@ export const bytedanceVideoLandings: ModelLanding[] = [
     h1Top: "Seedance 2.0 —",
     h1Gradient: "видео со звуком по тексту и картинке",
     sub: `Мультимодальная видеомодель ByteDance уже в GIPITI — ролики со звуком по описанию или из вашего изображения, с реалистичной физикой движения. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать Seedance 2.0",
     metaTitle: "Seedance 2.0 — нейросеть для генерации видео | GIPITI",
     metaDescription:
       "Seedance 2.0 в GIPITI — генерация видео со звуком по тексту или из изображения, реалистичная физика движения. Без VPN, на русском, оплата российскими картами.",
@@ -319,7 +316,6 @@ export const bytedanceVideoLandings: ModelLanding[] = [
     h1Top: "Seedance 2.0 Fast —",
     h1Gradient: "быстрая генерация видео",
     sub: `Ускоренная версия Seedance 2.0 уже в GIPITI — те же возможности по тексту и картинке, только быстрее и дешевле. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать Seedance 2.0 Fast",
     metaTitle: "Seedance 2.0 Fast — быстрая генерация видео | GIPITI",
     metaDescription:
       "Seedance 2.0 Fast в GIPITI — быстрая и недорогая генерация видео по тексту или из изображения. Без VPN, на русском, оплата российскими картами.",

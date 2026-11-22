@@ -45,7 +45,6 @@ export const klingaiVideoLandings: ModelLanding[] = [
     h1Top: "Kling 3.0 —",
     h1Gradient: "кинематографичное видео по тексту",
     sub: `Флагманская видеомодель Kling AI уже в GIPITI — кинематографичные ролики с озвучкой по текстовому описанию. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать Kling 3.0",
     metaTitle: "Kling 3.0 — нейросеть для генерации видео по тексту | GIPITI",
     metaDescription:
       "Kling 3.0 в GIPITI — кинематографичное видео со звуком по текстовому описанию, 5 или 10 секунд. Без VPN, на русском, оплата российскими картами.",
@@ -136,7 +135,6 @@ export const klingaiVideoLandings: ModelLanding[] = [
     h1Top: "Kling 3.0 Image-to-Video —",
     h1Gradient: "оживите своё изображение",
     sub: `Модель Kling AI уже в GIPITI — превращает вашу картинку в короткое видео со звуком по текстовому описанию. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать Kling 3.0 Image-to-Video",
     metaTitle: "Kling 3.0 Image-to-Video — видео из изображения | GIPITI",
     metaDescription:
       "Kling 3.0 Image-to-Video в GIPITI — превращает изображение в видео со звуком по описанию на русском. Без VPN, оплата российскими картами.",
@@ -225,7 +223,6 @@ export const klingaiVideoLandings: ModelLanding[] = [
     h1Top: "Kling 2.6 —",
     h1Gradient: "видео с речью и эффектами",
     sub: `Модель Kling AI с нативным звуком уже в GIPITI — речь, звуковые эффекты и эмбиент генерируются вместе с видео. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать Kling 2.6",
     metaTitle: "Kling 2.6 — генерация видео со звуком по тексту | GIPITI",
     metaDescription:
       "Kling 2.6 в GIPITI — видео с нативным звуком: речь, эффекты и эмбиент за один проход. Без VPN, на русском, оплата российскими картами.",
@@ -312,7 +309,6 @@ export const klingaiVideoLandings: ModelLanding[] = [
     h1Top: "Kling 2.5 Turbo —",
     h1Gradient: "быстрая генерация видео",
     sub: `Быстрая и доступная видеомодель Kling AI уже в GIPITI — ролики по текстовому описанию, когда нужно много и недорого. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать Kling 2.5 Turbo",
     metaTitle: "Kling 2.5 Turbo — быстрая генерация видео по тексту | GIPITI",
     metaDescription:
       "Kling 2.5 Turbo в GIPITI — быстрая и доступная генерация видео по текстовому описанию, 5 или 10 секунд. Без VPN, оплата российскими картами.",

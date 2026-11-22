@@ -32,7 +32,6 @@ export const moonshotaiLandings: ModelLanding[] = [
     h1Top: "Kimi K3.1 Pro —",
     h1Gradient: "рассуждающий флагман Moonshot AI",
     sub: `Флагманская мультимодальная модель Moonshot AI уже в GIPITI — обдумывает каждый запрос, понимает изображения и держит в памяти около миллиона токенов. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать Kimi K3.1 Pro",
     metaTitle: "Kimi K3.1 Pro — нейросеть Moonshot AI без VPN | GIPITI",
     metaDescription:
       "Kimi K3.1 Pro в GIPITI — флагман Moonshot AI: рассуждения перед каждым ответом, изображения и контекст около 1 млн токенов. Без VPN, оплата картами РФ.",
@@ -150,7 +149,6 @@ export const moonshotaiLandings: ModelLanding[] = [
     h1Top: "Kimi K3 Fast —",
     h1Gradient: "нейросеть Moonshot AI на русском",
     sub: `Быстрая версия флагмана Moonshot AI уже в GIPITI — длинные задачи по программированию и контекст на миллион токенов. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать Kimi K3 Fast",
     metaTitle:
       "Kimi K3 Fast — нейросеть Moonshot AI на русском без VPN | GIPITI",
     metaDescription:

@@ -5,7 +5,7 @@ import { preload } from "react-dom";
 
 import { HERO_POSTER_SRC } from "@/lib/marketing/hero-media";
 import { NEW_USER_BONUS_BADGE_RU } from "@/lib/marketing/landing-content";
-
+import { landingRegisterLink } from "@/lib/marketing/landing-nav-links";
 import { ChatMockup } from "./chat-mockup";
 import { HeroVideo } from "./hero-video";
 
@@ -64,8 +64,9 @@ export const HeroSection = () => {
             <Link
               className="inline-flex w-full items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-8 py-4 font-semibold text-lg text-white shadow-indigo-500/25 shadow-lg transition-all hover:shadow-indigo-500/30 hover:shadow-xl sm:w-auto"
               href="/register"
+              prefetch={false}
             >
-              Попробовать бесплатно
+              {landingRegisterLink.label}
             </Link>
             <a
               className="inline-flex w-full items-center justify-center rounded-full border border-zinc-700 px-7 py-4 font-medium text-base text-zinc-200 transition-colors hover:border-zinc-500 sm:w-auto"

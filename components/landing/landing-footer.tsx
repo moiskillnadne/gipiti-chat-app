@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { isLandingSectionLink } from "@/lib/marketing/landing-links";
+import { landingRegisterLink } from "@/lib/marketing/landing-nav-links";
 
 // Root-relative so the anchors resolve to the landing-page sections from any
 // route (e.g. the blog), not only when already on "/".
@@ -41,7 +42,7 @@ export const LandingFooter = () => (
             href="/register"
             prefetch={false}
           >
-            Попробовать бесплатно
+            {landingRegisterLink.label}
             <span aria-hidden="true">&rarr;</span>
           </Link>
         </div>

@@ -29,7 +29,6 @@ export const bflVideoLandings: ModelLanding[] = [
     h1Top: "Flux 3 Video —",
     h1Gradient: "видеомодель Black Forest Labs",
     sub: `Новая видеомодель авторов Flux уже в GIPITI — ролики со звуком по описанию или из готового изображения, с фирменной картинкой Black Forest Labs. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
-    ctaMain: "Попробовать Flux 3 Video",
     metaTitle: "Flux 3 Video — нейросеть для генерации видео | GIPITI",
     metaDescription:
       "Flux 3 Video в GIPITI — генерация видео со звуком по тексту или из изображения от Black Forest Labs. Без VPN, на русском, оплата российскими картами.",
