@@ -49,6 +49,18 @@ export type BearerSession = {
 };
 
 /**
+ * Fails now, before the caller has changed anything, when sessions cannot be
+ * issued at all. For a caller that creates something first and signs in
+ * second (registration): an account whose first sign-in then fails would
+ * have its email taken with nobody signed in.
+ *
+ * @throws ApiTokenSecretError in production when the token secret is missing
+ */
+export const assertSessionsCanBeIssued = (): void => {
+  getApiTokenKeys();
+};
+
+/**
  * A new refresh token: 32 random bytes. The client gets the token; the
  * database gets only its SHA-256, so a leaked table gives nobody a session.
  */

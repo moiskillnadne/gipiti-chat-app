@@ -6,6 +6,9 @@ import { getUpstashClient } from "@/server/integrations/redis/client";
 const CHAT_REQUEST_LIMIT = 30;
 const CHAT_REQUEST_WINDOW = "1 m";
 
+/** A new email verification code can be asked for once in this many seconds. */
+export const VERIFICATION_RESEND_COOLDOWN_SECONDS = 60;
+
 // Initialize rate limiters with Upstash client
 let passwordResetRateLimiter: Ratelimit | null = null;
 let verificationResendRateLimiter: Ratelimit | null = null;
@@ -35,7 +38,10 @@ if (upstashClient) {
 
   verificationResendRateLimiter = new Ratelimit({
     redis: upstashClient,
-    limiter: Ratelimit.fixedWindow(1, "60 s"),
+    limiter: Ratelimit.fixedWindow(
+      1,
+      `${VERIFICATION_RESEND_COOLDOWN_SECONDS} s`
+    ),
     analytics: true,
     prefix: "ratelimit:verification-resend",
   });

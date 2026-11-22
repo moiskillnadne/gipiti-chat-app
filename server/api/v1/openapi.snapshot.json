@@ -15,6 +15,429 @@
   },
   "openapi": "3.1.1",
   "paths": {
+    "/auth/email-verification/send": {
+      "post": {
+        "description": "Emails a 6-digit code, good for 30 minutes and 5 guesses, to the address of the signed-in account. The address is never taken from the request. A new code replaces the previous one. Needs an access token or a browser session.\n\n409 `already_verified`. 429 with `data.retryAfterSeconds` when a code was sent less than `cooldownSeconds` ago.",
+        "operationId": "auth.emailVerification.send",
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "cooldownSeconds": {
+                      "description": "How long until another code can be asked for.",
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "cooldownSeconds"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: FORBIDDEN. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "403"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: CONFLICT. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "409"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: TOO_MANY_REQUESTS. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "429"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: SERVICE_UNAVAILABLE. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "503"
+          }
+        },
+        "summary": "Send a verification code to the account's email",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/email-verification/verify": {
+      "post": {
+        "description": "Checks the code against the signed-in account. On success the email-confirmation bonus is credited once; an account created through `POST /auth/register` also receives its welcome grant here.\n\n400 `invalid_code` with `data.attemptsLeft`; 400 `expired_code` when the code is too old or its guesses are used up (ask for a new one); 409 `already_verified`; 429 `too_many_attempts`.",
+        "operationId": "auth.emailVerification.verify",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "code": {
+                    "description": "The 6 digits from the email.",
+                    "pattern": "^\\d{6}$",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "code"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "bonusGranted": {
+                      "description": "The email-confirmation bonus was credited by this call.",
+                      "type": "boolean"
+                    },
+                    "emailVerified": {
+                      "type": "boolean"
+                    },
+                    "welcomeGrantCredited": {
+                      "description": "The welcome grant was credited by this call. An account created through this API receives it here, not at registration.",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "emailVerified",
+                    "bonusGranted",
+                    "welcomeGrantCredited"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: BAD_REQUEST. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "400"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: FORBIDDEN. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "403"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: CONFLICT. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "409"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: TOO_MANY_REQUESTS. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "429"
+          }
+        },
+        "summary": "Confirm the account's email with the code",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/auth/login": {
       "post": {
         "description": "For clients that are not the website: opens a session and answers with an access token and a refresh token. No credentials are needed to call it.\n\n401 `invalid_credentials` for a wrong password and for an unknown email alike. 429 when there were too many attempts for this account or from this address; 503 when that limit cannot be checked, in which case retry after a moment.",
@@ -498,6 +921,464 @@
         ]
       }
     },
+    "/auth/password/change": {
+      "post": {
+        "description": "Needs an access token or a browser session, and the current password. Every other session of the account ends. The caller stays signed in: with an access token the answer carries a new pair (the old tokens stop working at once), a browser gets a fresh cookie.\n\n401 `invalid_credentials` when the current password is wrong; wrong guesses count against the same limits as signing in (429, 503). 400 `weak_password`.",
+        "operationId": "auth.password.change",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "currentPassword": {
+                    "maxLength": 200,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "newPassword": {
+                    "maxLength": 200,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "currentPassword",
+                  "newPassword"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "tokens": {
+                      "anyOf": [
+                        {
+                          "properties": {
+                            "accessToken": {
+                              "description": "Sent as `Authorization: Bearer <accessToken>`. Treat it as opaque.",
+                              "type": "string"
+                            },
+                            "accessTokenExpiresAt": {
+                              "description": "ISO 8601, UTC. Refresh a little before this moment.",
+                              "type": "string"
+                            },
+                            "refreshToken": {
+                              "description": "Trades for a new pair at `POST /auth/refresh`, once. Keep it in the device's secure storage.",
+                              "type": "string"
+                            },
+                            "refreshTokenExpiresAt": {
+                              "description": "ISO 8601, UTC.",
+                              "type": "string"
+                            },
+                            "tokenType": {
+                              "description": "One of: Bearer. Clients must accept other values.",
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "tokenType",
+                            "accessToken",
+                            "accessTokenExpiresAt",
+                            "refreshToken",
+                            "refreshTokenExpiresAt"
+                          ],
+                          "type": "object"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "A new pair for a caller with an access token, whose old session ended with the change. Null for a browser session, which gets a fresh cookie instead."
+                    }
+                  },
+                  "required": [
+                    "tokens"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: BAD_REQUEST. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "400"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: FORBIDDEN. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "403"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: TOO_MANY_REQUESTS. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "429"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: SERVICE_UNAVAILABLE. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "503"
+          }
+        },
+        "summary": "Change the password of the signed-in account",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/password/forgot": {
+      "post": {
+        "description": "Always answers 202, whether or not an account has this email, so the answer does not reveal which addresses are registered. The link opens the website's reset page and is good for one hour. No credentials are needed. 429 after five requests for one address within an hour.",
+        "operationId": "auth.password.forgot",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "email": {
+                    "format": "email",
+                    "maxLength": 255,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "email"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {},
+                    {
+                      "not": {}
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: TOO_MANY_REQUESTS. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "429"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: SERVICE_UNAVAILABLE. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "503"
+          }
+        },
+        "summary": "Email a password-reset link",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/password/reset": {
+      "post": {
+        "description": "The token from the emailed link is the credential. On success every session of the account ends, on every device: sign in again with the new password. 400 `invalid_token` when the token is unknown, used or older than an hour; 400 `weak_password`.",
+        "operationId": "auth.password.reset",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "password": {
+                    "maxLength": 200,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "token": {
+                    "description": "The token from the link in the reset email.",
+                    "maxLength": 200,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "token",
+                  "password"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {},
+                    {
+                      "not": {}
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: BAD_REQUEST. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "400"
+          }
+        },
+        "summary": "Set a new password with a reset token",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/auth/refresh": {
       "post": {
         "description": "The refresh token in the body is the credential; no `Authorization` header is needed. It works once: the answer carries the next refresh token.\n\nMake one refresh at a time and share its result. A second request with the same token within 30 seconds still gets a pair (the answer to the first may have been lost), at most twice. Later than that the token counts as copied, the session is revoked and the user has to sign in again.\n\n401 reasons: `refresh_invalid` (not a refresh token of ours, or retried too often), `refresh_expired` (unused for 60 days, or the session is 180 days old), `session_revoked` (logout, password change), `refresh_reused` (see above).",
@@ -605,6 +1486,441 @@
           }
         },
         "summary": "Trade a refresh token for a new pair",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "description": "For clients that are not the website: creates the account and signs it in. No credentials are needed to call it.\n\nThe welcome grant is **not** credited here. It is credited, together with the email-confirmation bonus, when the email is verified (`POST /auth/email-verification/send`, then `/verify`); the amounts are in `GET /config`.\n\n403 `signup_disabled` when registration is switched off. 409 `email_taken`. 400 `weak_password` or `disposable_email` (throwaway mailboxes are refused). 429 when too many accounts were created from this address; 503 when that limit cannot be checked.",
+        "operationId": "auth.register",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "client": {
+                    "properties": {
+                      "appVersion": {
+                        "maxLength": 32,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "deviceName": {
+                        "description": "Shown in the list of sessions, for example \"Anna's iPhone\".",
+                        "maxLength": 255,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "platform": {
+                        "enum": [
+                          "ios",
+                          "android"
+                        ],
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "platform"
+                    ],
+                    "type": "object"
+                  },
+                  "email": {
+                    "format": "email",
+                    "maxLength": 255,
+                    "type": "string"
+                  },
+                  "language": {
+                    "description": "The device language as a BCP 47 tag, for example `ru-RU`.",
+                    "maxLength": 35,
+                    "type": "string"
+                  },
+                  "password": {
+                    "description": "At least 8 characters with an uppercase letter, a lowercase letter, a digit and a special character.",
+                    "maxLength": 200,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "utm": {
+                    "properties": {
+                      "campaign": {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      "content": {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      "medium": {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      "source": {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      "term": {
+                        "maxLength": 255,
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "email",
+                  "password",
+                  "client"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "tokens": {
+                      "anyOf": [
+                        {
+                          "properties": {
+                            "accessToken": {
+                              "description": "Sent as `Authorization: Bearer <accessToken>`. Treat it as opaque.",
+                              "type": "string"
+                            },
+                            "accessTokenExpiresAt": {
+                              "description": "ISO 8601, UTC. Refresh a little before this moment.",
+                              "type": "string"
+                            },
+                            "refreshToken": {
+                              "description": "Trades for a new pair at `POST /auth/refresh`, once. Keep it in the device's secure storage.",
+                              "type": "string"
+                            },
+                            "refreshTokenExpiresAt": {
+                              "description": "ISO 8601, UTC.",
+                              "type": "string"
+                            },
+                            "tokenType": {
+                              "description": "One of: Bearer. Clients must accept other values.",
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "tokenType",
+                            "accessToken",
+                            "accessTokenExpiresAt",
+                            "refreshToken",
+                            "refreshTokenExpiresAt"
+                          ],
+                          "type": "object"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "The session of the new account. Always present for `ios` and `android`; declared nullable for clients that sign in another way."
+                    },
+                    "user": {
+                      "properties": {
+                        "balance": {
+                          "anyOf": [
+                            {
+                              "properties": {
+                                "subscription": {
+                                  "description": "Credited on each renewal; spent first; reset on renewal.",
+                                  "properties": {
+                                    "amountMinor": {
+                                      "maximum": 9007199254740991,
+                                      "minimum": -9007199254740991,
+                                      "type": "integer"
+                                    },
+                                    "currencyCode": {
+                                      "maxLength": 3,
+                                      "minLength": 3,
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "amountMinor",
+                                    "currencyCode"
+                                  ],
+                                  "type": "object"
+                                },
+                                "topup": {
+                                  "description": "Top-ups and bonuses; never resets.",
+                                  "properties": {
+                                    "amountMinor": {
+                                      "maximum": 9007199254740991,
+                                      "minimum": -9007199254740991,
+                                      "type": "integer"
+                                    },
+                                    "currencyCode": {
+                                      "maxLength": 3,
+                                      "minLength": 3,
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "amountMinor",
+                                    "currencyCode"
+                                  ],
+                                  "type": "object"
+                                },
+                                "total": {
+                                  "properties": {
+                                    "amountMinor": {
+                                      "maximum": 9007199254740991,
+                                      "minimum": -9007199254740991,
+                                      "type": "integer"
+                                    },
+                                    "currencyCode": {
+                                      "maxLength": 3,
+                                      "minLength": 3,
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "amountMinor",
+                                    "currencyCode"
+                                  ],
+                                  "type": "object"
+                                }
+                              },
+                              "required": [
+                                "subscription",
+                                "topup",
+                                "total"
+                              ],
+                              "type": "object"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "Null until the account has a balance row."
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "emailVerified": {
+                          "type": "boolean"
+                        },
+                        "features": {
+                          "properties": {
+                            "topup": {
+                              "description": "One-time balance top-up is offered to this user.",
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "topup"
+                          ],
+                          "type": "object"
+                        },
+                        "hasActiveSubscription": {
+                          "type": "boolean"
+                        },
+                        "id": {
+                          "type": "string"
+                        },
+                        "isTester": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "email",
+                        "emailVerified",
+                        "isTester",
+                        "hasActiveSubscription",
+                        "balance",
+                        "features"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "user",
+                    "tokens"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: BAD_REQUEST. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "400"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: FORBIDDEN. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "403"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: CONFLICT. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "409"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: TOO_MANY_REQUESTS. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "429"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: SERVICE_UNAVAILABLE. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "503"
+          }
+        },
+        "summary": "Create an account",
         "tags": [
           "auth"
         ]
