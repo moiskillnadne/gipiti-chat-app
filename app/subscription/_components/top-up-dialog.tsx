@@ -264,8 +264,8 @@ export function TopUpDialog({
               return;
             }
             resolvedRef.current = true;
-            // A card declined earlier in the same widget may have left the
-            // declined screen behind it: show the waiting screen again.
+            // Should the widget report success after an earlier onFail, do not
+            // leave the declined screen up: show the waiting screen again.
             setStage({
               name: "processing",
               sessionId: intent.sessionId,

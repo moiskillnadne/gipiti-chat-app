@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useTranslations } from "@/lib/i18n/translate";
 import dash from "./dashboard.module.css";
 import { InfoIcon } from "./icons";
@@ -40,6 +41,13 @@ export function TopupUnconfirmed({
         {t(`body.${cause}`, { amount: formatRubMajor(amountMajor) })}
       </p>
       <p className={styles.resultText}>{t("advice")}</p>
+      <p className={styles.resultText}>
+        {t("supportLead")}{" "}
+        <Link className={styles.supportLink} href="/legal/support">
+          {t("supportLink")}
+        </Link>
+        .
+      </p>
       {hasRechecked && !isChecking && (
         <output className={styles.resultText}>{t("stillPending")}</output>
       )}

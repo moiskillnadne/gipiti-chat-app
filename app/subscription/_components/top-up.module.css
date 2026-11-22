@@ -218,6 +218,12 @@
   color: var(--danger);
 }
 
+.supportLink {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .orbWarn {
   background: var(--warn-soft);
   color: var(--warn-ink);

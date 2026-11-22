@@ -40,10 +40,10 @@ type PaymentRef = { sessionId: string; amountMajor: number };
  * Reads one status response received after the widget reported a payment.
  * Returns null while the payment is not confirmed yet (keep polling).
  *
- * `failed` is not a decline here: the widget can reuse one intent for several
- * card attempts, so a declined first card leaves the intent `failed` while a
- * second card succeeds, and the pay notification still credits a `failed`
- * intent. `expired` is the same: the server reports a pending intent past its
+ * `failed` is not a decline here: the widget has already reported a payment,
+ * the fail notification marks any intent that is not `succeeded` as `failed`
+ * (so a late or out-of-order one can arrive before the pay notification), and
+ * the pay notification still credits a `failed` intent. `expired` is the same: the server reports a pending intent past its
  * deadline as expired, and a late pay notification can still credit it.
  */
 export const readStatusResponse = (

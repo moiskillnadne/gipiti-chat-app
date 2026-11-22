@@ -25,8 +25,9 @@ describe("readStatusResponse", () => {
   });
 
   it("keeps polling on a failed status after the widget reported success: it is not a decline", () => {
-    // Card 1 declined (intent marked failed), card 2 paid in the same widget,
-    // pay notification not there yet: the money may well be charged.
+    // The widget reported a payment, but a late fail notification marked the
+    // intent failed before the pay notification arrived: the money may well
+    // be charged, and the pay notification still credits a failed intent.
     expect(
       readStatusResponse({ status: "failed", failureReason: "Insufficient" })
     ).toBeNull();
