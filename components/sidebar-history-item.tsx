@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { memo } from "react";
+import { memo, useRef, useState } from "react";
 import { useTranslations } from "@/lib/i18n/translate";
+import { isTextTruncated } from "@/lib/utils/is-text-truncated";
 import type { Chat } from "@/server/db/schema";
 import { MoreHorizontalIcon, TrashIcon } from "./icons";
 import {
@@ -14,6 +15,13 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "./ui/sidebar";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+
+const TITLE_TOOLTIP_DELAY_MS = 400;
+
+// Touch screens get no hover tooltip, so there the title wraps to its full length.
+const TOUCH_WRAP_CLASSES =
+  "[@media(hover:none)]:h-auto [@media(hover:none)]:min-h-8 [@media(hover:none)]:[&>span:last-child]:!overflow-visible [@media(hover:none)]:[&>span:last-child]:!whitespace-normal";
 
 const PureChatItem = ({
   chat,
@@ -27,18 +35,43 @@ const PureChatItem = ({
   setOpenMobile: (open: boolean) => void;
 }) => {
   const tCommon = useTranslations("common.buttons");
+  const titleRef = useRef<HTMLSpanElement>(null);
+  const [isTitleTooltipOpen, setIsTitleTooltipOpen] = useState(false);
 
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton
-        asChild
-        className="data-[active=true]:bg-card data-[active=true]:shadow-sm"
-        isActive={isActive}
+      {/* The full title shows on hover and keyboard focus, only when the ellipsis hides part of it. */}
+      <Tooltip
+        delayDuration={TITLE_TOOLTIP_DELAY_MS}
+        onOpenChange={(isOpen) =>
+          setIsTitleTooltipOpen(isOpen && isTextTruncated(titleRef.current))
+        }
+        open={isTitleTooltipOpen}
       >
-        <Link href={`/chat/${chat.id}`} onClick={() => setOpenMobile(false)}>
-          <span>{chat.title}</span>
-        </Link>
-      </SidebarMenuButton>
+        <TooltipTrigger asChild>
+          <SidebarMenuButton
+            asChild
+            className={`data-[active=true]:bg-card data-[active=true]:shadow-sm ${TOUCH_WRAP_CLASSES}`}
+            isActive={isActive}
+          >
+            <Link
+              href={`/chat/${chat.id}`}
+              onClick={() => setOpenMobile(false)}
+            >
+              <span className="break-words" ref={titleRef}>
+                {chat.title}
+              </span>
+            </Link>
+          </SidebarMenuButton>
+        </TooltipTrigger>
+        <TooltipContent
+          align="start"
+          className="max-w-80 text-pretty break-words text-[13px]"
+          side="right"
+        >
+          {chat.title}
+        </TooltipContent>
+      </Tooltip>
 
       <DropdownMenu modal={true}>
         <DropdownMenuTrigger asChild>

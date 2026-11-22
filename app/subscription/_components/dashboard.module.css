@@ -1433,9 +1433,8 @@
 .histTtl {
   color: var(--ink);
   letter-spacing: -0.01em;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
 }
 
 .histSub {
@@ -1444,9 +1443,7 @@
   font-size: 10.5px;
   letter-spacing: 0.01em;
   margin-top: 3px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .histAmt {

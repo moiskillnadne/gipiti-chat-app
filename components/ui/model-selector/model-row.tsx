@@ -50,11 +50,14 @@ export function ModelRow({
           // biome-ignore lint/security/noDangerouslySetInnerHtml: highlight is escaped server-side
           dangerouslySetInnerHTML={{ __html: highlightMatch(name, query) }}
         />
-        <span className="truncate text-[11.5px] text-ink-3 leading-snug">
+        <span className="text-pretty text-[11.5px] text-ink-3 leading-snug">
           {description}
         </span>
       </span>
-      <SpeedGauge level={speedLevel} title={tSpeed(SPEED_LABEL_KEY[speedLevel])} />
+      <SpeedGauge
+        level={speedLevel}
+        title={tSpeed(SPEED_LABEL_KEY[speedLevel])}
+      />
     </button>
   );
 }

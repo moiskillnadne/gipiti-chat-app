@@ -108,7 +108,7 @@ export function HistoryTable({ rows }: HistoryRowsProps) {
                     <span className="text-muted-foreground">-</span>
                   )}
                 </td>
-                <td className="max-w-[200px] truncate px-4 py-3">
+                <td className="min-w-[200px] max-w-[320px] text-pretty break-words px-4 py-3">
                   {row.title ?? "-"}
                 </td>
                 <td className="px-4 py-3 text-right font-mono">

@@ -129,11 +129,11 @@ export function ProjectPickerPopover() {
                   />
                 </span>
                 <span className="flex min-w-0 flex-col gap-px">
-                  <span className="truncate font-medium text-[13px] text-ink">
+                  <span className="break-words font-medium text-[13px] text-ink">
                     {project.name}
                   </span>
                   {project.description && (
-                    <span className="truncate text-[11.5px] text-ink-3">
+                    <span className="break-words text-[11.5px] text-ink-3">
                       {project.description}
                     </span>
                   )}

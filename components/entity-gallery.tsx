@@ -597,13 +597,15 @@ function EntityCard<T extends GalleryEntity>({
         />
       </button>
 
-      <div className="flex items-start gap-2.5">
+      {/* Narrow cards stack the name under the swatch so it wraps at full width below the pin;
+          from sm the name sits beside the swatch and pr-7 keeps it clear of the pin. */}
+      <div className="flex flex-col items-start gap-2.5 sm:flex-row">
         <span
           aria-hidden="true"
-          className={`entity-swatch ${kind} ${swatch} size-[26px]`}
+          className={`entity-swatch ${kind} ${swatch} size-[26px] shrink-0`}
         />
-        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="truncate font-medium text-[15px] text-ink tracking-[-0.01em]">
+        <div className="flex w-full min-w-0 flex-1 flex-col gap-0.5 sm:w-auto sm:pr-7">
+          <span className="break-words font-medium text-[15px] text-ink tracking-[-0.01em]">
             {item.name}
           </span>
           <span className="font-mono text-[11px] text-ink-3">
@@ -675,12 +677,12 @@ function TemplateCard({
       onClick={onClick}
       type="button"
     >
-      <div className="flex items-center gap-2.5">
+      <div className="flex flex-col items-start gap-2.5 sm:flex-row sm:items-center">
         <span
           aria-hidden="true"
-          className={`entity-swatch ${kind} ${swatch} size-[22px]`}
+          className={`entity-swatch ${kind} ${swatch} size-[22px] shrink-0`}
         />
-        <span className="truncate font-medium text-[14px] text-ink tracking-[-0.01em]">
+        <span className="min-w-0 break-words font-medium text-[14px] text-ink tracking-[-0.01em]">
           {name}
         </span>
       </div>
