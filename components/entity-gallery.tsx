@@ -686,9 +686,7 @@ function TemplateCard({
           {name}
         </span>
       </div>
-      <p className="line-clamp-2 text-[12px] text-ink-2 leading-[1.5]">
-        {preview}
-      </p>
+      <p className="text-[12px] text-ink-2 leading-[1.5]">{preview}</p>
     </button>
   );
 }

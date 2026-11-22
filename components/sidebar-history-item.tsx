@@ -1,7 +1,10 @@
 import Link from "next/link";
-import { memo, useRef, useState } from "react";
+import { memo } from "react";
+import {
+  OVERFLOW_TOOLTIP_CONTENT_CLASS,
+  useOverflowTooltip,
+} from "@/hooks/use-overflow-tooltip";
 import { useTranslations } from "@/lib/i18n/translate";
-import { isTextTruncated } from "@/lib/utils/is-text-truncated";
 import type { Chat } from "@/server/db/schema";
 import { MoreHorizontalIcon, TrashIcon } from "./icons";
 import {
@@ -14,6 +17,7 @@ import {
   SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "./ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
@@ -35,18 +39,16 @@ const PureChatItem = ({
   setOpenMobile: (open: boolean) => void;
 }) => {
   const tCommon = useTranslations("common.buttons");
-  const titleRef = useRef<HTMLSpanElement>(null);
-  const [isTitleTooltipOpen, setIsTitleTooltipOpen] = useState(false);
+  const { isMobile } = useSidebar();
+  const titleTooltip = useOverflowTooltip();
 
   return (
     <SidebarMenuItem>
       {/* The full title shows on hover and keyboard focus, only when the ellipsis hides part of it. */}
       <Tooltip
         delayDuration={TITLE_TOOLTIP_DELAY_MS}
-        onOpenChange={(isOpen) =>
-          setIsTitleTooltipOpen(isOpen && isTextTruncated(titleRef.current))
-        }
-        open={isTitleTooltipOpen}
+        onOpenChange={titleTooltip.onOpenChange}
+        open={titleTooltip.isOpen}
       >
         <TooltipTrigger asChild>
           <SidebarMenuButton
@@ -58,16 +60,20 @@ const PureChatItem = ({
               href={`/chat/${chat.id}`}
               onClick={() => setOpenMobile(false)}
             >
-              <span className="break-words" ref={titleRef}>
+              <span
+                className="min-w-0 [overflow-wrap:anywhere]"
+                ref={titleTooltip.textRef}
+              >
                 {chat.title}
               </span>
             </Link>
           </SidebarMenuButton>
         </TooltipTrigger>
+        {/* Beside the full-width mobile sheet there is no room, so it opens below there. */}
         <TooltipContent
           align="start"
-          className="max-w-80 text-pretty break-words text-[13px]"
-          side="right"
+          className={OVERFLOW_TOOLTIP_CONTENT_CLASS}
+          side={isMobile ? "bottom" : "right"}
         >
           {chat.title}
         </TooltipContent>

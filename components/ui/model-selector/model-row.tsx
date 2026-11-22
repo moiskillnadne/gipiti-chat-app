@@ -33,28 +33,34 @@ export function ModelRow({
     <button
       aria-selected={isSelected}
       className={cn(
-        "relative mx-1 grid w-[calc(100%-0.5rem)] grid-cols-[10px_1fr_auto] items-center gap-3 rounded-md px-3 py-2.5 text-left",
+        "relative mx-1 grid w-[calc(100%-0.5rem)] grid-cols-[10px_1fr_auto] items-start gap-3 rounded-md px-3 py-2.5 text-left",
         "transition-colors duration-fast ease-canon hover:bg-paper-2",
         isSelected &&
-          "before:-translate-y-1/2 before:absolute before:top-1/2 before:left-[-2px] before:h-[18px] before:w-[3px] before:rounded-sm before:bg-citrus-deep before:content-['']"
+          "before:-translate-y-1/2 before:absolute before:top-[18px] before:left-[-2px] before:h-[18px] before:w-[3px] before:rounded-sm before:bg-citrus-deep before:content-['']"
       )}
       data-testid={`model-option-${model.id}`}
       onClick={onSelect}
       role="option"
       type="button"
     >
-      <ModelDot provider={inferModelProvider(model.id)} size="sm" />
+      {/* Dot, marker and gauge sit on the name line now that descriptions wrap. */}
+      <ModelDot
+        className="mt-1"
+        provider={inferModelProvider(model.id)}
+        size="sm"
+      />
       <span className="flex min-w-0 flex-col gap-0.5">
         <span
           className="flex items-center gap-1.5 font-medium text-[13px] text-ink leading-tight"
           // biome-ignore lint/security/noDangerouslySetInnerHtml: highlight is escaped server-side
           dangerouslySetInnerHTML={{ __html: highlightMatch(name, query) }}
         />
-        <span className="text-pretty text-[11.5px] text-ink-3 leading-snug">
+        <span className="text-pretty text-[11.5px] text-ink-3 leading-[1.45]">
           {description}
         </span>
       </span>
       <SpeedGauge
+        className="mt-0.5"
         level={speedLevel}
         title={tSpeed(SPEED_LABEL_KEY[speedLevel])}
       />
