@@ -2,48 +2,47 @@
 
 import { cookies, headers } from "next/headers";
 import { z } from "zod";
-import { grantEmailVerificationBonus } from "@/lib/billing/balance";
 import { UTM_COOKIE_NAME } from "@/lib/utm/constants";
-import { generateHashedPassword } from "@/server/db/utils";
 import { isSignupEnabled } from "@/server/flags";
 import { getClientIp } from "@/server/http/client-ip";
 import {
-  checkPasswordResetRateLimit,
-  checkRegisterRateLimit,
-  checkVerificationAttemptRateLimit,
-  checkVerificationResendRateLimit,
   getRateLimitResetMinutes,
   getRateLimitResetSeconds,
 } from "@/server/http/rate-limit";
-import { isDisposableEmail } from "@/server/modules/auth/disposable-email-domains";
 import { signIn } from "@/server/modules/auth/next-auth";
-import { parseUtmCookie } from "@/server/modules/auth/parse-utm-cookie";
+import {
+  decodeUtmCookieValue,
+  parseUtmCookie,
+} from "@/server/modules/auth/parse-utm-cookie";
+import { isAcceptablePassword } from "@/server/modules/auth/password-policy";
+import { registerUser } from "@/server/modules/auth/register-user";
 import {
   getRegistrationGeoFromHeaders,
   sanitizeLanguage,
 } from "@/server/modules/auth/registration-geo";
-import {
-  createPasswordResetToken,
-  hashToken,
-  verifyToken,
-} from "@/server/modules/auth/reset-token";
+import { requestPasswordReset as requestPasswordResetForEmail } from "@/server/modules/auth/request-password-reset";
+import { resetPassword as resetPasswordWithToken } from "@/server/modules/auth/reset-password";
+import { sendVerificationCode } from "@/server/modules/auth/send-verification-code";
 import { isRateLimitedSignInError } from "@/server/modules/auth/sign-in-error-codes";
-import { sendPasswordChangedEmail } from "@/server/modules/email/send-password-changed";
-import { sendPasswordResetEmail } from "@/server/modules/email/send-password-reset";
-import { sendVerificationEmail } from "@/server/modules/email/send-verification-email";
-import {
-  createUser,
-  DuplicateEmailError,
-} from "@/server/modules/users/queries/create-user";
-import { getUserByEmail } from "@/server/modules/users/queries/get-by-email";
-import { getUserByResetToken } from "@/server/modules/users/queries/get-user-by-reset-token";
-import { markEmailAsVerified } from "@/server/modules/users/queries/mark-email-as-verified";
-import { setPasswordResetToken } from "@/server/modules/users/queries/set-password-reset-token";
-import {
-  MAX_EMAIL_VERIFICATION_ATTEMPTS,
-  takeVerificationAttempt,
-} from "@/server/modules/users/queries/take-verification-attempt";
-import { updateUserPassword } from "@/server/modules/users/queries/update-user-password";
+import { verifyEmailCode } from "@/server/modules/auth/verify-email-code";
+
+// The actions in this file are the web forms' side of the auth services in
+// `server/modules/auth`: they read the form, the cookies and the request
+// headers, call a service, and turn its result into the form's state. The
+// rules themselves (limits, checks, what is stored and sent) live in the
+// services, which the API calls too.
+
+/**
+ * Reached only when a service gains a result that an action does not map
+ * yet. The `never` parameter makes that a compile error; the throw, which
+ * each action turns into "failed", is for a build that got past it.
+ */
+const unhandledResult = (result: never): never => {
+  throw new Error(`Unhandled auth result: ${JSON.stringify(result)}`);
+};
+
+/** A new password must pass the server's rule; see `isAcceptablePassword`. */
+const newPasswordSchema = z.string().refine(isAcceptablePassword);
 
 // Login schema - less strict to allow existing users with older passwords
 const loginFormSchema = z.object({
@@ -54,16 +53,7 @@ const loginFormSchema = z.object({
 // Registration schema - strict password requirements for new users
 const registerFormSchema = z.object({
   email: z.string().email(),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-    .regex(/[0-9]/, "Password must contain at least one number")
-    .regex(
-      /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/,
-      "Password must contain at least one special character"
-    ),
+  password: newPasswordSchema,
 });
 
 export type LoginActionState = {
@@ -177,41 +167,26 @@ export const register = async (
   formData: FormData
 ): Promise<RegisterActionState> => {
   try {
-    // Signup can be disabled remotely via the isSignupEnabled Vercel flag
-    if (!(await isSignupEnabled())) {
-      return { status: "failed" };
-    }
-
-    const validatedData = registerFormSchema.parse({
+    const validation = registerFormSchema.safeParse({
       email: formData.get("email"),
       password: formData.get("password"),
     });
 
-    const rateLimitResult = await checkRegisterRateLimit(
-      getClientIp(await headers())
-    );
-    if (rateLimitResult.isUnavailable) {
-      return { status: "failed" };
-    }
-    if (!rateLimitResult.success) {
-      return { status: "rate_limited" };
+    if (!validation.success) {
+      // While sign-up is switched off the form answers "failed" whatever was
+      // typed, so the flag is asked before the input is called invalid.
+      return {
+        status: (await isSignupEnabled()) ? "invalid_data" : "failed",
+      };
     }
 
-    if (isDisposableEmail(validatedData.email)) {
-      return { status: "disposable_email" };
-    }
-
-    const userRecord = await getUserByEmail(validatedData.email);
-
-    if (userRecord) {
-      return { status: "user_exists" } as RegisterActionState;
-    }
+    const { email, password } = validation.data;
 
     // Read UTM attribution from cookie
     const cookieStore = await cookies();
     const utmCookie = cookieStore.get(UTM_COOKIE_NAME)?.value;
     const utmData = parseUtmCookie(
-      utmCookie ? decodeURIComponent(utmCookie) : undefined
+      utmCookie ? decodeUtmCookieValue(utmCookie) : undefined
     );
 
     // Capture where the user signed up from: country/region/city from the
@@ -219,12 +194,31 @@ export const register = async (
     const geoHeaders = await getRegistrationGeoFromHeaders(headers);
     const language = sanitizeLanguage(formData.get("language"));
 
-    await createUser(
-      validatedData.email,
-      validatedData.password,
-      utmData ?? undefined,
-      { ...geoHeaders, language }
-    );
+    const result = await registerUser({
+      email,
+      password,
+      ip: getClientIp(await headers()),
+      utm: utmData ?? undefined,
+      geo: { ...geoHeaders, language },
+    });
+
+    switch (result.status) {
+      case "registered":
+        break;
+      case "user_exists":
+        return { status: "user_exists" };
+      case "rate_limited":
+        return { status: "rate_limited" };
+      case "disposable_email":
+        return { status: "disposable_email" };
+      case "weak_password":
+        return { status: "invalid_data" };
+      case "signup_disabled":
+      case "limiter_unavailable":
+        return { status: "failed" };
+      default:
+        return unhandledResult(result);
+    }
 
     // Clear UTM cookie after attribution
     if (utmCookie) {
@@ -232,24 +226,10 @@ export const register = async (
     }
 
     // Auto sign-in the user (middleware will redirect to verify-email)
-    await signIn("credentials", {
-      email: validatedData.email,
-      password: validatedData.password,
-      redirect: false,
-    });
+    await signIn("credentials", { email, password, redirect: false });
 
     return { status: "success" };
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return { status: "invalid_data" };
-    }
-
-    // Lost the race against a concurrent signup with the same address — the
-    // unique index rejected the insert. Same outcome as the pre-check above.
-    if (error instanceof DuplicateEmailError) {
-      return { status: "user_exists" };
-    }
-
     // Surface the real cause instead of swallowing it behind "failed" —
     // a silent catch here is what hid the geo-headers crash (GIPITI-87).
     console.error("Error in register:", error);
@@ -275,23 +255,6 @@ export type VerifyEmailActionState = {
     | "invalid_data";
 };
 
-/**
- * Why a code could not be checked for this email: the account is already
- * verified, its code is dead (expired, or its attempts are used up), or there
- * is nothing to check against.
- */
-const getStatusWithoutLiveCode = async (
-  email: string
-): Promise<"already_verified" | "expired_code" | "invalid_code"> => {
-  const userRecord = await getUserByEmail(email);
-
-  if (userRecord?.emailVerified) {
-    return "already_verified";
-  }
-
-  return userRecord?.emailVerificationCode ? "expired_code" : "invalid_code";
-};
-
 export const verifyEmail = async (
   _: VerifyEmailActionState,
   formData: FormData
@@ -302,41 +265,21 @@ export const verifyEmail = async (
       code: formData.get("code"),
     });
 
-    const rateLimitResult = await checkVerificationAttemptRateLimit(
-      validatedData.email
-    );
-    if (!rateLimitResult.success) {
-      return { status: "failed" };
+    const result = await verifyEmailCode(validatedData);
+
+    switch (result.status) {
+      case "verified":
+        return { status: "success" };
+      case "rate_limited":
+        return { status: "failed" };
+      case "invalid_code":
+      case "expired_code":
+      case "already_verified":
+        // These are states of the form too.
+        return { status: result.status };
+      default:
+        return unhandledResult(result);
     }
-
-    // Takes one of the code's attempts whether the guess is right or wrong;
-    // see `takeVerificationAttempt` for why it is taken first.
-    const attempt = await takeVerificationAttempt({
-      email: validatedData.email,
-    });
-
-    if (!attempt) {
-      return { status: await getStatusWithoutLiveCode(validatedData.email) };
-    }
-
-    if (!verifyToken(validatedData.code, attempt.hashedCode)) {
-      const isLastAttempt =
-        attempt.attemptsUsed >= MAX_EMAIL_VERIFICATION_ATTEMPTS;
-      return { status: isLastAttempt ? "expired_code" : "invalid_code" };
-    }
-
-    // Mark email as verified
-    await markEmailAsVerified({ email: validatedData.email });
-
-    // Credit the one-time email-confirmation bonus. Best-effort and idempotent:
-    // verification has already succeeded, so a bonus failure must not block it.
-    try {
-      await grantEmailVerificationBonus(attempt.userId);
-    } catch (bonusError) {
-      console.error("Failed to grant email verification bonus:", bonusError);
-    }
-
-    return { status: "success" };
   } catch (error) {
     if (error instanceof z.ZodError) {
       return { status: "invalid_data" };
@@ -372,39 +315,26 @@ export const resendVerificationCode = async (
       email: formData.get("email"),
     });
 
-    // Check rate limit (60 seconds cooldown)
-    const rateLimitResult = await checkVerificationResendRateLimit(
-      validatedData.email
-    );
-    if (rateLimitResult.isUnavailable) {
-      return { status: "failed" };
+    const result = await sendVerificationCode(validatedData);
+
+    switch (result.status) {
+      case "rate_limited":
+        return {
+          status: "rate_limited",
+          cooldownSeconds: getRateLimitResetSeconds(result.resetAt),
+        };
+      case "limiter_unavailable":
+      case "send_failed":
+        return { status: "failed" };
+      case "sent":
+      case "unknown_user":
+      case "already_verified":
+        // The form takes the email from an anonymous visitor, so all three
+        // answer success: it must not reveal which emails have an account.
+        return { status: "success" };
+      default:
+        return unhandledResult(result);
     }
-    if (!rateLimitResult.success) {
-      return {
-        status: "rate_limited",
-        cooldownSeconds: getRateLimitResetSeconds(rateLimitResult.reset),
-      };
-    }
-
-    // Check if user exists and is not already verified
-    const userRecord = await getUserByEmail(validatedData.email);
-
-    // Always return success to prevent email enumeration
-    if (!userRecord || userRecord.emailVerified) {
-      return { status: "success" };
-    }
-
-    // Send new verification email
-    const emailResult = await sendVerificationEmail({
-      email: validatedData.email,
-    });
-
-    if (!emailResult.success) {
-      console.error("Failed to resend verification email:", emailResult.error);
-      return { status: "failed" };
-    }
-
-    return { status: "success" };
   } catch (error) {
     if (error instanceof z.ZodError) {
       return { status: "invalid_data" };
@@ -440,51 +370,25 @@ export const requestPasswordReset = async (
       email: formData.get("email"),
     });
 
-    // Check rate limit
-    const rateLimitResult = await checkPasswordResetRateLimit(
-      validatedData.email
-    );
-    if (rateLimitResult.isUnavailable) {
-      return { status: "failed" };
+    const result = await requestPasswordResetForEmail(validatedData);
+
+    switch (result.status) {
+      case "rate_limited":
+        return {
+          status: "rate_limited",
+          resetMinutes: getRateLimitResetMinutes(result.resetAt),
+        };
+      case "limiter_unavailable":
+      case "send_failed":
+        return { status: "failed" };
+      case "sent":
+      case "unknown_user":
+        // Both answer success, so that the form does not reveal which emails
+        // have an account.
+        return { status: "success" };
+      default:
+        return unhandledResult(result);
     }
-    if (!rateLimitResult.success) {
-      return {
-        status: "rate_limited",
-        resetMinutes: getRateLimitResetMinutes(rateLimitResult.reset),
-      };
-    }
-
-    // Find user by email
-    const userRecord = await getUserByEmail(validatedData.email);
-
-    // Always return success to prevent email enumeration
-    // Even if user doesn't exist, we pretend we sent the email
-    if (!userRecord) {
-      return { status: "success" };
-    }
-
-    // Generate reset token
-    const { token, hashedToken, expiresAt } = createPasswordResetToken();
-
-    // Store hashed token in database
-    await setPasswordResetToken({
-      userId: userRecord.id,
-      hashedToken,
-      expiresAt,
-    });
-
-    // Send email with reset link
-    const emailResult = await sendPasswordResetEmail({
-      email: validatedData.email,
-      resetToken: token, // Send plain token in email
-    });
-
-    if (!emailResult.success) {
-      console.error("Failed to send password reset email:", emailResult.error);
-      return { status: "failed" };
-    }
-
-    return { status: "success" };
   } catch (error) {
     if (error instanceof z.ZodError) {
       return { status: "invalid_data" };
@@ -498,16 +402,7 @@ export const requestPasswordReset = async (
 // Reset password schema
 const resetPasswordFormSchema = z.object({
   token: z.string().min(1),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-    .regex(/[0-9]/, "Password must contain at least one number")
-    .regex(
-      /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/,
-      "Password must contain at least one special character"
-    ),
+  password: newPasswordSchema,
 });
 
 export type ResetPasswordActionState = {
@@ -530,31 +425,19 @@ export const resetPassword = async (
       password: formData.get("password"),
     });
 
-    // Hash the token to match database storage
-    const hashedToken = hashToken(validatedData.token);
+    const result = await resetPasswordWithToken(validatedData);
 
-    // Find user by reset token and check expiry
-    const foundUser = await getUserByResetToken({ hashedToken });
-
-    if (!foundUser) {
-      return { status: "invalid_token" };
+    switch (result.status) {
+      case "password_reset":
+        return { status: "success" };
+      case "invalid_token":
+        return { status: "invalid_token" };
+      case "weak_password":
+        // Not reachable from the form: its schema applies the same rule.
+        return { status: "invalid_data" };
+      default:
+        return unhandledResult(result);
     }
-
-    // Hash new password
-    const hashedPassword = generateHashedPassword(validatedData.password);
-
-    // Update password and clear reset token
-    await updateUserPassword({
-      userId: foundUser.id,
-      hashedPassword,
-    });
-
-    // Send confirmation email
-    await sendPasswordChangedEmail({
-      email: foundUser.email,
-    });
-
-    return { status: "success" };
   } catch (error) {
     if (error instanceof z.ZodError) {
       return { status: "invalid_data" };

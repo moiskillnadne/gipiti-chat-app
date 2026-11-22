@@ -19,6 +19,21 @@ function normalizeUtmValue(value: string | undefined): string | null {
   return Array.from(value).slice(0, UTM_MAX_VALUE_LENGTH).join("");
 }
 
+/**
+ * The UTM cookie as the browser wrote it. `components/utm-capture.tsx`
+ * stores `encodeURIComponent(JSON)`, and the cookie parser of the framework
+ * has usually decoded it once already. A second decode is then a no-op,
+ * unless a UTM value holds a literal `%` (`50%off`): that throws, and the
+ * value is used as it is.
+ */
+export function decodeUtmCookieValue(cookieValue: string): string {
+  try {
+    return decodeURIComponent(cookieValue);
+  } catch {
+    return cookieValue;
+  }
+}
+
 export function parseUtmCookie(
   cookieValue: string | undefined
 ): UtmData | null {

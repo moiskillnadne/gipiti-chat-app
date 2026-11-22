@@ -1,15 +1,8 @@
-import { compare } from "bcrypt-ts";
 import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { getActiveUserSubscription } from "@/lib/db/query/subscription/get-active-user-subscription";
-import type { User } from "@/server/db/schema";
 import { getClientIp } from "@/server/http/client-ip";
-import {
-  beginLoginAttempt,
-  recordFailedLogin,
-  recordSuccessfulLogin,
-} from "@/server/http/rate-limit";
-import { DUMMY_PASSWORD } from "@/server/modules/auth/dummy-password";
+import { authenticateCredentials } from "@/server/modules/auth/authenticate-credentials";
 import { authConfig } from "@/server/modules/auth/next-auth.config";
 import { getAuthSecret } from "@/server/modules/auth/secret";
 import { RATE_LIMITED_SIGN_IN_CODE } from "@/server/modules/auth/sign-in-error-codes";
@@ -20,9 +13,6 @@ type CredentialsType = {
   password: string;
 };
 
-/** How long an attempt on an account under a guessing attack is held back. */
-const THROTTLED_LOGIN_DELAY_MS = 2000;
-
 /**
  * Thrown from `authorize` when the rate limiter refuses a login attempt. A
  * credentials error, so Auth.js treats it as an expected sign-in failure and
@@ -31,32 +21,6 @@ const THROTTLED_LOGIN_DELAY_MS = 2000;
 class RateLimitedSignin extends CredentialsSignin {
   code = RATE_LIMITED_SIGN_IN_CODE;
 }
-
-const wait = (milliseconds: number): Promise<void> =>
-  new Promise((resolve) => {
-    setTimeout(resolve, milliseconds);
-  });
-
-/**
- * The account these credentials open, or null. An unknown email and an
- * account without a password still cost one bcrypt comparison, so the answer
- * takes as long as a wrong password and does not reveal which emails exist.
- */
-const findUserByCredentials = async ({
-  email,
-  password,
-}: CredentialsType): Promise<User | null> => {
-  const userRecord = await getUserByEmail(email);
-
-  if (!userRecord?.password) {
-    await compare(password, DUMMY_PASSWORD);
-    return null;
-  }
-
-  const passwordsMatch = await compare(password, userRecord.password);
-
-  return passwordsMatch ? userRecord : null;
-};
 
 export const {
   handlers: { GET, POST },
@@ -87,31 +51,25 @@ export const {
       },
       async authorize(credentials, request) {
         const { email, password } = credentials as CredentialsType;
-        // The limits live here, not in the `login` action: the Auth.js
-        // endpoint `/api/auth/callback/credentials` reaches this function
-        // without going through the action. `request` is absent only when
-        // the function is called directly, as the tests do.
-        const identity = {
+        // The limits live in `authenticateCredentials`, not in the `login`
+        // action: the Auth.js endpoint `/api/auth/callback/credentials`
+        // reaches this function without going through the action. `request`
+        // is absent only when the function is called directly, as the tests
+        // do.
+        const result = await authenticateCredentials({
           email,
+          password,
           ip: request?.headers ? getClientIp(request.headers) : null,
-        };
+        });
 
-        const attempt = await beginLoginAttempt(identity);
-        if (!attempt.isAllowed) {
+        if (result.status === "rate_limited") {
           throw new RateLimitedSignin();
         }
-        if (attempt.shouldDelay) {
-          await wait(THROTTLED_LOGIN_DELAY_MS);
-        }
-
-        const userRecord = await findUserByCredentials({ email, password });
-
-        if (!userRecord) {
-          await recordFailedLogin(identity);
+        if (result.status === "invalid_credentials") {
           return null;
         }
 
-        await recordSuccessfulLogin(identity);
+        const userRecord = result.account;
 
         // Check if user has active subscription
         const subscription = await getActiveUserSubscription({
