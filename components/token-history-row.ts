@@ -56,6 +56,9 @@ export const BADGE_CLASS_BY_TYPE: Record<TransactionType, string> = {
   adjustment: "",
 };
 
+// U+2212: typographic minus, matches the width of «+» and screen readers say «minus»
+const MINUS_SIGN = "\u2212";
+
 const CREDIT_AMOUNT_CLASS = "text-success-ink";
 const DEBIT_AMOUNT_CLASS = "text-ink";
 
@@ -63,7 +66,7 @@ export const toHistoryRow = (transaction: Transaction): HistoryRow => {
   const isCredit = transaction.amount > 0;
   const isDebit = transaction.amount < 0;
   // A zero amount moved no money, so it carries no sign and reads neutral
-  const sign = isCredit ? "+" : isDebit ? "-" : "";
+  const sign = isCredit ? "+" : isDebit ? MINUS_SIGN : "";
   const formattedAmount = formatCurrency(
     Math.abs(transaction.amount),
     transaction.currencyCode

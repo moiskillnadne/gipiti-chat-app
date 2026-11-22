@@ -17,10 +17,10 @@ const baseTransaction: Transaction = {
 };
 
 describe("toHistoryRow", () => {
-  it("formats a debit with a minus sign, the currency and the debit colour", () => {
+  it("formats a debit with a U+2212 minus sign, the currency and the debit colour", () => {
     const row = toHistoryRow(baseTransaction);
 
-    expect(row.amountLabel).toBe("-137,22 ₽");
+    expect(row.amountLabel).toBe("\u2212137,22 ₽");
     expect(row.amountClassName).toBe("text-ink");
   });
 
