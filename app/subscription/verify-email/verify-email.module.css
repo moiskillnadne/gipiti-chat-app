@@ -277,7 +277,9 @@
   color: var(--ink);
   flex: 1;
   font-family: var(--font-mono);
-  font-size: 26px;
+  /* Through the variable: the mobile 16px field floor in globals.css reads it. */
+  --field-font-size: 26px;
+  font-size: var(--field-font-size);
   font-weight: 500;
   max-width: 60px;
   min-width: 0;
@@ -580,7 +582,7 @@
   }
   .otpCell {
     border-radius: var(--radius-sm);
-    font-size: 22px;
+    --field-font-size: 22px;
   }
   .resendRow {
     align-items: flex-start;

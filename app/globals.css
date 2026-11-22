@@ -252,6 +252,19 @@
     outline-offset: 2px;
   }
 
+  /* iOS Safari zooms the page into any field whose text is under 16px when it gets focus. The
+     viewport no longer forbids zoom (people must be able to pinch-zoom), so on phones and touch
+     screens every field gets at least 16px instead. `!important` in the base layer beats the
+     utilities (text-sm) and the unlayered CSS-module rules alike. A field drawn larger than
+     16px declares its size in --field-font-size so this floor does not shrink it. */
+  @media (max-width: 47.9375rem), (pointer: coarse) {
+    input,
+    textarea,
+    select {
+      font-size: max(16px, var(--field-font-size, 16px)) !important;
+    }
+  }
+
   html {
     overflow-x: hidden;
   }
