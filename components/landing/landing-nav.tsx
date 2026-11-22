@@ -5,16 +5,12 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { isLandingSectionLink } from "@/lib/marketing/landing-links";
+import {
+  landingLoginLink,
+  landingNavLinks,
+} from "@/lib/marketing/landing-nav-links";
 
-// Root-relative so the anchors resolve to the landing-page sections from any
-// route (e.g. the blog), not only when already on "/".
-const navLinks = [
-  { label: "Модели", href: "/models" },
-  { label: "Возможности", href: "/#features" },
-  { label: "Тарифы", href: "/#pricing" },
-  { label: "FAQ", href: "/#faq" },
-  { label: "Блог", href: "/blog" },
-];
+import { LandingMobileMenu } from "./landing-mobile-menu";
 
 export const LandingNav = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -47,7 +43,7 @@ export const LandingNav = () => {
         </Link>
 
         <div className="hidden items-center gap-8 md:flex">
-          {navLinks.map((link) => (
+          {landingNavLinks.map((link) => (
             <Link
               className="text-sm text-zinc-400 transition-colors hover:text-white"
               href={link.href}
@@ -62,10 +58,10 @@ export const LandingNav = () => {
         <div className="flex items-center gap-3">
           <Link
             className="text-sm text-zinc-400 transition-colors hover:text-white"
-            href="/login"
+            href={landingLoginLink.href}
             prefetch={false}
           >
-            Войти
+            {landingLoginLink.label}
           </Link>
           <motion.div
             animate={{
@@ -83,6 +79,7 @@ export const LandingNav = () => {
               Тарифы
             </Link>
           </motion.div>
+          <LandingMobileMenu />
         </div>
       </nav>
     </motion.header>
