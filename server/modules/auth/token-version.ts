@@ -123,6 +123,31 @@ export const rememberTokenVersion = async (
 };
 
 /**
+ * The version a session that is being issued right now must record: read
+ * from the database, never from the cache, and written to the cache on the
+ * way.
+ *
+ * The cache may be behind the database for up to its expiry (a bump whose
+ * cache write was lost). For a check that only keeps an old session alive a
+ * little longer; a new session stamped with the old number would be refused
+ * as soon as the cache caught up, signing out someone who just signed in.
+ *
+ * @returns null when the account does not exist
+ * @throws when the database cannot be read
+ */
+export const getTokenVersionForNewSession = async (
+  userId: string
+): Promise<number | null> => {
+  const storedVersion = await readStoredVersion(userId);
+
+  if (storedVersion !== null) {
+    await rememberTokenVersion(userId, storedVersion);
+  }
+
+  return storedVersion;
+};
+
+/**
  * Whether a session was issued under the account's current token version.
  *
  * False when the version moved on (password reset, "log out everywhere") or

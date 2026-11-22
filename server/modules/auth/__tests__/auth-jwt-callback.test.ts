@@ -26,13 +26,13 @@ const {
   captured,
   getActiveUserSubscriptionMock,
   getUserByEmailMock,
-  getTokenVersionMock,
+  getTokenVersionForNewSessionMock,
   isSessionVersionCurrentMock,
 } = vi.hoisted(() => ({
   captured: { config: undefined as CapturedAuthConfig | undefined },
   getActiveUserSubscriptionMock: vi.fn(),
   getUserByEmailMock: vi.fn(),
-  getTokenVersionMock: vi.fn(),
+  getTokenVersionForNewSessionMock: vi.fn(),
   isSessionVersionCurrentMock: vi.fn(),
 }));
 
@@ -61,7 +61,7 @@ vi.mock("@/server/modules/users/queries/get-by-email", () => ({
   getUserByEmail: getUserByEmailMock,
 }));
 vi.mock("@/server/modules/auth/token-version", () => ({
-  getTokenVersion: getTokenVersionMock,
+  getTokenVersionForNewSession: getTokenVersionForNewSessionMock,
   isSessionVersionCurrent: isSessionVersionCurrentMock,
 }));
 
@@ -99,7 +99,7 @@ const runJwtCallbackOnLiveSession = async (
 };
 
 beforeEach(() => {
-  getTokenVersionMock.mockReset().mockResolvedValue(0);
+  getTokenVersionForNewSessionMock.mockReset().mockResolvedValue(0);
   isSessionVersionCurrentMock.mockReset().mockResolvedValue(true);
 });
 
@@ -184,9 +184,9 @@ describe("auth jwt callback and the token version", () => {
     isTester: false,
   };
 
-  it("records the account's current version in a new session", async () => {
+  it("records the account's version, as the database has it, in a new session", async () => {
     // Arrange
-    getTokenVersionMock.mockResolvedValue(3);
+    getTokenVersionForNewSessionMock.mockResolvedValue(3);
 
     // Act
     const token = await runJwtCallbackOnLiveSession({
@@ -196,7 +196,7 @@ describe("auth jwt callback and the token version", () => {
     });
 
     // Assert
-    expect(getTokenVersionMock).toHaveBeenCalledWith(USER_ID);
+    expect(getTokenVersionForNewSessionMock).toHaveBeenCalledWith(USER_ID);
     expect(token.ver).toBe(3);
     // A session being issued is not checked against itself.
     expect(isSessionVersionCurrentMock).not.toHaveBeenCalled();

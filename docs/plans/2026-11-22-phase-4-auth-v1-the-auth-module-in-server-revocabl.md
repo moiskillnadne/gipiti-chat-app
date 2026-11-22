@@ -99,7 +99,7 @@ Verify: `pnpm check`; the characterization guard without its label. Preview: reg
 
 - Migration `0047_auth_sessions.sql`, journal entry, snapshot, `server/db/schema.ts`: `User.token_version integer NOT NULL DEFAULT 0`; `AuthSession`; `RefreshToken` with `parent_id` (DDL as in the roadmap's "DB changes" table).
 - `server/modules/auth/token-version.ts`: `getTokenVersion`, `rememberTokenVersion`, `isSessionVersionCurrent` (P5), with a query file in `server/modules/users/queries/`.
-- `next-auth.ts`: the `jwt` callback reads the account's version on sign-in and stores it as `ver`, and returns `null` when `token.ver ?? 0` differs from the current version (P6). `authorize` is not touched: what it returns is pinned by the characterization test.
+- `next-auth.ts`: the `jwt` callback reads the account's version on sign-in from the database (`getTokenVersionForNewSession`, never the cache, which may be behind) and stores it as `ver`, and returns `null` when `token.ver ?? 0` differs from the current version (P6). `authorize` is not touched: what it returns is pinned by the characterization test.
 - `proxy.ts`: the check and the cookie deletion (P4), tested through `proxy()` itself (`__tests__/proxy.test.ts`); the cookie names come from `server/http/session-cookie.ts`. On a page where the session decides nothing the cookie is no longer read at all.
 - `updateUserPassword` becomes the transaction of P7; the `resetPassword` service refreshes the Redis value afterwards.
 - `types/next-auth.d.ts`: `ver` on `JWT`.

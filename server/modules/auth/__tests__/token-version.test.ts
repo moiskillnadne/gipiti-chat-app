@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getUpstashClient } from "@/server/integrations/redis/client";
 import {
   getTokenVersion,
+  getTokenVersionForNewSession,
   isSessionVersionCurrent,
   rememberTokenVersion,
 } from "@/server/modules/auth/token-version";
@@ -158,6 +159,45 @@ describe("rememberTokenVersion", () => {
 
     // Act and assert: a failed write
     await expect(rememberTokenVersion(USER_ID, 7)).resolves.toBeUndefined();
+  });
+});
+
+describe("getTokenVersionForNewSession", () => {
+  it("answers the database's version even when the cache holds an older one, and corrects the cache", async () => {
+    // Arrange: a bump whose cache write was lost.
+    useRedis();
+    redis.get.mockResolvedValue(0);
+    vi.mocked(getUserTokenVersion).mockResolvedValue(1);
+
+    // Act
+    const version = await getTokenVersionForNewSession(USER_ID);
+
+    // Assert
+    expect(version).toBe(1);
+    expect(redis.get).not.toHaveBeenCalled();
+    expect(redis.set).toHaveBeenCalledExactlyOnceWith(CACHE_KEY, 1, {
+      ex: CACHE_SECONDS,
+    });
+  });
+
+  it("answers null, and caches nothing, for an account that does not exist", async () => {
+    // Arrange
+    useRedis();
+    vi.mocked(getUserTokenVersion).mockResolvedValue(null);
+
+    // Act and assert
+    expect(await getTokenVersionForNewSession(USER_ID)).toBeNull();
+    expect(redis.set).not.toHaveBeenCalled();
+  });
+
+  it("fails the sign-in rather than guess when the database cannot be read", async () => {
+    // Arrange
+    vi.mocked(getUserTokenVersion).mockRejectedValue(new Error("db down"));
+
+    // Act and assert
+    await expect(getTokenVersionForNewSession(USER_ID)).rejects.toThrow(
+      "db down"
+    );
   });
 });
 
