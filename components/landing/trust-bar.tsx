@@ -5,6 +5,7 @@ import {
   motion,
   useInView,
   useMotionValue,
+  useReducedMotion,
   useTransform,
 } from "framer-motion";
 import Link from "next/link";
@@ -53,12 +54,19 @@ const AnimatedCounter = ({
   const motionVal = useMotionValue(0);
   const rounded = useTransform(motionVal, (latest) => Math.round(latest));
   const isInView = useInView(ref, { once: true, margin: "-100px 0px" });
+  const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
-    if (isInView) {
-      animate(motionVal, value, { duration: 1.5, ease: "easeOut" });
+    if (!isInView) {
+      return;
     }
-  }, [isInView, motionVal, value]);
+    // animate() is imperative, so MotionConfig does not reach it
+    if (shouldReduceMotion) {
+      motionVal.set(value);
+      return;
+    }
+    animate(motionVal, value, { duration: 1.5, ease: "easeOut" });
+  }, [isInView, motionVal, value, shouldReduceMotion]);
 
   useEffect(() => {
     const unsubscribe = rounded.on("change", (latest) => {
