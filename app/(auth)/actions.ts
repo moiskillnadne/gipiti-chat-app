@@ -216,7 +216,7 @@ export const register = async (
 
     // Capture where the user signed up from: country/region/city from the
     // Vercel edge IP headers, plus the browser language from a hidden field.
-    const geoHeaders = await getRegistrationGeoFromHeaders();
+    const geoHeaders = await getRegistrationGeoFromHeaders(headers);
     const language = sanitizeLanguage(formData.get("language"));
 
     await createUser(

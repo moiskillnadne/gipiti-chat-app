@@ -12,13 +12,7 @@ export type AllowedViolation = {
  * fixed. The list may only shrink: `boundaries.test.ts` fails when an entry
  * no longer matches a real violation, so a fix removes its entry in the same
  * change. Do not add an entry to make a new violation pass; fix the import.
+ *
+ * Empty since the last tolerated import was fixed (GIPITI-263).
  */
-export const ALLOWED_VIOLATIONS: AllowedViolation[] = [
-  {
-    rule: "lib-imports-app",
-    from: "lib/ai/entitlements.ts",
-    to: "app/(auth)/auth",
-    reason:
-      "Type-only import of UserType. Goes away when the auth module moves to server/modules/auth (roadmap Phase 4a).",
-  },
-];
+export const ALLOWED_VIOLATIONS: AllowedViolation[] = [];
