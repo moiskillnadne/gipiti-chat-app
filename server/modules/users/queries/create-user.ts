@@ -13,6 +13,7 @@ import { isUniqueViolation } from "@/server/db/unique-violation";
 import { generateHashedPassword } from "@/server/db/utils";
 import { normalizeEmail } from "@/server/modules/auth/normalize-email";
 import type { RegistrationGeo } from "@/server/modules/auth/registration-geo";
+import type { SignupPlatform } from "@/server/modules/users/signup-platform";
 
 /**
  * Raised when an address is already registered. The register action pre-checks
@@ -33,7 +34,7 @@ type NewUserValues = {
   hashedPassword: string;
   utmData?: UtmData;
   registrationGeo?: RegistrationGeo;
-  signupPlatform?: string;
+  signupPlatform?: SignupPlatform;
 };
 
 /**
@@ -71,7 +72,7 @@ const insertUser = async (
           registrationCity: registrationGeo.city,
           registrationLanguage: registrationGeo.language,
         }),
-        ...(signupPlatform && { signupPlatform }),
+        ...(signupPlatform !== undefined && { signupPlatform }),
       })
       .returning();
 
@@ -93,7 +94,7 @@ type NewAccountInput = {
   utmData?: UtmData;
   registrationGeo?: RegistrationGeo;
   /** Set for a sign-up through the API; its welcome grant is deferred. */
-  signupPlatform?: string;
+  signupPlatform?: SignupPlatform;
 };
 
 /**
@@ -129,7 +130,7 @@ const createAccount = async ({
 
     // The welcome grant of an API sign-up waits for the email to be verified
     // (`grantDeferredWelcomeBonus`).
-    if (signupPlatform) {
+    if (signupPlatform !== undefined) {
       return newUser;
     }
 

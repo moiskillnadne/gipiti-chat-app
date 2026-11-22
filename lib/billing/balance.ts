@@ -500,18 +500,21 @@ export async function grantEmailVerificationBonus(
  *   got the grant at registration or predates it, and must not get one now);
  * - its email is verified;
  * - it has no `welcome` transaction yet.
+ *
+ * Inside a transaction, pass it as `executor`: the grant is then written on
+ * that transaction and commits or rolls back with the caller's other writes.
+ * That is how verification uses it, so that an email is never left verified
+ * with its grant unpaid.
  */
 export async function grantDeferredWelcomeBonus(
-  userId: string
+  userId: string,
+  executor: DatabaseExecutor = db
 ): Promise<BalanceChangeResult | null> {
-  await ensureBalance(userId);
-
-  const summary = await getBalance(userId);
-  const currencyCode = summary?.currencyCode ?? DEFAULT_CURRENCY_CODE;
-  const minorUnits = await getMinorUnits(currencyCode);
+  const summary = await ensureBalance(userId, DEFAULT_CURRENCY_CODE, executor);
+  const minorUnits = await getMinorUnits(summary.currencyCode, executor);
   const amount = majorToMinorUnits(WELCOME_GRANT_MAJOR_UNITS, minorUnits);
 
-  return await db.transaction(async (tx) => {
+  return await executor.transaction(async (tx) => {
     // The lock: a second caller waits here and then finds the transaction.
     const [row] = await tx
       .select({ userId: balance.userId })

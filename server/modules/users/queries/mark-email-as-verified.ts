@@ -1,12 +1,19 @@
 import { sql } from "drizzle-orm";
 import { ChatSDKError } from "@/lib/errors";
-import { db } from "@/server/db/connection";
+import { type DatabaseExecutor, db } from "@/server/db/connection";
 import { user } from "@/server/db/schema";
 import { normalizeEmail } from "@/server/modules/auth/normalize-email";
 
-export async function markEmailAsVerified({ email }: { email: string }) {
+/**
+ * Marks the account with this email verified and spends its code. Inside a
+ * transaction, pass it as `executor`.
+ */
+export async function markEmailAsVerified(
+  { email }: { email: string },
+  executor: DatabaseExecutor = db
+) {
   try {
-    return await db
+    return await executor
       .update(user)
       .set({
         emailVerified: true,

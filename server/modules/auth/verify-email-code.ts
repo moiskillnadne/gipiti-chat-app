@@ -1,8 +1,6 @@
-import {
-  grantDeferredWelcomeBonus,
-  grantEmailVerificationBonus,
-} from "@/lib/billing/balance";
+import { grantEmailVerificationBonus } from "@/lib/billing/balance";
 import { checkVerificationAttemptRateLimit } from "@/server/http/rate-limit";
+import { markVerifiedAndGrantDeferredWelcome } from "@/server/modules/auth/queries/verify-api-signup-email";
 import { verifyToken } from "@/server/modules/auth/reset-token";
 import { getUserByEmail } from "@/server/modules/users/queries/get-by-email";
 import { markEmailAsVerified } from "@/server/modules/users/queries/mark-email-as-verified";
@@ -69,23 +67,6 @@ const grantBonus = async (userId: string): Promise<boolean> => {
 };
 
 /**
- * Credits the welcome grant of an account that signed up through the API
- * and did not get it at registration. Best-effort and idempotent, like the
- * bonus above; `grantDeferredWelcomeBonus` checks again, under a lock, that
- * the account is owed one.
- */
-const grantDeferredWelcome = async (userId: string): Promise<boolean> => {
-  try {
-    const grant = await grantDeferredWelcomeBonus(userId);
-
-    return grant !== null;
-  } catch (grantError) {
-    console.error("Failed to grant the deferred welcome grant:", grantError);
-    return false;
-  }
-};
-
-/**
  * Checks a 6-digit verification code against the account with this email
  * and, when it matches, marks the email verified and pays the bonus.
  *
@@ -123,12 +104,23 @@ export const verifyEmailCode = async ({
       : { status: "expired_code" };
   }
 
-  const [verifiedUser] = await markEmailAsVerified({ email });
+  // An account created through the API is owed its welcome grant now. The
+  // two are one transaction: if the grant fails, the email is not verified
+  // either and this function throws; the user enters the code again, or
+  // asks for a new one. An email left verified with its grant unpaid could
+  // never be paid: a verified account has no code to enter.
+  const isApiSignup =
+    attempt.signupPlatform !== null && attempt.signupPlatform !== undefined;
 
-  // Only an account created through the API is owed a welcome grant here.
-  const isWelcomeGrantCredited = verifiedUser?.signupPlatform
-    ? await grantDeferredWelcome(attempt.userId)
-    : false;
+  let isWelcomeGrantCredited = false;
+  if (isApiSignup) {
+    isWelcomeGrantCredited = await markVerifiedAndGrantDeferredWelcome({
+      email,
+      userId: attempt.userId,
+    });
+  } else {
+    await markEmailAsVerified({ email });
+  }
 
   return {
     status: "verified",

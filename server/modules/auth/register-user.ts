@@ -11,6 +11,7 @@ import {
   DuplicateEmailError,
 } from "@/server/modules/users/queries/create-user";
 import { getUserByEmail } from "@/server/modules/users/queries/get-by-email";
+import type { SignupPlatform } from "@/server/modules/users/signup-platform";
 
 export type RegisterUserInput = {
   /** A syntactically valid email; the caller checks the format. */
@@ -24,9 +25,10 @@ export type RegisterUserInput = {
    * Set for a sign-up through the API (`ios`, `android`). Such an account
    * gets its welcome grant when the email is verified, not now: the API is
    * easy to script, and the platform is whatever the caller says it is, so
-   * the rule depends on the door that was used, not on the value.
+   * the rule depends on the door that was used, not on the value: any
+   * platform at all, as opposed to none, defers the grant.
    */
-  signupPlatform?: string;
+  signupPlatform?: SignupPlatform;
 };
 
 export type RegisterUserResult =
@@ -83,15 +85,16 @@ export const registerUser = async ({
   }
 
   try {
-    const user = signupPlatform
-      ? await createUserWithDeferredWelcomeGrant({
-          email,
-          password,
-          utmData: utm,
-          registrationGeo: geo,
-          signupPlatform,
-        })
-      : await createUser(email, password, utm, geo);
+    const user =
+      signupPlatform === undefined
+        ? await createUser(email, password, utm, geo)
+        : await createUserWithDeferredWelcomeGrant({
+            email,
+            password,
+            utmData: utm,
+            registrationGeo: geo,
+            signupPlatform,
+          });
 
     return { status: "registered", account: toAccount(user) };
   } catch (error) {

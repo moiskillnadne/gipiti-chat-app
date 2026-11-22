@@ -13,6 +13,11 @@ export type VerificationAttempt = {
   hashedCode: string;
   /** Attempts used on this code, this one included. */
   attemptsUsed: number;
+  /**
+   * Set when the account was created through the API. Such an account is
+   * owed its welcome grant when the code turns out right.
+   */
+  signupPlatform?: string | null;
 };
 
 /**
@@ -54,6 +59,7 @@ export async function takeVerificationAttempt({
         userId: user.id,
         hashedCode: user.emailVerificationCode,
         attemptsUsed: user.emailVerificationAttempts,
+        signupPlatform: user.signupPlatform,
       });
 
     if (!attempt?.hashedCode) {
@@ -64,6 +70,7 @@ export async function takeVerificationAttempt({
       userId: attempt.userId,
       hashedCode: attempt.hashedCode,
       attemptsUsed: attempt.attemptsUsed,
+      signupPlatform: attempt.signupPlatform,
     };
   } catch (error) {
     console.error("[TakeVerificationAttempt] Query failed:", error);

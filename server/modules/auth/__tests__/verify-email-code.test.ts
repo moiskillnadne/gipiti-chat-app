@@ -1,11 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  grantDeferredWelcomeBonus,
-  grantEmailVerificationBonus,
-} from "@/lib/billing/balance";
+import { grantEmailVerificationBonus } from "@/lib/billing/balance";
 import type { User } from "@/server/db/schema";
 import { checkVerificationAttemptRateLimit } from "@/server/http/rate-limit";
+import { markVerifiedAndGrantDeferredWelcome } from "@/server/modules/auth/queries/verify-api-signup-email";
 import { hashToken } from "@/server/modules/auth/reset-token";
 import { verifyEmailCode } from "@/server/modules/auth/verify-email-code";
 import { getUserByEmail } from "@/server/modules/users/queries/get-by-email";
@@ -13,8 +11,10 @@ import { markEmailAsVerified } from "@/server/modules/users/queries/mark-email-a
 import { takeVerificationAttempt } from "@/server/modules/users/queries/take-verification-attempt";
 
 vi.mock("@/lib/billing/balance", () => ({
-  grantDeferredWelcomeBonus: vi.fn(),
   grantEmailVerificationBonus: vi.fn(),
+}));
+vi.mock("@/server/modules/auth/queries/verify-api-signup-email", () => ({
+  markVerifiedAndGrantDeferredWelcome: vi.fn(),
 }));
 vi.mock("@/server/http/rate-limit", () => ({
   checkVerificationAttemptRateLimit: vi.fn(),
@@ -39,10 +39,14 @@ const MAX_ATTEMPTS = 5;
 type BonusCredit = Awaited<ReturnType<typeof grantEmailVerificationBonus>>;
 const bonusCredit = { transactionId: "transaction-1" } as BonusCredit;
 
-const attempt = (attemptsUsed: number) => ({
+const attempt = (
+  attemptsUsed: number,
+  signupPlatform: string | null = null
+) => ({
   userId: USER_ID,
   hashedCode: hashToken(CODE),
   attemptsUsed,
+  signupPlatform,
 });
 
 const userRow = (overrides: Partial<User>): User =>
@@ -56,7 +60,7 @@ beforeEach(() => {
   vi.mocked(takeVerificationAttempt).mockResolvedValue(attempt(1));
   vi.mocked(markEmailAsVerified).mockResolvedValue([userRow({})]);
   vi.mocked(grantEmailVerificationBonus).mockResolvedValue(bonusCredit);
-  vi.mocked(grantDeferredWelcomeBonus).mockResolvedValue(bonusCredit);
+  vi.mocked(markVerifiedAndGrantDeferredWelcome).mockResolvedValue(true);
 });
 
 describe("verifyEmailCode", () => {
@@ -71,7 +75,7 @@ describe("verifyEmailCode", () => {
       isWelcomeGrantCredited: false,
     });
     // A website account got its welcome grant at registration.
-    expect(grantDeferredWelcomeBonus).not.toHaveBeenCalled();
+    expect(markVerifiedAndGrantDeferredWelcome).not.toHaveBeenCalled();
     expect(markEmailAsVerified).toHaveBeenCalledExactlyOnceWith({
       email: EMAIL,
     });
@@ -111,17 +115,19 @@ describe("verifyEmailCode", () => {
     });
   });
 
-  it("credits the welcome grant an API sign-up was waiting for", async () => {
+  it("verifies an API sign-up and credits its welcome grant in one step", async () => {
     // Arrange
-    vi.mocked(markEmailAsVerified).mockResolvedValue([
-      userRow({ signupPlatform: "ios" }),
-    ]);
+    vi.mocked(takeVerificationAttempt).mockResolvedValue(attempt(1, "ios"));
 
     // Act
     const result = await verifyEmailCode({ email: EMAIL, code: CODE });
 
     // Assert
-    expect(grantDeferredWelcomeBonus).toHaveBeenCalledExactlyOnceWith(USER_ID);
+    expect(markVerifiedAndGrantDeferredWelcome).toHaveBeenCalledExactlyOnceWith(
+      { email: EMAIL, userId: USER_ID }
+    );
+    // Not also marked on its own: the one step did it.
+    expect(markEmailAsVerified).not.toHaveBeenCalled();
     expect(result).toEqual({
       status: "verified",
       isBonusGranted: true,
@@ -129,39 +135,32 @@ describe("verifyEmailCode", () => {
     });
   });
 
-  it("reports no welcome grant when the account was not owed one after all", async () => {
+  it("reports no welcome grant when the API sign-up was not owed one after all", async () => {
     // Arrange
-    vi.mocked(markEmailAsVerified).mockResolvedValue([
-      userRow({ signupPlatform: "android" }),
-    ]);
-    vi.mocked(grantDeferredWelcomeBonus).mockResolvedValue(null);
+    vi.mocked(takeVerificationAttempt).mockResolvedValue(attempt(1, "android"));
+    vi.mocked(markVerifiedAndGrantDeferredWelcome).mockResolvedValue(false);
 
     // Act
     const result = await verifyEmailCode({ email: EMAIL, code: CODE });
 
     // Assert
-    expect(result).toMatchObject({ isWelcomeGrantCredited: false });
-  });
-
-  it("still verifies the email, and still pays the bonus, when the welcome grant throws", async () => {
-    // Arrange
-    vi.spyOn(console, "error").mockReturnValue(undefined);
-    vi.mocked(markEmailAsVerified).mockResolvedValue([
-      userRow({ signupPlatform: "ios" }),
-    ]);
-    vi.mocked(grantDeferredWelcomeBonus).mockRejectedValue(
-      new Error("balance locked")
-    );
-
-    // Act
-    const result = await verifyEmailCode({ email: EMAIL, code: CODE });
-
-    // Assert
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       status: "verified",
-      isBonusGranted: true,
       isWelcomeGrantCredited: false,
     });
+  });
+
+  it("does not report an API sign-up as verified when the grant could not be written", async () => {
+    // Arrange: the one step failed and rolled back.
+    vi.mocked(takeVerificationAttempt).mockResolvedValue(attempt(1, "ios"));
+    const failure = new Error("rolled back");
+    vi.mocked(markVerifiedAndGrantDeferredWelcome).mockRejectedValue(failure);
+
+    // Act and assert
+    await expect(verifyEmailCode({ email: EMAIL, code: CODE })).rejects.toBe(
+      failure
+    );
+    expect(grantEmailVerificationBonus).not.toHaveBeenCalled();
   });
 
   it("answers invalid_code with the guesses left for a wrong code", async () => {

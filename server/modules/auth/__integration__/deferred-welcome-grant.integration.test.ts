@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { afterAll, beforeEach, describe, expect, it } from "vitest";
+import { eq } from "drizzle-orm";
+import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   grantDeferredWelcomeBonus,
   grantEmailVerificationBonus,
@@ -23,6 +24,7 @@ import {
   readBalance,
   readTransactions,
   readUsersByEmail,
+  removeCurrency,
   resetMoneyTables,
   seedCurrency,
   TEST_CURRENCY_CODE,
@@ -231,6 +233,42 @@ describe("the welcome grant of an API sign-up, against a real database", () => {
     expect(direct).toBeNull();
     expect(await transactionTypesOf(legacy.id)).toEqual(["email_bonus"]);
     expect((await readBalance(legacy.id)).topupAmount).toBe(EMAIL_BONUS_MINOR);
+  });
+
+  it("leaves the email unverified when the grant cannot be written, and pays in full on the next try", async () => {
+    // Arrange: make the grant fail. Without its balance row and without the
+    // currency, the balance row cannot be created.
+    const email = uniqueEmail();
+    const userId = await signUpThroughApi(email);
+    await sendCode(email);
+    await db.delete(balance).where(eq(balance.userId, userId));
+    await removeCurrency();
+    const logged = vi.spyOn(console, "error").mockReturnValue(undefined);
+
+    // Act
+    const failed = verifyEmailCode({ email, code: CODE });
+
+    // Assert: nothing half-done.
+    await expect(failed).rejects.toThrow();
+    const [afterFailure] = await readUsersByEmail(email);
+    expect(afterFailure.emailVerified).toBe(false);
+    expect(afterFailure.emailVerificationCode).not.toBeNull();
+    expect(await readTransactions(userId)).toEqual([]);
+    logged.mockRestore();
+
+    // Act: the cause is gone; the same code is entered again.
+    await seedCurrency();
+    const retried = await verifyEmailCode({ email, code: CODE });
+
+    // Assert
+    expect(retried).toEqual({
+      status: "verified",
+      isBonusGranted: true,
+      isWelcomeGrantCredited: true,
+    });
+    expect((await readBalance(userId)).topupAmount).toBe(
+      WELCOME_MINOR + EMAIL_BONUS_MINOR
+    );
   });
 
   it("keeps the email bonus single when both grants race at verification", async () => {
