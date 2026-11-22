@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { CheckIcon } from "lucide-react";
 import Link from "next/link";
 
@@ -63,11 +62,7 @@ export const PricingSection = () => (
               </div>
 
               {/* CTA */}
-              <motion.div
-                transition={{ type: "spring", stiffness: 300 }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
+              <div>
                 <Link
                   className="inline-flex w-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-8 py-4 font-semibold text-lg text-white shadow-indigo-500/25 shadow-lg transition-all hover:shadow-2xl hover:shadow-indigo-500/30 sm:w-auto"
                   href="/register"
@@ -75,7 +70,7 @@ export const PricingSection = () => (
                 >
                   {landingRegisterLink.label}
                 </Link>
-              </motion.div>
+              </div>
 
               <p className="mt-4 text-xs text-zinc-600">
                 Отмена подписки в любой момент. Без скрытых платежей.

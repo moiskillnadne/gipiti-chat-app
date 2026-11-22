@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import Link from "next/link";
 
 import { NEW_USER_BONUS_SHORT_RU } from "@/lib/marketing/landing-content";
@@ -23,11 +22,7 @@ export const CtaSection = () => (
           {NEW_USER_BONUS_SHORT_RU}.
         </p>
 
-        <motion.div
-          transition={{ type: "spring", stiffness: 300 }}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
+        <div>
           <Link
             className="inline-flex rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-10 py-4 font-semibold text-lg text-white shadow-indigo-500/25 shadow-lg transition-all hover:shadow-2xl hover:shadow-indigo-500/30"
             href="/register"
@@ -35,7 +30,7 @@ export const CtaSection = () => (
           >
             {landingRegisterLink.label}
           </Link>
-        </motion.div>
+        </div>
       </FadeIn>
     </div>
   </section>

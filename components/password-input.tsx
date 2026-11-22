@@ -92,7 +92,6 @@ export function PasswordInput({
           aria-label={showPassword ? t("hidePassword") : t("showPassword")}
           className="-translate-y-1/2 absolute top-1/2 right-2 rounded-md p-1.5 transition-colors hover:bg-muted"
           onClick={() => setShowPassword(!showPassword)}
-          tabIndex={-1}
           type="button"
         >
           {showPassword ? (

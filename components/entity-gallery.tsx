@@ -578,7 +578,7 @@ function EntityCard<T extends GalleryEntity>({
         className={
           item.pinned
             ? "absolute top-3 right-3 inline-flex size-6 items-center justify-center rounded-sm text-citrus-deep"
-            : "absolute top-3 right-3 inline-flex size-6 items-center justify-center rounded-sm text-ink-3 opacity-0 transition-opacity duration-fast ease-canon hover:bg-paper-2 hover:text-ink group-focus-within:opacity-100 group-hover:opacity-100"
+            : "absolute top-3 right-3 inline-flex size-6 items-center justify-center rounded-sm text-ink-3 opacity-0 transition-opacity duration-fast ease-canon hover:bg-paper-2 hover:text-ink group-focus-within:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-100"
         }
         onClick={(event) => {
           event.stopPropagation();

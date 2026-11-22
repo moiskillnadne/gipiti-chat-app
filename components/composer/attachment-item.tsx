@@ -152,7 +152,7 @@ export function AttachmentItem({
           aria-label={removeLabel}
           className={cn(
             "-top-1.5 -right-1.5 absolute inline-flex size-[18px] items-center justify-center rounded-full bg-ink text-paper opacity-0 shadow-sm transition-opacity duration-fast ease-canon",
-            "focus-visible:opacity-100 group-hover:opacity-100"
+            "focus-visible:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-100"
           )}
           onClick={(event) => {
             event.preventDefault();
