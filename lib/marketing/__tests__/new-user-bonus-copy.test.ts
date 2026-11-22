@@ -1,57 +1,65 @@
 import { describe, expect, it } from "vitest";
 
+import { messages } from "@/lib/i18n/dictionary";
 import {
-  EMAIL_CONFIRM_BONUS_MAJOR_UNITS,
-  ONBOARDING_QUIZ_BONUS_MAJOR_UNITS,
-  WELCOME_GRANT_MAJOR_UNITS,
-} from "@/lib/billing/constants";
-import {
+  homeBenefits,
+  homeFaqItems,
+  homeFeatures,
   NEW_USER_BONUS_BADGE_RU,
+  NEW_USER_BONUS_BREAKDOWN_RU,
   NEW_USER_BONUS_RUB,
   NEW_USER_BONUS_SHORT_RU,
   NEW_USER_BONUS_TERMS_RU,
+  NEW_USER_BONUS_UP_TO_RU,
+  pricingFeatures,
 } from "@/lib/marketing/landing-content";
 import { modelLandings } from "@/lib/marketing/model-landings";
 
-const NBSP = "\u00a0";
+// Literal expectations on purpose: changing a grant in lib/billing/constants.ts
+// or a phrase template must fail here, so the copy is reread before it ships.
+// «\u00a0» is the non-breaking space every amount carries before «₽».
+const EXPECTED_COPY = {
+  total: 200,
+  upTo: "до\u00a0200\u00a0₽",
+  short: "До\u00a0200\u00a0₽ в подарок новым пользователям",
+  badge: "До\u00a0200\u00a0₽ новым пользователям",
+  terms:
+    "50\u00a0₽ сразу после регистрации и ещё 150\u00a0₽ за подтверждение email и короткий опрос",
+  breakdown:
+    "50\u00a0₽ сразу после регистрации, ещё 100\u00a0₽ за подтверждение email и 50\u00a0₽ за короткий опрос о ваших задачах",
+};
 
-// The old copy promised the whole total at signup: «Дарим 200 ₽», «стартовых 200 ₽».
-const SIGNUP_GIFT_CLAIM = /(Дарим|стартовых) \d+/;
-
-const rub = (amount: number): string => `${amount}${NBSP}₽`;
+// The old copy promised the whole total at signup: «Дарим 200 ₽ каждому…»,
+// «начисляется 200 ₽», «стартовых 200 ₽». Data copy names the total only as
+// «до 200 ₽»; the CTA components may lead the terms with «Дарим», but they
+// are not scanned here.
+const SIGNUP_GIFT_CLAIM = /(дарим|начисляется|стартовых)[\s\u00a0]+\d/i;
 
 describe("new-user bonus copy", () => {
-  it("adds the three onboarding grants into the headline total", () => {
-    expect(NEW_USER_BONUS_RUB).toBe(
-      WELCOME_GRANT_MAJOR_UNITS +
-        EMAIL_CONFIRM_BONUS_MAJOR_UNITS +
-        ONBOARDING_QUIZ_BONUS_MAJOR_UNITS
-    );
+  it("renders today's grants as the agreed Russian copy", () => {
+    expect({
+      total: NEW_USER_BONUS_RUB,
+      upTo: NEW_USER_BONUS_UP_TO_RU,
+      short: NEW_USER_BONUS_SHORT_RU,
+      badge: NEW_USER_BONUS_BADGE_RU,
+      terms: NEW_USER_BONUS_TERMS_RU,
+      breakdown: NEW_USER_BONUS_BREAKDOWN_RU,
+    }).toEqual(EXPECTED_COPY);
   });
 
-  it("offers the total as an upper bound, not as a signup credit", () => {
-    expect(NEW_USER_BONUS_SHORT_RU).toBe(
-      `До${NBSP}${rub(NEW_USER_BONUS_RUB)} в подарок новым пользователям`
-    );
-  });
-
-  it("keeps the badge variant an upper bound too", () => {
-    expect(NEW_USER_BONUS_BADGE_RU).toBe(
-      `До${NBSP}${rub(NEW_USER_BONUS_RUB)} новым пользователям`
-    );
-  });
-
-  it("states what arrives at signup and what the rest is earned for", () => {
-    expect(NEW_USER_BONUS_TERMS_RU).toBe(
-      `${rub(WELCOME_GRANT_MAJOR_UNITS)} сразу после регистрации и ещё ${rub(
-        EMAIL_CONFIRM_BONUS_MAJOR_UNITS + ONBOARDING_QUIZ_BONUS_MAJOR_UNITS
-      )} за подтверждение email и короткий опрос`
-    );
-  });
-
-  it("keeps the model landings free of the old «Дарим N ₽» signup promise", () => {
-    const landingsJson = JSON.stringify(modelLandings);
-
-    expect(landingsJson).not.toMatch(SIGNUP_GIFT_CLAIM);
+  it.each([
+    ["the model landings", JSON.stringify(modelLandings)],
+    [
+      "the landing content module",
+      JSON.stringify({
+        homeBenefits,
+        homeFaqItems,
+        homeFeatures,
+        pricingFeatures,
+      }),
+    ],
+    ["messages/ru.json", JSON.stringify(messages)],
+  ])("keeps %s free of a signup promise of the whole total", (_, copy) => {
+    expect(copy).not.toMatch(SIGNUP_GIFT_CLAIM);
   });
 });

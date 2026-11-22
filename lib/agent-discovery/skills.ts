@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 
 import {
   NEW_USER_BONUS_BREAKDOWN_RU,
-  NEW_USER_BONUS_RUB,
+  NEW_USER_BONUS_UP_TO_RU,
   SUBSCRIPTION_PRICE_RUB,
 } from "@/lib/marketing/landing-content";
 import {
@@ -59,7 +59,7 @@ const buildGettingStartedBody = (): string =>
     "## Доступ",
     "",
     `1. Регистрация по email с подтверждением кода: ${absoluteUrl("/register")}`,
-    `2. Новому пользователю начисляется ${NEW_USER_BONUS_RUB} ₽: ${NEW_USER_BONUS_BREAKDOWN_RU}. Хватает, чтобы попробовать все функции.`,
+    `2. Новому пользователю начисляется ${NEW_USER_BONUS_UP_TO_RU}: ${NEW_USER_BONUS_BREAKDOWN_RU}. Хватает, чтобы попробовать все функции.`,
     `3. Вход для существующих аккаунтов: ${absoluteUrl("/login")}`,
     "",
     "## Как устроена оплата",

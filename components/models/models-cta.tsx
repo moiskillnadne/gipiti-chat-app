@@ -16,7 +16,8 @@ export const ModelsCta = () => (
             Одна подписка — все модели
           </h2>
           <p className="mx-auto mb-7 max-w-lg text-lg text-zinc-400 leading-relaxed">
-            {NEW_USER_BONUS_TERMS_RU} — попробуйте любую модель. Карта не нужна.
+            Дарим {NEW_USER_BONUS_TERMS_RU} — попробуйте любую модель. Карта не
+            нужна.
           </p>
           <Link
             className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-8 py-4 font-semibold text-lg text-white shadow-indigo-500/30 shadow-lg transition-shadow hover:shadow-indigo-500/40 hover:shadow-xl"

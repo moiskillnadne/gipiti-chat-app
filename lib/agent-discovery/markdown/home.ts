@@ -3,7 +3,7 @@ import {
   homeFaqItems,
   homeFeatures,
   NEW_USER_BONUS_BREAKDOWN_RU,
-  NEW_USER_BONUS_RUB,
+  NEW_USER_BONUS_UP_TO_RU,
   pricingFeatures,
   SUBSCRIPTION_PRICE_RUB,
 } from "@/lib/marketing/landing-content";
@@ -75,7 +75,7 @@ const buildPricing = (): string[] => [
   "",
   `**${SUBSCRIPTION_PRICE_RUB} ₽ в месяц.** Подписка зачисляет ${SUBSCRIPTION_PRICE_RUB} ₽ на баланс каждый месяц;`,
   "баланс расходуется на запросы к моделям и пополняется в любой момент.",
-  `Каждому новому пользователю мы дарим ${NEW_USER_BONUS_RUB} ₽ на баланс:`,
+  `Новым пользователям мы дарим ${NEW_USER_BONUS_UP_TO_RU} на баланс:`,
   `${NEW_USER_BONUS_BREAKDOWN_RU}.`,
   "Этого достаточно, чтобы попробовать все функции без оплаты.",
   "",

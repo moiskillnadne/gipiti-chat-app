@@ -8,8 +8,8 @@
 
 import {
   NEW_USER_BONUS_BREAKDOWN_RU,
-  NEW_USER_BONUS_RUB,
   NEW_USER_BONUS_SHORT_RU,
+  NEW_USER_BONUS_UP_TO_RU,
 } from "@/lib/marketing/landing-content";
 import type {
   LandingAudienceCard,
@@ -186,7 +186,7 @@ export const vpnFaq: LandingFaqItem = {
 
 export const priceFaq: LandingFaqItem = {
   question: "Сколько это стоит?",
-  answer: `Запросы оплачиваются с баланса. Подписка 999 ₽/мес включает 999 ₽ на баланс каждый месяц, а новым пользователям мы дарим до ${NEW_USER_BONUS_RUB}\u00a0₽: ${NEW_USER_BONUS_BREAKDOWN_RU}. Этого хватит, чтобы попробовать.`,
+  answer: `Запросы оплачиваются с баланса. Подписка 999 ₽/мес включает 999 ₽ на баланс каждый месяц, а новым пользователям мы дарим ${NEW_USER_BONUS_UP_TO_RU}: ${NEW_USER_BONUS_BREAKDOWN_RU}. Этого хватит, чтобы попробовать.`,
 };
 
 export const documentsFaq: LandingFaqItem = {
