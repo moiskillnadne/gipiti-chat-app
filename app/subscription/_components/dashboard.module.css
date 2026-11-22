@@ -1110,6 +1110,7 @@
 }
 
 .heroInner {
+  container-type: inline-size;
   position: relative;
 }
 
@@ -1122,9 +1123,14 @@
   text-transform: uppercase;
 }
 
+/* The amount never clips (the hero has overflow: hidden): the sizes shrink
+   with the hero's width (cqi of .heroInner) so a seven-digit amount still
+   fits one line, and the kopecks with the currency drop to a second line
+   together when the whole row does not fit. Wide heroes keep the px caps. */
 .balanceRow {
   align-items: baseline;
   display: flex;
+  flex-wrap: wrap;
   font-family: var(--font-display);
   font-feature-settings: "tnum";
   font-weight: 300;
@@ -1135,19 +1141,26 @@
 
 .balanceNum {
   color: var(--ink);
-  font-size: 96px;
+  font-size: min(96px, 24cqi);
+}
+
+.balanceTail {
+  align-items: baseline;
+  display: inline-flex;
+  gap: 4px;
+  white-space: nowrap;
 }
 
 .balanceFrac {
   color: var(--ink-2);
-  font-size: 40px;
+  font-size: min(40px, 10cqi);
   font-weight: 300;
   margin-left: -2px;
 }
 
 .balanceCur {
   color: var(--ink-2);
-  font-size: 56px;
+  font-size: min(56px, 14cqi);
   font-weight: 300;
   margin-left: 6px;
 }
@@ -1566,12 +1579,12 @@
     grid-template-columns: 1fr;
   }
   .balanceNum {
-    font-size: 64px;
+    font-size: min(64px, 24cqi);
   }
   .balanceFrac {
-    font-size: 28px;
+    font-size: min(28px, 10.5cqi);
   }
   .balanceCur {
-    font-size: 36px;
+    font-size: min(36px, 13.5cqi);
   }
 }

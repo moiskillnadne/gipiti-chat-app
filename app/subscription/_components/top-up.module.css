@@ -2,14 +2,30 @@
    Container geometry (backdrop, centering, sheet position) comes from the
    Radix Dialog wrapper; these classes style the dialog internals. */
 
+/* The dialog caps its height (components/ui/dialog.tsx); when a stage is
+   taller than that (a phone in landscape, an open keyboard) the body scrolls
+   and the head with the close button stays pinned at its top. */
 .body {
+  --body-pad-top: 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 24px;
+  /* Keeps a focused control from landing under the pinned head. */
+  scroll-padding-block-start: 72px;
+}
+
+/* Without this a flex column squeezes children with overflow: hidden
+   instead of scrolling. */
+.body > * {
+  flex-shrink: 0;
 }
 
 .bodySheet {
+  --body-pad-top: 18px;
   gap: 14px;
   padding: 18px 18px 26px;
 }
@@ -19,6 +35,15 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  background: var(--card);
+  /* The head owns the body's top padding, so once pinned it still has
+     breathing room and covers the content scrolling beneath it. */
+  margin-top: calc(-1 * var(--body-pad-top));
+  padding-top: var(--body-pad-top);
+  position: sticky;
+  /* Sticky offsets count from inside the scroller's padding. */
+  top: calc(-1 * var(--body-pad-top));
+  z-index: 1;
 }
 
 .title {

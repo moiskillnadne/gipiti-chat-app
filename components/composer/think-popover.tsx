@@ -147,13 +147,17 @@ export function ThinkPopover() {
   const activeBars = activeRow ? LEVEL_BARS[activeRow.level] : 0;
   const isCustomActive = Boolean(currentThinkingSetting && !activeRow);
   const isAnyActive = Boolean(activeRow) || isCustomActive;
+  const triggerLabel = activeRow
+    ? `${tInput("think")} · ${activeRow.label}`
+    : tInput("think");
 
   return (
     <Popover onOpenChange={setOpen} open={open}>
       <PopoverTrigger asChild>
         <button
+          aria-label={triggerLabel}
           className={cn(
-            "inline-flex items-center gap-1.5 rounded-pill border border-transparent px-2.5 py-1.5 text-[12.5px] text-ink-2 leading-none transition-colors duration-fast ease-canon",
+            "inline-flex items-center gap-1.5 whitespace-nowrap rounded-pill border border-transparent px-2.5 py-1.5 text-[12.5px] text-ink-2 leading-none transition-colors duration-fast ease-canon",
             "hover:bg-paper-2 hover:text-ink",
             isAnyActive && "border-citrus bg-citrus-soft text-ink",
             "data-[state=open]:bg-paper-2 data-[state=open]:text-ink"
@@ -161,14 +165,21 @@ export function ThinkPopover() {
           type="button"
         >
           <Brain className="size-3.5" strokeWidth={1.6} />
-          <span>
-            {tInput("think")}
-            {activeRow ? ` · ${activeRow.label}` : ""}
-          </span>
+          {/* On phones the brain icon stands in for the word and the level
+              name for the bars, so the tool row fits one line at 320px; the
+              accessible name stays complete. */}
+          {activeRow ? (
+            <span>
+              <span className="max-sm:hidden">{tInput("think")} · </span>
+              {activeRow.label}
+            </span>
+          ) : (
+            <span>{tInput("think")}</span>
+          )}
           {activeBars > 0 && (
             <span
               aria-hidden
-              className="ml-0.5 inline-flex items-end gap-[1.5px]"
+              className="ml-0.5 inline-flex items-end gap-[1.5px] max-sm:hidden"
             >
               <span
                 className={cn(

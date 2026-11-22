@@ -68,8 +68,10 @@ export async function BalanceHero({
             {sign}
             {whole}
           </span>
-          {frac && <span className={styles.balanceFrac}>,{frac}</span>}
-          <span className={styles.balanceCur}>{symbol}</span>
+          <span className={styles.balanceTail}>
+            {frac && <span className={styles.balanceFrac}>,{frac}</span>}
+            <span className={styles.balanceCur}>{symbol}</span>
+          </span>
         </div>
 
         {isZero && <div className={styles.balanceSub}>{t("zeroNote")}</div>}
