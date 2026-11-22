@@ -1,5 +1,3 @@
-import { generateDummyPassword } from "@/server/db/utils";
-
 export const isProductionEnvironment = process.env.NODE_ENV === "production";
 export const isDevelopmentEnvironment = process.env.NODE_ENV === "development";
 
@@ -11,5 +9,3 @@ export const isDevelopmentEnvironment = process.env.NODE_ENV === "development";
  */
 export const isGeminiSignatureDebugEnabled =
   process.env.DEBUG_GEMINI_SIGNATURES === "true";
-
-export const DUMMY_PASSWORD = generateDummyPassword();

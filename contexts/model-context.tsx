@@ -11,7 +11,6 @@ import {
   useRef,
   useState,
 } from "react";
-import type { UserType } from "@/app/(auth)/auth";
 import {
   saveChatModelAsCookie,
   saveImageAspectAsCookie,
@@ -36,6 +35,7 @@ import {
   uiVisibleChatModels,
   type VideoGenSetting,
 } from "@/lib/ai/models";
+import type { UserType } from "@/types/next-auth";
 
 type ModelContextValue = {
   currentModelId: string;

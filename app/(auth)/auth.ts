@@ -1,9 +1,9 @@
 import { compare } from "bcrypt-ts";
 import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import { DUMMY_PASSWORD } from "@/lib/auth/dummy-password";
 import { getAuthSecret } from "@/lib/auth/secret";
 import { RATE_LIMITED_SIGN_IN_CODE } from "@/lib/auth/sign-in-error-codes";
-import { DUMMY_PASSWORD } from "@/lib/constants";
 import { getActiveUserSubscription } from "@/lib/db/query/subscription/get-active-user-subscription";
 import type { User } from "@/server/db/schema";
 import { getClientIp } from "@/server/http/client-ip";
@@ -14,8 +14,6 @@ import {
 } from "@/server/http/rate-limit";
 import { getUserByEmail } from "../../lib/db/query/user/get-by-email";
 import { authConfig } from "./auth.config";
-
-export type { UserType } from "@/types/next-auth";
 
 type CredentialsType = {
   email: string;

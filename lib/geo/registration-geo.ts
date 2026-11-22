@@ -1,5 +1,3 @@
-import { headers } from "next/headers";
-
 // Vercel attaches these headers to every incoming request at the edge.
 const COUNTRY_HEADER = "x-vercel-ip-country";
 const REGION_HEADER = "x-vercel-ip-country-region";
@@ -39,23 +37,35 @@ const decodeCity = (rawCity: string | null): string | null => {
   }
 };
 
-export const getRegistrationGeoFromHeaders =
-  async (): Promise<RegistrationGeoHeaders> => {
-    // Geo is best-effort analytics: a failure to read the headers must never
-    // break the registration flow, so fall back to nulls on any error.
-    try {
-      const requestHeaders = await headers();
+/** The one method of `Headers` the geo lookup needs. */
+type HeaderReader = Pick<Headers, "get">;
 
-      return {
-        country: requestHeaders.get(COUNTRY_HEADER) ?? null,
-        region: requestHeaders.get(REGION_HEADER) ?? null,
-        city: decodeCity(requestHeaders.get(CITY_HEADER)),
-      };
-    } catch (error) {
-      console.error("[registration-geo] failed to read geo headers:", error);
-      return { country: null, region: null, city: null };
-    }
-  };
+/**
+ * Reads the geo of a registration from the request headers.
+ *
+ * The caller passes the function that yields the headers (`headers` from
+ * `next/headers` in a server action), not the headers themselves: this module
+ * must not depend on Next, and a failure to obtain the headers has to end up
+ * in the fallback below instead of in the caller.
+ */
+export const getRegistrationGeoFromHeaders = async (
+  readRequestHeaders: () => Promise<HeaderReader>
+): Promise<RegistrationGeoHeaders> => {
+  // Geo is best-effort analytics: a failure to read the headers must never
+  // break the registration flow, so fall back to nulls on any error.
+  try {
+    const requestHeaders = await readRequestHeaders();
+
+    return {
+      country: requestHeaders.get(COUNTRY_HEADER) ?? null,
+      region: requestHeaders.get(REGION_HEADER) ?? null,
+      city: decodeCity(requestHeaders.get(CITY_HEADER)),
+    };
+  } catch (error) {
+    console.error("[registration-geo] failed to read geo headers:", error);
+    return { country: null, region: null, city: null };
+  }
+};
 
 /**
  * The language is supplied by the client (navigator.language via a hidden
