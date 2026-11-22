@@ -4,23 +4,13 @@ import Form from "next/form";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
+import { AuthPageLayout } from "@/components/auth-page-layout";
 import { PasswordInput } from "@/components/password-input";
 import { SubmitButton } from "@/components/submit-button";
 import { toast } from "@/components/toast";
 import { useTranslations } from "@/lib/i18n/translate";
 
 import { type ResetPasswordActionState, resetPassword } from "../actions";
-
-function SupportLink({ text, linkText }: { text: string; linkText: string }) {
-  return (
-    <p className="fixed right-4 bottom-4 z-50 text-gray-500 text-xs">
-      {text}{" "}
-      <Link className="hover:underline" href="/legal/support">
-        {linkText}
-      </Link>
-    </p>
-  );
-}
 
 type ResetPasswordPageClientProps = {
   /** The reset token from the link, read from the URL by the server page. */
@@ -36,7 +26,6 @@ export function ResetPasswordPageClient({
 }: ResetPasswordPageClientProps) {
   const t = useTranslations("auth.resetPassword");
   const tErrors = useTranslations("auth.errors");
-  const tSupport = useTranslations("legal.support");
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -115,135 +104,116 @@ export function ResetPasswordPageClient({
   // Show error if no token in URL
   if (!token) {
     return (
-      <div className="flex h-dvh w-screen items-start justify-center bg-background pt-12 md:items-center md:pt-0">
-        <div className="flex w-full max-w-md flex-col gap-12 overflow-hidden rounded-2xl">
-          <div className="flex flex-col items-center justify-center gap-6 px-4 text-center sm:px-16">
-            <h3 className="font-semibold text-2xl">{t("invalidToken")}</h3>
-            <p className="text-gray-500 text-sm">{t("invalidTokenMessage")}</p>
-            <Link
-              className="font-semibold text-gray-800 hover:underline"
-              href="/forgot-password"
-            >
-              {t("requestNewLink")}
-            </Link>
-          </div>
+      <AuthPageLayout>
+        <div className="flex flex-col items-center justify-center gap-6 px-4 text-center sm:px-16">
+          <h3 className="font-semibold text-2xl">{t("invalidToken")}</h3>
+          <p className="text-gray-500 text-sm">{t("invalidTokenMessage")}</p>
+          <Link
+            className="font-semibold text-gray-800 hover:underline"
+            href="/forgot-password"
+          >
+            {t("requestNewLink")}
+          </Link>
         </div>
-        <SupportLink
-          linkText={tSupport("linkText")}
-          text={tSupport("needHelp")}
-        />
-      </div>
+      </AuthPageLayout>
     );
   }
 
   return (
-    <div className="flex h-dvh w-screen items-start justify-center bg-background pt-12 md:items-center md:pt-0">
-      <div className="flex w-full max-w-md flex-col gap-12 overflow-hidden rounded-2xl">
-        <div className="flex flex-col items-center justify-center gap-2 px-4 text-center sm:px-16">
-          <h3 className="font-semibold text-2xl">{t("title")}</h3>
-          <p className="text-gray-500 text-sm">{t("subtitle")}</p>
+    <AuthPageLayout>
+      <div className="flex flex-col items-center justify-center gap-2 px-4 text-center sm:px-16">
+        <h3 className="font-semibold text-2xl">{t("title")}</h3>
+        <p className="text-gray-500 text-sm">{t("subtitle")}</p>
+      </div>
+
+      <Form action={handleSubmit} className="flex flex-col gap-4 px-4 sm:px-16">
+        <div className="flex flex-col gap-2">
+          <PasswordInput
+            autoComplete="new-password"
+            autoFocus
+            disabled={isSuccessful}
+            id="password-display"
+            label={t("passwordLabel")}
+            name="password-display"
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={t("passwordPlaceholder")}
+            required
+            showRequirements
+            value={password}
+          />
+          {/* Hidden input to submit password with form */}
+          <input name="password" type="hidden" value={password} />
         </div>
 
-        <Form
-          action={handleSubmit}
-          className="flex flex-col gap-4 px-4 sm:px-16"
-        >
-          <div className="flex flex-col gap-2">
-            <PasswordInput
-              autoComplete="new-password"
-              autoFocus
-              disabled={isSuccessful}
-              id="password-display"
-              label={t("passwordLabel")}
-              name="password-display"
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={t("passwordPlaceholder")}
-              required
-              showRequirements
-              value={password}
-            />
-            {/* Hidden input to submit password with form */}
-            <input name="password" type="hidden" value={password} />
-          </div>
+        <div className="flex flex-col gap-2">
+          <PasswordInput
+            autoComplete="new-password"
+            disabled={isSuccessful}
+            id="confirm-password"
+            label={t("confirmLabel")}
+            name="confirm-password"
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder={t("confirmPlaceholder")}
+            required
+            showRequirements={false}
+            value={confirmPassword}
+          />
 
-          <div className="flex flex-col gap-2">
-            <PasswordInput
-              autoComplete="new-password"
-              disabled={isSuccessful}
-              id="confirm-password"
-              label={t("confirmLabel")}
-              name="confirm-password"
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder={t("confirmPlaceholder")}
-              required
-              showRequirements={false}
-              value={confirmPassword}
-            />
+          {/* Password match indicator */}
+          {confirmPassword && (
+            <div className="flex items-center gap-2 text-sm">
+              {password === confirmPassword ? (
+                <>
+                  <svg
+                    aria-hidden="true"
+                    className="size-4 text-green-600"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M5 13l4 4L19 7"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <span className="text-green-600">{t("passwordMatches")}</span>
+                </>
+              ) : (
+                <>
+                  <svg
+                    aria-hidden="true"
+                    className="size-4 text-red-600"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M6 18L18 6M6 6l12 12"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <span className="text-red-600">{t("passwordMismatch")}</span>
+                </>
+              )}
+            </div>
+          )}
+        </div>
 
-            {/* Password match indicator */}
-            {confirmPassword && (
-              <div className="flex items-center gap-2 text-sm">
-                {password === confirmPassword ? (
-                  <>
-                    <svg
-                      aria-hidden="true"
-                      className="size-4 text-green-600"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M5 13l4 4L19 7"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    <span className="text-green-600">
-                      {t("passwordMatches")}
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <svg
-                      aria-hidden="true"
-                      className="size-4 text-red-600"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M6 18L18 6M6 6l12 12"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    <span className="text-red-600">
-                      {t("passwordMismatch")}
-                    </span>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
+        <SubmitButton isSuccessful={isSuccessful}>{t("submit")}</SubmitButton>
 
-          <SubmitButton isSuccessful={isSuccessful}>{t("submit")}</SubmitButton>
-
-          <p className="mt-4 text-center text-gray-600 text-sm">
-            <Link
-              className="font-semibold text-gray-800 hover:underline"
-              href="/login"
-            >
-              {t("backToLogin")}
-            </Link>
-          </p>
-        </Form>
-      </div>
-      <SupportLink
-        linkText={tSupport("linkText")}
-        text={tSupport("needHelp")}
-      />
-    </div>
+        <p className="mt-4 text-center text-gray-600 text-sm">
+          <Link
+            className="font-semibold text-gray-800 hover:underline"
+            href="/login"
+          >
+            {t("backToLogin")}
+          </Link>
+        </p>
+      </Form>
+    </AuthPageLayout>
   );
 }
