@@ -18,7 +18,7 @@ export default async function UsageHistoryPage() {
   const t = await getTranslations("auth.subscription.history");
 
   return (
-    <div className="container mx-auto max-w-4xl p-6">
+    <div className="container mx-auto max-w-4xl p-4 md:p-6">
       <div className="mb-4">
         <Link href="/subscription">
           <Button className="gap-2" variant="ghost">
