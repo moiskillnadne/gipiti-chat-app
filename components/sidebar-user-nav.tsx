@@ -49,7 +49,7 @@ export function SidebarUserNav({ user }: { user: User }) {
   return (
     <div className="-mx-2 flex items-center border-rule border-t">
       <Link
-        className="flex min-w-0 flex-1 items-center gap-2.5 px-3 py-3 transition-colors duration-fast ease-canon hover:bg-paper-3"
+        className="focus-visible:-outline-offset-2 flex min-w-0 flex-1 items-center gap-2.5 px-3 py-3 transition-colors duration-fast ease-canon hover:bg-paper-3"
         data-testid="user-nav-button"
         href="/subscription"
         title={t("navigation.account")}

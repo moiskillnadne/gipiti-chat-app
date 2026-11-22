@@ -242,6 +242,16 @@
     @apply border-border outline-ring/50;
   }
 
+  /* Keyboard focus indicator for everything that does not draw its own: a solid ink outline
+     (≥14:1 on paper, paper-2, paper-3 and white). The 2px offset leaves a gap of the page
+     background, so it also shows around filled (ink, citrus) controls. An outline, not a
+     box-shadow, survives forced-colors mode. Utilities (outline-none, outline-hidden) still
+     override it, being in a later layer. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
   html {
     overflow-x: hidden;
   }

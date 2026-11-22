@@ -30,7 +30,7 @@ export const ContextChipTrigger = forwardRef<
     return (
       <button
         className={cn(
-          "inline-flex max-w-full shrink-0 items-center gap-2 whitespace-nowrap rounded-pill py-[5px] pr-2.5 pl-2 text-[12px] leading-none focus-visible:outline-none",
+          "inline-flex max-w-full shrink-0 items-center gap-2 whitespace-nowrap rounded-pill py-[5px] pr-2.5 pl-2 text-[12px] leading-none",
           empty && "text-ink-3",
           !empty && "text-ink-2",
           className
