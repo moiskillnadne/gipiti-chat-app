@@ -8,6 +8,7 @@ import {
   NETWORK_FORM_ERROR,
   PASSWORD_MISMATCH_FORM_ERROR,
 } from "@/app/(auth)/_lib/form-errors";
+import { createTranslator } from "@/lib/i18n/format";
 import messages from "@/messages/ru.json" with { type: "json" };
 
 const formErrorMessages: Record<string, string> = messages.auth.formErrors;
@@ -23,7 +24,7 @@ describe("getLoginFormError", () => {
     // Assert
     expect(formError).toEqual({
       messageKey: "invalidCredentials",
-      fields: ["email", "password"],
+      fields: ["password", "email"],
     });
   });
 
@@ -44,7 +45,7 @@ describe("getLoginFormError", () => {
 
 describe("getRegisterFormError", () => {
   it.each([
-    ["invalid_data", "registerInvalidData", ["email", "password"]],
+    ["invalid_data", "registerInvalidData", ["password"]],
     ["user_exists", "userExists", ["email"]],
     ["disposable_email", "disposableEmail", ["email"]],
     ["rate_limited", "registerRateLimited", []],
@@ -141,4 +142,28 @@ describe("auth form error messages", () => {
       expect(message).not.toContain("!");
     }
   );
+});
+
+describe("resetRequestRateLimitedFor wording", () => {
+  const translate = createTranslator(messages, "auth.formErrors");
+
+  it.each([
+    [1, "через 1 минуту."],
+    [2, "через 2 минуты."],
+    [5, "через 5 минут."],
+    [11, "через 11 минут."],
+    [21, "через 21 минуту."],
+  ])("renders %i minutes as «%s»", (minutes, expectedEnding) => {
+    // Arrange
+    const formError = getForgotPasswordFormError({
+      status: "rate_limited",
+      resetMinutes: minutes,
+    }) as AuthFormError;
+
+    // Act
+    const message = translate(formError.messageKey, formError.params);
+
+    // Assert
+    expect(message.endsWith(expectedEnding)).toBe(true);
+  });
 });

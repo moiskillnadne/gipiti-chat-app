@@ -21,7 +21,17 @@ export type AuthFormError = {
   fields: readonly AuthFormField[];
 };
 
+/**
+ * Wrong credentials mark both fields but list the password first, so it gets
+ * focus: the email is kept and the password is the likelier mistake.
+ */
+const WRONG_CREDENTIAL_FIELDS: readonly AuthFormField[] = ["password", "email"];
 const CREDENTIAL_FIELDS: readonly AuthFormField[] = ["email", "password"];
+
+/** Fails typecheck when a server action gains a status this file ignores. */
+const assertUnhandledStatus = (status: never): null => {
+  throw new Error(`Unhandled auth form status: ${String(status)}`);
+};
 
 /** The server could not be reached, or it answered with an error page. */
 export const NETWORK_FORM_ERROR: AuthFormError = {
@@ -44,13 +54,20 @@ export const getLoginFormError = ({
 }: LoginActionState): AuthFormError | null => {
   switch (status) {
     case "failed":
-      return { messageKey: "invalidCredentials", fields: CREDENTIAL_FIELDS };
+      return {
+        messageKey: "invalidCredentials",
+        fields: WRONG_CREDENTIAL_FIELDS,
+      };
     case "invalid_data":
       return { messageKey: "loginInvalidData", fields: CREDENTIAL_FIELDS };
     case "rate_limited":
       return { messageKey: "loginRateLimited", fields: [] };
-    default:
+    case "idle":
+    case "in_progress":
+    case "success":
       return null;
+    default:
+      return assertUnhandledStatus(status);
   }
 };
 
@@ -58,8 +75,10 @@ export const getRegisterFormError = ({
   status,
 }: RegisterActionState): AuthFormError | null => {
   switch (status) {
+    // The browser checks the email format before submit (`type="email"`), so
+    // in practice the password failed the server schema.
     case "invalid_data":
-      return { messageKey: "registerInvalidData", fields: CREDENTIAL_FIELDS };
+      return { messageKey: "registerInvalidData", fields: ["password"] };
     // The server already tells this state apart; whether it should is
     // GIPITI-203. The wording only points to the next step.
     case "user_exists":
@@ -70,8 +89,12 @@ export const getRegisterFormError = ({
       return { messageKey: "registerRateLimited", fields: [] };
     case "failed":
       return { messageKey: "registerFailed", fields: [] };
-    default:
+    case "idle":
+    case "in_progress":
+    case "success":
       return null;
+    default:
+      return assertUnhandledStatus(status);
   }
 };
 
@@ -96,8 +119,12 @@ export const getForgotPasswordFormError = ({
         : { messageKey: "resetRequestRateLimited", fields: [] };
     case "failed":
       return { messageKey: "resetRequestFailed", fields: [] };
-    default:
+    case "idle":
+    case "in_progress":
+    case "success":
       return null;
+    default:
+      return assertUnhandledStatus(status);
   }
 };
 
@@ -111,7 +138,11 @@ export const getResetPasswordFormError = ({
       return { messageKey: "resetLinkInvalid", fields: [] };
     case "failed":
       return { messageKey: "resetFailed", fields: [] };
-    default:
+    case "idle":
+    case "in_progress":
+    case "success":
       return null;
+    default:
+      return assertUnhandledStatus(status);
   }
 };

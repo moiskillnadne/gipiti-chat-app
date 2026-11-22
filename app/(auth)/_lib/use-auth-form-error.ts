@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { clientLog } from "@/lib/client-logger";
 import { useTranslations } from "@/lib/i18n/translate";
 
 import {
@@ -93,9 +94,15 @@ export const useAuthFormError = ({
       const nextState = await action();
       setFormError(getError(nextState));
       return nextState;
-    } catch {
+    } catch (error) {
       // The request never produced an action result; the message tells the
-      // user to check the connection, and the form keeps its values.
+      // user to check the connection, and the form keeps its values. The log
+      // names the form only: field values never leave the browser here.
+      clientLog.error("Auth form action rejected", {
+        form: errorId,
+        errorName: error instanceof Error ? error.name : typeof error,
+        errorMessage: error instanceof Error ? error.message : undefined,
+      });
       setFormError(NETWORK_FORM_ERROR);
       return fallbackState;
     }
