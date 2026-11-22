@@ -165,6 +165,7 @@ describe("takeVerificationAttempt against a real database", () => {
       userId,
       hashedCode: NEW_HASHED_CODE,
       attemptsUsed: 1,
+      signupPlatform: null,
     });
   });
 

@@ -13,6 +13,7 @@ import { isUniqueViolation } from "@/server/db/unique-violation";
 import { generateHashedPassword } from "@/server/db/utils";
 import { normalizeEmail } from "@/server/modules/auth/normalize-email";
 import type { RegistrationGeo } from "@/server/modules/auth/registration-geo";
+import type { SignupPlatform } from "@/server/modules/users/signup-platform";
 
 /**
  * Raised when an address is already registered. The register action pre-checks
@@ -33,6 +34,7 @@ type NewUserValues = {
   hashedPassword: string;
   utmData?: UtmData;
   registrationGeo?: RegistrationGeo;
+  signupPlatform?: SignupPlatform;
 };
 
 /**
@@ -43,7 +45,13 @@ type NewUserValues = {
  */
 const insertUser = async (
   executor: DatabaseExecutor,
-  { email, hashedPassword, utmData, registrationGeo }: NewUserValues
+  {
+    email,
+    hashedPassword,
+    utmData,
+    registrationGeo,
+    signupPlatform,
+  }: NewUserValues
 ): Promise<User> => {
   try {
     const [created] = await executor
@@ -64,6 +72,7 @@ const insertUser = async (
           registrationCity: registrationGeo.city,
           registrationLanguage: registrationGeo.language,
         }),
+        ...(signupPlatform !== undefined && { signupPlatform }),
       })
       .returning();
 
@@ -79,23 +88,27 @@ const insertUser = async (
   }
 };
 
+type NewAccountInput = {
+  email: string;
+  password: string;
+  utmData?: UtmData;
+  registrationGeo?: RegistrationGeo;
+  /** Set for a sign-up through the API; its welcome grant is deferred. */
+  signupPlatform?: SignupPlatform;
+};
+
 /**
- * Create an account together with its balance row and one-time welcome grant.
- *
- * All three are written in one transaction: a failure after the insert rolls
- * the account back, and the same email can sign up again. An account that
- * outlived a failed grant could not be repaired, because the register action
- * reports a failure and every retry then finds the email taken.
- *
- * @throws DuplicateEmailError when the address already has an account; nothing
- * is granted
+ * Writes the `User` row and its balance row in one transaction, and credits
+ * the welcome grant in the same transaction unless the account is created
+ * with a sign-up platform.
  */
-export async function createUser(
-  email: string,
-  password: string,
-  utmData?: UtmData,
-  registrationGeo?: RegistrationGeo
-): Promise<User> {
+const createAccount = async ({
+  email,
+  password,
+  utmData,
+  registrationGeo,
+  signupPlatform,
+}: NewAccountInput): Promise<User> => {
   // Hashed before the transaction: bcrypt is slow and must not hold a
   // connection.
   const hashedPassword = generateHashedPassword(password);
@@ -109,11 +122,19 @@ export async function createUser(
       hashedPassword,
       utmData,
       registrationGeo,
+      signupPlatform,
     });
 
-    // Seed the currency-based balance: ensure a zeroed row, then credit the
-    // welcome grant to the persistent top-up pool so it never resets.
+    // Seed the currency-based balance with a zeroed row.
     await ensureBalance(newUser.id, DEFAULT_CURRENCY_CODE, tx);
+
+    // The welcome grant of an API sign-up waits for the email to be verified
+    // (`grantDeferredWelcomeBonus`).
+    if (signupPlatform !== undefined) {
+      return newUser;
+    }
+
+    // Credited to the persistent top-up pool, so it never resets.
     const minorUnits = await getMinorUnits(DEFAULT_CURRENCY_CODE, tx);
     await creditBalance(
       {
@@ -128,4 +149,44 @@ export async function createUser(
 
     return newUser;
   });
+};
+
+/**
+ * Create an account together with its balance row and one-time welcome grant.
+ * This is the website's sign-up.
+ *
+ * All three are written in one transaction: a failure after the insert rolls
+ * the account back, and the same email can sign up again. An account that
+ * outlived a failed grant could not be repaired, because the register action
+ * reports a failure and every retry then finds the email taken.
+ *
+ * @throws DuplicateEmailError when the address already has an account; nothing
+ * is granted
+ */
+export function createUser(
+  email: string,
+  password: string,
+  utmData?: UtmData,
+  registrationGeo?: RegistrationGeo
+): Promise<User> {
+  return createAccount({ email, password, utmData, registrationGeo });
+}
+
+/**
+ * Create an account for a sign-up through the API: the same account and
+ * balance row, with `signup_platform` recorded and **no welcome grant yet**.
+ * The grant is credited when the email is verified.
+ *
+ * The API is easy to script, and a script must not be paid for an address
+ * nobody reads; a verified mailbox is what the grant waits for.
+ *
+ * @throws DuplicateEmailError when the address already has an account
+ */
+export function createUserWithDeferredWelcomeGrant(
+  input: Required<
+    Pick<NewAccountInput, "email" | "password" | "signupPlatform">
+  > &
+    Pick<NewAccountInput, "utmData" | "registrationGeo">
+): Promise<User> {
+  return createAccount(input);
 }

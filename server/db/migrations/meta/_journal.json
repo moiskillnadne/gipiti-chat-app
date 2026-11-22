@@ -337,6 +337,13 @@
       "when": 1795365172362,
       "tag": "0047_auth_sessions",
       "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1795366858193,
+      "tag": "0048_user_signup_platform",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,15 @@
+-- Where an account was created from, when it was created through the API
+-- (roadmap Phase 4e, GIPITI-263): 'ios' or 'android'. NULL for an account
+-- created on the website, and for every account older than this column.
+--
+-- It decides when the welcome grant is paid. A website sign-up gets it at
+-- once, as before. A sign-up through the API gets it only after the email is
+-- verified: the JSON endpoint is easy to script, and a script should not be
+-- paid for an address nobody reads. The grant is then credited when this
+-- column is set and the account has no welcome transaction yet.
+--
+-- The rule needs a marker of its own. "No welcome transaction yet" alone
+-- would also pay accounts created before the welcome grant existed.
+--
+-- Additive: a nullable column with no default does not rewrite the table.
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "signup_platform" varchar(16);

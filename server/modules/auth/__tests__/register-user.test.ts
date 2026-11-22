@@ -9,6 +9,7 @@ import {
 } from "@/server/modules/auth/register-user";
 import {
   createUser,
+  createUserWithDeferredWelcomeGrant,
   DuplicateEmailError,
 } from "@/server/modules/users/queries/create-user";
 import { getUserByEmail } from "@/server/modules/users/queries/get-by-email";
@@ -20,7 +21,11 @@ vi.mock("@/server/http/rate-limit", () => ({
 vi.mock("@/server/modules/users/queries/create-user", () => {
   class DuplicateEmailErrorStub extends Error {}
 
-  return { createUser: vi.fn(), DuplicateEmailError: DuplicateEmailErrorStub };
+  return {
+    createUser: vi.fn(),
+    createUserWithDeferredWelcomeGrant: vi.fn(),
+    DuplicateEmailError: DuplicateEmailErrorStub,
+  };
 });
 vi.mock("@/server/modules/users/queries/get-by-email", () => ({
   getUserByEmail: vi.fn(),
@@ -65,6 +70,7 @@ beforeEach(() => {
   vi.mocked(checkRegisterRateLimit).mockResolvedValue({ success: true });
   vi.mocked(getUserByEmail).mockResolvedValue(null);
   vi.mocked(createUser).mockResolvedValue(createdUser);
+  vi.mocked(createUserWithDeferredWelcomeGrant).mockResolvedValue(createdUser);
 });
 
 describe("registerUser", () => {
@@ -82,6 +88,43 @@ describe("registerUser", () => {
       GEO
     );
     expect(checkRegisterRateLimit).toHaveBeenCalledWith(IP);
+  });
+
+  it("creates a website account with its welcome grant when no platform is given", async () => {
+    // Act
+    await registerUser(input);
+
+    // Assert
+    expect(createUserWithDeferredWelcomeGrant).not.toHaveBeenCalled();
+  });
+
+  it("creates an API account without a welcome grant when a platform is given", async () => {
+    // Act
+    const result = await registerUser({ ...input, signupPlatform: "ios" });
+
+    // Assert
+    expect(result).toEqual({ status: "registered", account: createdAccount });
+    expect(createUserWithDeferredWelcomeGrant).toHaveBeenCalledExactlyOnceWith({
+      email: EMAIL,
+      password: PASSWORD,
+      utmData: UTM,
+      registrationGeo: GEO,
+      signupPlatform: "ios",
+    });
+    expect(createUser).not.toHaveBeenCalled();
+  });
+
+  it("answers user_exists when an API sign-up loses a race for the email", async () => {
+    // Arrange
+    vi.mocked(createUserWithDeferredWelcomeGrant).mockRejectedValue(
+      new DuplicateEmailError(EMAIL)
+    );
+
+    // Act
+    const result = await registerUser({ ...input, signupPlatform: "android" });
+
+    // Assert
+    expect(result).toEqual({ status: "user_exists" });
   });
 
   it("answers signup_disabled before anything else when the flag is off", async () => {

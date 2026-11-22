@@ -1,5 +1,6 @@
 import { grantEmailVerificationBonus } from "@/lib/billing/balance";
 import { checkVerificationAttemptRateLimit } from "@/server/http/rate-limit";
+import { markVerifiedAndGrantDeferredWelcome } from "@/server/modules/auth/queries/verify-api-signup-email";
 import { verifyToken } from "@/server/modules/auth/reset-token";
 import { getUserByEmail } from "@/server/modules/users/queries/get-by-email";
 import { markEmailAsVerified } from "@/server/modules/users/queries/mark-email-as-verified";
@@ -9,8 +10,16 @@ import {
 } from "@/server/modules/users/queries/take-verification-attempt";
 
 export type VerifyEmailCodeResult =
-  /** `isBonusGranted` is false when the bonus was paid before, or failed. */
-  | { status: "verified"; isBonusGranted: boolean }
+  /**
+   * `isBonusGranted`: the email-confirmation bonus was credited now (false
+   * when it was paid before, or failed). `isWelcomeGrantCredited`: the
+   * welcome grant an API sign-up had been waiting for was credited now.
+   */
+  | {
+      status: "verified";
+      isBonusGranted: boolean;
+      isWelcomeGrantCredited: boolean;
+    }
   /**
    * A wrong code; `attemptsLeft` more guesses before the code dies. It is 0
    * when there was no live code to guess against (none was ever sent, or no
@@ -95,10 +104,27 @@ export const verifyEmailCode = async ({
       : { status: "expired_code" };
   }
 
-  await markEmailAsVerified({ email });
+  // An account created through the API is owed its welcome grant now. The
+  // two are one transaction: if the grant fails, the email is not verified
+  // either and this function throws; the user enters the code again, or
+  // asks for a new one. An email left verified with its grant unpaid could
+  // never be paid: a verified account has no code to enter.
+  const isApiSignup =
+    attempt.signupPlatform !== null && attempt.signupPlatform !== undefined;
+
+  let isWelcomeGrantCredited = false;
+  if (isApiSignup) {
+    isWelcomeGrantCredited = await markVerifiedAndGrantDeferredWelcome({
+      email,
+      userId: attempt.userId,
+    });
+  } else {
+    await markEmailAsVerified({ email });
+  }
 
   return {
     status: "verified",
     isBonusGranted: await grantBonus(attempt.userId),
+    isWelcomeGrantCredited,
   };
 };

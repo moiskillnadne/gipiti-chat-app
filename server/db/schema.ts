@@ -60,6 +60,11 @@ export const user = pgTable(
     registrationCity: varchar("registration_city", { length: 255 }),
     registrationLanguage: varchar("registration_language", { length: 35 }),
 
+    // Set for an account created through the API ('ios', 'android'); null
+    // for the website and for older accounts. An account with a platform
+    // gets its welcome grant when the email is verified, not at sign-up.
+    signupPlatform: varchar("signup_platform", { length: 16 }),
+
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
