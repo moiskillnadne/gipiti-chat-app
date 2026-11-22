@@ -1124,9 +1124,11 @@
 }
 
 /* The amount never clips (the hero has overflow: hidden): the sizes shrink
-   with the hero's width (cqi of .heroInner) so a seven-digit amount still
+   with the hero's width (cqi of .heroInner) so an eight-digit amount still
    fits one line, and the kopecks with the currency drop to a second line
-   together when the whole row does not fit. Wide heroes keep the px caps. */
+   together when the whole row does not fit. Wide heroes keep the px caps.
+   The fluid sizes live in an @supports block after the 720px media query;
+   browsers without cqi keep these px sizes. */
 .balanceRow {
   align-items: baseline;
   display: flex;
@@ -1141,7 +1143,9 @@
 
 .balanceNum {
   color: var(--ink);
-  font-size: min(96px, 24cqi);
+  font-size: 96px;
+  /* Last resort for a still longer amount: break rather than clip. */
+  overflow-wrap: anywhere;
 }
 
 .balanceTail {
@@ -1153,14 +1157,14 @@
 
 .balanceFrac {
   color: var(--ink-2);
-  font-size: min(40px, 10cqi);
+  font-size: 40px;
   font-weight: 300;
   margin-left: -2px;
 }
 
 .balanceCur {
   color: var(--ink-2);
-  font-size: min(56px, 14cqi);
+  font-size: 56px;
   font-weight: 300;
   margin-left: 6px;
 }
@@ -1579,12 +1583,37 @@
     grid-template-columns: 1fr;
   }
   .balanceNum {
-    font-size: min(64px, 24cqi);
+    font-size: 64px;
   }
   .balanceFrac {
-    font-size: min(28px, 10.5cqi);
+    font-size: 28px;
   }
   .balanceCur {
-    font-size: min(36px, 13.5cqi);
+    font-size: 36px;
+  }
+}
+
+/* Fluid balance sizes (see .balanceRow); px caps match the rules above. */
+@supports (width: 1cqi) {
+  .balanceNum {
+    font-size: min(96px, 21cqi);
+  }
+  .balanceFrac {
+    font-size: min(40px, 8.75cqi);
+  }
+  .balanceCur {
+    font-size: min(56px, 12.25cqi);
+  }
+
+  @media (max-width: 720px) {
+    .balanceNum {
+      font-size: min(64px, 21cqi);
+    }
+    .balanceFrac {
+      font-size: min(28px, 9.2cqi);
+    }
+    .balanceCur {
+      font-size: min(36px, 11.8cqi);
+    }
   }
 }

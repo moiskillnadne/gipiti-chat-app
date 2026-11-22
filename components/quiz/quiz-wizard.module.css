@@ -811,6 +811,18 @@
   color: var(--ink);
 }
 
+/* Short viewports (a phone in landscape) keep the centered card, but a
+   visible close matters there: pin it in the corner, out of the flow. */
+@media (max-height: 480px) and (min-width: 481px) {
+  .mtop {
+    display: flex;
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 1;
+  }
+}
+
 /* ---- mobile full-screen takeover ---- */
 @media (max-width: 480px) {
   .modal.modalA {

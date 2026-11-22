@@ -139,7 +139,7 @@ export function PromptDetailModal({
             ) : null}
           </div>
 
-          <div className="flex items-center gap-2.5 border-rule border-t bg-card-sunk px-[22px] py-4">
+          <div className="flex flex-wrap items-center gap-2.5 border-rule border-t bg-card-sunk px-[22px] py-4">
             <button
               className={`inline-flex items-center gap-2 rounded-[9px] border px-[13px] py-[9px] font-medium text-[13px] transition-colors duration-fast ease-canon ${
                 isFavorite

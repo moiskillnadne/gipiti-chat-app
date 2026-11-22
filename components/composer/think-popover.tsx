@@ -162,6 +162,7 @@ export function ThinkPopover() {
             isAnyActive && "border-citrus bg-citrus-soft text-ink",
             "data-[state=open]:bg-paper-2 data-[state=open]:text-ink"
           )}
+          title={triggerLabel}
           type="button"
         >
           <Brain className="size-3.5" strokeWidth={1.6} />

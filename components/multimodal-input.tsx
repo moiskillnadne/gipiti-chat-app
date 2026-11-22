@@ -468,7 +468,7 @@ function PureMultimodalInput({
           value={input}
         />
 
-        <div className="flex items-center gap-1 px-2.5 pt-2 pb-2.5">
+        <div className="flex items-end gap-1 px-2.5 pt-2 pb-2.5">
           {/* Tools wrap onto a second line instead of squeezing each other or
               pushing the send button out of the form on narrow screens. */}
           <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1 *:shrink-0">
