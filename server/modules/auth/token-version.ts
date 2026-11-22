@@ -148,6 +148,35 @@ export const getTokenVersionForNewSession = async (
 };
 
 /**
+ * Called when a session is issued under `version`, a number just read from
+ * the database. If the cache holds a lower one, the cache is behind (a bump
+ * whose cache write was lost) and would refuse this very session until it
+ * expired; the stale entry is dropped, and the next check reads the database.
+ *
+ * Only ever drops. Writing `version` into the cache instead would be wrong:
+ * it may itself be a moment old, and the cache must never be set back.
+ */
+export const forgetTokenVersionOlderThan = async (
+  userId: string,
+  version: number
+): Promise<void> => {
+  const redis = getUpstashClient();
+  if (!redis) {
+    return;
+  }
+
+  try {
+    const cached = await redis.get<number>(cacheKeyOf(userId));
+
+    if (typeof cached === "number" && cached < version) {
+      await redis.del(cacheKeyOf(userId));
+    }
+  } catch (error) {
+    console.warn("[token-version] could not drop a stale cache entry:", error);
+  }
+};
+
+/**
  * Whether a session was issued under the account's current token version.
  *
  * False when the version moved on (password reset, "log out everywhere") or

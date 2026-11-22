@@ -1,4 +1,8 @@
 import { auth, signIn } from "@/server/modules/auth/next-auth";
+import {
+  hasSignInEndedWithoutSession,
+  type SignInOutcome,
+} from "@/server/modules/auth/sign-in-outcome";
 
 /**
  * The account of the browser session that the current request carries, or
@@ -22,6 +26,11 @@ export const getCookieSessionUserId = async (): Promise<string | null> => {
  * Signs in through Auth.js, as the login form does, so the new cookie is
  * issued under the account's new token version. Writes the cookie of the
  * response in flight, so it works only inside a route handler or an action.
+ *
+ * Never throws: it runs after the password has already been changed, and a
+ * failure here must not turn that into an error. It answers whether the
+ * browser now holds a session; when it does not, the user signs in again
+ * with the new password.
  */
 export const renewCookieSession = async ({
   email,
@@ -29,6 +38,17 @@ export const renewCookieSession = async ({
 }: {
   email: string;
   password: string;
-}): Promise<void> => {
-  await signIn("credentials", { email, password, redirect: false });
+}): Promise<boolean> => {
+  try {
+    const outcome: SignInOutcome = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
+
+    return !hasSignInEndedWithoutSession(outcome);
+  } catch (error) {
+    console.error("[cookie-session] could not renew the session:", error);
+    return false;
+  }
 };

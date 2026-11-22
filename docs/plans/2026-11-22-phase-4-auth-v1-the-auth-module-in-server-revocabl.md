@@ -161,6 +161,9 @@ The email for send and verify comes from the principal's user row, never from th
 As built, where it differs from the table above:
 
 - `POST /auth/password/change` takes no `revokeOtherSessions` flag: a changed password always ends every other session (P7), and the caller gets a new one of the kind it came with. The current password is checked through `authenticateCredentials`, so guessing it here is held back by the login limits.
+- `POST /auth/password/change` answers `{ tokens, sessionRenewed }`. Once the password is changed nothing fails the request any more: if the caller's new session cannot be opened (the new cookie through Auth.js, or the new pair), the answer is still 200 with `sessionRenewed: false`, and the user signs in again with the new password (found by the review; before, that was a 500 or a silent sign-out).
+- `POST /auth/email-verification/verify` answers 503, not 429, when its limit cannot be checked (`verifyEmailCode` gained `limiter_unavailable`).
+- A session issued while the cached token version is behind the database (a bump whose cache write was lost) would be refused until the cache expired; the `jwt` callback now drops such a stale entry when it issues a session (`forgetTokenVersionOlderThan`).
 - `POST /auth/password/forgot` answers 202 also when the mail could not be sent: another answer would say that the address has an account. The service logs the failure.
 - `POST /auth/email-verification/send` answers 503 when the mail provider refuses or the limit cannot be checked, and 429 with `data.retryAfterSeconds`.
 - `POST /auth/email-verification/verify` also answers `welcomeGrantCredited`.

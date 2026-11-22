@@ -215,7 +215,7 @@
     },
     "/auth/email-verification/verify": {
       "post": {
-        "description": "Checks the code against the signed-in account. On success the email-confirmation bonus is credited once; an account created through `POST /auth/register` also receives its welcome grant here.\n\n400 `invalid_code` with `data.attemptsLeft`; 400 `expired_code` when the code is too old or its guesses are used up (ask for a new one); 409 `already_verified`; 429 `too_many_attempts`.",
+        "description": "Checks the code against the signed-in account. On success the email-confirmation bonus is credited once; an account created through `POST /auth/register` also receives its welcome grant here.\n\n400 `invalid_code` with `data.attemptsLeft`; 400 `expired_code` when the code is too old or its guesses are used up (ask for a new one); 409 `already_verified`; 429 `too_many_attempts`; 503 when that limit cannot be checked (the code was not spent; retry).",
         "operationId": "auth.emailVerification.verify",
         "requestBody": {
           "content": {
@@ -430,6 +430,39 @@
               }
             },
             "description": "429"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: SERVICE_UNAVAILABLE. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "503"
           }
         },
         "summary": "Confirm the account's email with the code",
@@ -923,7 +956,7 @@
     },
     "/auth/password/change": {
       "post": {
-        "description": "Needs an access token or a browser session, and the current password. Every other session of the account ends. The caller stays signed in: with an access token the answer carries a new pair (the old tokens stop working at once), a browser gets a fresh cookie.\n\n401 `invalid_credentials` when the current password is wrong; wrong guesses count against the same limits as signing in (429, 503). 400 `weak_password`.",
+        "description": "Needs an access token or a browser session, and the current password. Every other session of the account ends. The caller stays signed in: with an access token the answer carries a new pair (the old tokens stop working at once), a browser gets a fresh cookie. In the rare case that the new session could not be opened the answer is still 200, with `sessionRenewed: false`: the password is changed, and the user signs in again with it.\n\n401 `invalid_credentials` when the current password is wrong; wrong guesses count against the same limits as signing in (429, 503). 400 `weak_password`.",
         "operationId": "auth.password.change",
         "requestBody": {
           "content": {
@@ -957,6 +990,10 @@
               "application/json": {
                 "schema": {
                   "properties": {
+                    "sessionRenewed": {
+                      "description": "Whether the caller is still signed in. The password is changed either way; when this is false the caller's session could not be replaced, and the user has to sign in again with the new password.",
+                      "type": "boolean"
+                    },
                     "tokens": {
                       "anyOf": [
                         {
@@ -995,11 +1032,12 @@
                           "type": "null"
                         }
                       ],
-                      "description": "A new pair for a caller with an access token, whose old session ended with the change. Null for a browser session, which gets a fresh cookie instead."
+                      "description": "A new pair for a caller with an access token, whose old session ended with the change. Null for a browser session, which gets a fresh cookie instead, and null when `sessionRenewed` is false."
                     }
                   },
                   "required": [
-                    "tokens"
+                    "tokens",
+                    "sessionRenewed"
                   ],
                   "type": "object"
                 }
@@ -1493,7 +1531,7 @@
     },
     "/auth/register": {
       "post": {
-        "description": "For clients that are not the website: creates the account and signs it in. No credentials are needed to call it.\n\nThe welcome grant is **not** credited here. It is credited, together with the email-confirmation bonus, when the email is verified (`POST /auth/email-verification/send`, then `/verify`); the amounts are in `GET /config`.\n\n403 `signup_disabled` when registration is switched off. 409 `email_taken`. 400 `weak_password` or `disposable_email` (throwaway mailboxes are refused). 429 when too many accounts were created from this address; 503 when that limit cannot be checked.",
+        "description": "For clients that are not the website: creates the account and signs it in. No credentials are needed to call it.\n\nThe welcome grant is **not** credited here. It is credited, together with the email-confirmation bonus, when the email is verified (`POST /auth/email-verification/send`, then `/verify`); the amounts are in `GET /config`.\n\nIf a call failed and the next one answers 409 `email_taken`, the first one did create the account: sign in with `POST /auth/login`.\n\n403 `signup_disabled` when registration is switched off. 409 `email_taken`. 400 `weak_password` or `disposable_email` (throwaway mailboxes are refused). 429 when too many accounts were created from this address; 503 when that limit cannot be checked.",
         "operationId": "auth.register",
         "requestBody": {
           "content": {

@@ -25,6 +25,12 @@ const CLIENT = {
 /** Welcome grant (50) plus email-confirmation bonus (100), in kopecks. */
 const BALANCE_AFTER_VERIFICATION_MINOR = 15_000;
 
+/**
+ * The first request compiles the whole API route on a cold dev server, which
+ * can take longer than the default 30 seconds on a CI runner.
+ */
+const FIRST_REQUEST_TIMEOUT_MS = 120_000;
+
 type TokenPair = {
   tokenType: string;
   accessToken: string;
@@ -76,6 +82,7 @@ test.describe("auth API flow with bearer tokens", () => {
     // --- sign-up -----------------------------------------------------------
     const registered = await request.post(`${API}/auth/register`, {
       data: { email, password: PASSWORD, language: "ru-RU", client: CLIENT },
+      timeout: FIRST_REQUEST_TIMEOUT_MS,
     });
     expect(registered.status()).toBe(201);
     const registration = await registered.json();

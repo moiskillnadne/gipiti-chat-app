@@ -29,8 +29,10 @@ export type VerifyEmailCodeResult =
   /** The code is dead: too old, or its attempts are used up. Ask for a new one. */
   | { status: "expired_code" }
   | { status: "already_verified" }
-  /** Too many checks for this email, or the limit could not be checked. */
-  | { status: "rate_limited" };
+  /** Too many checks of codes for this email within the hour. */
+  | { status: "rate_limited" }
+  /** The limit could not be checked, so the check is refused. */
+  | { status: "limiter_unavailable" };
 
 /**
  * Why a code could not be checked for this email: the account is already
@@ -84,6 +86,9 @@ export const verifyEmailCode = async ({
   code: string;
 }): Promise<VerifyEmailCodeResult> => {
   const rateLimitResult = await checkVerificationAttemptRateLimit(email);
+  if (rateLimitResult.isUnavailable) {
+    return { status: "limiter_unavailable" };
+  }
   if (!rateLimitResult.success) {
     return { status: "rate_limited" };
   }

@@ -11,6 +11,7 @@ import {
   issueTokenPair,
   listSessions,
   type SessionClient,
+  type TokenPair,
 } from "@/server/modules/auth/sessions";
 
 /** Recorded for a session whose predecessor could not be found. */
@@ -32,6 +33,21 @@ const clientOfSession = async (
     deviceName: current?.deviceName ?? undefined,
     appVersion: current?.appVersion ?? undefined,
   };
+};
+
+/**
+ * `issueTokenPair` for a moment when a failure must not fail the request:
+ * null instead of a throw.
+ */
+const issueTokenPairSafely = async (
+  input: Parameters<typeof issueTokenPair>[0]
+): Promise<TokenPair | null> => {
+  try {
+    return await issueTokenPair(input);
+  } catch (error) {
+    console.error("[password/change] could not open a new session:", error);
+    return null;
+  }
 };
 
 export const passwordRouter = {
@@ -109,25 +125,30 @@ export const passwordRouter = {
 
       // The change ended every session of the account, the caller's own
       // included. The caller proved the current password, so it gets a new
-      // one of the kind it came with.
+      // one of the kind it came with. The password is changed for good by
+      // now: whatever happens to the new session, the answer is 200, and
+      // `sessionRenewed` says whether the caller is still signed in.
       const { account } = result;
 
       if (client === null) {
-        await renewCookieSession({
+        const isCookieRenewed = await renewCookieSession({
           email: account.email,
           password: input.newPassword,
         });
 
-        return { tokens: null };
+        return { tokens: null, sessionRenewed: isCookieRenewed };
       }
 
-      const tokens = await issueTokenPair({
+      const tokens = await issueTokenPairSafely({
         userId: account.id,
         tokenVersion: account.tokenVersion,
         client,
         ip,
       });
 
-      return { tokens: tokens ? toTokenPairDto(tokens) : null };
+      return {
+        tokens: tokens ? toTokenPairDto(tokens) : null,
+        sessionRenewed: tokens !== null,
+      };
     }),
 };

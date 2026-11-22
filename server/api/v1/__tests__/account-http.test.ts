@@ -165,6 +165,7 @@ beforeEach(() => {
   } as User);
   vi.mocked(getRateLimitResetSeconds).mockReturnValue(RETRY_AFTER_SECONDS);
   vi.mocked(issueTokenPair).mockResolvedValue(TOKEN_PAIR);
+  vi.mocked(renewCookieSession).mockResolvedValue(true);
   vi.mocked(loadMe).mockResolvedValue(ME);
   vi.mocked(listSessions).mockResolvedValue([]);
 });
@@ -324,6 +325,35 @@ describe("POST /auth/register", () => {
     expect(body.data?.reason).toBe(refusal.reason);
     expect(issueTokenPair).not.toHaveBeenCalled();
   });
+
+  it.each<[string, () => void]>([
+    [
+      "the session",
+      () => {
+        vi.mocked(issueTokenPair).mockResolvedValue(null);
+      },
+    ],
+    [
+      "the profile",
+      () => {
+        vi.mocked(loadMe).mockResolvedValue(null);
+      },
+    ],
+  ])(
+    "answers a sanitised 500 when the account exists but %s could not be produced",
+    async (_case, arrange) => {
+      // Arrange
+      vi.spyOn(console, "error").mockReturnValue(undefined);
+      arrange();
+
+      // Act
+      const response = await post("/auth/register", { body: registerBody });
+
+      // Assert: the client recovers by signing in; see the description.
+      expect(response.status).toBe(500);
+      expect((await response.json()).message).toBe("Internal server error");
+    }
+  );
 
   it("creates no account when sessions cannot be issued at all", async () => {
     // Arrange: the token secret is missing.
@@ -558,6 +588,23 @@ describe("POST /auth/email-verification/verify", () => {
     }
   );
 
+  it("answers 503, not 429, when the limit cannot be checked", async () => {
+    // Arrange
+    vi.mocked(verifyEmailCode).mockResolvedValue({
+      status: "limiter_unavailable",
+    });
+
+    // Act
+    const response = await post("/auth/email-verification/verify", {
+      headers: BEARER,
+      body: { code: CODE },
+    });
+
+    // Assert
+    expect(response.status).toBe(503);
+    expect((await response.json()).code).toBe("SERVICE_UNAVAILABLE");
+  });
+
   it("answers 401 without a session", async () => {
     // Act
     const response = await post("/auth/email-verification/verify", {
@@ -566,6 +613,20 @@ describe("POST /auth/email-verification/verify", () => {
 
     // Assert
     expect(response.status).toBe(401);
+    expect(verifyEmailCode).not.toHaveBeenCalled();
+  });
+
+  it("answers 403 to a browser session without same-origin proof", async () => {
+    // Arrange
+    useBrowserSession();
+
+    // Act
+    const response = await post("/auth/email-verification/verify", {
+      body: { code: CODE },
+    });
+
+    // Assert
+    expect(response.status).toBe(403);
     expect(verifyEmailCode).not.toHaveBeenCalled();
   });
 });
@@ -707,7 +768,10 @@ describe("POST /auth/password/change", () => {
 
     // Assert
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ tokens: TOKEN_PAIR_DTO });
+    expect(await response.json()).toEqual({
+      tokens: TOKEN_PAIR_DTO,
+      sessionRenewed: true,
+    });
     expect(changePassword).toHaveBeenCalledExactlyOnceWith({
       userId: USER_ID,
       currentPassword: PASSWORD,
@@ -735,7 +799,10 @@ describe("POST /auth/password/change", () => {
 
     // Assert
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ tokens: null });
+    expect(await response.json()).toEqual({
+      tokens: null,
+      sessionRenewed: true,
+    });
     expect(renewCookieSession).toHaveBeenCalledExactlyOnceWith({
       email: EMAIL,
       password: NEW_PASSWORD,
@@ -776,6 +843,79 @@ describe("POST /auth/password/change", () => {
       expect(renewCookieSession).not.toHaveBeenCalled();
     }
   );
+
+  it("still answers 200 when the browser's cookie could not be renewed, and says so", async () => {
+    // Arrange: the password is already changed when this fails.
+    useBrowserSession();
+    vi.mocked(renewCookieSession).mockResolvedValue(false);
+
+    // Act
+    const response = await post("/auth/password/change", {
+      headers: SAME_ORIGIN,
+      body: changeBody,
+    });
+
+    // Assert
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      tokens: null,
+      sessionRenewed: false,
+    });
+  });
+
+  it.each<[string, () => void]>([
+    [
+      "is refused",
+      () => {
+        vi.mocked(issueTokenPair).mockResolvedValue(null);
+      },
+    ],
+    [
+      "fails",
+      () => {
+        vi.mocked(issueTokenPair).mockRejectedValue(new Error("db down"));
+      },
+    ],
+  ])(
+    "still answers 200 to a caller with an access token when the new session %s",
+    async (_case, arrange) => {
+      // Arrange
+      vi.spyOn(console, "error").mockReturnValue(undefined);
+      arrange();
+
+      // Act
+      const response = await post("/auth/password/change", {
+        headers: BEARER,
+        body: changeBody,
+      });
+
+      // Assert: a 500 here would hide that the password did change.
+      expect(response.status).toBe(200);
+      expect(await response.json()).toEqual({
+        tokens: null,
+        sessionRenewed: false,
+      });
+    }
+  );
+
+  it("opens the new session for an unknown device when the old session is no longer listed", async () => {
+    // Arrange: `listSessions` answers nothing for the caller's session.
+    vi.mocked(listSessions).mockResolvedValue([]);
+
+    // Act
+    await post("/auth/password/change", { headers: BEARER, body: changeBody });
+
+    // Assert
+    expect(issueTokenPair).toHaveBeenCalledWith(
+      expect.objectContaining({
+        client: {
+          platform: "unknown",
+          deviceName: undefined,
+          appVersion: undefined,
+        },
+      })
+    );
+  });
 
   it("answers 401 without a session and 403 to a browser session without same-origin proof", async () => {
     // Act

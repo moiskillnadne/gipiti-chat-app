@@ -56,7 +56,7 @@ export const passwordContract = {
       path: "/auth/password/change",
       summary: "Change the password of the signed-in account",
       description: [
-        "Needs an access token or a browser session, and the current password. Every other session of the account ends. The caller stays signed in: with an access token the answer carries a new pair (the old tokens stop working at once), a browser gets a fresh cookie.",
+        "Needs an access token or a browser session, and the current password. Every other session of the account ends. The caller stays signed in: with an access token the answer carries a new pair (the old tokens stop working at once), a browser gets a fresh cookie. In the rare case that the new session could not be opened the answer is still 200, with `sessionRenewed: false`: the password is changed, and the user signs in again with it.",
         "",
         "401 `invalid_credentials` when the current password is wrong; wrong guesses count against the same limits as signing in (429, 503). 400 `weak_password`.",
       ].join("\n"),

@@ -7,6 +7,7 @@ import { authConfig } from "@/server/modules/auth/next-auth.config";
 import { getAuthSecret } from "@/server/modules/auth/secret";
 import { RATE_LIMITED_SIGN_IN_CODE } from "@/server/modules/auth/sign-in-error-codes";
 import {
+  forgetTokenVersionOlderThan,
   getTokenVersionForNewSession,
   isSessionVersionCurrent,
 } from "@/server/modules/auth/token-version";
@@ -117,6 +118,8 @@ export const {
           user.tokenVersion ??
           (await getTokenVersionForNewSession(token.id)) ??
           0;
+        // A cached version behind this one would refuse the new session.
+        await forgetTokenVersionOlderThan(token.id, token.ver);
       } else if (!(await isSessionVersionCurrent(token))) {
         // The account's token version moved on since this session was issued
         // (a password reset, "log out everywhere"), or the account is gone.

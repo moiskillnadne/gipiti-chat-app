@@ -174,7 +174,11 @@ export const changePasswordInputSchema = z.object({
 export const changePasswordOutputSchema = z.object({
   tokens: tokenPairSchema.nullable().meta({
     description:
-      "A new pair for a caller with an access token, whose old session ended with the change. Null for a browser session, which gets a fresh cookie instead.",
+      "A new pair for a caller with an access token, whose old session ended with the change. Null for a browser session, which gets a fresh cookie instead, and null when `sessionRenewed` is false.",
+  }),
+  sessionRenewed: z.boolean().meta({
+    description:
+      "Whether the caller is still signed in. The password is changed either way; when this is false the caller's session could not be replaced, and the user has to sign in again with the new password.",
   }),
 });
 

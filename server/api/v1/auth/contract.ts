@@ -45,6 +45,8 @@ export const authContract = {
         "",
         "The welcome grant is **not** credited here. It is credited, together with the email-confirmation bonus, when the email is verified (`POST /auth/email-verification/send`, then `/verify`); the amounts are in `GET /config`.",
         "",
+        "If a call failed and the next one answers 409 `email_taken`, the first one did create the account: sign in with `POST /auth/login`.",
+        "",
         "403 `signup_disabled` when registration is switched off. 409 `email_taken`. 400 `weak_password` or `disposable_email` (throwaway mailboxes are refused). 429 when too many accounts were created from this address; 503 when that limit cannot be checked.",
       ].join("\n"),
       tags: AUTH_TAGS,

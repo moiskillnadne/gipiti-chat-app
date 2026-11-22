@@ -83,6 +83,8 @@ export const emailVerificationRouter = {
           throw errors.TOO_MANY_REQUESTS({
             data: { reason: "too_many_attempts" },
           });
+        case "limiter_unavailable":
+          throw errors.SERVICE_UNAVAILABLE();
         default: {
           const unhandled: never = result;
           throw new Error(`Unhandled result: ${JSON.stringify(unhandled)}`);

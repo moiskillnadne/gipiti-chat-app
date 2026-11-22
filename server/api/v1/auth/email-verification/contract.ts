@@ -46,6 +46,7 @@ export const emailVerificationContract = {
       ...badRequestWithReason,
       ...conflictWithReason,
       ...tooManyRequestsWithRetry,
+      ...serviceUnavailableError,
     })
     .route({
       method: "POST",
@@ -54,7 +55,7 @@ export const emailVerificationContract = {
       description: [
         "Checks the code against the signed-in account. On success the email-confirmation bonus is credited once; an account created through `POST /auth/register` also receives its welcome grant here.",
         "",
-        "400 `invalid_code` with `data.attemptsLeft`; 400 `expired_code` when the code is too old or its guesses are used up (ask for a new one); 409 `already_verified`; 429 `too_many_attempts`.",
+        "400 `invalid_code` with `data.attemptsLeft`; 400 `expired_code` when the code is too old or its guesses are used up (ask for a new one); 409 `already_verified`; 429 `too_many_attempts`; 503 when that limit cannot be checked (the code was not spent; retry).",
       ].join("\n"),
       tags: AUTH_TAGS,
     })
