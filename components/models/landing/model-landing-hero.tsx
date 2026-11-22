@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { landingRegisterLink } from "@/lib/marketing/landing-nav-links";
+
 import type { ModelLanding } from "@/lib/marketing/model-landings/types";
+
 import { accentClasses } from "./accent-styles";
 import { ModelLandingChatMockup } from "./model-landing-chat-mockup";
 import { ModelLandingMediaMockup } from "./model-landing-media-mockup";
@@ -62,7 +63,7 @@ export const ModelLandingHero = ({ landing }: { landing: ModelLanding }) => {
                 href="/register"
                 prefetch={false}
               >
-                {landingRegisterLink.label}
+                {landing.ctaMain}
               </Link>
               <Link
                 className="inline-flex items-center justify-center rounded-full border border-zinc-700 px-7 py-4 font-medium text-base text-zinc-200 transition-colors hover:border-zinc-500"

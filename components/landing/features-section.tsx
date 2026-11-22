@@ -17,6 +17,7 @@ import type { ElementType } from "react";
 import type { HomeFeatureIcon } from "@/lib/marketing/landing-content";
 import { homeFeatures } from "@/lib/marketing/landing-content";
 import { landingRegisterLink } from "@/lib/marketing/landing-nav-links";
+
 import { FadeIn, staggerContainer, staggerItem } from "./fade-in";
 
 const featureIcons: Record<HomeFeatureIcon, ElementType> = {

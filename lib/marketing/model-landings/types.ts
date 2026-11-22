@@ -135,6 +135,7 @@ type ModelLandingBase = {
   h1Top: string;
   h1Gradient: string;
   sub: string;
+  ctaMain: string;
   metaTitle: string;
   metaDescription: string;
   benefits: LandingBenefit[];

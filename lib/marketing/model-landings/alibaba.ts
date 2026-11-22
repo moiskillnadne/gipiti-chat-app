@@ -49,6 +49,7 @@ export const alibabaLandings: ModelLanding[] = [
     h1Top: "Qwen 4 Max —",
     h1Gradient: "новый флагман Alibaba для кода и знаний",
     sub: `Флагман нового поколения Qwen уже в GIPITI — сложное программирование, фронтенд, работа со знаниями и профессиональные задачи с контекстом на миллион токенов. Рассуждает перед ответом и читает изображения. Запросы к ней дешевле, чем к Qwen 3.8 Max. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
+    ctaMain: "Попробовать Qwen 4 Max",
     metaTitle: "Qwen 4 Max — флагманская нейросеть Alibaba без VPN | GIPITI",
     metaDescription:
       "Qwen 4 Max в GIPITI — флагман Alibaba для кода, фронтенда и профессиональных задач: рассуждения, изображения, контекст 1 млн токенов. Без VPN, оплата картами РФ.",
@@ -159,6 +160,7 @@ export const alibabaLandings: ModelLanding[] = [
     h1Top: "Qwen 3.8 Max Prime —",
     h1Gradient: "производительный флагман Alibaba поколения 3.8",
     sub: `Высокопроизводительная версия Qwen 3.8 Max остаётся в GIPITI — контекст на миллион токенов и ответы длиной до 131 тысячи токенов для больших профессиональных задач. Новее — Qwen 4 Max, запросы к ней дешевле. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
+    ctaMain: "Попробовать Qwen 3.8 Max Prime",
     metaTitle: "Qwen 3.8 Max Prime — нейросеть Alibaba без VPN | GIPITI",
     metaDescription:
       "Qwen 3.8 Max Prime в GIPITI — производительная модель Alibaba поколения 3.8: контекст 1 млн токенов, длинные ответы и изображения. Новее — Qwen 4 Max. Без VPN, на русском, оплата картами РФ.",
@@ -273,6 +275,7 @@ export const alibabaLandings: ModelLanding[] = [
     h1Top: "Qwen 3.8 Max —",
     h1Gradient: "флагман Alibaba поколения 3.8",
     sub: `Флагман Qwen поколения 3.8 остаётся в GIPITI — доводит до конца большие задачи в коде, праве, финансах и дизайне, а не отвечает обрывками. Новее — Qwen 4 Max. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
+    ctaMain: "Попробовать Qwen 3.8 Max",
     metaTitle: "Qwen 3.8 Max — нейросеть Alibaba на русском без VPN | GIPITI",
     metaDescription:
       "Qwen 3.8 Max в GIPITI — флагман Alibaba поколения 3.8: программирование, длинные документы и профессиональные задачи от начала до конца. Без VPN, на русском, оплата российскими картами.",
@@ -354,6 +357,7 @@ export const alibabaLandings: ModelLanding[] = [
     h1Top: "Qwen 3.8 Flash —",
     h1Gradient: "новая быстрая нейросеть Alibaba",
     sub: `Быстрая модель поколения Qwen 3.8 уже в GIPITI — рассуждает перед ответом, понимает изображения и держит контекст около миллиона токенов при очень низкой цене запроса. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
+    ctaMain: "Попробовать Qwen 3.8 Flash",
     metaTitle: "Qwen 3.8 Flash — быстрая нейросеть Alibaba | GIPITI",
     metaDescription:
       "Qwen 3.8 Flash в GIPITI — быстрая и недорогая модель Alibaba: рассуждения, изображения и контекст около 1 млн токенов. Без VPN, на русском, оплата картами РФ.",
@@ -471,6 +475,7 @@ export const alibabaLandings: ModelLanding[] = [
     h1Top: "Qwen 3.7 Flash —",
     h1Gradient: "быстрая нейросеть Alibaba на русском",
     sub: `Быстрая мультимодальная модель Alibaba уже в GIPITI — понимает текст и изображения, отвечает мгновенно и стоит копейки. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
+    ctaMain: "Попробовать Qwen 3.7 Flash",
     metaTitle:
       "Qwen 3.7 Flash — быстрая нейросеть Alibaba на русском без VPN | GIPITI",
     metaDescription:

@@ -6,6 +6,7 @@ import { preload } from "react-dom";
 import { HERO_POSTER_SRC } from "@/lib/marketing/hero-media";
 import { NEW_USER_BONUS_BADGE_RU } from "@/lib/marketing/landing-content";
 import { landingRegisterLink } from "@/lib/marketing/landing-nav-links";
+
 import { ChatMockup } from "./chat-mockup";
 import { HeroVideo } from "./hero-video";
 

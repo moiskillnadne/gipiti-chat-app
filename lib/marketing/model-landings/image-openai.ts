@@ -64,6 +64,7 @@ export const openaiImageLandings: ModelLanding[] = [
     h1Top: "GPT Image 2.6 Flare —",
     h1Gradient: "нейросеть OpenAI для быстрых итераций",
     sub: `Модель OpenAI для интерактивной работы с картинками уже в GIPITI — рисуйте по описанию, смотрите результат, уточняйте и пробуйте снова без долгих пауз. Умеет и правки загруженных изображений. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
+    ctaMain: "Попробовать GPT Image 2.6 Flare",
     metaTitle: "GPT Image 2.6 Flare — нейросеть OpenAI для картинок | GIPITI",
     metaDescription:
       "GPT Image 2.6 Flare в GIPITI — модель OpenAI для интерактивной генерации изображений: описали, посмотрели, уточнили. Промпт на русском, без VPN, оплата картами РФ.",
@@ -198,6 +199,7 @@ export const openaiImageLandings: ModelLanding[] = [
     h1Top: "GPT Image 2.6 Sunburst —",
     h1Gradient: "нейросеть OpenAI для точных правок",
     sub: `Модель OpenAI для создания и редактирования изображений уже в GIPITI — прикрепите фото, опишите изменение словами и получите новую версию, в которой остальное осталось на месте. С нуля тоже рисует. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
+    ctaMain: "Попробовать GPT Image 2.6 Sunburst",
     metaTitle: "GPT Image 2.6 Sunburst — правка изображений от OpenAI | GIPITI",
     metaDescription:
       "GPT Image 2.6 Sunburst в GIPITI — модель OpenAI для точного редактирования и генерации изображений по описанию на русском. Без VPN, оплата российскими картами.",
@@ -331,6 +333,7 @@ export const openaiImageLandings: ModelLanding[] = [
     h1Top: "GPT Image 2.5 Flare\u00A0—",
     h1Gradient: "быстрая нейросеть OpenAI для картинок",
     sub: `Новая модель OpenAI для повседневной генерации уже в GIPITI — посты, карточки товаров и иллюстрации по описанию за секунды, плюс правки готовых картинок. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
+    ctaMain: "Попробовать Flare",
     metaTitle:
       "GPT Image 2.5 Flare — быстрая генерация изображений от OpenAI | GIPITI",
     metaDescription: `GPT Image 2.5 Flare в GIPITI — новая модель OpenAI для быстрой повседневной генерации изображений по описанию на русском. Без VPN, оплата российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
@@ -446,6 +449,7 @@ export const openaiImageLandings: ModelLanding[] = [
     h1Top: "GPT Image 2.5 Sunburst\u00A0—",
     h1Gradient: "нейросеть OpenAI для правок изображений",
     sub: `Новая модель OpenAI с упором на редактирование уже в GIPITI — прикрепите фото, опишите правку словами и получите правку по описанию с сохранением остальной сцены. Генерирует с нуля тоже. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
+    ctaMain: "Попробовать Sunburst",
     metaTitle:
       "GPT Image 2.5 Sunburst — точное редактирование изображений от OpenAI | GIPITI",
     metaDescription: `GPT Image 2.5 Sunburst в GIPITI — новая модель OpenAI для точного редактирования изображений по описанию на русском: фон, объекты, свет. Без VPN, оплата российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
@@ -568,6 +572,7 @@ export const openaiImageLandings: ModelLanding[] = [
     h1Top: "GPT Image 2 —",
     h1Gradient: "нейросеть OpenAI для изображений",
     sub: `Проверенная модель OpenAI для генерации изображений уже в GIPITI — фотореалистичные кадры по описанию и точное редактирование готовых картинок. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
+    ctaMain: "Попробовать GPT Image 2",
     metaTitle: "GPT Image 2 — генерация изображений от OpenAI | GIPITI",
     metaDescription: `GPT Image 2 в GIPITI — фотореалистичная генерация и редактирование изображений по описанию на русском. Без VPN, оплата российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     heroMedia: {

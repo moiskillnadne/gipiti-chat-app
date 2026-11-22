@@ -10,6 +10,7 @@ import {
   SUBSCRIPTION_PRICE_RUB,
 } from "@/lib/marketing/landing-content";
 import { landingRegisterLink } from "@/lib/marketing/landing-nav-links";
+
 import { FadeIn } from "./fade-in";
 
 export const PricingSection = () => (

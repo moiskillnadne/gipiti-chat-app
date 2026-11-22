@@ -32,6 +32,7 @@ export const codeLandings: ModelLanding[] = [
     h1Top: "GPT-Codex 5.3 —",
     h1Gradient: "нейросеть для кода на русском",
     sub: `Специализированная модель OpenAI для программирования уже в GIPITI — пишет, отлаживает и объясняет код, помогает разобраться в чужом проекте. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
+    ctaMain: "Попробовать GPT-Codex 5.3",
     metaTitle: "GPT-Codex 5.3 — нейросеть для написания кода | GIPITI",
     metaDescription: `GPT-Codex 5.3 в GIPITI — модель OpenAI для кода: генерация, отладка и рефакторинг с объяснениями на русском. Без VPN, оплата российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     heroChat: {

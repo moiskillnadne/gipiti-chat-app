@@ -34,6 +34,7 @@ export const metaLandings: ModelLanding[] = [
     h1Top: "Meta Muse Ember —",
     h1Gradient: "недорогая мультимодальная нейросеть Meta",
     sub: `Мультимодальная модель Meta уже в GIPITI — рассуждает перед ответом, читает фото, скриншоты и PDF и держит контекст около миллиона токенов. Запросы к ней в разы дешевле, чем к Muse Spark 1.3 и Muse Wonder 1.0. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
+    ctaMain: "Попробовать Muse Ember",
     metaTitle:
       "Meta Muse Ember — недорогая нейросеть на русском без VPN | GIPITI",
     metaDescription:
@@ -148,6 +149,7 @@ export const metaLandings: ModelLanding[] = [
     h1Top: "Meta Muse Wonder —",
     h1Gradient: "флагманская нейросеть Meta на русском",
     sub: `Передовая рассуждающая модель Meta уже в GIPITI — планирует и доводит до конца сложные многошаговые задачи, понимает изображения и держит контекст около миллиона токенов. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
+    ctaMain: "Попробовать Muse Wonder",
     metaTitle: "Meta Muse Wonder 1.0 — нейросеть Meta без VPN | GIPITI",
     metaDescription:
       "Meta Muse Wonder 1.0 в GIPITI — рассуждающая модель для сложных многошаговых задач с контекстом около 1 млн токенов. Без VPN, на русском, оплата картами РФ.",
@@ -261,6 +263,7 @@ export const metaLandings: ModelLanding[] = [
     h1Top: "Meta Muse Spark 1.3 —",
     h1Gradient: "нейросеть Meta, которая читает фото",
     sub: `Мультимодальная модель Meta уже в GIPITI — распознаёт текст на снимках, достаёт цифры из чеков и таблиц и рассуждает над задачей экономнее прошлой версии. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
+    ctaMain: "Попробовать Muse Spark 1.3",
     metaTitle: "Meta Muse Spark 1.3 — нейросеть Meta на русском | GIPITI",
     metaDescription:
       "Meta Muse Spark 1.3 в GIPITI — модель Meta, которая читает фото и скриншоты и рассуждает, контекст около 1 млн токенов. Без VPN, на русском, оплата картами РФ.",

@@ -27,6 +27,7 @@ export const xiaomiLandings: ModelLanding[] = [
     h1Top: "Xiaomi MiMo v2.6 Pro —",
     h1Gradient: "рассуждающая нейросеть Xiaomi",
     sub: `Флагманская модель Xiaomi уже в GIPITI — решает задачи пошагово, понимает изображения и держит контекст около миллиона токенов, а стоит заметно меньше западных флагманов. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
+    ctaMain: "Попробовать MiMo v2.6 Pro",
     metaTitle: "Xiaomi MiMo v2.6 Pro — нейросеть Xiaomi без VPN | GIPITI",
     metaDescription:
       "Xiaomi MiMo v2.6 Pro в GIPITI — флагман Xiaomi с рассуждениями, пониманием фото и контекстом около 1 млн токенов. Без VPN, на русском, оплата картами РФ.",

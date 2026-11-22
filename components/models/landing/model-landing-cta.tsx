@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { NEW_USER_BONUS_TERMS_RU } from "@/lib/marketing/landing-content";
 import { landingRegisterLink } from "@/lib/marketing/landing-nav-links";
+
 import type { ModelLanding } from "@/lib/marketing/model-landings/types";
 import { accentClasses } from "./accent-styles";
 

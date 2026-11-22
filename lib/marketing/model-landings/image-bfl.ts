@@ -44,6 +44,7 @@ export const bflImageLandings: ModelLanding[] = [
     h1Top: "Flux 3 Image Klein —",
     h1Gradient: "компактная быстрая модель BFL",
     sub: `Лёгкая версия Flux 3 от Black Forest Labs уже в GIPITI — рисует по описанию на русском и правит загруженные изображения, быстро и недорого. Квадрат, 16:9 или 9:16. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
+    ctaMain: "Попробовать Flux 3 Image Klein",
     metaTitle: "Flux 3 Image Klein — быстрая нейросеть BFL | GIPITI",
     metaDescription:
       "Flux 3 Image Klein в GIPITI — компактная и недорогая модель Black Forest Labs для генерации и правки изображений, три формата кадра. Промпт на русском, без VPN.",
@@ -173,6 +174,7 @@ export const bflImageLandings: ModelLanding[] = [
     h1Top: "Flux 3 Image —",
     h1Gradient: "генерация и правки в одной модели",
     sub: `Новый флагман Black Forest Labs уже в GIPITI — рисует по описанию на русском и правит готовые изображения той же моделью, без ручных масок. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
+    ctaMain: "Попробовать Flux 3 Image",
     metaTitle: "Flux 3 Image — нейросеть для картинок от BFL | GIPITI",
     metaDescription:
       "Flux 3 Image в GIPITI — флагман Black Forest Labs: генерация изображений и точечные правки в одной модели, промпт на русском. Без VPN, оплата картами РФ.",
@@ -298,6 +300,7 @@ export const bflImageLandings: ModelLanding[] = [
     h1Top: "Flux 2 Max —",
     h1Gradient: "нейросеть для художественных картинок",
     sub: `Старшая модель Black Forest Labs уже в GIPITI — насыщенные художественные стили и высокая детализация по описанию на русском. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
+    ctaMain: "Попробовать Flux 2 Max",
     metaTitle: "Flux 2 Max — нейросеть для генерации изображений | GIPITI",
     metaDescription:
       "Flux 2 Max в GIPITI — художественная генерация изображений от Black Forest Labs: стили, детализация и атмосфера. Без VPN, на русском, оплата российскими картами.",

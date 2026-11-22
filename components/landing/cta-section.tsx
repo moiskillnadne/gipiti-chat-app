@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { NEW_USER_BONUS_SHORT_RU } from "@/lib/marketing/landing-content";
 import { landingRegisterLink } from "@/lib/marketing/landing-nav-links";
+
 import { FadeIn } from "./fade-in";
 
 export const CtaSection = () => (

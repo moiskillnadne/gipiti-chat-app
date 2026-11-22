@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { landingRegisterLink } from "@/lib/marketing/landing-nav-links";
+
 import { catalogModelCountFloor } from "@/lib/marketing/models-catalog";
 
 export const ModelsHero = () => (

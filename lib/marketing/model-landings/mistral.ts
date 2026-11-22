@@ -27,6 +27,7 @@ export const mistralLandings: ModelLanding[] = [
     h1Top: "Mistral Large 4 —",
     h1Gradient: "европейская нейросеть на русском",
     sub: `Флагман французской Mistral AI уже в GIPITI — открытая мультимодальная модель с рассуждениями, которая понимает изображения любых пропорций. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
+    ctaMain: "Попробовать Mistral Large 4",
     metaTitle: "Mistral Large 4 — нейросеть Mistral AI без VPN | GIPITI",
     metaDescription:
       "Mistral Large 4 в GIPITI — открытый мультимодальный флагман Mistral AI: рассуждения, текст и изображения в одном чате. Без VPN, на русском, оплата картами РФ.",

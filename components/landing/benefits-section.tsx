@@ -13,6 +13,7 @@ import type { ElementType } from "react";
 import type { HomeBenefitIcon } from "@/lib/marketing/landing-content";
 import { homeBenefits } from "@/lib/marketing/landing-content";
 import { landingRegisterLink } from "@/lib/marketing/landing-nav-links";
+
 import { FadeIn, staggerContainer, staggerItem } from "./fade-in";
 
 const benefitIcons: Record<HomeBenefitIcon, ElementType> = {

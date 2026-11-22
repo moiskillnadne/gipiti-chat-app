@@ -37,6 +37,7 @@ export const xaiLandings: ModelLanding[] = [
     h1Top: "Grok 4.7 —",
     h1Gradient: "новейшая нейросеть xAI на русском",
     sub: `Новейшая модель xAI уже в GIPITI — многочасовые задачи по коду и документам, самопроверка результата и контекст на 500 000 токенов. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
+    ctaMain: "Попробовать Grok 4.7",
     metaTitle: "Grok 4.7 — новейшая нейросеть xAI на русском без VPN | GIPITI",
     metaDescription: `Grok 4.7 — новейшая модель xAI в GIPITI: программирование, деловые документы и многочасовые задачи с самопроверкой. Без VPN, на русском, оплата российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     heroChat: {
@@ -140,6 +141,7 @@ export const xaiLandings: ModelLanding[] = [
     h1Top: "Grok 4.6 —",
     h1Gradient: "нейросеть xAI для длинных задач",
     sub: `Модель xAI для длинных многошаговых задач уже в GIPITI — держит сложную цель, разбирается в большом проекте целиком и доводит идею до готового результата. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
+    ctaMain: "Попробовать Grok 4.6",
     metaTitle: "Grok 4.6 — нейросеть xAI для длинных задач без VPN | GIPITI",
     metaDescription: `Grok 4.6 — модель xAI в GIPITI для длинных многошаговых задач, программирования и работы с большим контекстом. Без VPN, на русском, оплата российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     heroChat: {
@@ -227,6 +229,7 @@ export const xaiLandings: ModelLanding[] = [
     h1Top: "Grok 4.5 —",
     h1Gradient: "нейросеть xAI для STEM на русском",
     sub: `Флагман xAI прошлого поколения уже в GIPITI — сильные результаты в программировании, аналитике и STEM-задачах. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
+    ctaMain: "Попробовать Grok 4.5",
     metaTitle: "Grok 4.5 — нейросеть xAI для STEM и кода без VPN | GIPITI",
     metaDescription: `Grok 4.5 в GIPITI — модель xAI с сильными результатами в программировании, аналитике и STEM. Без VPN, на русском, оплата российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     heroChat: {
@@ -318,6 +321,7 @@ export const xaiLandings: ModelLanding[] = [
     h1Top: "Grok 4.3 —",
     h1Gradient: "нейросеть xAI с прямыми ответами",
     sub: `Модель xAI с продвинутыми рассуждениями и живым тоном уже в GIPITI — отвечает прямо, работает с изображениями и документами. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
+    ctaMain: "Попробовать Grok 4.3",
     metaTitle: "Grok 4.3 — нейросеть xAI на русском без VPN | GIPITI",
     metaDescription:
       "Grok 4.3 в GIPITI — модель xAI с продвинутыми рассуждениями, поддержкой изображений и свободным тоном ответов. Без VPN, на русском, оплата российскими картами.",

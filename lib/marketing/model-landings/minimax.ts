@@ -27,6 +27,7 @@ export const minimaxLandings: ModelLanding[] = [
     h1Top: "MiniMax M3.1 Flash —",
     h1Gradient: "недорогая нейросеть для кода и агентов",
     sub: `Новая модель MiniMax уже в GIPITI — рассуждает, понимает изображения, работает с кодом и инструментами, а токены у неё вдвое дешевле, чем у MiniMax M3. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
+    ctaMain: "Попробовать M3.1 Flash",
     metaTitle: "MiniMax M3.1 Flash — нейросеть MiniMax без VPN | GIPITI",
     metaDescription:
       "MiniMax M3.1 Flash в GIPITI — недорогая рассуждающая модель MiniMax для кода и агентных задач, понимает изображения. Без VPN, на русском, оплата картами РФ.",
