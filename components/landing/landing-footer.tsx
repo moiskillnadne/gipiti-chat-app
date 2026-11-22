@@ -38,7 +38,7 @@ export const LandingFooter = () => (
           </p>
           <Link
             className="mt-4 inline-flex items-center gap-2 text-indigo-400 text-sm transition-colors hover:text-indigo-300"
-            href="/#pricing"
+            href="/register"
             prefetch={false}
           >
             Попробовать бесплатно

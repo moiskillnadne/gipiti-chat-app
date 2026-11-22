@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 import { FadeIn } from "./fade-in";
 
@@ -24,12 +25,12 @@ export const CtaSection = () => (
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          <a
+          <Link
             className="inline-flex rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-10 py-4 font-semibold text-lg text-white shadow-indigo-500/25 shadow-lg transition-all hover:shadow-2xl hover:shadow-indigo-500/30"
-            href="#pricing"
+            href="/register"
           >
             Попробовать бесплатно
-          </a>
+          </Link>
         </motion.div>
       </FadeIn>
     </div>
