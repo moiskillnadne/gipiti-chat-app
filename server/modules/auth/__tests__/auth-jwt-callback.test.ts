@@ -1,24 +1,40 @@
 import type { JWT } from "next-auth/jwt";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+type SignedInUser = {
+  id: string;
+  type: "regular";
+  emailVerified: boolean;
+  hasActiveSubscription: boolean;
+  isTester: boolean;
+};
+
 type JwtCallbackParams = {
   token: JWT;
+  user?: SignedInUser;
   trigger?: "signIn" | "signUp" | "update";
   session?: unknown;
 };
 
 type CapturedAuthConfig = {
   callbacks: {
-    jwt: (params: JwtCallbackParams) => Promise<JWT>;
+    jwt: (params: JwtCallbackParams) => Promise<JWT | null>;
   };
 };
 
-const { captured, getActiveUserSubscriptionMock, getUserByEmailMock } =
-  vi.hoisted(() => ({
-    captured: { config: undefined as CapturedAuthConfig | undefined },
-    getActiveUserSubscriptionMock: vi.fn(),
-    getUserByEmailMock: vi.fn(),
-  }));
+const {
+  captured,
+  getActiveUserSubscriptionMock,
+  getUserByEmailMock,
+  getTokenVersionMock,
+  isSessionVersionCurrentMock,
+} = vi.hoisted(() => ({
+  captured: { config: undefined as CapturedAuthConfig | undefined },
+  getActiveUserSubscriptionMock: vi.fn(),
+  getUserByEmailMock: vi.fn(),
+  getTokenVersionMock: vi.fn(),
+  isSessionVersionCurrentMock: vi.fn(),
+}));
 
 // NextAuth() is replaced by a stub that keeps the config it was called with,
 // so the real callbacks from auth.ts can be invoked directly.
@@ -44,6 +60,10 @@ vi.mock("@/lib/db/query/subscription/get-active-user-subscription", () => ({
 vi.mock("@/server/modules/users/queries/get-by-email", () => ({
   getUserByEmail: getUserByEmailMock,
 }));
+vi.mock("@/server/modules/auth/token-version", () => ({
+  getTokenVersion: getTokenVersionMock,
+  isSessionVersionCurrent: isSessionVersionCurrentMock,
+}));
 
 import "@/server/modules/auth/next-auth";
 
@@ -60,12 +80,28 @@ const buildToken = (claims: Partial<JWT> = {}): JWT => ({
   ...claims,
 });
 
-const runJwtCallback = (params: JwtCallbackParams): Promise<JWT> => {
+const runJwtCallback = (params: JwtCallbackParams): Promise<JWT | null> => {
   if (!captured.config) {
-    throw new Error("auth.ts did not call NextAuth()");
+    throw new Error("next-auth.ts did not call NextAuth()");
   }
   return captured.config.callbacks.jwt(params);
 };
+
+/** For the tests of a session that is still valid: the token, never null. */
+const runJwtCallbackOnLiveSession = async (
+  params: JwtCallbackParams
+): Promise<JWT> => {
+  const token = await runJwtCallback(params);
+  if (!token) {
+    throw new Error("the jwt callback ended a session that should be alive");
+  }
+  return token;
+};
+
+beforeEach(() => {
+  getTokenVersionMock.mockReset().mockResolvedValue(0);
+  isSessionVersionCurrentMock.mockReset().mockResolvedValue(true);
+});
 
 describe("auth jwt callback on session update", () => {
   beforeEach(() => {
@@ -80,7 +116,7 @@ describe("auth jwt callback on session update", () => {
 
   it("ignores claims sent by the client and keeps the database values", async () => {
     // Act
-    const token = await runJwtCallback({
+    const token = await runJwtCallbackOnLiveSession({
       token: buildToken(),
       trigger: "update",
       session: {
@@ -107,7 +143,7 @@ describe("auth jwt callback on session update", () => {
     });
 
     // Act
-    const token = await runJwtCallback({
+    const token = await runJwtCallbackOnLiveSession({
       token: buildToken(),
       trigger: "update",
       session: {},
@@ -127,7 +163,7 @@ describe("auth jwt callback on session update", () => {
     const consoleLogSpy = vi.spyOn(console, "log");
 
     // Act
-    const token = await runJwtCallback({
+    const token = await runJwtCallbackOnLiveSession({
       token: buildToken({ emailVerified: true }),
     });
 
@@ -136,5 +172,72 @@ describe("auth jwt callback on session update", () => {
     expect(getUserByEmailMock).not.toHaveBeenCalled();
     expect(token.emailVerified).toBe(true);
     expect(consoleLogSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe("auth jwt callback and the token version", () => {
+  const signedInUser: SignedInUser = {
+    id: USER_ID,
+    type: "regular",
+    emailVerified: true,
+    hasActiveSubscription: false,
+    isTester: false,
+  };
+
+  it("records the account's current version in a new session", async () => {
+    // Arrange
+    getTokenVersionMock.mockResolvedValue(3);
+
+    // Act
+    const token = await runJwtCallbackOnLiveSession({
+      token: { email: USER_EMAIL } as JWT,
+      user: signedInUser,
+      trigger: "signIn",
+    });
+
+    // Assert
+    expect(getTokenVersionMock).toHaveBeenCalledWith(USER_ID);
+    expect(token.ver).toBe(3);
+    // A session being issued is not checked against itself.
+    expect(isSessionVersionCurrentMock).not.toHaveBeenCalled();
+  });
+
+  it("keeps a session whose version is still current", async () => {
+    // Arrange
+    const sessionToken = buildToken({ ver: 3 });
+
+    // Act
+    const token = await runJwtCallback({ token: sessionToken });
+
+    // Assert
+    expect(isSessionVersionCurrentMock).toHaveBeenCalledWith(sessionToken);
+    expect(token).toBe(sessionToken);
+  });
+
+  it("ends a session issued under an older version", async () => {
+    // Arrange
+    isSessionVersionCurrentMock.mockResolvedValue(false);
+
+    // Act
+    const token = await runJwtCallback({ token: buildToken({ ver: 2 }) });
+
+    // Assert
+    expect(token).toBeNull();
+  });
+
+  it("ends a stale session on an update too, before any claim is refreshed", async () => {
+    // Arrange
+    isSessionVersionCurrentMock.mockResolvedValue(false);
+
+    // Act
+    const token = await runJwtCallback({
+      token: buildToken(),
+      trigger: "update",
+      session: {},
+    });
+
+    // Assert
+    expect(token).toBeNull();
+    expect(getUserByEmailMock).not.toHaveBeenCalled();
   });
 });

@@ -42,6 +42,10 @@ export const user = pgTable(
       .notNull(),
     resetPasswordToken: varchar("reset_password_token", { length: 255 }),
     resetPasswordTokenExpiry: timestamp("reset_password_token_expiry"),
+    // Ends every session of the account at once: the web cookie and each API
+    // access token carry the version they were issued under. See
+    // server/modules/auth/token-version.ts.
+    tokenVersion: integer("token_version").default(0).notNull(),
 
     // UTM attribution
     utmSource: varchar("utm_source", { length: 255 }),
@@ -78,6 +82,69 @@ export const user = pgTable(
 );
 
 export type User = InferSelectModel<typeof user>;
+
+/**
+ * One signed-in API client, such as a phone. The web does not have rows here:
+ * its session is the Auth.js cookie.
+ */
+export const authSession = pgTable(
+  "AuthSession",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    // What kind of client holds the session. A varchar, not an enum, so that
+    // a new kind needs no migration.
+    clientKind: varchar("client_kind", { length: 16 }).notNull(),
+    platform: varchar("platform", { length: 32 }),
+    deviceName: varchar("device_name", { length: 255 }),
+    appVersion: varchar("app_version", { length: 32 }),
+    createdIp: varchar("created_ip", { length: 64 }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    lastUsedAt: timestamp("last_used_at").notNull().defaultNow(),
+    // Refreshing extends a session only up to this moment.
+    absoluteExpiresAt: timestamp("absolute_expires_at").notNull(),
+    revokedAt: timestamp("revoked_at"),
+    revokedReason: varchar("revoked_reason", { length: 32 }),
+  },
+  (table) => ({
+    activeByUserIdx: index("auth_session_user_id_active_idx")
+      .on(table.userId)
+      .where(sql`${table.revokedAt} IS NULL`),
+  })
+);
+
+export type AuthSession = InferSelectModel<typeof authSession>;
+
+/**
+ * A refresh token of a session, stored as its SHA-256 hash. A token is
+ * replaced each time it is used; `parentId` is the token it replaced.
+ */
+export const refreshToken = pgTable(
+  "RefreshToken",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    sessionId: uuid("session_id")
+      .notNull()
+      .references(() => authSession.id, { onDelete: "cascade" }),
+    tokenHash: varchar("token_hash", { length: 64 }).notNull(),
+    parentId: uuid("parent_id"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    expiresAt: timestamp("expires_at").notNull(),
+    usedAt: timestamp("used_at"),
+  },
+  (table) => ({
+    tokenHashIdx: uniqueIndex("refresh_token_token_hash_idx").on(
+      table.tokenHash
+    ),
+    sessionIdx: index("refresh_token_session_id_idx").on(table.sessionId),
+    parentIdx: index("refresh_token_parent_id_idx").on(table.parentId),
+    expiresAtIdx: index("refresh_token_expires_at_idx").on(table.expiresAt),
+  })
+);
+
+export type RefreshToken = InferSelectModel<typeof refreshToken>;
 
 // ============================================================================
 // CURRENCY & FX

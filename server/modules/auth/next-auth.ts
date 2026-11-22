@@ -6,6 +6,10 @@ import { authenticateCredentials } from "@/server/modules/auth/authenticate-cred
 import { authConfig } from "@/server/modules/auth/next-auth.config";
 import { getAuthSecret } from "@/server/modules/auth/secret";
 import { RATE_LIMITED_SIGN_IN_CODE } from "@/server/modules/auth/sign-in-error-codes";
+import {
+  getTokenVersion,
+  isSessionVersionCurrent,
+} from "@/server/modules/auth/token-version";
 import { getUserByEmail } from "@/server/modules/users/queries/get-by-email";
 
 type CredentialsType = {
@@ -96,6 +100,15 @@ export const {
         token.hasActiveSubscription = (user.hasActiveSubscription ??
           false) as boolean;
         token.isTester = (user.isTester ?? false) as boolean;
+        // The session records the token version it is issued under.
+        token.ver = (await getTokenVersion(token.id)) ?? 0;
+      } else if (!(await isSessionVersionCurrent(token))) {
+        // The account's token version moved on since this session was issued
+        // (a password reset, "log out everywhere"), or the account is gone.
+        // Null ends the session: `auth()` then answers no session, and
+        // `GET /api/auth/session` also deletes the cookie. Pages reached
+        // through `proxy.ts` get the cookie deleted there.
+        return null;
       }
 
       // On `useSession().update()` the claims are re-read from the database.

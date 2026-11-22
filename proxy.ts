@@ -3,7 +3,9 @@ import { getToken } from "next-auth/jwt";
 import { isMarkdownNegotiablePath } from "./lib/agent-discovery/markdown/paths";
 import { isDevelopmentEnvironment } from "./server/env";
 import { isSignupEnabled } from "./server/flags";
+import { sessionCookieNamesAmong } from "./server/http/session-cookie";
 import { getAuthSecret } from "./server/modules/auth/secret";
+import { isSessionVersionCurrent } from "./server/modules/auth/token-version";
 
 const AUTH_ROUTES = [
   "/login",
@@ -43,6 +45,43 @@ const wantsMarkdown = (request: NextRequest): boolean =>
   // HEAD is included so it reports the same headers its GET would.
   (request.method === "GET" || request.method === "HEAD") &&
   (request.headers.get("accept")?.includes("text/markdown") ?? false);
+
+/** Auth.js marks its cookies `Secure` everywhere but in local development. */
+const isSessionCookieSecure = !isDevelopmentEnvironment;
+
+/**
+ * Deletes the session cookie on the way out. Used for a session whose token
+ * version is no longer the account's: `auth()` in a page refuses it but
+ * cannot delete a cookie, so without this the page would send the visitor to
+ * `/login` and this file, still seeing a readable cookie, back to `/chat`.
+ */
+const withoutSessionCookies = (
+  request: NextRequest,
+  response: NextResponse
+): NextResponse => {
+  const requestCookieNames = request.cookies
+    .getAll()
+    .map((cookie) => cookie.name);
+
+  for (const cookieName of sessionCookieNamesAmong(
+    requestCookieNames,
+    isSessionCookieSecure
+  )) {
+    // The same attributes Auth.js sets: a `__Secure-` cookie is only
+    // accepted, and so only deleted, with `Secure`.
+    response.cookies.set({
+      name: cookieName,
+      value: "",
+      maxAge: 0,
+      path: "/",
+      httpOnly: true,
+      sameSite: "lax",
+      secure: isSessionCookieSecure,
+    });
+  }
+
+  return response;
+};
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -96,15 +135,32 @@ export async function proxy(request: NextRequest) {
       : new NextResponse(null, { status: 404 });
   }
 
-  const response = NextResponse.next();
+  const isAuthRoute = AUTH_ROUTES.includes(pathname);
 
-  const token = await getToken({
+  // The session decides something only on these pages. Everywhere else the
+  // request passes through, and the cookie is not even read.
+  const isSessionDecisive =
+    pathname === "/" || isAuthRoute || isProtectedRoute(pathname);
+
+  if (!isSessionDecisive) {
+    return NextResponse.next();
+  }
+
+  const sessionToken = await getToken({
     req: request,
     secret: getAuthSecret(),
-    secureCookie: !isDevelopmentEnvironment,
+    secureCookie: isSessionCookieSecure,
   });
 
-  const isAuthRoute = AUTH_ROUTES.includes(pathname);
+  // A cookie can be readable and still dead: the account's token version
+  // moved on (password reset, "log out everywhere"). Such a visitor is
+  // anonymous here, as they are for `auth()` in the page.
+  const isSessionStale =
+    sessionToken !== null && !(await isSessionVersionCurrent(sessionToken));
+  const token = isSessionStale ? null : sessionToken;
+
+  const respond = (response: NextResponse): NextResponse =>
+    isSessionStale ? withoutSessionCookies(request, response) : response;
 
   // Redirect authenticated from landing page to chat
   if (token && pathname === "/") {
@@ -117,7 +173,7 @@ export async function proxy(request: NextRequest) {
   if (!token && isProtectedRoute(pathname)) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("callbackUrl", request.url);
-    return NextResponse.redirect(loginUrl);
+    return respond(NextResponse.redirect(loginUrl));
   }
 
   // Authenticated, verified users cannot access auth routes
@@ -125,7 +181,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/chat", request.url));
   }
 
-  return response;
+  return respond(NextResponse.next());
 }
 
 export const config = {
