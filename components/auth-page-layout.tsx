@@ -17,14 +17,14 @@ export function AuthPageLayout({ children }: AuthPageLayoutProps) {
   // cannot overlap at any viewport height; the flex-1 area keeps a short form centred on md+.
   return (
     <div className="flex min-h-dvh w-full flex-col bg-background">
-      <div className="flex flex-1 items-start justify-center pt-12 md:items-center md:pt-0">
+      <main className="flex flex-1 items-start justify-center pt-12 md:items-center md:py-12">
         <div className="flex w-full max-w-md flex-col gap-12 overflow-hidden rounded-2xl">
           <Link className="flex justify-center" href="/">
             <Image alt="GIPITI" height={64} src="/icon.png" width={64} />
           </Link>
           {children}
         </div>
-      </div>
+      </main>
       <footer className="flex justify-end p-4">
         <SupportLink
           linkText={tSupport("linkText")}
