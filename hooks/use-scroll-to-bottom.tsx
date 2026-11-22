@@ -1,5 +1,7 @@
+import { useReducedMotion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import useSWR from "swr";
+import { resolveScrollBehavior } from "@/lib/dom/scroll-behavior";
 
 type ScrollFlag = ScrollBehavior | false;
 
@@ -7,6 +9,7 @@ export function useScrollToBottom() {
   const containerRef = useRef<HTMLDivElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
+  const shouldReduceMotion = useReducedMotion();
 
   const { data: scrollBehavior = false, mutate: setScrollBehavior } =
     useSWR<ScrollFlag>("messages:should-scroll", null, { fallbackData: false });
@@ -77,12 +80,12 @@ export function useScrollToBottom() {
       const container = containerRef.current;
       const scrollOptions: ScrollToOptions = {
         top: container.scrollHeight,
-        behavior: scrollBehavior,
+        behavior: resolveScrollBehavior(scrollBehavior, shouldReduceMotion),
       };
       container.scrollTo(scrollOptions);
       setScrollBehavior(false);
     }
-  }, [scrollBehavior, setScrollBehavior]);
+  }, [scrollBehavior, setScrollBehavior, shouldReduceMotion]);
 
   const scrollToBottom = useCallback(
     (currentScrollBehavior: ScrollBehavior = "smooth") => {

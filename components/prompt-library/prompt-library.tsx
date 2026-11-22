@@ -1,11 +1,13 @@
 "use client";
 
+import { useReducedMotion } from "framer-motion";
 import { Search, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 import { useModel } from "@/contexts/model-context";
+import { resolveScrollBehavior } from "@/lib/dom/scroll-behavior";
 import { useTranslations } from "@/lib/i18n/translate";
 import {
   getPromptModelMeta,
@@ -34,6 +36,7 @@ export function PromptLibrary() {
   const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<PromptFilter>("all");
   const [page, setPage] = useState(1);
+  const shouldReduceMotion = useReducedMotion();
   const [openId, setOpenId] = useState<string | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -116,7 +119,10 @@ export function PromptLibrary() {
     const grid = document.querySelector("[data-prompt-grid]");
     if (grid) {
       const top = grid.getBoundingClientRect().top + window.scrollY;
-      window.scrollTo({ top: top - SCROLL_OFFSET, behavior: "smooth" });
+      window.scrollTo({
+        top: top - SCROLL_OFFSET,
+        behavior: resolveScrollBehavior("smooth", shouldReduceMotion),
+      });
     }
   };
 
