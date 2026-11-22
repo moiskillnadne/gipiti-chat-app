@@ -69,7 +69,7 @@ export const {
           return null;
         }
 
-        const userRecord = result.user;
+        const userRecord = result.account;
 
         // Check if user has active subscription
         const subscription = await getActiveUserSubscription({

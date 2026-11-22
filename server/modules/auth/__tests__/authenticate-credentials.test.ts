@@ -29,7 +29,13 @@ const IP = "203.0.113.7";
 const IDENTITY = { email: EMAIL, ip: IP };
 const THROTTLE_DELAY_MS = 2000;
 
-const storedUser = { id: "user-1", email: EMAIL, password: "stored-hash" };
+const storedUser = {
+  id: "user-1",
+  email: EMAIL,
+  password: "stored-hash",
+  emailVerified: true,
+  isTester: false,
+};
 const asUser = (row: Partial<User>): User => row as User;
 
 const credentials = { email: EMAIL, password: PASSWORD, ip: IP };
@@ -55,7 +61,16 @@ describe("authenticateCredentials", () => {
     const result = await authenticateCredentials(credentials);
 
     // Assert
-    expect(result).toEqual({ status: "authenticated", user: storedUser });
+    // The account, without the password hash of the row.
+    expect(result).toEqual({
+      status: "authenticated",
+      account: {
+        id: "user-1",
+        email: EMAIL,
+        emailVerified: true,
+        isTester: false,
+      },
+    });
     expect(compare).toHaveBeenCalledWith(PASSWORD, "stored-hash");
     expect(recordSuccessfulLogin).toHaveBeenCalledWith(IDENTITY);
     expect(recordFailedLogin).not.toHaveBeenCalled();

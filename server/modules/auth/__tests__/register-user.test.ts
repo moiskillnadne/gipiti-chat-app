@@ -45,7 +45,19 @@ const input: RegisterUserInput = {
   utm: UTM,
   geo: GEO,
 };
-const createdUser = { id: "user-1", email: EMAIL } as User;
+const createdUser = {
+  id: "user-1",
+  email: EMAIL,
+  emailVerified: false,
+  isTester: false,
+  password: "stored-hash",
+} as User;
+const createdAccount = {
+  id: "user-1",
+  email: EMAIL,
+  emailVerified: false,
+  isTester: false,
+};
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -61,7 +73,8 @@ describe("registerUser", () => {
     const result = await registerUser(input);
 
     // Assert
-    expect(result).toEqual({ status: "registered", user: createdUser });
+    // The account, without the password hash of the row.
+    expect(result).toEqual({ status: "registered", account: createdAccount });
     expect(createUser).toHaveBeenCalledExactlyOnceWith(
       EMAIL,
       PASSWORD,

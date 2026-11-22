@@ -6,6 +6,7 @@ import {
   recordFailedLogin,
   recordSuccessfulLogin,
 } from "@/server/http/rate-limit";
+import { type Account, toAccount } from "@/server/modules/auth/account";
 import { DUMMY_PASSWORD } from "@/server/modules/auth/dummy-password";
 import { getUserByEmail } from "@/server/modules/users/queries/get-by-email";
 
@@ -20,7 +21,7 @@ export type CredentialsInput = {
 };
 
 export type AuthenticateCredentialsResult =
-  | { status: "authenticated"; user: User }
+  | { status: "authenticated"; account: Account }
   | { status: "invalid_credentials" }
   /** Refused by a login limit, or the limits could not be checked. */
   | { status: "rate_limited" };
@@ -82,5 +83,5 @@ export const authenticateCredentials = async ({
 
   await recordSuccessfulLogin(identity);
 
-  return { status: "authenticated", user: userRecord };
+  return { status: "authenticated", account: toAccount(userRecord) };
 };

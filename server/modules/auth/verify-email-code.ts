@@ -11,7 +11,11 @@ import {
 export type VerifyEmailCodeResult =
   /** `isBonusGranted` is false when the bonus was paid before, or failed. */
   | { status: "verified"; isBonusGranted: boolean }
-  /** A wrong code; `attemptsLeft` more guesses before the code dies. */
+  /**
+   * A wrong code; `attemptsLeft` more guesses before the code dies. It is 0
+   * when there was no live code to guess against (none was ever sent, or no
+   * account has the email): asking for a new code is the only way on.
+   */
   | { status: "invalid_code"; attemptsLeft: number }
   /** The code is dead: too old, or its attempts are used up. Ask for a new one. */
   | { status: "expired_code" }
@@ -56,6 +60,12 @@ const grantBonus = async (userId: string): Promise<boolean> => {
 /**
  * Checks a 6-digit verification code against the account with this email
  * and, when it matches, marks the email verified and pays the bonus.
+ *
+ * The result says a lot about the account (`already_verified`, a dead code,
+ * how many guesses are left). A caller must take the email from a signed-in
+ * user, or, like the web form, pass on only what an anonymous visitor may
+ * learn; handing the whole result to an anonymous caller reveals which
+ * emails have an account.
  */
 export const verifyEmailCode = async ({
   email,

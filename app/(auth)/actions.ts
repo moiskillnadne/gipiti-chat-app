@@ -10,7 +10,10 @@ import {
   getRateLimitResetSeconds,
 } from "@/server/http/rate-limit";
 import { signIn } from "@/server/modules/auth/next-auth";
-import { parseUtmCookie } from "@/server/modules/auth/parse-utm-cookie";
+import {
+  decodeUtmCookieValue,
+  parseUtmCookie,
+} from "@/server/modules/auth/parse-utm-cookie";
 import { isAcceptablePassword } from "@/server/modules/auth/password-policy";
 import { registerUser } from "@/server/modules/auth/register-user";
 import {
@@ -28,6 +31,15 @@ import { verifyEmailCode } from "@/server/modules/auth/verify-email-code";
 // headers, call a service, and turn its result into the form's state. The
 // rules themselves (limits, checks, what is stored and sent) live in the
 // services, which the API calls too.
+
+/**
+ * Reached only when a service gains a result that an action does not map
+ * yet. The `never` parameter makes that a compile error; the throw, which
+ * each action turns into "failed", is for a build that got past it.
+ */
+const unhandledResult = (result: never): never => {
+  throw new Error(`Unhandled auth result: ${JSON.stringify(result)}`);
+};
 
 /** A new password must pass the server's rule; see `isAcceptablePassword`. */
 const newPasswordSchema = z.string().refine(isAcceptablePassword);
@@ -174,7 +186,7 @@ export const register = async (
     const cookieStore = await cookies();
     const utmCookie = cookieStore.get(UTM_COOKIE_NAME)?.value;
     const utmData = parseUtmCookie(
-      utmCookie ? decodeURIComponent(utmCookie) : undefined
+      utmCookie ? decodeUtmCookieValue(utmCookie) : undefined
     );
 
     // Capture where the user signed up from: country/region/city from the
@@ -201,9 +213,11 @@ export const register = async (
         return { status: "disposable_email" };
       case "weak_password":
         return { status: "invalid_data" };
-      default:
-        // `signup_disabled` and `limiter_unavailable`.
+      case "signup_disabled":
+      case "limiter_unavailable":
         return { status: "failed" };
+      default:
+        return unhandledResult(result);
     }
 
     // Clear UTM cookie after attribution
@@ -258,10 +272,13 @@ export const verifyEmail = async (
         return { status: "success" };
       case "rate_limited":
         return { status: "failed" };
-      default:
-        // `invalid_code`, `expired_code` and `already_verified` are states
-        // of the form too.
+      case "invalid_code":
+      case "expired_code":
+      case "already_verified":
+        // These are states of the form too.
         return { status: result.status };
+      default:
+        return unhandledResult(result);
     }
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -309,11 +326,14 @@ export const resendVerificationCode = async (
       case "limiter_unavailable":
       case "send_failed":
         return { status: "failed" };
-      default:
-        // `sent`, and also `unknown_user` and `already_verified`: the form
-        // takes the email from an anonymous visitor, so it always answers
-        // success and does not reveal which emails have an account.
+      case "sent":
+      case "unknown_user":
+      case "already_verified":
+        // The form takes the email from an anonymous visitor, so all three
+        // answer success: it must not reveal which emails have an account.
         return { status: "success" };
+      default:
+        return unhandledResult(result);
     }
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -361,10 +381,13 @@ export const requestPasswordReset = async (
       case "limiter_unavailable":
       case "send_failed":
         return { status: "failed" };
-      default:
-        // `sent`, and also `unknown_user`: always success, so that the form
-        // does not reveal which emails have an account.
+      case "sent":
+      case "unknown_user":
+        // Both answer success, so that the form does not reveal which emails
+        // have an account.
         return { status: "success" };
+      default:
+        return unhandledResult(result);
     }
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -409,9 +432,11 @@ export const resetPassword = async (
         return { status: "success" };
       case "invalid_token":
         return { status: "invalid_token" };
-      default:
-        // `weak_password`: the schema above applies the same rule.
+      case "weak_password":
+        // Not reachable from the form: its schema applies the same rule.
         return { status: "invalid_data" };
+      default:
+        return unhandledResult(result);
     }
   } catch (error) {
     if (error instanceof z.ZodError) {

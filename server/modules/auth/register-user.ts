@@ -1,7 +1,7 @@
 import type { UtmData } from "@/lib/utm/constants";
-import type { User } from "@/server/db/schema";
 import { isSignupEnabled } from "@/server/flags";
 import { checkRegisterRateLimit } from "@/server/http/rate-limit";
+import { type Account, toAccount } from "@/server/modules/auth/account";
 import { isDisposableEmail } from "@/server/modules/auth/disposable-email-domains";
 import { isAcceptablePassword } from "@/server/modules/auth/password-policy";
 import type { RegistrationGeo } from "@/server/modules/auth/registration-geo";
@@ -22,7 +22,7 @@ export type RegisterUserInput = {
 };
 
 export type RegisterUserResult =
-  | { status: "registered"; user: User }
+  | { status: "registered"; account: Account }
   /** Sign-up is switched off by the `isSignupEnabled` flag. */
   | { status: "signup_disabled" }
   | { status: "weak_password" }
@@ -76,7 +76,7 @@ export const registerUser = async ({
   try {
     const user = await createUser(email, password, utm, geo);
 
-    return { status: "registered", user };
+    return { status: "registered", account: toAccount(user) };
   } catch (error) {
     // Lost the race against a concurrent sign-up with the same address: the
     // unique index rejected the insert. Same outcome as the check above.
