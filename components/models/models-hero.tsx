@@ -1,5 +1,8 @@
 import Link from "next/link";
-import { landingRegisterLink } from "@/lib/marketing/landing-nav-links";
+import {
+  landingPricingLink,
+  landingRegisterLink,
+} from "@/lib/marketing/landing-nav-links";
 
 import { catalogModelCountFloor } from "@/lib/marketing/models-catalog";
 
@@ -46,9 +49,9 @@ export const ModelsHero = () => (
           </Link>
           <Link
             className="inline-flex items-center justify-center rounded-full border border-zinc-700 px-7 py-4 font-medium text-base text-zinc-200 transition-colors hover:border-zinc-500"
-            href="/#pricing"
+            href={landingPricingLink.href}
           >
-            Смотреть тарифы
+            {landingPricingLink.label}
           </Link>
         </div>
       </div>

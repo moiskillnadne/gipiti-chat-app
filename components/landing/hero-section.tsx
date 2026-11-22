@@ -5,7 +5,10 @@ import { preload } from "react-dom";
 
 import { HERO_POSTER_SRC } from "@/lib/marketing/hero-media";
 import { NEW_USER_BONUS_BADGE_RU } from "@/lib/marketing/landing-content";
-import { landingRegisterLink } from "@/lib/marketing/landing-nav-links";
+import {
+  landingPricingLink,
+  landingRegisterLink,
+} from "@/lib/marketing/landing-nav-links";
 
 import { ChatMockup } from "./chat-mockup";
 import { HeroVideo } from "./hero-video";
@@ -73,7 +76,7 @@ export const HeroSection = () => {
               className="inline-flex w-full items-center justify-center rounded-full border border-zinc-700 px-7 py-4 font-medium text-base text-zinc-200 transition-colors hover:border-zinc-500 sm:w-auto"
               href="#pricing"
             >
-              Посмотреть тарифы
+              {landingPricingLink.label}
             </a>
           </div>
         </div>

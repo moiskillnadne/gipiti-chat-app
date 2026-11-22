@@ -3,7 +3,8 @@ import { createHash } from "node:crypto";
 import {
   NEW_USER_BONUS_BREAKDOWN_RU,
   NEW_USER_BONUS_UP_TO_RU,
-  SUBSCRIPTION_CANCELLATION_RU,
+  SUBSCRIPTION_CANCELLATION_ACCESS_RU,
+  SUBSCRIPTION_CANCELLATION_BALANCE_RU,
   SUBSCRIPTION_PRICE_RUB,
 } from "@/lib/marketing/landing-content";
 import {
@@ -67,9 +68,9 @@ const buildGettingStartedBody = (): string =>
     "",
     `- Подписка стоит ${SUBSCRIPTION_PRICE_RUB} ₽ в месяц и каждый месяц зачисляет ${SUBSCRIPTION_PRICE_RUB} ₽ на баланс.`,
     "- Баланс списывается за фактические запросы и ответы моделей, а не за количество сообщений.",
-    "- С подпиской баланс можно пополнить отдельно; пополнения не сгорают.",
+    "- Пополненный баланс и бонусы не сгорают.",
     "- Принимаются карты Visa, MasterCard и МИР; расчёты в рублях.",
-    `- Подписку можно отменить в личном кабинете. ${SUBSCRIPTION_CANCELLATION_RU}`,
+    `- Подписку можно отменить в личном кабинете: после этого она ${SUBSCRIPTION_CANCELLATION_ACCESS_RU}. ${SUBSCRIPTION_CANCELLATION_BALANCE_RU}`,
     "",
     "## Что важно знать агенту",
     "",

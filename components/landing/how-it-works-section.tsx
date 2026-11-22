@@ -4,7 +4,8 @@ import { motion } from "framer-motion";
 
 import {
   NEW_USER_BONUS_SHORT_RU,
-  SUBSCRIPTION_PRICE_RUB,
+  SUBSCRIPTION_NO_ROLLOVER_RU,
+  SUBSCRIPTION_PRICE_RU,
 } from "@/lib/marketing/landing-content";
 
 import { FadeIn, staggerContainer, staggerItem } from "./fade-in";
@@ -24,7 +25,7 @@ const steps: Step[] = [
   {
     step: 2,
     title: "Начните бесплатно",
-    description: `${NEW_USER_BONUS_SHORT_RU}. Дальше — подписка: ${SUBSCRIPTION_PRICE_RUB} ₽ на баланс каждый месяц.`,
+    description: `${NEW_USER_BONUS_SHORT_RU}. Дальше — подписка: ${SUBSCRIPTION_PRICE_RU} на баланс каждый месяц. ${SUBSCRIPTION_NO_ROLLOVER_RU}`,
   },
   {
     step: 3,

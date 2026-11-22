@@ -24,3 +24,10 @@ export const landingRegisterLink: LandingNavLink = {
   label: "Начать бесплатно",
   href: "/register",
 };
+
+// The secondary hero action that scrolls to the pricing block. Singular: there
+// is one plan. The nav item keeps the section name «Тарифы».
+export const landingPricingLink: LandingNavLink = {
+  label: "Посмотреть тариф",
+  href: "/#pricing",
+};

@@ -66,6 +66,18 @@ export const NEW_USER_BONUS_RUB =
 /** A rouble amount with the non-breaking space Russian typography wants before «₽». */
 const formatRub = (amountRub: number): string => `${amountRub}\u00a0₽`;
 
+/** {@link SUBSCRIPTION_PRICE_RUB} with the non-breaking space before «₽». */
+export const SUBSCRIPTION_PRICE_RU = formatRub(SUBSCRIPTION_PRICE_RUB);
+
+/**
+ * Said wherever the subscription is sold, so a buyer learns before paying that
+ * the monthly amount does not roll over: renewal resets the subscription pool
+ * to the new amount (`resetSubscriptionPool`). Matches
+ * `auth.subscription.plansPage.features.balanceSub`.
+ */
+export const SUBSCRIPTION_NO_ROLLOVER_RU =
+  "Остаток не переносится на следующий месяц.";
+
 /**
  * {@link NEW_USER_BONUS_RUB} as an upper bound, «до 200 ₽», for prose that names
  * the total: registration alone credits only {@link WELCOME_GRANT_MAJOR_UNITS}.
@@ -109,8 +121,18 @@ export const NEW_USER_BONUS_TERMS_RU = `${formatRub(WELCOME_GRANT_MAJOR_UNITS)} 
  * which also holds the new-user bonuses, stays and the balance gate spends it
  * with or without a subscription.
  */
-export const SUBSCRIPTION_CANCELLATION_RU =
-  "Подписка действует до конца оплаченного периода, списаний с карты больше не будет. Отмена не возвращает деньги за уже оплаченный период. Когда период закончится, остаток подписки на балансе сгорит. Пополнения и бонусы останутся на балансе — их можно тратить и без подписки.";
+export const SUBSCRIPTION_CANCELLATION_ACCESS_RU =
+  "действует до конца оплаченного периода, списаний с карты больше не будет";
+
+/**
+ * The refund half of the cancellation answer. Cancelling refunds nothing by
+ * itself; refunds go through support on the terms of the public offer
+ * (`/legal/offer`), so the copy points there instead of ruling them out.
+ */
+export const SUBSCRIPTION_CANCELLATION_BALANCE_RU =
+  "Сама отмена не возвращает деньги за оплаченный период; условия возврата описаны в оферте. Когда период закончится, остаток подписки на балансе сгорит. Пополнения и бонусы останутся на балансе — их можно тратить и без подписки.";
+
+export const SUBSCRIPTION_CANCELLATION_RU = `После отмены подписка ${SUBSCRIPTION_CANCELLATION_ACCESS_RU}. ${SUBSCRIPTION_CANCELLATION_BALANCE_RU}`;
 
 export const homeFeatures: HomeFeature[] = [
   {
@@ -194,7 +216,7 @@ export const pricingFeatures: string[] = [
   "Анализ документов до 10MB",
   "Поиск в интернете",
   "Режим рассуждений",
-  `${SUBSCRIPTION_PRICE_RUB} ₽ на баланс каждый месяц`,
+  `${SUBSCRIPTION_PRICE_RU} на баланс каждый месяц`,
 ];
 
 export const homeFaqItems: HomeFaqItem[] = [
@@ -205,7 +227,7 @@ export const homeFaqItems: HomeFaqItem[] = [
   },
   {
     question: "Нужно ли платить, чтобы начать?",
-    answer: `Нет. Новым пользователям мы дарим ${NEW_USER_BONUS_UP_TO_RU} на баланс: ${NEW_USER_BONUS_BREAKDOWN_RU}. Этого достаточно, чтобы попробовать все функции платформы. Когда подаренный баланс закончится, оформите подписку: она зачисляет ${SUBSCRIPTION_PRICE_RUB} ₽ на баланс каждый месяц.`,
+    answer: `Нет. Новым пользователям мы дарим ${NEW_USER_BONUS_UP_TO_RU} на баланс: ${NEW_USER_BONUS_BREAKDOWN_RU}. Этого достаточно, чтобы попробовать все функции платформы. Когда подаренный баланс закончится, оформите подписку: она зачисляет ${SUBSCRIPTION_PRICE_RU} на баланс каждый месяц.`,
   },
   {
     question: "Какие платежные средства вы принимаете?",
@@ -223,10 +245,10 @@ export const homeFaqItems: HomeFaqItem[] = [
   },
   {
     question: "Что входит в подписку?",
-    answer: `Подписка включает доступ ко всем 70+ AI-моделям от 18 провайдеров (OpenAI, Google, Anthropic, xAI, Meta, DeepSeek, Alibaba, Moonshot AI, Mistral AI, Z.ai, MiniMax, Xiaomi, Perplexity, Microsoft, Kling AI, ByteDance, BFL, Recraft), генерацию изображений и видео, генерацию кода, анализ документов, поиск в интернете и режим рассуждений. Каждый месяц на ваш баланс зачисляется ${SUBSCRIPTION_PRICE_RUB} ₽ для всех функций.`,
+    answer: `Подписка включает доступ ко всем 70+ AI-моделям от 18 провайдеров (OpenAI, Google, Anthropic, xAI, Meta, DeepSeek, Alibaba, Moonshot AI, Mistral AI, Z.ai, MiniMax, Xiaomi, Perplexity, Microsoft, Kling AI, ByteDance, BFL, Recraft), генерацию изображений и видео, генерацию кода, анализ документов, поиск в интернете и режим рассуждений. Каждый месяц на ваш баланс зачисляется ${SUBSCRIPTION_PRICE_RU} для всех функций.`,
   },
   {
     question: "Как расходуется баланс?",
-    answer: `Каждый запрос оплачивается с баланса по факту: цена зависит от модели и объёма запроса и ответа. Сначала тратится остаток подписки, затем пополнения и бонусы. Остаток подписки сгорает при продлении, когда на баланс зачисляются новые ${SUBSCRIPTION_PRICE_RUB} ₽, а пополнения и бонусы не сгорают. В личном кабинете видно каждое списание.`,
+    answer: `Каждый запрос оплачивается с баланса по факту: цена зависит от модели и объёма запроса и ответа. Сначала тратится остаток подписки, затем пополнения и бонусы. Остаток подписки сгорает при продлении, когда на баланс зачисляются новые ${SUBSCRIPTION_PRICE_RU}, а пополнения и бонусы не сгорают. В личном кабинете видно каждое списание.`,
   },
 ];

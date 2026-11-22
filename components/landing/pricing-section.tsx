@@ -4,6 +4,8 @@ import Link from "next/link";
 import {
   NEW_USER_BONUS_TERMS_RU,
   pricingFeatures,
+  SUBSCRIPTION_NO_ROLLOVER_RU,
+  SUBSCRIPTION_PRICE_RU,
   SUBSCRIPTION_PRICE_RUB,
 } from "@/lib/marketing/landing-content";
 import { landingRegisterLink } from "@/lib/marketing/landing-nav-links";
@@ -46,7 +48,7 @@ export const PricingSection = () => (
                 <span className="text-xl text-zinc-400"> ₽/месяц</span>
               </div>
               <p className="mb-8 text-sm text-zinc-500">
-                {SUBSCRIPTION_PRICE_RUB} ₽ на баланс каждый месяц
+                {`${SUBSCRIPTION_PRICE_RU} на баланс каждый месяц. ${SUBSCRIPTION_NO_ROLLOVER_RU}`}
               </p>
 
               {/* Feature checklist */}

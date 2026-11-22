@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { landingPricingLink } from "@/lib/marketing/landing-nav-links";
 import type { ModelLanding } from "@/lib/marketing/model-landings/types";
 
 import { accentClasses } from "./accent-styles";
@@ -67,9 +68,9 @@ export const ModelLandingHero = ({ landing }: { landing: ModelLanding }) => {
               </Link>
               <Link
                 className="inline-flex items-center justify-center rounded-full border border-zinc-700 px-7 py-4 font-medium text-base text-zinc-200 transition-colors hover:border-zinc-500"
-                href="/#pricing"
+                href={landingPricingLink.href}
               >
-                Смотреть тарифы
+                {landingPricingLink.label}
               </Link>
             </div>
             <div className="mt-8 flex items-center gap-3">
