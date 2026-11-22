@@ -1,5 +1,6 @@
 /** Landing for the Z.ai text model: GLM-5.3. */
 
+import { NEW_USER_BONUS_SHORT_RU } from "@/lib/marketing/landing-content";
 import {
   buildSteps,
   DEEPSEEK_SLUG,
@@ -24,7 +25,7 @@ export const zaiLandings: ModelLanding[] = [
     badge: "Z.ai · Для разработчиков · Текст",
     h1Top: "GLM-5.3 —",
     h1Gradient: "нейросеть Z.ai для кода на русском",
-    sub: "Модель Z.ai (Zhipu AI) для сложной разработки уже в GIPITI — многошаговые задачи по коду, проверка приложений на уязвимости и контекст около миллиона токенов. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Модель Z.ai (Zhipu AI) для сложной разработки уже в GIPITI — многошаговые задачи по коду, проверка приложений на уязвимости и контекст около миллиона токенов. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать GLM-5.3",
     metaTitle: "GLM-5.3 — нейросеть Z.ai (Zhipu) для кода | GIPITI",
     metaDescription:

@@ -1,5 +1,6 @@
 /** Landings for the xAI Grok Imagine image models: 2.0 and the original. */
 
+import { NEW_USER_BONUS_SHORT_RU } from "@/lib/marketing/landing-content";
 import {
   buildChips,
   buildImageSteps,
@@ -29,7 +30,7 @@ export const xaiImageLandings: ModelLanding[] = [
     badge: "xAI · Новое поколение · Изображения",
     h1Top: "Grok Imagine 2.0 —",
     h1Gradient: "новое поколение картинок от xAI",
-    sub: "Новая версия генератора изображений xAI уже в GIPITI — выше детализация, точнее следование описанию и семь форматов кадра. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Новая версия генератора изображений xAI уже в GIPITI — выше детализация, точнее следование описанию и семь форматов кадра. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Grok Imagine 2.0",
     metaTitle: "Grok Imagine 2.0 — генерация изображений от xAI | GIPITI",
     metaDescription:
@@ -151,7 +152,7 @@ export const xaiImageLandings: ModelLanding[] = [
     badge: "xAI · Быстрые генерации · Изображения",
     h1Top: "Grok Imagine —",
     h1Gradient: "быстрая генерация картинок от xAI",
-    sub: "Модель xAI для изображений уже в GIPITI — быстрые генерации по описанию и семь форматов кадра. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Модель xAI для изображений уже в GIPITI — быстрые генерации по описанию и семь форматов кадра. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Grok Imagine",
     metaTitle: "Grok Imagine — генерация изображений от xAI | GIPITI",
     metaDescription:

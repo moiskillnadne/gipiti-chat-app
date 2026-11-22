@@ -7,6 +7,7 @@
  * video.
  */
 
+import { NEW_USER_BONUS_SHORT_RU } from "@/lib/marketing/landing-content";
 import { buildChips, buildVideoSteps, sharedMediaFaq } from "./media-shared";
 import {
   GROK_IMAGINE_20_SLUG,
@@ -31,7 +32,7 @@ export const xaiVideoLandings: ModelLanding[] = [
     badge: "xAI · Лёгкая версия · Видео",
     h1Top: "Grok Imagine Video 1.5 Lite —",
     h1Gradient: "короткие ролики со звуком от xAI",
-    sub: "Лёгкая версия видеомодели xAI уже в GIPITI — ролики на 4, 8 или 12 секунд со звуком по описанию или из вашей картинки, в 480p или 720p. Дешевле Grok Imagine Video, поэтому удобно перебирать идеи. Без VPN, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Лёгкая версия видеомодели xAI уже в GIPITI — ролики на 4, 8 или 12 секунд со звуком по описанию или из вашей картинки, в 480p или 720p. Дешевле Grok Imagine Video, поэтому удобно перебирать идеи. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Grok Imagine Video Lite",
     metaTitle: "Grok Imagine Video Lite — видео со звуком от xAI | GIPITI",
     metaDescription:
@@ -137,7 +138,7 @@ export const xaiVideoLandings: ModelLanding[] = [
     badge: "xAI · Версия 1.5 · Видео",
     h1Top: "Grok Imagine Video 1.5 —",
     h1Gradient: "ролики со звуком от xAI",
-    sub: "Видеомодель xAI в версии 1.5 уже в GIPITI — короткие ролики со звуком из вашей картинки, до 12 секунд. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Видеомодель xAI в версии 1.5 уже в GIPITI — короткие ролики со звуком из вашей картинки, до 12 секунд. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Grok Imagine Video",
     metaTitle: "Grok Imagine Video 1.5 — видео со звуком от xAI | GIPITI",
     metaDescription:

@@ -1,5 +1,6 @@
 /** Landing for the Xiaomi text model: MiMo v2.6 Pro. */
 
+import { NEW_USER_BONUS_SHORT_RU } from "@/lib/marketing/landing-content";
 import {
   analystsAudience,
   buildSteps,
@@ -25,7 +26,7 @@ export const xiaomiLandings: ModelLanding[] = [
     badge: "Xiaomi · Флагман MiMo · Текст",
     h1Top: "Xiaomi MiMo v2.6 Pro —",
     h1Gradient: "рассуждающая нейросеть Xiaomi",
-    sub: "Флагманская модель Xiaomi уже в GIPITI — решает задачи пошагово, понимает изображения и держит контекст около миллиона токенов, а стоит заметно меньше западных флагманов. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Флагманская модель Xiaomi уже в GIPITI — решает задачи пошагово, понимает изображения и держит контекст около миллиона токенов, а стоит заметно меньше западных флагманов. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать MiMo v2.6 Pro",
     metaTitle: "Xiaomi MiMo v2.6 Pro — нейросеть Xiaomi без VPN | GIPITI",
     metaDescription:

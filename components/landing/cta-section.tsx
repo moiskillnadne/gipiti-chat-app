@@ -3,6 +3,8 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 
+import { NEW_USER_BONUS_SHORT_RU } from "@/lib/marketing/landing-content";
+
 import { FadeIn } from "./fade-in";
 
 export const CtaSection = () => (
@@ -16,8 +18,8 @@ export const CtaSection = () => (
           Готовы начать?
         </h2>
         <p className="mx-auto mb-10 max-w-xl text-lg text-zinc-400">
-          Получите доступ ко всем AI-моделям за одну подписку. Дарим 200 ₽
-          каждому новому пользователю.
+          Получите доступ ко всем AI-моделям за одну подписку.{" "}
+          {NEW_USER_BONUS_SHORT_RU}.
         </p>
 
         <motion.div

@@ -13,7 +13,10 @@ import { LandingNav } from "@/components/landing/landing-nav";
 import { PainPointsSection } from "@/components/landing/pain-points-section";
 import { PricingSection } from "@/components/landing/pricing-section";
 import { TrustBar } from "@/components/landing/trust-bar";
-import { homeFaqItems } from "@/lib/marketing/landing-content";
+import {
+  homeFaqItems,
+  NEW_USER_BONUS_SHORT_RU,
+} from "@/lib/marketing/landing-content";
 import {
   catalogModelCountFloor,
   catalogProviderCount,
@@ -62,7 +65,7 @@ const jsonLd = {
     "Генерация кода",
     "Анализ документов",
     "Поиск в интернете",
-    "200 ₽ на баланс каждому новому пользователю",
+    NEW_USER_BONUS_SHORT_RU,
   ],
 };
 

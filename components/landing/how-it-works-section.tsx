@@ -2,6 +2,8 @@
 
 import { motion } from "framer-motion";
 
+import { NEW_USER_BONUS_SHORT_RU } from "@/lib/marketing/landing-content";
+
 import { FadeIn, staggerContainer, staggerItem } from "./fade-in";
 
 type Step = {
@@ -19,8 +21,7 @@ const steps: Step[] = [
   {
     step: 2,
     title: "Выберите тариф",
-    description:
-      "Подберите подходящий план или начните бесплатно — дарим 200 ₽ каждому новому пользователю.",
+    description: `Подберите подходящий план или начните бесплатно. ${NEW_USER_BONUS_SHORT_RU}.`,
   },
   {
     step: 3,

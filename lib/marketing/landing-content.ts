@@ -71,6 +71,28 @@ export const NEW_USER_BONUS_RUB =
  */
 export const NEW_USER_BONUS_BREAKDOWN_RU = `${WELCOME_GRANT_MAJOR_UNITS} ₽ сразу после регистрации, ещё ${EMAIL_CONFIRM_BONUS_MAJOR_UNITS} ₽ за подтверждение email и ${ONBOARDING_QUIZ_BONUS_MAJOR_UNITS} ₽ за короткий опрос о ваших задачах`;
 
+/** A rouble amount with the non-breaking space Russian typography wants before «₽». */
+const formatRub = (amountRub: number): string => `${amountRub}\u00a0₽`;
+
+/**
+ * The new-user offer in one short line, for a badge or a sentence with no room
+ * for the detail. «До» keeps it true: registration alone credits only
+ * {@link WELCOME_GRANT_MAJOR_UNITS}.
+ */
+export const NEW_USER_BONUS_SHORT_RU = `До\u00a0${formatRub(NEW_USER_BONUS_RUB)} в подарок новым пользователям`;
+
+/**
+ * {@link NEW_USER_BONUS_SHORT_RU} cut to fit the hero badge on one line at a
+ * 320px viewport.
+ */
+export const NEW_USER_BONUS_BADGE_RU = `До\u00a0${formatRub(NEW_USER_BONUS_RUB)} новым пользователям`;
+
+/**
+ * The new-user offer as terms: what arrives at registration and what the rest is
+ * for. Shorter than {@link NEW_USER_BONUS_BREAKDOWN_RU}, for calls to action.
+ */
+export const NEW_USER_BONUS_TERMS_RU = `${formatRub(WELCOME_GRANT_MAJOR_UNITS)} сразу после регистрации и ещё ${formatRub(EMAIL_CONFIRM_BONUS_MAJOR_UNITS + ONBOARDING_QUIZ_BONUS_MAJOR_UNITS)} за подтверждение email и короткий опрос`;
+
 export const homeFeatures: HomeFeature[] = [
   {
     icon: "message-square",

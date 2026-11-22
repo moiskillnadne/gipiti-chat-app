@@ -1,5 +1,6 @@
 /** Landing for the MiniMax text model: M3.1 Flash. */
 
+import { NEW_USER_BONUS_SHORT_RU } from "@/lib/marketing/landing-content";
 import {
   buildSteps,
   DEEPSEEK_41_FLASH_SLUG,
@@ -25,7 +26,7 @@ export const minimaxLandings: ModelLanding[] = [
     badge: "MiniMax · Новинка · Текст",
     h1Top: "MiniMax M3.1 Flash —",
     h1Gradient: "недорогая нейросеть для кода и агентов",
-    sub: "Новая модель MiniMax уже в GIPITI — рассуждает, понимает изображения, работает с кодом и инструментами, а токены у неё вдвое дешевле, чем у MiniMax M3. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Новая модель MiniMax уже в GIPITI — рассуждает, понимает изображения, работает с кодом и инструментами, а токены у неё вдвое дешевле, чем у MiniMax M3. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать M3.1 Flash",
     metaTitle: "MiniMax M3.1 Flash — нейросеть MiniMax без VPN | GIPITI",
     metaDescription:

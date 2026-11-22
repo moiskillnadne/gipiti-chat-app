@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 
 import { WebMcpTools } from "@/components/landing/webmcp-tools";
+import { NEW_USER_BONUS_SHORT_RU } from "@/lib/marketing/landing-content";
 
 export const metadata: Metadata = {
   title: {
     absolute: "GIPITI - AI-чат с ChatGPT, Gemini, Claude и Grok",
   },
-  description:
-    "GIPITI — платформа с доступом к лучшим AI-моделям: GPT-6, Gemini 3.1 Pro, Claude Opus 5.5 и Grok 4.7. Генерация текста, изображений, анализ документов. Дарим 200 ₽ каждому новому пользователю.",
+  description: `GIPITI — платформа с доступом к лучшим AI-моделям: GPT-6, Gemini 3.1 Pro, Claude Opus 5.5 и Grok 4.7. Генерация текста, изображений, анализ документов. ${NEW_USER_BONUS_SHORT_RU}.`,
 };
 
 export default function MarketingLayout({

@@ -7,6 +7,7 @@
  * generated with the video.
  */
 
+import { NEW_USER_BONUS_SHORT_RU } from "@/lib/marketing/landing-content";
 import { buildChips, buildVideoSteps, sharedMediaFaq } from "./media-shared";
 import {
   GROK_IMAGINE_VIDEO_SLUG,
@@ -29,7 +30,7 @@ export const alibabaVideoLandings: ModelLanding[] = [
     badge: "Alibaba · Звук в ролике · Видео",
     h1Top: "Wan 3.0 —",
     h1Gradient: "ролики со звуком от Alibaba",
-    sub: "Видеомодель Alibaba уже в GIPITI — ролики со звуком по текстовому описанию: сцена с шумом улицы, шагами и музыкой создаётся за один проход. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Видеомодель Alibaba уже в GIPITI — ролики со звуком по текстовому описанию: сцена с шумом улицы, шагами и музыкой создаётся за один проход. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Wan 3.0",
     metaTitle: "Wan 3.0 — нейросеть Alibaba для видео со звуком | GIPITI",
     metaDescription:

@@ -3,6 +3,7 @@
  * 3.7 Flash, 3.6 Flash, 3.5 Flash and 3.5 Flash Lite.
  */
 
+import { NEW_USER_BONUS_SHORT_RU } from "@/lib/marketing/landing-content";
 import {
   analystsAudience,
   buildSteps,
@@ -49,7 +50,7 @@ export const googleLandings: ModelLanding[] = [
     badge: "Google · Новинка · Текст",
     h1Top: "Gemini 4 Neon —",
     h1Gradient: "быстрая нейросеть Google для кода и агентных задач",
-    sub: "Быстрая рассуждающая модель Google из линейки Gemini 4 уже в GIPITI — качественные ответы по коду, агентным сценариям и сложным задачам без долгого ожидания. Контекст на миллион токенов, фото, скриншоты и PDF. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Быстрая рассуждающая модель Google из линейки Gemini 4 уже в GIPITI — качественные ответы по коду, агентным сценариям и сложным задачам без долгого ожидания. Контекст на миллион токенов, фото, скриншоты и PDF. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Gemini 4 Neon",
     metaTitle: "Gemini 4 Neon — быстрая нейросеть Google на русском | GIPITI",
     metaDescription:
@@ -161,7 +162,7 @@ export const googleLandings: ModelLanding[] = [
     badge: "Google · Быстрая и доступная · Текст",
     h1Top: "Gemini 4 Hydrogen —",
     h1Gradient: "недорогая мультимодальная нейросеть Google на каждый день",
-    sub: "Быстрая мультимодальная модель Google уже в GIPITI — повседневные вопросы, фото, скриншоты и PDF в одном чате, с рассуждениями и контекстом на миллион токенов. Стоит дешевле Gemini 4 Neon и Gemini 4 Carbon. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Быстрая мультимодальная модель Google уже в GIPITI — повседневные вопросы, фото, скриншоты и PDF в одном чате, с рассуждениями и контекстом на миллион токенов. Стоит дешевле Gemini 4 Neon и Gemini 4 Carbon. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Gemini 4 Hydrogen",
     metaTitle:
       "Gemini 4 Hydrogen — недорогая нейросеть Google без VPN | GIPITI",
@@ -274,7 +275,7 @@ export const googleLandings: ModelLanding[] = [
     badge: "Google · Для разработки и безопасности · Текст",
     h1Top: "Gemini 4 Carbon —",
     h1Gradient: "нейросеть Google для сложной разработки и безопасности кода",
-    sub: "Рассуждающая модель Google для сложной разработки, долгих агентных сценариев и защиты от киберугроз уже в GIPITI — работает с большими кодовыми базами и документами, контекст на миллион токенов. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Рассуждающая модель Google для сложной разработки, долгих агентных сценариев и защиты от киберугроз уже в GIPITI — работает с большими кодовыми базами и документами, контекст на миллион токенов. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Gemini 4 Carbon",
     metaTitle: "Gemini 4 Carbon — нейросеть Google для разработки | GIPITI",
     metaDescription:
@@ -391,7 +392,7 @@ export const googleLandings: ModelLanding[] = [
     badge: "Google · Новинка · Текст",
     h1Top: "Gemini 4 Argon —",
     h1Gradient: "нейросеть Google для кода и сложных задач",
-    sub: "Новая модель Google из линейки Gemini 4 уже в GIPITI — программирование, многошаговые задачи и глубокие рассуждения с контекстом на миллион токенов. Читает фото, скриншоты и PDF. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Новая модель Google из линейки Gemini 4 уже в GIPITI — программирование, многошаговые задачи и глубокие рассуждения с контекстом на миллион токенов. Читает фото, скриншоты и PDF. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Gemini 4 Argon",
     metaTitle: "Gemini 4 Argon — нейросеть Google на русском | GIPITI",
     metaDescription:
@@ -509,11 +510,10 @@ export const googleLandings: ModelLanding[] = [
     badge: "Google · Флагман Gemini · Текст",
     h1Top: "Gemini 3.1 Pro —",
     h1Gradient: "нейросеть Google на русском",
-    sub: "Флагманская модель Google уже в GIPITI — текст, изображения и документы в одном чате. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Флагманская модель Google уже в GIPITI — текст, изображения и документы в одном чате. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Gemini 3.1 Pro",
     metaTitle: "Gemini 3.1 Pro — нейросеть Google на русском без VPN | GIPITI",
-    metaDescription:
-      "Gemini 3.1 Pro — флагманская модель Google в GIPITI: текст, изображения и документы в одном чате. Без VPN, на русском, оплата российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    metaDescription: `Gemini 3.1 Pro — флагманская модель Google в GIPITI: текст, изображения и документы в одном чате. Без VPN, на русском, оплата российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     heroChat: {
       userMessage:
         "Вот фото полки в магазине — как выложен наш товар и что улучшить? 📷 polka.jpg",
@@ -601,12 +601,11 @@ export const googleLandings: ModelLanding[] = [
     badge: "Google · Быстрая модель Flash · Текст",
     h1Top: "Gemini 3.8 Flash —",
     h1Gradient: "быстрая Flash-нейросеть Google",
-    sub: "Flash-модель Google поколения 3.8 уже в GIPITI — уровень старших моделей в коде и агентных задачах, но быстро и недорого. Читает документы и фото. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Flash-модель Google поколения 3.8 уже в GIPITI — уровень старших моделей в коде и агентных задачах, но быстро и недорого. Читает документы и фото. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Gemini 3.8 Flash",
     metaTitle:
       "Gemini 3.8 Flash — недорогая Flash-нейросеть Google без VPN | GIPITI",
-    metaDescription:
-      "Gemini 3.8 Flash — быстрая модель Google поколения 3.8 в GIPITI: код, агентные задачи, документы и фото в одном чате. Без VPN, на русском, оплата российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    metaDescription: `Gemini 3.8 Flash — быстрая модель Google поколения 3.8 в GIPITI: код, агентные задачи, документы и фото в одном чате. Без VPN, на русском, оплата российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     heroChat: {
       userMessage:
         "Вот скриншот дашборда за квартал — что здесь тревожит и о чём спросить команду? 📷 dashboard.png",
@@ -691,12 +690,11 @@ export const googleLandings: ModelLanding[] = [
     badge: "Google · Быстрая модель · Текст",
     h1Top: "Gemini 3.7 Flash —",
     h1Gradient: "быстрая нейросеть Google на русском",
-    sub: "Быстрая модель Google уже в GIPITI — уровень старших моделей в коде и агентных задачах при высокой скорости и низкой цене. Читает документы и фото. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Быстрая модель Google уже в GIPITI — уровень старших моделей в коде и агентных задачах при высокой скорости и низкой цене. Читает документы и фото. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Gemini 3.7 Flash",
     metaTitle:
       "Gemini 3.7 Flash — быстрая нейросеть Google на русском без VPN | GIPITI",
-    metaDescription:
-      "Gemini 3.7 Flash — быстрая модель Google в GIPITI: код, агентные задачи, документы и фото в одном чате. Без VPN, на русском, оплата российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    metaDescription: `Gemini 3.7 Flash — быстрая модель Google в GIPITI: код, агентные задачи, документы и фото в одном чате. Без VPN, на русском, оплата российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     heroChat: {
       userMessage:
         "Проверь этот скрипт выгрузки и объясни, почему он падает на больших файлах 📄 export.py",
@@ -796,12 +794,11 @@ export const googleLandings: ModelLanding[] = [
     badge: "Google · Быстрая модель · Текст",
     h1Top: "Gemini 3.6 Flash —",
     h1Gradient: "быстрая нейросеть Google на русском",
-    sub: "Быстрая модель Google уже в GIPITI — качество старших моделей на скорости Flash: код, рабочие задачи и мультимодальность. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Быстрая модель Google уже в GIPITI — качество старших моделей на скорости Flash: код, рабочие задачи и мультимодальность. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Gemini 3.6 Flash",
     metaTitle:
       "Gemini 3.6 Flash — быстрая нейросеть Google на русском без VPN | GIPITI",
-    metaDescription:
-      "Gemini 3.6 Flash в GIPITI — быстрая модель Google для кода, рабочих задач, фото и документов в одном чате. Без VPN, на русском, оплата российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    metaDescription: `Gemini 3.6 Flash в GIPITI — быстрая модель Google для кода, рабочих задач, фото и документов в одном чате. Без VPN, на русском, оплата российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     heroChat: {
       userMessage:
         "Собери из этой таблицы отчёт для руководителя: главное, тренды и что делать 📄 sales.xlsx",
@@ -894,7 +891,7 @@ export const googleLandings: ModelLanding[] = [
     badge: "Google · Быстрая и доступная · Текст",
     h1Top: "Gemini 3.5 Flash —",
     h1Gradient: "быстрая нейросеть Google",
-    sub: "Быстрая модель Google уже в GIPITI — мгновенные ответы с рассуждениями по минимальной цене. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Быстрая модель Google уже в GIPITI — мгновенные ответы с рассуждениями по минимальной цене. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Gemini 3.5 Flash",
     metaTitle:
       "Gemini 3.5 Flash — быстрая нейросеть Google на русском | GIPITI",
@@ -918,7 +915,7 @@ export const googleLandings: ModelLanding[] = [
       {
         icon: "wallet",
         title: "Минимальная цена запроса",
-        text: "Одни из самых доступных запросов в GIPITI — стартовых 200 ₽ и ежемесячного баланса подписки хватает надолго.",
+        text: "Одни из самых доступных запросов в GIPITI — приветственных бонусов и ежемесячного баланса подписки хватает надолго.",
       },
       {
         icon: "sparkles",
@@ -984,7 +981,7 @@ export const googleLandings: ModelLanding[] = [
     // plain space leaves the dash orphaned on its own line in the hero H1.
     h1Top: "Gemini 3.5 Flash Lite\u00A0—",
     h1Gradient: "самая экономичная нейросеть Google",
-    sub: "Самая доступная модель Google уже в GIPITI — мгновенные ответы для простых и объёмных задач за копейки. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Самая доступная модель Google уже в GIPITI — мгновенные ответы для простых и объёмных задач за копейки. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     // Short label on purpose: the full name wraps the hero CTA onto two lines.
     ctaMain: "Попробовать Flash Lite",
     metaTitle:
@@ -1005,7 +1002,7 @@ export const googleLandings: ModelLanding[] = [
       {
         icon: "wallet",
         title: "Самая низкая цена запроса",
-        text: "Самые дешёвые запросы среди текстовых моделей GIPITI — стартовых 200 ₽ хватит на очень долгую работу.",
+        text: "Самые дешёвые запросы среди текстовых моделей GIPITI — приветственных бонусов хватит на очень долгую работу.",
       },
       {
         icon: "zap",

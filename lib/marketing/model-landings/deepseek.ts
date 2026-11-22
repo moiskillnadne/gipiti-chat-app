@@ -8,6 +8,7 @@
  * FAQ is replaced with a context-size or attachments one on every landing.
  */
 
+import { NEW_USER_BONUS_SHORT_RU } from "@/lib/marketing/landing-content";
 import {
   buildSteps,
   DEEPSEEK_41_FLASH_1017_SLUG,
@@ -60,7 +61,7 @@ export const deepseekLandings: ModelLanding[] = [
     badge: "DeepSeek · Обновление от 17 октября · Текст",
     h1Top: "DeepSeek V4.1 Flash 1017 —",
     h1Gradient: "обновлённая быстрая модель DeepSeek",
-    sub: "Октябрьское обновление DeepSeek V4.1 Flash уже в GIPITI — сильнее в рассуждениях, коде и разборе изображений, а задачи решает быстрее и короче. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Октябрьское обновление DeepSeek V4.1 Flash уже в GIPITI — сильнее в рассуждениях, коде и разборе изображений, а задачи решает быстрее и короче. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать V4.1 Flash 1017",
     metaTitle: "DeepSeek V4.1 Flash 1017 на русском без VPN | GIPITI",
     metaDescription:
@@ -173,7 +174,7 @@ export const deepseekLandings: ModelLanding[] = [
     badge: "DeepSeek · Новая быстрая модель · Текст",
     h1Top: "DeepSeek V4.1 Flash\u00A0—",
     h1Gradient: "быстрая нейросеть с пониманием фото",
-    sub: "Новое поколение быстрой модели DeepSeek уже в GIPITI — рассуждения, работа с фото и скриншотами и низкая цена запроса. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Новое поколение быстрой модели DeepSeek уже в GIPITI — рассуждения, работа с фото и скриншотами и низкая цена запроса. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать V4.1 Flash",
     metaTitle:
       "DeepSeek V4.1 Flash — быстрая нейросеть DeepSeek на русском | GIPITI",
@@ -203,7 +204,7 @@ export const deepseekLandings: ModelLanding[] = [
       {
         icon: "wallet",
         title: "Минимальная цена запроса",
-        text: "Одна из самых доступных моделей в GIPITI: стартовых 200 ₽ и месячного баланса подписки хватает надолго.",
+        text: "Одна из самых доступных моделей в GIPITI: приветственных бонусов и месячного баланса подписки хватает надолго.",
       },
       vpnBenefit,
     ],
@@ -277,12 +278,11 @@ export const deepseekLandings: ModelLanding[] = [
     badge: "DeepSeek · Флагман линейки · Текст",
     h1Top: "DeepSeek V4 Pro —",
     h1Gradient: "рассуждающая нейросеть на русском",
-    sub: "Флагман DeepSeek уже в GIPITI — глубокие рассуждения и контекст до миллиона токенов по разумной цене. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Флагман DeepSeek уже в GIPITI — глубокие рассуждения и контекст до миллиона токенов по разумной цене. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать DeepSeek V4 Pro",
     metaTitle:
       "DeepSeek V4 Pro — нейросеть DeepSeek на русском без VPN | GIPITI",
-    metaDescription:
-      "DeepSeek V4 Pro в GIPITI — глубокие рассуждения и контекст до миллиона токенов по разумной цене. Без VPN, на русском, оплата российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    metaDescription: `DeepSeek V4 Pro в GIPITI — глубокие рассуждения и контекст до миллиона токенов по разумной цене. Без VPN, на русском, оплата российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     heroChat: {
       userMessage:
         "Вставил модуль расчёта скидок целиком — почему итоговая цена иногда отрицательная?",
@@ -375,7 +375,7 @@ export const deepseekLandings: ModelLanding[] = [
     badge: "DeepSeek · Быстрая и недорогая · Текст",
     h1Top: "DeepSeek V4 Flash —",
     h1Gradient: "быстрая нейросеть на русском",
-    sub: "Быстрая версия DeepSeek V4 уже в GIPITI — рассуждения и повседневные задачи по минимальной цене запроса. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Быстрая версия DeepSeek V4 уже в GIPITI — рассуждения и повседневные задачи по минимальной цене запроса. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать DeepSeek V4 Flash",
     metaTitle: "DeepSeek V4 Flash — быстрая нейросеть DeepSeek | GIPITI",
     metaDescription:
@@ -399,7 +399,7 @@ export const deepseekLandings: ModelLanding[] = [
       {
         icon: "wallet",
         title: "Минимальная цена запроса",
-        text: "Одна из самых доступных моделей в GIPITI: стартовых 200 ₽ и месячного баланса подписки хватает надолго.",
+        text: "Одна из самых доступных моделей в GIPITI: приветственных бонусов и месячного баланса подписки хватает надолго.",
       },
       {
         icon: "file-text",

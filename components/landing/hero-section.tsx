@@ -4,6 +4,7 @@ import Link from "next/link";
 import { preload } from "react-dom";
 
 import { HERO_POSTER_SRC } from "@/lib/marketing/hero-media";
+import { NEW_USER_BONUS_BADGE_RU } from "@/lib/marketing/landing-content";
 
 import { ChatMockup } from "./chat-mockup";
 import { HeroVideo } from "./hero-video";
@@ -36,7 +37,7 @@ export const HeroSection = () => {
         <div className="animate-landing-rise">
           <div className="mb-6 inline-flex animate-shimmer items-center gap-2 rounded-full border border-indigo-500/30 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/10 px-4 py-2 text-indigo-300 text-sm">
             <SparklesIcon className="size-4" />
-            <span>Дарим 200 ₽ каждому новому пользователю</span>
+            <span>{NEW_USER_BONUS_BADGE_RU}</span>
           </div>
         </div>
 
