@@ -4,11 +4,15 @@ import type { User } from "@/server/db/schema";
 import { generateHashedPassword } from "@/server/db/utils";
 import { resetPassword } from "@/server/modules/auth/reset-password";
 import { hashToken } from "@/server/modules/auth/reset-token";
+import { rememberTokenVersion } from "@/server/modules/auth/token-version";
 import { sendPasswordChangedEmail } from "@/server/modules/email/send-password-changed";
 import { getUserByResetToken } from "@/server/modules/users/queries/get-user-by-reset-token";
 import { updateUserPassword } from "@/server/modules/users/queries/update-user-password";
 
 vi.mock("@/server/db/utils", () => ({ generateHashedPassword: vi.fn() }));
+vi.mock("@/server/modules/auth/token-version", () => ({
+  rememberTokenVersion: vi.fn(),
+}));
 vi.mock("@/server/modules/email/send-password-changed", () => ({
   sendPasswordChangedEmail: vi.fn(),
 }));
@@ -24,6 +28,7 @@ const USER_ID = "user-1";
 const TOKEN = "plain-reset-token";
 const NEW_PASSWORD = "Str0ng!Pass";
 const HASHED_PASSWORD = "hashed-new-password";
+const BUMPED_TOKEN_VERSION = 4;
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -32,7 +37,9 @@ beforeEach(() => {
     email: EMAIL,
   } as User);
   vi.mocked(generateHashedPassword).mockReturnValue(HASHED_PASSWORD);
-  vi.mocked(updateUserPassword).mockResolvedValue([]);
+  vi.mocked(updateUserPassword).mockResolvedValue([
+    { id: USER_ID, email: EMAIL, tokenVersion: BUMPED_TOKEN_VERSION } as User,
+  ]);
   vi.mocked(sendPasswordChangedEmail).mockResolvedValue({ success: true });
 });
 
@@ -54,6 +61,32 @@ describe("resetPassword", () => {
       hashedPassword: HASHED_PASSWORD,
     });
     expect(sendPasswordChangedEmail).toHaveBeenCalledWith({ email: EMAIL });
+  });
+
+  it("tells the cache the account's new token version, which ends its sessions", async () => {
+    // Act
+    await resetPassword({ token: TOKEN, password: NEW_PASSWORD });
+
+    // Assert
+    expect(rememberTokenVersion).toHaveBeenCalledExactlyOnceWith(
+      USER_ID,
+      BUMPED_TOKEN_VERSION
+    );
+  });
+
+  it("does not touch the cache when the account vanished before the update", async () => {
+    // Arrange
+    vi.mocked(updateUserPassword).mockResolvedValue([]);
+
+    // Act
+    const result = await resetPassword({
+      token: TOKEN,
+      password: NEW_PASSWORD,
+    });
+
+    // Assert
+    expect(result).toEqual({ status: "password_reset" });
+    expect(rememberTokenVersion).not.toHaveBeenCalled();
   });
 
   it("answers invalid_token and changes nothing when no account holds the token", async () => {

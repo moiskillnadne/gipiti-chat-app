@@ -31,6 +31,11 @@ declare module "next-auth/jwt" {
     emailVerified: boolean;
     hasActiveSubscription: boolean;
     isTester: boolean;
+    /**
+     * The account's token version when the session was issued. Absent on
+     * cookies older than the claim, which count as version 0.
+     */
+    ver?: number;
   }
 }
 
