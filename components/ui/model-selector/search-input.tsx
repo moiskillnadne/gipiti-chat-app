@@ -37,7 +37,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
           type="text"
           value={value}
         />
-        <kbd className="hidden rounded-xs border border-rule bg-paper-2 px-1.5 py-0.5 font-mono text-[9px] text-ink-3 uppercase tracking-[0.04em] sm:inline-block">
+        <kbd className="hidden rounded-xs border border-rule bg-paper-2 px-1.5 py-0.5 font-mono text-[9px] text-ink-3 uppercase tracking-[0.04em] sm:inline-block [@media(hover:none)]:hidden">
           {t("esc")}
         </kbd>
       </div>

@@ -84,7 +84,7 @@ export function ProjectPickerPopover() {
             placeholder={tInput("searchProjects")}
             value={query}
           />
-          <kbd className="rounded border border-rule bg-paper-2 px-1.5 py-[2px] font-mono text-[9px] text-ink-3 uppercase tracking-[0.04em]">
+          <kbd className="rounded border border-rule bg-paper-2 px-1.5 py-[2px] font-mono text-[9px] text-ink-3 uppercase tracking-[0.04em] [@media(hover:none)]:hidden">
             esc
           </kbd>
         </div>

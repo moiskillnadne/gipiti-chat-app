@@ -115,9 +115,6 @@ export function AppSidebar({ user }: { user: User | undefined }) {
           >
             <PlusIcon size={16} />
             <span>{t("newChat")}</span>
-            <span className="ml-auto rounded-xs border border-rule bg-paper-2 px-1.5 py-0.5 font-mono text-[10px] text-ink-3">
-              ⌘ K
-            </span>
           </SidebarMenuButton>
 
           <SidebarMenu className="gap-px">

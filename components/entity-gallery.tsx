@@ -21,7 +21,6 @@ import {
 } from "./ui/alert-dialog";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { Kbd } from "./ui/kbd";
 import { Label } from "./ui/label";
 import { SegmentedControl, SegmentedControlItem } from "./ui/segmented-control";
 
@@ -346,7 +345,6 @@ export function EntityGallery<T extends GalleryEntity>({
               placeholder={labels.searchPlaceholder}
               value={search}
             />
-            <Kbd>⌘K</Kbd>
           </div>
           <div className="hidden md:contents">
             <FilterChip
