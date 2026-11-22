@@ -35,6 +35,10 @@ export function PromptCard({
       className="group hover:-translate-y-0.5 relative flex cursor-pointer flex-col gap-3 rounded-lg border border-rule bg-card p-[18px] text-left transition-[border-color,transform,box-shadow] duration-fast ease-canon hover:border-rule-strong hover:shadow-md"
       onClick={() => onOpen(prompt.id)}
       onKeyDown={(event) => {
+        // Keys from the nested button must keep their own activation.
+        if (event.target !== event.currentTarget) {
+          return;
+        }
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
           onOpen(prompt.id);

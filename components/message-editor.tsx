@@ -51,6 +51,34 @@ export function MessageEditor({
     }
   }, [adjustHeight]);
 
+  // Move focus into the editor on open (caret at the end) and hand it back to
+  // whatever opened it (the message's Edit button) once the editor closes.
+  // The ref keeps the opener across Strict Mode's effect re-run, when the
+  // textarea already holds focus.
+  const openerRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    const { activeElement } = document;
+    if (
+      !openerRef.current &&
+      activeElement instanceof HTMLElement &&
+      activeElement !== textarea
+    ) {
+      openerRef.current = activeElement;
+    }
+    textarea?.focus();
+    textarea?.setSelectionRange(textarea.value.length, textarea.value.length);
+
+    return () => {
+      const hasFocusDropped =
+        !document.activeElement || document.activeElement === document.body;
+      if (hasFocusDropped && openerRef.current?.isConnected) {
+        openerRef.current.focus();
+      }
+    };
+  }, []);
+
   const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setDraftContent(event.target.value);
     adjustHeight();

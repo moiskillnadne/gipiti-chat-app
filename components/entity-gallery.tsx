@@ -565,6 +565,10 @@ function EntityCard<T extends GalleryEntity>({
       className="group hover:-translate-y-px relative flex min-h-[168px] cursor-pointer flex-col gap-2.5 rounded-lg border border-rule bg-card p-[18px] transition-[border-color,transform] duration-fast ease-canon hover:border-rule-strong"
       onClick={navigate}
       onKeyDown={(event) => {
+        // Keys from the nested button must keep their own activation.
+        if (event.target !== event.currentTarget) {
+          return;
+        }
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
           navigate();
