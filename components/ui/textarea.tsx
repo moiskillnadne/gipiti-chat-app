@@ -9,7 +9,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, ComponentProps<"textarea">>(
           "flex min-h-[80px] w-full rounded-md border border-rule bg-card px-3.5 py-2.5 text-ink text-sm",
           "transition-[color,border-color,box-shadow] duration-fast ease-canon",
           "placeholder:text-ink-3",
-          "focus-visible:border-ink",
+          "focus-visible:-outline-offset-1 focus-visible:border-ink",
           "aria-invalid:border-destructive aria-invalid:focus-visible:outline-destructive",
           "disabled:cursor-not-allowed disabled:opacity-50",
           className

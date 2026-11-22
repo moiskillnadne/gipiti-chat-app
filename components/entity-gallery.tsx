@@ -338,7 +338,7 @@ export function EntityGallery<T extends GalleryEntity>({
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-2.5 border-rule border-b pb-3.5">
         <div className="flex flex-1 flex-wrap items-center gap-1.5">
-          <div className="inline-flex min-w-[280px] items-center gap-2 rounded-md border border-rule bg-card px-3 py-1.5">
+          <div className="focus-within:-outline-offset-1 inline-flex min-w-[280px] items-center gap-2 rounded-md border border-rule bg-card px-3 py-1.5 focus-within:outline-2 focus-within:outline-ring">
             <Search className="size-3.5 flex-shrink-0 text-ink-4" />
             <input
               className="flex-1 border-0 bg-transparent text-[13px] outline-none placeholder:text-ink-3"

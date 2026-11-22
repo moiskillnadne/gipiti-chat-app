@@ -117,10 +117,9 @@ export const PromptInputTextarea = forwardRef<
     return (
       <Textarea
         className={cn(
-          "w-full resize-none rounded-none border-none p-3 shadow-none outline-hidden ring-0",
+          "w-full resize-none rounded-none border-none p-3 shadow-none outline-hidden",
           "overflow-y-auto",
           "bg-transparent",
-          "focus-visible:ring-0",
           className
         )}
         name="message"

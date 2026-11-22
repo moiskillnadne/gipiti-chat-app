@@ -14,7 +14,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
     const t = useTranslations("modelList.search");
 
     return (
-      <div className="flex items-center gap-2 border-rule border-b px-3.5 py-2.5">
+      <div className="flex items-center gap-2 border-rule border-b px-3.5 py-2.5 focus-within:border-ink">
         <svg
           aria-hidden="true"
           className="size-3.5 shrink-0 text-ink-3"

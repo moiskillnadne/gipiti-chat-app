@@ -455,7 +455,7 @@ function PureMultimodalInput({
 
         <PromptInputTextarea
           autoFocus
-          className="min-w-0 grow resize-none border-0! border-none! bg-transparent px-4 pt-3 pb-1.5 text-[15px] text-ink leading-[1.6] outline-none ring-0 [-ms-overflow-style:none] [scrollbar-width:none] placeholder:text-ink-3 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 [&::-webkit-scrollbar]:hidden"
+          className="min-w-0 grow resize-none border-0! border-none! bg-transparent px-4 pt-3 pb-1.5 text-[15px] text-ink leading-[1.6] outline-none [-ms-overflow-style:none] [scrollbar-width:none] placeholder:text-ink-3 [&::-webkit-scrollbar]:hidden"
           data-testid="multimodal-input"
           disableAutoResize={false}
           disableKeyboardSubmit={isMobile}

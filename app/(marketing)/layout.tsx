@@ -17,7 +17,13 @@ export default function MarketingLayout({
 }) {
   return (
     <>
-      <style>{"html, body { background-color: #09090b; }"}</style>
+      {/* The marketing site is dark (zinc-950): a light focus ring keeps the global
+          :focus-visible outline above 3:1 there without touching the light app. */}
+      <style>
+        {
+          "html, body { background-color: #09090b; } :root { --ring: var(--paper); }"
+        }
+      </style>
       <WebMcpTools />
       {children}
     </>

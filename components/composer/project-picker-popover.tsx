@@ -76,7 +76,7 @@ export function ProjectPickerPopover() {
         }}
         sideOffset={6}
       >
-        <div className="flex items-center gap-2 border-rule border-b px-3 py-2.5">
+        <div className="flex items-center gap-2 border-rule border-b px-3 py-2.5 focus-within:border-ink">
           <Search className="size-3.5 text-ink-3" strokeWidth={1.6} />
           <input
             className="flex-1 border-none bg-transparent text-[13px] text-ink outline-none placeholder:text-ink-3"

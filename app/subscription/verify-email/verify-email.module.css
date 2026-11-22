@@ -302,12 +302,11 @@
 .otpCell:focus {
   background: var(--card-bg);
   border-color: var(--ink);
-  box-shadow: 0 0 0 3px var(--citrus-soft);
 }
 
 /* Filled and empty cells look alike otherwise: the outline marks the focused one. */
 .otpCell:focus-visible {
-  outline: 2px solid var(--ink);
+  outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
 
