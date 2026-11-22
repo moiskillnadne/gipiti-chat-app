@@ -21,13 +21,14 @@
   /* Color · ink */
   --ink: #14161a;
   --ink-2: #3d4147;
-  --ink-3: #7a7e85;
-  --ink-4: #a8acb2;
+  --ink-3: #696d74; /* secondary text: ≥4.5:1 on paper, paper-2 and white */
+  --ink-4: #a8acb2; /* decorative only (rules, dots, separators): never text */
 
   /* Color · citrus accent (brand) */
   --citrus: oklch(0.82 0.16 95);
   --citrus-deep: oklch(0.62 0.16 60);
   --citrus-soft: oklch(0.92 0.08 95);
+  --citrus-ink: oklch(0.52 0.16 60); /* accent text: ≥4.5:1 on citrus-soft */
 
   /* Color · semantic */
   --success: oklch(0.62 0.13 155);
@@ -40,9 +41,18 @@
   --danger: oklch(0.58 0.18 25);
   --danger-soft: oklch(0.94 0.05 25);
 
+  /* Color · semantic text. The base tones above are for fills, dots and
+     borders; text and thin glyphs use these, which reach 4.5:1 on their own
+     -soft background and on paper, paper-2 and white. */
+  --success-ink: oklch(0.51 0.13 155);
+  --info-ink: oklch(0.52 0.13 245);
+  --warn-ink: oklch(0.52 0.16 60);
+  --danger-ink: oklch(0.53 0.18 25);
+
   /* Color · top-up pool (persistent balance — never resets) */
   --topup: oklch(0.58 0.14 220);
   --topup-soft: oklch(0.94 0.04 220);
+  --topup-ink: oklch(0.5 0.14 220); /* top-up text: ≥4.5:1 on topup-soft */
 
   /* Card surfaces */
   --card-bg: #ffffff;
@@ -174,17 +184,23 @@
   --color-citrus: var(--citrus);
   --color-citrus-deep: var(--citrus-deep);
   --color-citrus-soft: var(--citrus-soft);
+  --color-citrus-ink: var(--citrus-ink);
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
+  --color-success-ink: var(--success-ink);
   --color-info: var(--info);
   --color-info-soft: var(--info-soft);
+  --color-info-ink: var(--info-ink);
   --color-warning: var(--warning);
   --color-warn: var(--warn);
   --color-warn-soft: var(--warn-soft);
+  --color-warn-ink: var(--warn-ink);
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
+  --color-danger-ink: var(--danger-ink);
   --color-topup: var(--topup);
   --color-topup-soft: var(--topup-soft);
+  --color-topup-ink: var(--topup-ink);
   --color-card-sunk: var(--card-sunk);
   --color-model-claude: var(--model-claude);
   --color-model-gpt: var(--model-gpt);
@@ -224,6 +240,29 @@
 
   * {
     @apply border-border outline-ring/50;
+  }
+
+  /* Keyboard focus indicator for everything that does not draw its own: a solid ink outline
+     (≥14:1 on paper, paper-2, paper-3 and white). The 2px offset leaves a gap of the page
+     background, so it also shows around filled (ink, citrus) controls. An outline, not a
+     box-shadow, survives forced-colors mode. Utilities (outline-none, outline-hidden) still
+     override it, being in a later layer. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  /* iOS Safari zooms the page into any field whose text is under 16px when it gets focus. The
+     viewport no longer forbids zoom (people must be able to pinch-zoom), so on phones and touch
+     screens every field gets at least 16px instead. `!important` in the base layer beats the
+     utilities (text-sm) and the unlayered CSS-module rules alike. A field drawn larger than
+     16px declares its size in --field-font-size so this floor does not shrink it. */
+  @media (max-width: 47.9375rem), (pointer: coarse) {
+    input,
+    textarea,
+    select {
+      font-size: max(16px, var(--field-font-size, 16px)) !important;
+    }
   }
 
   html {
@@ -609,6 +648,38 @@
   animation: breathe 2.4s var(--ease-canon) infinite;
 }
 
+/* Reduced motion · global guard. Every CSS animation and transition finishes
+   at once and no loop repeats, so spinners, pulses and shimmers rest on their
+   static frame (each sits next to a label or a still icon). 0.01ms, not 0 or
+   `none`, so animationend / transitionend still fire: Radix presence waits for
+   them before it unmounts a closed dialog, popover or sheet. framer-motion is
+   not reached by CSS; it is gated by MotionConfig in app/layout.tsx. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* tailwindcss-animate enters and exits (dialogs, popovers, menus, tooltips,
+     the mobile sidebar sheet) keep a short fade but lose zoom, slide and spin. */
+  [class*="animate-in"],
+  [class*="animate-out"] {
+    --tw-enter-scale: 1 !important;
+    --tw-enter-rotate: 0 !important;
+    --tw-enter-translate-x: 0 !important;
+    --tw-enter-translate-y: 0 !important;
+    --tw-exit-scale: 1 !important;
+    --tw-exit-rotate: 0 !important;
+    --tw-exit-translate-x: 0 !important;
+    --tw-exit-translate-y: 0 !important;
+    animation-duration: 150ms !important;
+  }
+}
+
 /* ============================================================
    Entity gallery · swatches (Styles & Projects cards)
    ============================================================ */
@@ -713,10 +784,10 @@
   color: var(--ink-3);
 }
 .editor-v1-save-status-saving {
-  color: var(--citrus-deep);
+  color: var(--citrus-ink);
 }
 .editor-v1-save-status-error {
-  color: var(--danger);
+  color: var(--danger-ink);
 }
 
 .editor-v1-body {
@@ -861,7 +932,7 @@
 .editor-v1-ct {
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-4);
+  color: var(--ink-3);
 }
 .editor-v1-help {
   font-size: 13px;
@@ -931,12 +1002,12 @@
 }
 .editor-v1-ex-text p::before {
   content: "« ";
-  color: var(--ink-4);
+  color: var(--ink-3);
   font-style: normal;
 }
 .editor-v1-ex-text p::after {
   content: " »";
-  color: var(--ink-4);
+  color: var(--ink-3);
   font-style: normal;
 }
 .editor-v1-ex textarea {
@@ -987,7 +1058,7 @@
 }
 .editor-v1-add-row.drag-over {
   border-color: var(--citrus-deep);
-  color: var(--citrus-deep);
+  color: var(--citrus-ink);
   background: var(--citrus-soft);
   border-style: solid;
 }
@@ -1178,11 +1249,11 @@
   font-size: 12px;
 }
 .editor-v1-btn-danger {
-  color: var(--danger);
+  color: var(--danger-ink);
 }
 .editor-v1-btn-danger:hover {
   background: oklch(0.97 0.02 25);
-  color: var(--danger);
+  color: var(--danger-ink);
 }
 
 .editor-v1-chip {

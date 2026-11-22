@@ -4,7 +4,7 @@ import { Library } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { User } from "next-auth";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { useSWRConfig } from "swr";
 import { unstable_serialize } from "swr/infinite";
@@ -47,6 +47,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
   const { setOpenMobile } = useSidebar();
   const { mutate } = useSWRConfig();
   const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false);
+  const deleteAllButtonRef = useRef<HTMLButtonElement>(null);
 
   const handleDeleteAll = () => {
     const deletePromise = fetch("/api/history", {
@@ -84,9 +85,13 @@ export function AppSidebar({ user }: { user: User | undefined }) {
             {user && (
               <Tooltip>
                 <TooltipTrigger asChild>
+                  {/* The tooltip repeats the name, so it must not also become the description */}
                   <Button
+                    aria-describedby={undefined}
+                    aria-label={t("deleteAllChats")}
                     className="size-[26px] rounded-sm p-0 text-ink-3 hover:bg-paper-3 hover:text-ink"
                     onClick={() => setShowDeleteAllDialog(true)}
+                    ref={deleteAllButtonRef}
                     type="button"
                     variant="ghost"
                   >
@@ -112,9 +117,6 @@ export function AppSidebar({ user }: { user: User | undefined }) {
           >
             <PlusIcon size={16} />
             <span>{t("newChat")}</span>
-            <span className="ml-auto rounded-xs border border-rule bg-paper-2 px-1.5 py-0.5 font-mono text-[10px] text-ink-3">
-              ⌘ K
-            </span>
           </SidebarMenuButton>
 
           <SidebarMenu className="gap-px">
@@ -158,7 +160,13 @@ export function AppSidebar({ user }: { user: User | undefined }) {
         onOpenChange={setShowDeleteAllDialog}
         open={showDeleteAllDialog}
       >
-        <AlertDialogContent>
+        <AlertDialogContent
+          onCloseAutoFocus={(event) => {
+            // Opened from state, not a Trigger, so Radix has no element to return focus to
+            event.preventDefault();
+            deleteAllButtonRef.current?.focus();
+          }}
+        >
           <AlertDialogHeader>
             <AlertDialogTitle>{t("deleteAllDialogTitle")}</AlertDialogTitle>
             <AlertDialogDescription>

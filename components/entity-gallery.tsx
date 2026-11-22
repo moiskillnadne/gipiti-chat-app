@@ -21,7 +21,6 @@ import {
 } from "./ui/alert-dialog";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { Kbd } from "./ui/kbd";
 import { Label } from "./ui/label";
 import { SegmentedControl, SegmentedControlItem } from "./ui/segmented-control";
 
@@ -338,15 +337,14 @@ export function EntityGallery<T extends GalleryEntity>({
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-2.5 border-rule border-b pb-3.5">
         <div className="flex flex-1 flex-wrap items-center gap-1.5">
-          <div className="inline-flex min-w-[280px] items-center gap-2 rounded-md border border-rule bg-card px-3 py-1.5">
+          <div className="focus-within:-outline-offset-1 inline-flex min-w-[280px] items-center gap-2 rounded-md border border-rule bg-card px-3 py-1.5 focus-within:outline-2 focus-within:outline-ring">
             <Search className="size-3.5 flex-shrink-0 text-ink-4" />
             <input
-              className="flex-1 border-0 bg-transparent text-[13px] outline-none placeholder:text-ink-4"
+              className="flex-1 border-0 bg-transparent text-[13px] outline-none placeholder:text-ink-3"
               onChange={(event) => setSearch(event.target.value)}
               placeholder={labels.searchPlaceholder}
               value={search}
             />
-            <Kbd>⌘K</Kbd>
           </div>
           <div className="hidden md:contents">
             <FilterChip
@@ -504,10 +502,10 @@ function SectionHeading({ title, count, hint }: SectionHeadingProps) {
         {title}
       </h2>
       {typeof count === "number" ? (
-        <span className="font-mono text-[11px] text-ink-4">{count}</span>
+        <span className="font-mono text-[11px] text-ink-3">{count}</span>
       ) : null}
       {hint ? (
-        <span className="text-[11px] text-ink-4 italic">{hint}</span>
+        <span className="text-[11px] text-ink-3 italic">{hint}</span>
       ) : null}
     </div>
   );
@@ -565,6 +563,10 @@ function EntityCard<T extends GalleryEntity>({
       className="group hover:-translate-y-px relative flex min-h-[168px] cursor-pointer flex-col gap-2.5 rounded-lg border border-rule bg-card p-[18px] transition-[border-color,transform] duration-fast ease-canon hover:border-rule-strong"
       onClick={navigate}
       onKeyDown={(event) => {
+        // Keys from the nested button must keep their own activation.
+        if (event.target !== event.currentTarget) {
+          return;
+        }
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
           navigate();
@@ -578,7 +580,7 @@ function EntityCard<T extends GalleryEntity>({
         className={
           item.pinned
             ? "absolute top-3 right-3 inline-flex size-6 items-center justify-center rounded-sm text-citrus-deep"
-            : "absolute top-3 right-3 inline-flex size-6 items-center justify-center rounded-sm text-ink-4 opacity-0 transition-opacity duration-fast ease-canon hover:bg-paper-2 hover:text-ink group-focus-within:opacity-100 group-hover:opacity-100"
+            : "absolute top-3 right-3 inline-flex size-6 items-center justify-center rounded-sm text-ink-3 opacity-0 transition-opacity duration-fast ease-canon hover:bg-paper-2 hover:text-ink group-focus-within:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-100"
         }
         onClick={(event) => {
           event.stopPropagation();
@@ -593,13 +595,15 @@ function EntityCard<T extends GalleryEntity>({
         />
       </button>
 
-      <div className="flex items-start gap-2.5">
+      {/* Narrow cards stack the name under the swatch so it wraps at full width below the pin;
+          from sm the name sits beside the swatch and pr-7 keeps it clear of the pin. */}
+      <div className="flex flex-col items-start gap-2.5 sm:flex-row">
         <span
           aria-hidden="true"
-          className={`entity-swatch ${kind} ${swatch} size-[26px]`}
+          className={`entity-swatch ${kind} ${swatch} size-[26px] shrink-0`}
         />
-        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="truncate font-medium text-[15px] text-ink tracking-[-0.01em]">
+        <div className="flex w-full min-w-0 flex-1 flex-col gap-0.5 sm:w-auto sm:pr-7">
+          <span className="break-words font-medium text-[15px] text-ink tracking-[-0.01em]">
             {item.name}
           </span>
           <span className="font-mono text-[11px] text-ink-3">
@@ -609,7 +613,7 @@ function EntityCard<T extends GalleryEntity>({
       </div>
 
       <div className="line-clamp-3 flex-1 text-[12.5px] text-ink-3 italic leading-[1.5]">
-        {preview ? preview : <span className="text-ink-4 not-italic">—</span>}
+        {preview ? preview : <span className="text-ink-3 not-italic">—</span>}
       </div>
 
       <div className="flex items-center justify-between border-rule border-t border-dashed pt-2.5 font-mono text-[10px] text-ink-3 uppercase tracking-[0.06em]">
@@ -644,7 +648,7 @@ function NewCard({ label, hint, onClick }: NewCardProps) {
     >
       <Plus className="size-4" />
       <span className="font-medium text-[13px]">{label}</span>
-      <span className="text-[11px] text-ink-4">{hint}</span>
+      <span className="text-[11px] text-ink-3">{hint}</span>
     </button>
   );
 }
@@ -671,18 +675,16 @@ function TemplateCard({
       onClick={onClick}
       type="button"
     >
-      <div className="flex items-center gap-2.5">
+      <div className="flex flex-col items-start gap-2.5 sm:flex-row sm:items-center">
         <span
           aria-hidden="true"
-          className={`entity-swatch ${kind} ${swatch} size-[22px]`}
+          className={`entity-swatch ${kind} ${swatch} size-[22px] shrink-0`}
         />
-        <span className="truncate font-medium text-[14px] text-ink tracking-[-0.01em]">
+        <span className="min-w-0 break-words font-medium text-[14px] text-ink tracking-[-0.01em]">
           {name}
         </span>
       </div>
-      <p className="line-clamp-2 text-[12px] text-ink-2 leading-[1.5]">
-        {preview}
-      </p>
+      <p className="text-[12px] text-ink-2 leading-[1.5]">{preview}</p>
     </button>
   );
 }

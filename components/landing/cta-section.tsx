@@ -1,6 +1,7 @@
-"use client";
+import Link from "next/link";
 
-import { motion } from "framer-motion";
+import { NEW_USER_BONUS_SHORT_RU } from "@/lib/marketing/landing-content";
+import { landingRegisterLink } from "@/lib/marketing/landing-nav-links";
 
 import { FadeIn } from "./fade-in";
 
@@ -15,22 +16,17 @@ export const CtaSection = () => (
           Готовы начать?
         </h2>
         <p className="mx-auto mb-10 max-w-xl text-lg text-zinc-400">
-          Получите доступ ко всем AI-моделям за одну подписку. Дарим 200 ₽
-          каждому новому пользователю.
+          Получите доступ ко всем AI-моделям за одну подписку.{" "}
+          {NEW_USER_BONUS_SHORT_RU}.
         </p>
 
-        <motion.div
-          transition={{ type: "spring", stiffness: 300 }}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+        <Link
+          className="inline-flex rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-10 py-4 font-semibold text-lg text-white shadow-indigo-500/25 shadow-lg transition-all hover:shadow-2xl hover:shadow-indigo-500/30 motion-safe:hover:scale-[1.02]"
+          href="/register"
+          prefetch={false}
         >
-          <a
-            className="inline-flex rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-10 py-4 font-semibold text-lg text-white shadow-indigo-500/25 shadow-lg transition-all hover:shadow-2xl hover:shadow-indigo-500/30"
-            href="#pricing"
-          >
-            Попробовать бесплатно
-          </a>
-        </motion.div>
+          {landingRegisterLink.label}
+        </Link>
       </FadeIn>
     </div>
   </section>

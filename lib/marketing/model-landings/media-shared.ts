@@ -5,6 +5,7 @@
  * shared between both and imported from there.
  */
 
+import { NEW_USER_BONUS_SHORT_RU } from "@/lib/marketing/landing-content";
 import { priceFaq, vpnFaq } from "./shared";
 import type {
   LandingBenefit,
@@ -15,7 +16,7 @@ import type {
 
 const SIGNUP_STEP: LandingStep = {
   title: "Зарегистрируйтесь",
-  text: "Аккаунт за 30 секунд — нужен только email. Дарим 200 ₽ каждому новому пользователю.",
+  text: `Аккаунт за 30 секунд — нужен только email. ${NEW_USER_BONUS_SHORT_RU}.`,
 };
 
 const pickStep = (modelName: string): LandingStep => ({

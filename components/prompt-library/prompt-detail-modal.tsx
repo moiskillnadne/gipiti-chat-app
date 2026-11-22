@@ -94,7 +94,7 @@ export function PromptDetailModal({
                   </span>
                 ) : null}
               </div>
-              <span className="shrink-0 rounded-xs bg-citrus-soft px-[7px] py-1 font-mono text-[9px] text-citrus-deep uppercase tracking-[0.07em]">
+              <span className="shrink-0 rounded-xs bg-citrus-soft px-[7px] py-1 font-mono text-[9px] text-citrus-ink uppercase tracking-[0.07em]">
                 {t("recommended")}
               </span>
             </div>
@@ -139,11 +139,11 @@ export function PromptDetailModal({
             ) : null}
           </div>
 
-          <div className="flex items-center gap-2.5 border-rule border-t bg-card-sunk px-[22px] py-4">
+          <div className="flex flex-wrap items-center gap-2.5 border-rule border-t bg-card-sunk px-[22px] py-4">
             <button
               className={`inline-flex items-center gap-2 rounded-[9px] border px-[13px] py-[9px] font-medium text-[13px] transition-colors duration-fast ease-canon ${
                 isFavorite
-                  ? "border-citrus bg-citrus-soft text-citrus-deep"
+                  ? "border-citrus bg-citrus-soft text-citrus-ink"
                   : "border-rule-strong text-ink-2 hover:border-ink hover:text-ink"
               }`}
               onClick={() => onToggleFavorite(prompt.id)}

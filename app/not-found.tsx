@@ -64,7 +64,7 @@ export default async function NotFound() {
             >
               <div className="max-w-[88%] rounded-2xl rounded-br-[5px] bg-ink px-[15px] py-[11px] text-[14px] text-paper leading-[1.55] sm:max-w-[84%] sm:text-[15px]">
                 {t("userMessage")}
-                <span className="mt-[7px] block font-mono text-[10px] text-ink-4 uppercase tracking-[0.06em]">
+                <span className="mt-[7px] block font-mono text-[10px] text-ink-3 uppercase tracking-[0.06em]">
                   {t("userMeta")}
                 </span>
               </div>
@@ -91,7 +91,7 @@ export default async function NotFound() {
                 {t("assistantLead")}
                 <b className="font-medium text-ink">{t("assistantStrong")}</b>
                 {t("assistantTail")}
-                <span className="mt-[7px] block font-mono text-[10px] text-ink-4 uppercase tracking-[0.06em]">
+                <span className="mt-[7px] block font-mono text-[10px] text-ink-3 uppercase tracking-[0.06em]">
                   {t("assistantMeta")}
                 </span>
               </div>
@@ -113,7 +113,7 @@ export default async function NotFound() {
       </main>
 
       <footer className="flex flex-shrink-0 justify-center px-5 pb-[26px] sm:px-12">
-        <div className="inline-flex items-center gap-[7px] whitespace-nowrap font-mono text-[10px] text-ink-4 tracking-[0.06em] sm:gap-2.5 sm:text-[11px]">
+        <div className="inline-flex items-center gap-[7px] whitespace-nowrap font-mono text-[10px] text-ink-3 tracking-[0.06em] sm:gap-2.5 sm:text-[11px]">
           <span>{"HTTP 404"}</span>
           <span className="text-rule-strong">/</span>
           <span>NOT FOUND</span>

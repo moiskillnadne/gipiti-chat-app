@@ -4,13 +4,16 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useActionState, useEffect, useState } from "react";
-import { AuthForm } from "@/components/auth-form";
+import { AUTH_FORM_FIELD_IDS, AuthForm } from "@/components/auth-form";
 import { AuthPageHeader } from "@/components/auth-page-header";
 import { AuthPageLayout } from "@/components/auth-page-layout";
 import { SubmitButton } from "@/components/submit-button";
-import { toast } from "@/components/toast";
 import { useTranslations } from "@/lib/i18n/translate";
+import { getRegisterFormError } from "../_lib/form-errors";
+import { useAuthFormError } from "../_lib/use-auth-form-error";
 import { type RegisterActionState, register } from "../actions";
+
+const REGISTER_ERROR_ID = "register-form-error";
 
 // No `<Suspense>` here: the form must be part of the first HTML chunk. Under a
 // boundary that suspends on the server, React streams the form into a hidden
@@ -18,8 +21,6 @@ import { type RegisterActionState, register } from "../actions";
 // the swap, renders a second copy on the client (GIPITI-229).
 export function RegisterPageClient() {
   const t = useTranslations("auth.register");
-  const tErrors = useTranslations("auth.errors");
-  const tNotifications = useTranslations("common.notifications");
   const router = useRouter();
 
   const [isSuccessful, setIsSuccessful] = useState(false);
@@ -32,49 +33,26 @@ export function RegisterPageClient() {
     setBrowserLanguage(navigator.language);
   }, []);
 
+  const errorControls = useAuthFormError({
+    errorId: REGISTER_ERROR_ID,
+    fieldIds: AUTH_FORM_FIELD_IDS,
+  });
+
   const [state, formAction] = useActionState<RegisterActionState, FormData>(
-    register,
-    {
-      status: "idle",
-    }
+    (previousState, formData) =>
+      errorControls.runAction(
+        () => register(previousState, formData),
+        getRegisterFormError,
+        previousState
+      ),
+    { status: "idle" }
   );
 
   const { update: updateSession } = useSession();
 
   useEffect(() => {
-    if (isSuccessful) {
-      return;
-    }
-
-    if (state.status === "user_exists") {
-      toast({ type: "error", description: tErrors("userExists") });
-      return;
-    }
-
-    if (state.status === "rate_limited") {
-      toast({ type: "error", description: tErrors("tooManyAttempts") });
-      return;
-    }
-
-    if (state.status === "disposable_email") {
-      toast({ type: "error", description: tErrors("disposableEmail") });
-      return;
-    }
-
-    if (state.status === "failed") {
-      toast({ type: "error", description: tNotifications("createError") });
-      return;
-    }
-
-    if (state.status === "invalid_data") {
-      toast({
-        type: "error",
-        description: tErrors("invalidData"),
-      });
-      return;
-    }
-
-    if (state.status !== "success") {
+    // Failures are shown inline by `errorControls`.
+    if (isSuccessful || state.status !== "success") {
       return;
     }
 
@@ -83,19 +61,16 @@ export function RegisterPageClient() {
     updateSession().finally(() => {
       router.replace("/chat");
     });
-  }, [
-    router,
-    state.status,
-    isSuccessful,
-    tErrors,
-    tNotifications,
-    updateSession,
-  ]);
+  }, [router, state.status, isSuccessful, updateSession]);
 
   return (
     <AuthPageLayout>
       <AuthPageHeader subtitle={t("subtitle")} title={t("title")} />
-      <AuthForm action={formAction} mode="register">
+      <AuthForm
+        action={formAction}
+        errorControls={errorControls}
+        mode="register"
+      >
         <input name="language" type="hidden" value={browserLanguage} />
         <SubmitButton isSuccessful={isSuccessful}>
           {t("signUpButton")}

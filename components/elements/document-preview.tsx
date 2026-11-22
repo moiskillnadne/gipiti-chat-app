@@ -161,7 +161,7 @@ export const DocumentCard = ({
     <div className={cn(CARD, className)} title={title}>
       {href ? (
         <a
-          className="flex min-w-0 flex-1 items-center gap-3 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex min-w-0 flex-1 items-center gap-3 rounded-md"
           href={href}
           rel="noopener noreferrer"
           target="_blank"

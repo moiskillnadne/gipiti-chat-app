@@ -455,7 +455,7 @@ function PureMultimodalInput({
 
         <PromptInputTextarea
           autoFocus
-          className="min-w-0 grow resize-none border-0! border-none! bg-transparent px-4 pt-3 pb-1.5 text-[15px] text-ink leading-[1.6] outline-none ring-0 [-ms-overflow-style:none] [scrollbar-width:none] placeholder:text-ink-3 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 [&::-webkit-scrollbar]:hidden"
+          className="min-w-0 grow resize-none border-0! border-none! bg-transparent px-4 pt-3 pb-1.5 text-[15px] text-ink leading-[1.6] outline-none [-ms-overflow-style:none] [scrollbar-width:none] placeholder:text-ink-3 [&::-webkit-scrollbar]:hidden"
           data-testid="multimodal-input"
           disableAutoResize={false}
           disableKeyboardSubmit={isMobile}
@@ -468,22 +468,25 @@ function PureMultimodalInput({
           value={input}
         />
 
-        <div className="flex items-center gap-1 px-2.5 pt-2 pb-2.5">
-          <AttachMenu
-            disabled={status !== "ready" || !canAttachFiles}
-            isPdfSupported={isPdfSupported}
-            onPick={handleAttachPick}
-          />
-          {canUseTools && (
-            <WebSearchToggle
-              active={isWebSearchEnabled}
-              onToggle={toggleWebSearch}
+        <div className="flex items-end gap-1 px-2.5 pt-2 pb-2.5">
+          {/* Tools wrap onto a second line instead of squeezing each other or
+              pushing the send button out of the form on narrow screens. */}
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1 *:shrink-0">
+            <AttachMenu
+              disabled={status !== "ready" || !canAttachFiles}
+              isPdfSupported={isPdfSupported}
+              onPick={handleAttachPick}
             />
-          )}
-          <ThinkPopover />
-          <ImageSettingsPopover />
-          <VideoSettingsPopover />
-          <div className="flex-1" />
+            {canUseTools && (
+              <WebSearchToggle
+                active={isWebSearchEnabled}
+                onToggle={toggleWebSearch}
+              />
+            )}
+            <ThinkPopover />
+            <ImageSettingsPopover />
+            <VideoSettingsPopover />
+          </div>
 
           {isStreaming ? (
             <button

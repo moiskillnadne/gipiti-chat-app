@@ -152,7 +152,7 @@ export function AttachmentItem({
           aria-label={removeLabel}
           className={cn(
             "-top-1.5 -right-1.5 absolute inline-flex size-[18px] items-center justify-center rounded-full bg-ink text-paper opacity-0 shadow-sm transition-opacity duration-fast ease-canon",
-            "focus-visible:opacity-100 group-hover:opacity-100"
+            "focus-visible:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-100"
           )}
           onClick={(event) => {
             event.preventDefault();
@@ -198,7 +198,7 @@ export function UploadingItem({
           {filename}
         </span>
         <span className="flex items-center gap-1.5 font-mono text-[10px] text-ink-3 uppercase tracking-[0.04em]">
-          <b className="font-medium text-citrus-deep">{uploadingLabel}</b>
+          <b className="font-medium text-citrus-ink">{uploadingLabel}</b>
           {sizeLabel && (
             <>
               <span className="size-[3px] rounded-full bg-ink-4" />

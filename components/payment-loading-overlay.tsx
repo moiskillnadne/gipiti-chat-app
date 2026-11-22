@@ -80,7 +80,7 @@ export function PaymentLoadingOverlay({
                 aria-hidden="true"
                 className="size-4 text-destructive"
               />
-              <p className="text-destructive text-sm">{error}</p>
+              <p className="text-danger-ink text-sm">{error}</p>
             </div>
           )}
 

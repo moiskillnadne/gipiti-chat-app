@@ -6,6 +6,7 @@ import { Fraunces, Geist_Mono, Rubik } from "next/font/google";
 import { Toaster } from "sonner";
 import { DomMutationGuard } from "@/components/dom-mutation-guard";
 import { ErrorLogger } from "@/components/error-logger";
+import { ReducedMotionConfig } from "@/components/reduced-motion-config";
 import { UtmCapture } from "@/components/utm-capture";
 import { YandexMetrika } from "@/components/yandex-metrika";
 import "./globals.css";
@@ -64,7 +65,6 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  maximumScale: 1, // Disable auto-zoom on mobile Safari
   viewportFit: "cover",
 };
 
@@ -109,7 +109,7 @@ export default function RootLayout({
 
   return (
     <html
-      className={`${rubik.variable} ${geistMono.variable} ${fraunces.variable} scroll-smooth`}
+      className={`${rubik.variable} ${geistMono.variable} ${fraunces.variable} motion-safe:scroll-smooth`}
       lang="ru"
       suppressHydrationWarning
     >
@@ -122,7 +122,7 @@ export default function RootLayout({
         <UtmCapture />
         <SpeedInsights />
         <Toaster position="top-center" />
-        {children}
+        <ReducedMotionConfig>{children}</ReducedMotionConfig>
         <Analytics />
         <YandexMetrika />
         {shouldInjectToolbar && <VercelToolbar />}

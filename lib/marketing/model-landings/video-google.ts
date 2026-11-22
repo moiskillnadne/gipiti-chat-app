@@ -5,6 +5,7 @@
  * 16:9 or 9:16, 720p or 1080p (1080p forces the 8-second length).
  */
 
+import { NEW_USER_BONUS_SHORT_RU } from "@/lib/marketing/landing-content";
 import { buildChips, buildVideoSteps, sharedMediaFaq } from "./media-shared";
 import {
   FLUX_VIDEO_SLUG,
@@ -28,7 +29,7 @@ export const googleVideoLandings: ModelLanding[] = [
     badge: "Google · Видео со звуком · Видео",
     h1Top: "Veo 3.1 —",
     h1Gradient: "нейросеть для видео со звуком",
-    sub: "Флагманская видеомодель Google уже в GIPITI — кинематографичные ролики со звуком по описанию на русском или из вашей картинки. Без VPN, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Флагманская видеомодель Google уже в GIPITI — кинематографичные ролики со звуком по описанию на русском или из вашей картинки. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Veo 3.1",
     metaTitle: "Veo 3.1 — нейросеть для генерации видео со звуком | GIPITI",
     metaDescription:

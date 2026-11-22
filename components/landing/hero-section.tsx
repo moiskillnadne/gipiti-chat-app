@@ -1,8 +1,14 @@
 import { SparklesIcon } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { preload } from "react-dom";
 
 import { HERO_POSTER_SRC } from "@/lib/marketing/hero-media";
+import { NEW_USER_BONUS_BADGE_RU } from "@/lib/marketing/landing-content";
+import {
+  landingPricingLink,
+  landingRegisterLink,
+} from "@/lib/marketing/landing-nav-links";
 
 import { ChatMockup } from "./chat-mockup";
 import { HeroVideo } from "./hero-video";
@@ -35,7 +41,7 @@ export const HeroSection = () => {
         <div className="animate-landing-rise">
           <div className="mb-6 inline-flex animate-shimmer items-center gap-2 rounded-full border border-indigo-500/30 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/10 px-4 py-2 text-indigo-300 text-sm">
             <SparklesIcon className="size-4" />
-            <span>Дарим 200 ₽ каждому новому пользователю</span>
+            <span>{NEW_USER_BONUS_BADGE_RU}</span>
           </div>
         </div>
 
@@ -59,11 +65,18 @@ export const HeroSection = () => {
         {/* Dual CTAs */}
         <div className="animate-landing-rise [--landing-rise-delay:200ms]">
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <a
+            <Link
               className="inline-flex w-full items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-8 py-4 font-semibold text-lg text-white shadow-indigo-500/25 shadow-lg transition-all hover:shadow-indigo-500/30 hover:shadow-xl sm:w-auto"
+              href="/register"
+              prefetch={false}
+            >
+              {landingRegisterLink.label}
+            </Link>
+            <a
+              className="inline-flex w-full items-center justify-center rounded-full border border-zinc-700 px-7 py-4 font-medium text-base text-zinc-200 transition-colors hover:border-zinc-500 sm:w-auto"
               href="#pricing"
             >
-              Посмотреть тарифы
+              {landingPricingLink.label}
             </a>
           </div>
         </div>

@@ -11,8 +11,8 @@ const Input = forwardRef<HTMLInputElement, ComponentProps<"input">>(
           "transition-[color,border-color,box-shadow] duration-fast ease-canon",
           "placeholder:text-ink-3",
           "file:border-0 file:bg-transparent file:font-medium file:text-foreground file:text-sm",
-          "focus-visible:border-ink focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-citrus-soft",
-          "aria-invalid:border-destructive aria-invalid:focus-visible:ring-destructive/30",
+          "focus-visible:-outline-offset-1 focus-visible:border-ink",
+          "aria-invalid:border-destructive aria-invalid:focus-visible:outline-destructive",
           "disabled:cursor-not-allowed disabled:opacity-50",
           className
         )}

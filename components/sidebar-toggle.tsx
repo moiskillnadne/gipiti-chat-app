@@ -13,13 +13,18 @@ import { Button } from "./ui/button";
 export function SidebarToggle({
   className,
 }: ComponentProps<typeof SidebarTrigger>) {
-  const { toggleSidebar } = useSidebar();
+  const { isMobile, open, openMobile, toggleSidebar } = useSidebar();
   const t = useTranslations("common.accessibility");
+  const isSidebarOpen = isMobile ? openMobile : open;
+  const label = t(isSidebarOpen ? "hideSidebar" : "showSidebar");
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
+        {/* The tooltip repeats the name, so it must not also become the description */}
         <Button
+          aria-describedby={undefined}
+          aria-label={label}
           className={cn(
             "size-7 rounded-sm p-0 text-ink-3 hover:bg-paper-2 hover:text-ink",
             className
@@ -32,7 +37,7 @@ export function SidebarToggle({
         </Button>
       </TooltipTrigger>
       <TooltipContent align="start" className="hidden md:block">
-        {t("toggleSidebar")}
+        {label}
       </TooltipContent>
     </Tooltip>
   );

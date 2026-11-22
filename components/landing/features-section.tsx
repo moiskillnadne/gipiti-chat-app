@@ -11,10 +11,12 @@ import {
   VideoIcon,
   ZapIcon,
 } from "lucide-react";
+import Link from "next/link";
 import type { ElementType } from "react";
 
 import type { HomeFeatureIcon } from "@/lib/marketing/landing-content";
 import { homeFeatures } from "@/lib/marketing/landing-content";
+import { landingRegisterLink } from "@/lib/marketing/landing-nav-links";
 
 import { FadeIn, staggerContainer, staggerItem } from "./fade-in";
 
@@ -75,13 +77,14 @@ export const FeaturesSection = () => (
       {/* Inline CTA */}
       <FadeIn delay={0.3}>
         <div className="mt-10 text-center">
-          <a
+          <Link
             className="inline-flex items-center gap-2 text-indigo-400 transition-colors hover:text-indigo-300"
-            href="#pricing"
+            href="/register"
+            prefetch={false}
           >
-            Начать использовать
+            {landingRegisterLink.label}
             <span aria-hidden="true">&rarr;</span>
-          </a>
+          </Link>
         </div>
       </FadeIn>
     </div>

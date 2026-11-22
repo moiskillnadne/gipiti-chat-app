@@ -15,7 +15,7 @@ export function KeyboardHints({ className }: KeyboardHintsProps) {
   return (
     <div
       className={cn(
-        "hidden items-center justify-center gap-1.5 pt-2 font-mono text-[10px] text-ink-3 uppercase tracking-[0.08em] md:flex",
+        "hidden items-center justify-center gap-1.5 pt-2 font-mono text-[10px] text-ink-3 uppercase tracking-[0.08em] md:flex [@media(hover:none)]:hidden",
         className
       )}
     >

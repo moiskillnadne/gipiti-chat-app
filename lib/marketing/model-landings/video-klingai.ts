@@ -7,6 +7,7 @@
  * proportions instead of an aspect setting.
  */
 
+import { NEW_USER_BONUS_SHORT_RU } from "@/lib/marketing/landing-content";
 import {
   buildChips,
   buildVideoSteps,
@@ -43,7 +44,7 @@ export const klingaiVideoLandings: ModelLanding[] = [
     badge: "Kling AI · Флагман линейки · Видео",
     h1Top: "Kling 3.0 —",
     h1Gradient: "кинематографичное видео по тексту",
-    sub: "Флагманская видеомодель Kling AI уже в GIPITI — кинематографичные ролики с озвучкой по текстовому описанию. Без VPN, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Флагманская видеомодель Kling AI уже в GIPITI — кинематографичные ролики с озвучкой по текстовому описанию. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Kling 3.0",
     metaTitle: "Kling 3.0 — нейросеть для генерации видео по тексту | GIPITI",
     metaDescription:
@@ -134,7 +135,7 @@ export const klingaiVideoLandings: ModelLanding[] = [
     badge: "Kling AI · Из картинки в видео · Видео",
     h1Top: "Kling 3.0 Image-to-Video —",
     h1Gradient: "оживите своё изображение",
-    sub: "Модель Kling AI уже в GIPITI — превращает вашу картинку в короткое видео со звуком по текстовому описанию. Без VPN, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Модель Kling AI уже в GIPITI — превращает вашу картинку в короткое видео со звуком по текстовому описанию. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Kling 3.0 Image-to-Video",
     metaTitle: "Kling 3.0 Image-to-Video — видео из изображения | GIPITI",
     metaDescription:
@@ -223,7 +224,7 @@ export const klingaiVideoLandings: ModelLanding[] = [
     badge: "Kling AI · Нативный звук · Видео",
     h1Top: "Kling 2.6 —",
     h1Gradient: "видео с речью и эффектами",
-    sub: "Модель Kling AI с нативным звуком уже в GIPITI — речь, звуковые эффекты и эмбиент генерируются вместе с видео. Без VPN, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Модель Kling AI с нативным звуком уже в GIPITI — речь, звуковые эффекты и эмбиент генерируются вместе с видео. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Kling 2.6",
     metaTitle: "Kling 2.6 — генерация видео со звуком по тексту | GIPITI",
     metaDescription:
@@ -310,7 +311,7 @@ export const klingaiVideoLandings: ModelLanding[] = [
     badge: "Kling AI · Быстро и недорого · Видео",
     h1Top: "Kling 2.5 Turbo —",
     h1Gradient: "быстрая генерация видео",
-    sub: "Быстрая и доступная видеомодель Kling AI уже в GIPITI — ролики по текстовому описанию, когда нужно много и недорого. Без VPN, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Быстрая и доступная видеомодель Kling AI уже в GIPITI — ролики по текстовому описанию, когда нужно много и недорого. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Kling 2.5 Turbo",
     metaTitle: "Kling 2.5 Turbo — быстрая генерация видео по тексту | GIPITI",
     metaDescription:

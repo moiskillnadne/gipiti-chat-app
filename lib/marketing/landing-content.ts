@@ -63,13 +63,76 @@ export const NEW_USER_BONUS_RUB =
   EMAIL_CONFIRM_BONUS_MAJOR_UNITS +
   ONBOARDING_QUIZ_BONUS_MAJOR_UNITS;
 
+/** A rouble amount with the non-breaking space Russian typography wants before «₽». */
+const formatRub = (amountRub: number): string => `${amountRub}\u00a0₽`;
+
+/** {@link SUBSCRIPTION_PRICE_RUB} with the non-breaking space before «₽». */
+export const SUBSCRIPTION_PRICE_RU = formatRub(SUBSCRIPTION_PRICE_RUB);
+
+/**
+ * Said wherever the subscription is sold, so a buyer learns before paying that
+ * the monthly amount does not roll over: renewal resets the subscription pool
+ * to the new amount (`resetSubscriptionPool`). Matches
+ * `auth.subscription.plansPage.features.balanceSub`.
+ */
+export const SUBSCRIPTION_NO_ROLLOVER_RU =
+  "Остаток не переносится на следующий месяц.";
+
+/**
+ * {@link NEW_USER_BONUS_RUB} as an upper bound, «до 200 ₽», for prose that names
+ * the total: registration alone credits only {@link WELCOME_GRANT_MAJOR_UNITS}.
+ */
+export const NEW_USER_BONUS_UP_TO_RU = `до\u00a0${formatRub(NEW_USER_BONUS_RUB)}`;
+
 /**
  * How {@link NEW_USER_BONUS_RUB} is earned, as a Russian fragment for prose
  * that has room for the detail. Shared so the marketing pages and the
  * agent-facing surfaces quote exactly the same split — an agent relaying "you
  * get it all at signup" would be telling users something untrue.
  */
-export const NEW_USER_BONUS_BREAKDOWN_RU = `${WELCOME_GRANT_MAJOR_UNITS} ₽ сразу после регистрации, ещё ${EMAIL_CONFIRM_BONUS_MAJOR_UNITS} ₽ за подтверждение email и ${ONBOARDING_QUIZ_BONUS_MAJOR_UNITS} ₽ за короткий опрос о ваших задачах`;
+export const NEW_USER_BONUS_BREAKDOWN_RU = `${formatRub(WELCOME_GRANT_MAJOR_UNITS)} сразу после регистрации, ещё ${formatRub(EMAIL_CONFIRM_BONUS_MAJOR_UNITS)} за подтверждение email и ${formatRub(ONBOARDING_QUIZ_BONUS_MAJOR_UNITS)} за короткий опрос о ваших задачах`;
+
+/**
+ * The new-user offer in one short line, for a badge or a sentence with no room
+ * for the detail. «До» keeps it true: registration alone credits only
+ * {@link WELCOME_GRANT_MAJOR_UNITS}.
+ */
+export const NEW_USER_BONUS_SHORT_RU = `До\u00a0${formatRub(NEW_USER_BONUS_RUB)} в подарок новым пользователям`;
+
+/**
+ * {@link NEW_USER_BONUS_SHORT_RU} cut to fit the hero badge on one line at a
+ * 320px viewport.
+ */
+export const NEW_USER_BONUS_BADGE_RU = `До\u00a0${formatRub(NEW_USER_BONUS_RUB)} новым пользователям`;
+
+/**
+ * The new-user offer as terms: what arrives at registration and what the rest is
+ * for. Shorter than {@link NEW_USER_BONUS_BREAKDOWN_RU}, for calls to action.
+ * Starts with the amount, so a standalone sentence leads with a verb: «Дарим …».
+ */
+export const NEW_USER_BONUS_TERMS_RU = `${formatRub(WELCOME_GRANT_MAJOR_UNITS)} сразу после регистрации и ещё ${formatRub(EMAIL_CONFIRM_BONUS_MAJOR_UNITS + ONBOARDING_QUIZ_BONUS_MAJOR_UNITS)} за подтверждение email и короткий опрос`;
+
+/**
+ * What cancelling a subscription does to access and to the balance, for every
+ * surface that answers it (the home FAQ, the agent skill). Matches the cancel
+ * dialog (`auth.subscription.manage.cancel.*`) and the manage-subscription FAQ
+ * (`auth.subscription.faq.items.q4`): access lasts to the end of the paid
+ * period, then the cleanup cron zeroes the subscription pool; the top-up pool,
+ * which also holds the new-user bonuses, stays and the balance gate spends it
+ * with or without a subscription.
+ */
+export const SUBSCRIPTION_CANCELLATION_ACCESS_RU =
+  "действует до конца оплаченного периода, списаний с карты больше не будет";
+
+/**
+ * The refund half of the cancellation answer. Cancelling refunds nothing by
+ * itself; refunds go through support on the terms of the public offer
+ * (`/legal/offer`), so the copy points there instead of ruling them out.
+ */
+export const SUBSCRIPTION_CANCELLATION_BALANCE_RU =
+  "Сама отмена не возвращает деньги за оплаченный период; условия возврата описаны в оферте. Когда период закончится, остаток подписки на балансе сгорит. Пополнения и бонусы останутся на балансе — их можно тратить и без подписки.";
+
+export const SUBSCRIPTION_CANCELLATION_RU = `После отмены подписка ${SUBSCRIPTION_CANCELLATION_ACCESS_RU}. ${SUBSCRIPTION_CANCELLATION_BALANCE_RU}`;
 
 export const homeFeatures: HomeFeature[] = [
   {
@@ -120,7 +183,7 @@ export const homeFeatures: HomeFeature[] = [
 export const homeBenefits: HomeBenefit[] = [
   {
     icon: "globe",
-    title: "Без VPN и ограничений",
+    title: "Без VPN и блокировок",
     description:
       "Пользуйтесь из любой точки мира без региональных блокировок. VPN не нужен — просто откройте сайт и начните работать.",
   },
@@ -153,7 +216,7 @@ export const pricingFeatures: string[] = [
   "Анализ документов до 10MB",
   "Поиск в интернете",
   "Режим рассуждений",
-  `${SUBSCRIPTION_PRICE_RUB} ₽ на баланс каждый месяц`,
+  `${SUBSCRIPTION_PRICE_RU} на баланс каждый месяц`,
 ];
 
 export const homeFaqItems: HomeFaqItem[] = [
@@ -164,7 +227,7 @@ export const homeFaqItems: HomeFaqItem[] = [
   },
   {
     question: "Нужно ли платить, чтобы начать?",
-    answer: `Нет. Мы дарим ${NEW_USER_BONUS_RUB} ₽ на баланс каждому новому пользователю: ${NEW_USER_BONUS_BREAKDOWN_RU}. Этого достаточно, чтобы попробовать все функции платформы. Когда баланс закончится, вы можете пополнить его или оформить подписку.`,
+    answer: `Нет. Новым пользователям мы дарим ${NEW_USER_BONUS_UP_TO_RU} на баланс: ${NEW_USER_BONUS_BREAKDOWN_RU}. Этого достаточно, чтобы попробовать все функции платформы. Когда подаренный баланс закончится, оформите подписку: она зачисляет ${SUBSCRIPTION_PRICE_RU} на баланс каждый месяц.`,
   },
   {
     question: "Какие платежные средства вы принимаете?",
@@ -174,19 +237,18 @@ export const homeFaqItems: HomeFaqItem[] = [
   {
     question: "Могу ли я отменить подписку?",
     answer:
-      "Да, вы можете отменить подписку в любой момент в настройках аккаунта. Отмена вступает в силу по окончании текущего оплаченного периода.",
+      "Да, вы можете отменить подписку в любой момент в личном кабинете. Отмена вступает в силу по окончании текущего оплаченного периода.",
   },
   {
     question: "Что будет если я отменю подписку?",
-    answer:
-      "После отмены подписка продолжает действовать до конца оплаченного периода — вы пользуетесь сервисом без ограничений. Когда период закончится, аккаунт и история чатов сохранятся, но для новых запросов потребуется активная подписка.",
+    answer: SUBSCRIPTION_CANCELLATION_RU,
   },
   {
     question: "Что входит в подписку?",
-    answer: `Подписка включает доступ ко всем 70+ AI-моделям от 18 провайдеров (OpenAI, Google, Anthropic, xAI, Meta, DeepSeek, Alibaba, Moonshot AI, Mistral AI, Z.ai, MiniMax, Xiaomi, Perplexity, Microsoft, Kling AI, ByteDance, BFL, Recraft), генерацию изображений и видео, генерацию кода, анализ документов, поиск в интернете и режим рассуждений. Каждый месяц на ваш баланс зачисляется ${SUBSCRIPTION_PRICE_RUB} ₽ для всех функций.`,
+    answer: `Подписка включает доступ ко всем 70+ AI-моделям от 18 провайдеров (OpenAI, Google, Anthropic, xAI, Meta, DeepSeek, Alibaba, Moonshot AI, Mistral AI, Z.ai, MiniMax, Xiaomi, Perplexity, Microsoft, Kling AI, ByteDance, BFL, Recraft), генерацию изображений и видео, генерацию кода, анализ документов, поиск в интернете и режим рассуждений. Каждый месяц на ваш баланс зачисляется ${SUBSCRIPTION_PRICE_RU} для всех функций.`,
   },
   {
-    question: "Как работают лимиты?",
-    answer: `Подписка зачисляет ${SUBSCRIPTION_PRICE_RUB} ₽ на баланс каждый месяц. Баланс расходуется на ваши запросы и ответы AI, а при необходимости его можно пополнить в любой момент. В личном кабинете вы всегда можете отслеживать текущий расход.`,
+    question: "Как расходуется баланс?",
+    answer: `Каждый запрос оплачивается с баланса по факту: цена зависит от модели и объёма запроса и ответа. Сначала тратится остаток подписки, затем пополнения и бонусы. Остаток подписки сгорает при продлении, когда на баланс зачисляются новые ${SUBSCRIPTION_PRICE_RU}, а пополнения и бонусы не сгорают. В личном кабинете видно каждое списание.`,
   },
 ];

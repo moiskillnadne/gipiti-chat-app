@@ -38,7 +38,10 @@ export async function BalanceHero({
   subResetText,
 }: BalanceHeroProps) {
   const t = await getTranslations("auth.subscription.balance");
-  const { sign, whole, frac } = splitMoney(total, minorUnits);
+  const { sign, whole: wholeGrouped, frac } = splitMoney(total, minorUnits);
+  // Non-breaking group separators: the digits never split across lines,
+  // only the kopecks + currency span wraps.
+  const whole = wholeGrouped.replaceAll(" ", " ");
   const symbol = currencySymbol(currencyCode);
   const isZero = total === 0;
 
@@ -68,8 +71,10 @@ export async function BalanceHero({
             {sign}
             {whole}
           </span>
-          {frac && <span className={styles.balanceFrac}>,{frac}</span>}
-          <span className={styles.balanceCur}>{symbol}</span>
+          <span className={styles.balanceTail}>
+            {frac && <span className={styles.balanceFrac}>,{frac}</span>}
+            <span className={styles.balanceCur}>{symbol}</span>
+          </span>
         </div>
 
         {isZero && <div className={styles.balanceSub}>{t("zeroNote")}</div>}

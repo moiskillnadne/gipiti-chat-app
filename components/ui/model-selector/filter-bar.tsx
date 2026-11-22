@@ -33,7 +33,7 @@ export function FilterBar({
   return (
     <div className="flex flex-col gap-2 border-rule border-b bg-card-sunk px-3 py-2.5">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="font-mono text-[9px] text-ink-4 uppercase tracking-[0.1em]">
+        <span className="font-mono text-[9px] text-ink-3 uppercase tracking-[0.1em]">
           {t("group.label")}
         </span>
         <div
@@ -128,7 +128,7 @@ function CapChip({ label, count, isActive, onClick }: CapChipProps) {
       <span
         className={cn(
           "rounded-pill px-1.5 py-px font-mono text-[9px] leading-none",
-          isActive ? "bg-white/15 text-paper/70" : "bg-paper-2 text-ink-4"
+          isActive ? "bg-white/15 text-paper/70" : "bg-paper-2 text-ink-3"
         )}
       >
         {count}

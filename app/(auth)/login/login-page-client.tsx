@@ -4,16 +4,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useActionState, useEffect, useState } from "react";
-import { AuthForm } from "@/components/auth-form";
+import { AUTH_FORM_FIELD_IDS, AuthForm } from "@/components/auth-form";
 import { AuthPageHeader } from "@/components/auth-page-header";
 import { AuthPageLayout } from "@/components/auth-page-layout";
 import { SubmitButton } from "@/components/submit-button";
-import { toast } from "@/components/toast";
 import { getSafeRedirectPath } from "@/lib/auth/safe-redirect-path";
 import { useTranslations } from "@/lib/i18n/translate";
+import { getLoginFormError } from "../_lib/form-errors";
+import { useAuthFormError } from "../_lib/use-auth-form-error";
 import { type LoginActionState, login } from "../actions";
 
 const CALLBACK_URL_PARAM = "callbackUrl";
+const LOGIN_ERROR_ID = "login-form-error";
 
 type LoginPageClientProps = {
   showSignup: boolean;
@@ -42,47 +44,29 @@ const getRedirectPath = (): string =>
 // `getRedirectPath`.
 export function LoginPageClient({ showSignup }: LoginPageClientProps) {
   const t = useTranslations("auth.login");
-  const tErrors = useTranslations("auth.errors");
   const router = useRouter();
 
   const [isSuccessful, setIsSuccessful] = useState(false);
+  const errorControls = useAuthFormError({
+    errorId: LOGIN_ERROR_ID,
+    fieldIds: AUTH_FORM_FIELD_IDS,
+  });
 
   const [state, formAction] = useActionState<LoginActionState, FormData>(
-    login,
-    {
-      status: "idle",
-    }
+    (previousState, formData) =>
+      errorControls.runAction(
+        () => login(previousState, formData),
+        getLoginFormError,
+        previousState
+      ),
+    { status: "idle" }
   );
 
   const { update: updateSession } = useSession();
 
   useEffect(() => {
-    if (isSuccessful) {
-      return;
-    }
-
-    if (state.status === "failed") {
-      toast({
-        type: "error",
-        description: tErrors("invalidCredentials"),
-      });
-      return;
-    }
-
-    if (state.status === "rate_limited") {
-      toast({ type: "error", description: tErrors("tooManyAttempts") });
-      return;
-    }
-
-    if (state.status === "invalid_data") {
-      toast({
-        type: "error",
-        description: tErrors("invalidData"),
-      });
-      return;
-    }
-
-    if (state.status !== "success") {
+    // Failures are shown inline by `errorControls`.
+    if (isSuccessful || state.status !== "success") {
       return;
     }
 
@@ -93,12 +77,12 @@ export function LoginPageClient({ showSignup }: LoginPageClientProps) {
     updateSession().then(() => {
       router.replace(redirectPath);
     });
-  }, [router, state.status, updateSession, isSuccessful, tErrors]);
+  }, [router, state.status, updateSession, isSuccessful]);
 
   return (
     <AuthPageLayout>
       <AuthPageHeader subtitle={t("subtitle")} title={t("title")} />
-      <AuthForm action={formAction} mode="login">
+      <AuthForm action={formAction} errorControls={errorControls} mode="login">
         <div className="flex items-center justify-end">
           <Link
             className="text-gray-600 text-sm hover:underline"

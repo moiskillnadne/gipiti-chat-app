@@ -18,7 +18,7 @@ export default async function UsageHistoryPage() {
   const t = await getTranslations("auth.subscription.history");
 
   return (
-    <div className="container mx-auto max-w-4xl p-6">
+    <div className="container mx-auto max-w-4xl p-4 md:p-6">
       <div className="mb-4">
         <Link href="/subscription">
           <Button className="gap-2" variant="ghost">
@@ -31,11 +31,12 @@ export default async function UsageHistoryPage() {
       <div className="space-y-6">
         <TokenUsageSummary showHistoryButton={false} />
 
-        <Card>
-          <CardHeader>
+        {/* On phones the card's 24px padding on top of the page's 16px left the list ~240px */}
+        <Card data-history-card>
+          <CardHeader className="px-4 sm:px-6">
             <CardTitle>{t("title")}</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 sm:px-6">
             <TokenHistoryTable />
           </CardContent>
         </Card>

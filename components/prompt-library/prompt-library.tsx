@@ -1,11 +1,13 @@
 "use client";
 
+import { useReducedMotion } from "framer-motion";
 import { Search, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 import { useModel } from "@/contexts/model-context";
+import { resolveScrollBehavior } from "@/lib/dom/scroll-behavior";
 import { useTranslations } from "@/lib/i18n/translate";
 import {
   getPromptModelMeta,
@@ -34,6 +36,7 @@ export function PromptLibrary() {
   const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<PromptFilter>("all");
   const [page, setPage] = useState(1);
+  const shouldReduceMotion = useReducedMotion();
   const [openId, setOpenId] = useState<string | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -116,7 +119,10 @@ export function PromptLibrary() {
     const grid = document.querySelector("[data-prompt-grid]");
     if (grid) {
       const top = grid.getBoundingClientRect().top + window.scrollY;
-      window.scrollTo({ top: top - SCROLL_OFFSET, behavior: "smooth" });
+      window.scrollTo({
+        top: top - SCROLL_OFFSET,
+        behavior: resolveScrollBehavior("smooth", shouldReduceMotion),
+      });
     }
   };
 
@@ -185,7 +191,7 @@ export function PromptLibrary() {
       <div className="mb-[18px] flex items-center gap-3 rounded-lg border border-rule bg-card px-[18px] py-[13px] shadow-sm transition-all duration-fast ease-canon focus-within:border-ink focus-within:ring-[3px] focus-within:ring-citrus-soft">
         <Search className="size-[18px] shrink-0 text-ink-3" />
         <input
-          className="min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-ink-4"
+          className="min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-ink-3"
           onChange={(event) => updateQuery(event.target.value)}
           placeholder={t("searchPlaceholder")}
           ref={searchRef}
@@ -193,11 +199,16 @@ export function PromptLibrary() {
         />
         {query ? (
           <button
-            className="inline-flex size-6 items-center justify-center rounded-full text-ink-4 transition-colors duration-fast ease-canon hover:bg-paper-2 hover:text-ink"
-            onClick={() => updateQuery("")}
+            aria-label={t("clearSearch")}
+            className="inline-flex size-6 items-center justify-center rounded-full text-ink-3 transition-colors duration-fast ease-canon hover:bg-paper-2 hover:text-ink"
+            onClick={() => {
+              updateQuery("");
+              // The button unmounts once the query is empty; keep focus in the search
+              searchRef.current?.focus();
+            }}
             type="button"
           >
-            <X className="size-3.5" />
+            <X aria-hidden className="size-3.5" />
           </button>
         ) : null}
       </div>

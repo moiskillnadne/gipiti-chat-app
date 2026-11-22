@@ -12,6 +12,7 @@
  * "make the sneaker blue" edit changed only the sneaker (probed 2026-10-29).
  */
 
+import { NEW_USER_BONUS_SHORT_RU } from "@/lib/marketing/landing-content";
 import {
   buildChips,
   buildImageSteps,
@@ -47,7 +48,7 @@ export const microsoftImageLandings: ModelLanding[] = [
     badge: "Microsoft AI · Качество и правки · Изображения",
     h1Top: "MAI-Image 2.7 —",
     h1Gradient: "новая нейросеть Microsoft для картинок",
-    sub: "Диффузионная модель Microsoft AI для генерации и точного редактирования изображений уже в GIPITI — фотореалистичные сцены по описанию на русском и правки загруженных картинок. Три формата кадра на выбор. Без VPN, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Диффузионная модель Microsoft AI для генерации и точного редактирования изображений уже в GIPITI — фотореалистичные сцены по описанию на русском и правки загруженных картинок. Три формата кадра на выбор. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать MAI-Image 2.7",
     metaTitle: "MAI-Image 2.7 — нейросеть Microsoft для изображений | GIPITI",
     metaDescription:
@@ -181,7 +182,7 @@ export const microsoftImageLandings: ModelLanding[] = [
     badge: "Microsoft AI · Быстро и недорого · Изображения",
     h1Top: "MAI-Image 2.7 Flash —",
     h1Gradient: "быстрая и недорогая модель Microsoft",
-    sub: "Облегчённая версия MAI-Image 2.7 уже в GIPITI — те же генерация и правки по описанию на русском, но быстрее и дешевле. Удобно, когда идей много и каждую хочется увидеть. Квадрат, 16:9 или 9:16. Без VPN, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Облегчённая версия MAI-Image 2.7 уже в GIPITI — те же генерация и правки по описанию на русском, но быстрее и дешевле. Удобно, когда идей много и каждую хочется увидеть. Квадрат, 16:9 или 9:16. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать MAI-Image 2.7 Flash",
     metaTitle: "MAI-Image 2.7 Flash — быстрая нейросеть Microsoft | GIPITI",
     metaDescription:
@@ -315,7 +316,7 @@ export const microsoftImageLandings: ModelLanding[] = [
     badge: "Microsoft AI · Точные правки · Изображения",
     h1Top: "MAI-Image 2.6 —",
     h1Gradient: "нейросеть Microsoft для изображений",
-    sub: "Модель Microsoft AI для генерации и редактирования изображений уже в GIPITI — точно меняет объекты, надписи и композицию по описанию на русском. Без VPN, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Модель Microsoft AI для генерации и редактирования изображений уже в GIPITI — точно меняет объекты, надписи и композицию по описанию на русском. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать MAI-Image 2.6",
     metaTitle: "MAI-Image 2.6 — нейросеть Microsoft для картинок | GIPITI",
     metaDescription:
@@ -445,7 +446,7 @@ export const microsoftImageLandings: ModelLanding[] = [
     badge: "Microsoft AI · Быстро и дешевле · Изображения",
     h1Top: "MAI-Image 2.6 Flash —",
     h1Gradient: "быстрые картинки от Microsoft",
-    sub: "Быстрая версия MAI-Image 2.6 уже в GIPITI — те же генерация и правки по описанию на русском, но быстрее и дешевле. Подходит, чтобы перебрать десяток идей за вечер. Без VPN, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Быстрая версия MAI-Image 2.6 уже в GIPITI — те же генерация и правки по описанию на русском, но быстрее и дешевле. Подходит, чтобы перебрать десяток идей за вечер. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать MAI-Image 2.6 Flash",
     metaTitle:
       "MAI-Image 2.6 Flash — предыдущая версия Flash от Microsoft | GIPITI",

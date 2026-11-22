@@ -8,6 +8,7 @@
  * preview), and a 4K request returned 5504 × 3072.
  */
 
+import { NEW_USER_BONUS_SHORT_RU } from "@/lib/marketing/landing-content";
 import { buildChips, buildImageSteps, sharedMediaFaq } from "./media-shared";
 import {
   FLUX_SLUG,
@@ -33,7 +34,7 @@ export const googleImageLandings: ModelLanding[] = [
     badge: "Google · Новое поколение · Изображения",
     h1Top: "Nano Banana 2.1 —",
     h1Gradient: "новая нейросеть Google для картинок",
-    sub: "Новое поколение Nano Banana уже в GIPITI — рисует по описанию на русском, переносит товар в другую сцену и правит готовые изображения в качестве до 4K. Без VPN, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Новое поколение Nano Banana уже в GIPITI — рисует по описанию на русском, переносит товар в другую сцену и правит готовые изображения в качестве до 4K. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Nano Banana 2.1",
     metaTitle: "Nano Banana 2.1 — нейросеть Google для картинок | GIPITI",
     metaDescription:
@@ -159,11 +160,10 @@ export const googleImageLandings: ModelLanding[] = [
     badge: "Google · Генерация и редактирование · Изображения",
     h1Top: "Nano Banana —",
     h1Gradient: "нейросеть для картинок на русском",
-    sub: "Самая популярная модель Google для изображений уже в GIPITI — рисует по описанию и точно правит готовые картинки. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Самая популярная модель Google для изображений уже в GIPITI — рисует по описанию и точно правит готовые картинки. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Nano Banana",
     metaTitle: "Nano Banana — нейросеть для генерации изображений | GIPITI",
-    metaDescription:
-      "Nano Banana в GIPITI — генерация и редактирование изображений по описанию на русском: замена фона, стиля и деталей. Без VPN, оплата российскими картами. Дарим 200 ₽ новым пользователям.",
+    metaDescription: `Nano Banana в GIPITI — генерация и редактирование изображений по описанию на русском: замена фона, стиля и деталей. Без VPN, оплата российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     heroMedia: {
       userMessage:
         "Нарисуй рыжего кота в очках, который читает газету в кофейне, тёплый свет, 16:9",
@@ -285,7 +285,7 @@ export const googleImageLandings: ModelLanding[] = [
     badge: "Google · Максимум качества · Изображения",
     h1Top: "Nano Banana Pro —",
     h1Gradient: "точная генерация изображений",
-    sub: "Продвинутая модель Google для изображений уже в GIPITI — точно следует сложному описанию и аккуратно пишет текст прямо на картинке. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Продвинутая модель Google для изображений уже в GIPITI — точно следует сложному описанию и аккуратно пишет текст прямо на картинке. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Nano Banana Pro",
     metaTitle: "Nano Banana Pro — генерация изображений с текстом | GIPITI",
     metaDescription:
@@ -411,7 +411,7 @@ export const googleImageLandings: ModelLanding[] = [
     badge: "Google · Самая недорогая · Изображения",
     h1Top: "Nano Banana Lite —",
     h1Gradient: "быстрая генерация картинок",
-    sub: "Самая лёгкая модель Google для изображений уже в GIPITI — быстрые картинки по минимальной цене, когда нужно перебрать десяток вариантов. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Самая лёгкая модель Google для изображений уже в GIPITI — быстрые картинки по минимальной цене, когда нужно перебрать десяток вариантов. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Nano Banana Lite",
     metaTitle: "Nano Banana Lite — быстрая генерация изображений | GIPITI",
     metaDescription:

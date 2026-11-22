@@ -11,6 +11,7 @@
  * Its "green sofa" tile is a real edit of the hero render.
  */
 
+import { NEW_USER_BONUS_SHORT_RU } from "@/lib/marketing/landing-content";
 import {
   buildChips,
   buildImageSteps,
@@ -42,7 +43,7 @@ export const bflImageLandings: ModelLanding[] = [
     badge: "Black Forest Labs · Быстрая и недорогая · Изображения",
     h1Top: "Flux 3 Image Klein —",
     h1Gradient: "компактная быстрая модель BFL",
-    sub: "Лёгкая версия Flux 3 от Black Forest Labs уже в GIPITI — рисует по описанию на русском и правит загруженные изображения, быстро и недорого. Квадрат, 16:9 или 9:16. Без VPN, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Лёгкая версия Flux 3 от Black Forest Labs уже в GIPITI — рисует по описанию на русском и правит загруженные изображения, быстро и недорого. Квадрат, 16:9 или 9:16. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Flux 3 Image Klein",
     metaTitle: "Flux 3 Image Klein — быстрая нейросеть BFL | GIPITI",
     metaDescription:
@@ -172,7 +173,7 @@ export const bflImageLandings: ModelLanding[] = [
     badge: "Black Forest Labs · Новый флагман · Изображения",
     h1Top: "Flux 3 Image —",
     h1Gradient: "генерация и правки в одной модели",
-    sub: "Новый флагман Black Forest Labs уже в GIPITI — рисует по описанию на русском и правит готовые изображения той же моделью, без ручных масок. Без VPN, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Новый флагман Black Forest Labs уже в GIPITI — рисует по описанию на русском и правит готовые изображения той же моделью, без ручных масок. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Flux 3 Image",
     metaTitle: "Flux 3 Image — нейросеть для картинок от BFL | GIPITI",
     metaDescription:
@@ -298,7 +299,7 @@ export const bflImageLandings: ModelLanding[] = [
     badge: "Black Forest Labs · Художественные стили · Изображения",
     h1Top: "Flux 2 Max —",
     h1Gradient: "нейросеть для художественных картинок",
-    sub: "Старшая модель Black Forest Labs уже в GIPITI — насыщенные художественные стили и высокая детализация по описанию на русском. Без VPN, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Старшая модель Black Forest Labs уже в GIPITI — насыщенные художественные стили и высокая детализация по описанию на русском. Без VPN, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Flux 2 Max",
     metaTitle: "Flux 2 Max — нейросеть для генерации изображений | GIPITI",
     metaDescription:

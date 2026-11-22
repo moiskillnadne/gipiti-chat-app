@@ -89,7 +89,7 @@
 
 .pillTrial {
   background: var(--info-soft);
-  color: var(--info);
+  color: var(--info-ink);
 }
 
 .pillTrial::before {
@@ -108,7 +108,7 @@
 .pillPastDue {
   animation: pillPulse 2.4s var(--ease-canon) infinite;
   background: var(--danger-soft);
-  color: var(--danger);
+  color: var(--danger-ink);
 }
 
 .pillPastDue::before {
@@ -242,7 +242,7 @@
 .cardBadgeWarn {
   background: var(--warn-soft);
   border-color: color-mix(in oklch, var(--warn) 35%, transparent);
-  color: var(--warn);
+  color: var(--warn-ink);
 }
 
 .cardLink {
@@ -387,7 +387,7 @@
 }
 
 .gaugeStatBonus {
-  color: var(--success);
+  color: var(--success-ink);
   font-family: var(--font-mono);
   font-size: 11px;
   margin-left: 6px;
@@ -501,7 +501,7 @@
 }
 
 .btnAccent {
-  background: var(--citrus-deep);
+  background: var(--citrus-ink);
   color: white;
 }
 
@@ -601,7 +601,7 @@
 }
 
 .limitNameBonus {
-  color: var(--success);
+  color: var(--success-ink);
   font-family: var(--font-mono);
   font-size: 10px;
   margin-left: 6px;
@@ -691,7 +691,7 @@
   font-weight: 500;
 }
 
-.bannerBody span {
+.bannerBody > span {
   display: block;
   font-size: 13px;
   margin-top: 2px;
@@ -799,7 +799,7 @@
 }
 
 .rewardNoteAmount {
-  color: var(--citrus-deep);
+  color: var(--citrus-ink);
   font-family: var(--font-mono);
   font-weight: 600;
 }
@@ -811,13 +811,13 @@
 }
 
 .planMetaValueVerified {
-  color: var(--success);
+  color: var(--success-ink);
   font-size: 14px;
   margin-top: 2px;
 }
 
 .planMetaValueUnverified {
-  color: var(--warn);
+  color: var(--warn-ink);
   font-size: 14px;
   margin-top: 2px;
 }
@@ -1110,6 +1110,7 @@
 }
 
 .heroInner {
+  container-type: inline-size;
   position: relative;
 }
 
@@ -1122,9 +1123,16 @@
   text-transform: uppercase;
 }
 
+/* The amount never clips (the hero has overflow: hidden): the sizes shrink
+   with the hero's width (cqi of .heroInner) so an eight-digit amount still
+   fits one line, and the kopecks with the currency drop to a second line
+   together when the whole row does not fit. Wide heroes keep the px caps.
+   The fluid sizes live in an @supports block after the 720px media query;
+   browsers without cqi keep these px sizes. */
 .balanceRow {
   align-items: baseline;
   display: flex;
+  flex-wrap: wrap;
   font-family: var(--font-display);
   font-feature-settings: "tnum";
   font-weight: 300;
@@ -1136,6 +1144,15 @@
 .balanceNum {
   color: var(--ink);
   font-size: 96px;
+  /* Last resort for a still longer amount: break rather than clip. */
+  overflow-wrap: anywhere;
+}
+
+.balanceTail {
+  align-items: baseline;
+  display: inline-flex;
+  gap: 4px;
+  white-space: nowrap;
 }
 
 .balanceFrac {
@@ -1159,7 +1176,7 @@
 
 .balanceSub {
   align-items: center;
-  color: var(--danger);
+  color: var(--danger-ink);
   display: flex;
   font-size: 13px;
   gap: 8px;
@@ -1179,10 +1196,6 @@
   border: 1px solid var(--rule);
   border-radius: 12px;
   padding: 14px;
-}
-
-.poolChipEmpty {
-  opacity: 0.55;
 }
 
 .chipHead {
@@ -1217,7 +1230,7 @@
 
 .chipTag {
   align-items: center;
-  color: var(--ink-4);
+  color: var(--ink-3);
   display: inline-flex;
   font-family: var(--font-mono);
   font-size: 9px;
@@ -1247,6 +1260,15 @@
   font-family: var(--font-mono);
   font-size: 10px;
   margin-top: 4px;
+}
+
+/* An empty pool reads as quieter, but its labels stay at full text contrast. */
+.poolChipEmpty .chipSwatch {
+  opacity: 0.55;
+}
+
+.poolChipEmpty .chipAmt {
+  color: var(--ink-3);
 }
 
 .heroActions {
@@ -1389,13 +1411,13 @@
 }
 
 .rewardAmount {
-  color: var(--success);
+  color: var(--success-ink);
   font-family: var(--font-mono);
   font-weight: 600;
 }
 
 .btnReward {
-  background: var(--success);
+  background: var(--success-ink);
   color: #fff;
 }
 
@@ -1428,9 +1450,8 @@
 .histTtl {
   color: var(--ink);
   letter-spacing: -0.01em;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
 }
 
 .histSub {
@@ -1439,9 +1460,7 @@
   font-size: 10.5px;
   letter-spacing: 0.01em;
   margin-top: 3px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .histAmt {
@@ -1515,7 +1534,7 @@
 }
 
 .footnote {
-  color: var(--ink-4);
+  color: var(--ink-3);
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.08em;
@@ -1534,7 +1553,7 @@
 
 .pillLow {
   background: var(--warn-soft);
-  color: var(--warn);
+  color: var(--warn-ink);
 }
 
 .pillLow::before {
@@ -1571,5 +1590,30 @@
   }
   .balanceCur {
     font-size: 36px;
+  }
+}
+
+/* Fluid balance sizes (see .balanceRow); px caps match the rules above. */
+@supports (width: 1cqi) {
+  .balanceNum {
+    font-size: min(96px, 21cqi);
+  }
+  .balanceFrac {
+    font-size: min(40px, 8.75cqi);
+  }
+  .balanceCur {
+    font-size: min(56px, 12.25cqi);
+  }
+
+  @media (max-width: 720px) {
+    .balanceNum {
+      font-size: min(64px, 21cqi);
+    }
+    .balanceFrac {
+      font-size: min(28px, 9.2cqi);
+    }
+    .balanceCur {
+      font-size: min(36px, 11.8cqi);
+    }
   }
 }

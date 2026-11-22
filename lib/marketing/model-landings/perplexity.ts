@@ -7,6 +7,7 @@
  * they have no landings; their old URLs redirect here (see `next.config.ts`).
  */
 
+import { NEW_USER_BONUS_SHORT_RU } from "@/lib/marketing/landing-content";
 import {
   buildSteps,
   DEEPSEEK_SLUG,
@@ -37,7 +38,7 @@ export const perplexityLandings: ModelLanding[] = [
     badge: "Perplexity · Встроенный поиск · Текст",
     h1Top: "Perplexity Sonar —",
     h1Gradient: "нейросеть с поиском в интернете",
-    sub: "Нейросеть Perplexity со встроенным поиском уже в GIPITI — свежие ответы со ссылками на источники. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Нейросеть Perplexity со встроенным поиском уже в GIPITI — свежие ответы со ссылками на источники. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Sonar",
     metaTitle: "Perplexity Sonar — нейросеть с поиском в интернете | GIPITI",
     metaDescription:

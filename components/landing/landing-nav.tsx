@@ -5,16 +5,13 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { isLandingSectionLink } from "@/lib/marketing/landing-links";
+import {
+  landingLoginLink,
+  landingNavLinks,
+  landingRegisterLink,
+} from "@/lib/marketing/landing-nav-links";
 
-// Root-relative so the anchors resolve to the landing-page sections from any
-// route (e.g. the blog), not only when already on "/".
-const navLinks = [
-  { label: "Модели", href: "/models" },
-  { label: "Возможности", href: "/#features" },
-  { label: "Тарифы", href: "/#pricing" },
-  { label: "FAQ", href: "/#faq" },
-  { label: "Блог", href: "/blog" },
-];
+import { LandingMobileMenu } from "./landing-mobile-menu";
 
 export const LandingNav = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -46,8 +43,8 @@ export const LandingNav = () => {
           GIPITI
         </Link>
 
-        <div className="hidden items-center gap-8 md:flex">
-          {navLinks.map((link) => (
+        <div className="hidden items-center gap-6 md:flex lg:gap-8">
+          {landingNavLinks.map((link) => (
             <Link
               className="text-sm text-zinc-400 transition-colors hover:text-white"
               href={link.href}
@@ -59,30 +56,23 @@ export const LandingNav = () => {
           ))}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <Link
             className="text-sm text-zinc-400 transition-colors hover:text-white"
-            href="/login"
+            href={landingLoginLink.href}
             prefetch={false}
           >
-            Войти
+            {landingLoginLink.label}
           </Link>
-          <motion.div
-            animate={{
-              opacity: isScrolled ? 1 : 0,
-              scale: isScrolled ? 1 : 0.9,
-            }}
-            initial={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.2 }}
+          {/* Below `sm` the mobile menu carries this action. */}
+          <Link
+            className="hidden rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-5 py-2 font-medium text-sm text-white transition-all hover:shadow-indigo-500/25 hover:shadow-lg sm:inline-flex"
+            href={landingRegisterLink.href}
+            prefetch={false}
           >
-            <Link
-              className="hidden rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-5 py-2 font-medium text-sm text-white transition-all hover:shadow-indigo-500/25 hover:shadow-lg sm:inline-flex"
-              href="/#pricing"
-              prefetch={false}
-            >
-              Тарифы
-            </Link>
-          </motion.div>
+            {landingRegisterLink.label}
+          </Link>
+          <LandingMobileMenu />
         </div>
       </nav>
     </motion.header>

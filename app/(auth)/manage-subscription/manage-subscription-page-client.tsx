@@ -93,7 +93,7 @@ function ManageSubscriptionContent() {
           <h1 className="font-medium text-[40px] text-ink leading-[1.02] tracking-[-0.035em] sm:text-[54px]">
             {tPlans("heroTitleLine1")}
             <br />
-            <em className="text-citrus-deep not-italic">
+            <em className="text-citrus-ink not-italic">
               {tPlans("heroTitleLine2")}
             </em>
           </h1>

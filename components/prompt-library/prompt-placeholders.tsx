@@ -18,7 +18,7 @@ export function PromptPlaceholders({ text }: { text: string }) {
         if (PLACEHOLDER_MATCH.test(part)) {
           return (
             <span
-              className="rounded-xs bg-citrus-soft px-1 font-medium text-citrus-deep"
+              className="rounded-xs bg-citrus-soft px-1 font-medium text-citrus-ink"
               key={key}
             >
               {part.slice(1, -1)}

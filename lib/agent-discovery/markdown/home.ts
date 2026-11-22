@@ -3,8 +3,9 @@ import {
   homeFaqItems,
   homeFeatures,
   NEW_USER_BONUS_BREAKDOWN_RU,
-  NEW_USER_BONUS_RUB,
+  NEW_USER_BONUS_UP_TO_RU,
   pricingFeatures,
+  SUBSCRIPTION_NO_ROLLOVER_RU,
   SUBSCRIPTION_PRICE_RUB,
 } from "@/lib/marketing/landing-content";
 import {
@@ -74,8 +75,8 @@ const buildPricing = (): string[] => [
   "## Тариф",
   "",
   `**${SUBSCRIPTION_PRICE_RUB} ₽ в месяц.** Подписка зачисляет ${SUBSCRIPTION_PRICE_RUB} ₽ на баланс каждый месяц;`,
-  "баланс расходуется на запросы к моделям и пополняется в любой момент.",
-  `Каждому новому пользователю мы дарим ${NEW_USER_BONUS_RUB} ₽ на баланс:`,
+  `баланс расходуется на запросы к моделям. ${SUBSCRIPTION_NO_ROLLOVER_RU} Пополненный баланс и бонусы не сгорают.`,
+  `Новым пользователям мы дарим ${NEW_USER_BONUS_UP_TO_RU} на баланс:`,
   `${NEW_USER_BONUS_BREAKDOWN_RU}.`,
   "Этого достаточно, чтобы попробовать все функции без оплаты.",
   "",

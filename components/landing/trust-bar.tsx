@@ -5,6 +5,7 @@ import {
   motion,
   useInView,
   useMotionValue,
+  useReducedMotion,
   useTransform,
 } from "framer-motion";
 import Link from "next/link";
@@ -53,12 +54,19 @@ const AnimatedCounter = ({
   const motionVal = useMotionValue(0);
   const rounded = useTransform(motionVal, (latest) => Math.round(latest));
   const isInView = useInView(ref, { once: true, margin: "-100px 0px" });
+  const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
-    if (isInView) {
-      animate(motionVal, value, { duration: 1.5, ease: "easeOut" });
+    if (!isInView) {
+      return;
     }
-  }, [isInView, motionVal, value]);
+    // animate() is imperative, so MotionConfig does not reach it
+    if (shouldReduceMotion) {
+      motionVal.set(value);
+      return;
+    }
+    animate(motionVal, value, { duration: 1.5, ease: "easeOut" });
+  }, [isInView, motionVal, value, shouldReduceMotion]);
 
   useEffect(() => {
     const unsubscribe = rounded.on("change", (latest) => {
@@ -79,8 +87,9 @@ const AnimatedCounter = ({
 export const TrustBar = () => (
   <section className="border-zinc-800/50 border-y bg-zinc-900/30 px-4 py-16">
     <div className="mx-auto max-w-6xl">
-      {/* Stats row */}
-      <div className="mb-12 grid grid-cols-3 gap-8">
+      {/* Stats row: on phones the three items take their own width and wrap rather than
+          squeeze «пользователей» into a third of 288px; sm+ keeps the equal grid */}
+      <div className="mb-12 flex flex-wrap justify-evenly gap-x-4 gap-y-6 sm:grid sm:grid-cols-3 sm:gap-8">
         {stats.map((stat) => (
           <div className="text-center" key={stat.label}>
             <AnimatedCounter suffix={stat.suffix} value={stat.value} />
@@ -91,7 +100,7 @@ export const TrustBar = () => (
 
       {/* Provider logos */}
       <motion.div
-        className="flex items-center justify-center gap-10 md:gap-16"
+        className="flex flex-wrap items-center justify-center gap-x-6 gap-y-4 sm:gap-x-10 lg:gap-x-16"
         initial="hidden"
         variants={staggerContainer}
         viewport={{ once: true, margin: "-50px" }}

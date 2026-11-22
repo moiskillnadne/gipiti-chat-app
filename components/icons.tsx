@@ -334,6 +334,7 @@ export const MenuIcon = ({ size = 16 }: { size?: number }) => {
 export const PencilEditIcon = ({ size = 16 }: { size?: number }) => {
   return (
     <svg
+      aria-hidden="true"
       height={size}
       strokeLinejoin="round"
       style={{ color: "currentcolor" }}
@@ -413,6 +414,7 @@ export const MoreIcon = ({ size = 16 }: { size?: number }) => {
 export const TrashIcon = ({ size = 16 }: { size?: number }) => {
   return (
     <svg
+      aria-hidden="true"
       height={size}
       strokeLinejoin="round"
       style={{ color: "currentcolor" }}
@@ -538,6 +540,7 @@ export const MoreHorizontalIcon = ({ size = 16 }: { size?: number }) => {
 
 export const HelpIcon = ({ size = 16 }: { size?: number }) => (
   <svg
+    aria-hidden="true"
     fill="none"
     height={size}
     stroke="currentColor"
@@ -737,6 +740,7 @@ export const SummarizeIcon = ({ size = 16 }: { size?: number }) => (
 
 export const SidebarLeftIcon = ({ size = 16 }: { size?: number }) => (
   <svg
+    aria-hidden="true"
     height={size}
     strokeLinejoin="round"
     style={{ color: "currentcolor" }}

@@ -11,7 +11,7 @@ export function Footer({ count }: FooterProps) {
 
   return (
     <div className="flex items-center justify-between border-rule border-t bg-card-sunk px-3.5 py-2 font-mono text-[9.5px] uppercase tracking-[0.08em] text-ink-3">
-      <div className="hidden items-center gap-3 sm:flex">
+      <div className="hidden items-center gap-3 sm:flex [@media(hover:none)]:hidden">
         <span className="inline-flex items-center gap-1">
           <Kbd>esc</Kbd>
           <span>{t("close")}</span>

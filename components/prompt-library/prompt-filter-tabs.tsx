@@ -29,7 +29,7 @@ export function PromptFilterTabs({
       <button
         className={`${baseTab} ${
           isFav
-            ? "border-citrus-deep bg-citrus-deep text-white"
+            ? "border-citrus-ink bg-citrus-ink text-white"
             : "border-rule bg-paper text-ink-2 hover:border-rule-strong hover:text-ink"
         }`}
         onClick={() => onSelect("fav")}
@@ -38,7 +38,7 @@ export function PromptFilterTabs({
         <Star className="size-3.5" fill={isFav ? "currentColor" : "none"} />
         {t("tabFavorites")}
         <span
-          className={`font-mono text-[10px] ${isFav ? "text-white/60" : "text-ink-4"}`}
+          className={`font-mono text-[10px] ${isFav ? "text-white/90" : "text-ink-3"}`}
         >
           {counts.fav ?? 0}
         </span>
@@ -57,7 +57,7 @@ export function PromptFilterTabs({
       >
         {t("tabAll")}
         <span
-          className={`font-mono text-[10px] ${isAll ? "text-white/50" : "text-ink-4"}`}
+          className={`font-mono text-[10px] ${isAll ? "text-white/90" : "text-ink-3"}`}
         >
           {counts.all ?? 0}
         </span>
@@ -83,7 +83,7 @@ export function PromptFilterTabs({
             {t(category.labelKey)}
             <span
               className={`font-mono text-[10px] ${
-                isActive ? "text-white/50" : "text-ink-4"
+                isActive ? "text-white/90" : "text-ink-3"
               }`}
             >
               {counts[category.id] ?? 0}

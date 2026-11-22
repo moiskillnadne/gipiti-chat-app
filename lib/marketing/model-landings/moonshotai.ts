@@ -1,5 +1,6 @@
 /** Landings for the Moonshot AI text models: Kimi K3.1 Pro and Kimi K3 Fast. */
 
+import { NEW_USER_BONUS_SHORT_RU } from "@/lib/marketing/landing-content";
 import {
   buildSteps,
   DEEPSEEK_SLUG,
@@ -30,7 +31,7 @@ export const moonshotaiLandings: ModelLanding[] = [
     badge: "Moonshot AI · Флагман · Текст",
     h1Top: "Kimi K3.1 Pro —",
     h1Gradient: "рассуждающий флагман Moonshot AI",
-    sub: "Флагманская мультимодальная модель Moonshot AI уже в GIPITI — обдумывает каждый запрос, понимает изображения и держит в памяти около миллиона токенов. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Флагманская мультимодальная модель Moonshot AI уже в GIPITI — обдумывает каждый запрос, понимает изображения и держит в памяти около миллиона токенов. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Kimi K3.1 Pro",
     metaTitle: "Kimi K3.1 Pro — нейросеть Moonshot AI без VPN | GIPITI",
     metaDescription:
@@ -148,7 +149,7 @@ export const moonshotaiLandings: ModelLanding[] = [
     badge: "Moonshot AI · Новинка · Текст",
     h1Top: "Kimi K3 Fast —",
     h1Gradient: "нейросеть Moonshot AI на русском",
-    sub: "Быстрая версия флагмана Moonshot AI уже в GIPITI — длинные задачи по программированию и контекст на миллион токенов. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Быстрая версия флагмана Moonshot AI уже в GIPITI — длинные задачи по программированию и контекст на миллион токенов. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Kimi K3 Fast",
     metaTitle:
       "Kimi K3 Fast — нейросеть Moonshot AI на русском без VPN | GIPITI",

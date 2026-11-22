@@ -1,14 +1,14 @@
-"use client";
-
-import { motion } from "framer-motion";
 import { CheckIcon } from "lucide-react";
 import Link from "next/link";
 
 import {
-  NEW_USER_BONUS_RUB,
+  NEW_USER_BONUS_TERMS_RU,
   pricingFeatures,
+  SUBSCRIPTION_NO_ROLLOVER_RU,
+  SUBSCRIPTION_PRICE_RU,
   SUBSCRIPTION_PRICE_RUB,
 } from "@/lib/marketing/landing-content";
+import { landingRegisterLink } from "@/lib/marketing/landing-nav-links";
 
 import { FadeIn } from "./fade-in";
 
@@ -20,8 +20,8 @@ export const PricingSection = () => (
           Простой и понятный тариф
         </h2>
         <p className="mx-auto mb-12 max-w-xl text-center text-zinc-400">
-          Все AI-модели и функции в одной подписке. Дарим {NEW_USER_BONUS_RUB} ₽
-          каждому новому пользователю.
+          Все AI-модели и функции в одной подписке. Новым пользователям —{" "}
+          {NEW_USER_BONUS_TERMS_RU}.
         </p>
 
         {/* Animated gradient border */}
@@ -48,7 +48,7 @@ export const PricingSection = () => (
                 <span className="text-xl text-zinc-400"> ₽/месяц</span>
               </div>
               <p className="mb-8 text-sm text-zinc-500">
-                {SUBSCRIPTION_PRICE_RUB} ₽ на баланс каждый месяц
+                {`${SUBSCRIPTION_PRICE_RU} на баланс каждый месяц. ${SUBSCRIPTION_NO_ROLLOVER_RU}`}
               </p>
 
               {/* Feature checklist */}
@@ -62,18 +62,13 @@ export const PricingSection = () => (
               </div>
 
               {/* CTA */}
-              <motion.div
-                transition={{ type: "spring", stiffness: 300 }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+              <Link
+                className="inline-flex w-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-8 py-4 font-semibold text-lg text-white shadow-indigo-500/25 shadow-lg transition-all hover:shadow-2xl hover:shadow-indigo-500/30 motion-safe:hover:scale-[1.02] sm:w-auto"
+                href="/register"
+                prefetch={false}
               >
-                <Link
-                  className="inline-flex w-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-8 py-4 font-semibold text-lg text-white shadow-indigo-500/25 shadow-lg transition-all hover:shadow-2xl hover:shadow-indigo-500/30 sm:w-auto"
-                  href="/register"
-                >
-                  Начать бесплатно
-                </Link>
-              </motion.div>
+                {landingRegisterLink.label}
+              </Link>
 
               <p className="mt-4 text-xs text-zinc-600">
                 Отмена подписки в любой момент. Без скрытых платежей.

@@ -6,6 +6,11 @@
  * but reuse the slugs and the section copy defined here.
  */
 
+import {
+  NEW_USER_BONUS_BREAKDOWN_RU,
+  NEW_USER_BONUS_SHORT_RU,
+  NEW_USER_BONUS_UP_TO_RU,
+} from "@/lib/marketing/landing-content";
 import type {
   LandingAudienceCard,
   LandingBenefit,
@@ -157,7 +162,7 @@ export const buildSteps = (
 ): LandingStep[] => [
   {
     title: "Зарегистрируйтесь",
-    text: "Аккаунт за 30 секунд — нужен только email. Дарим 200 ₽ каждому новому пользователю.",
+    text: `Аккаунт за 30 секунд — нужен только email. ${NEW_USER_BONUS_SHORT_RU}.`,
   },
   {
     title: `Выберите ${name}`,
@@ -176,13 +181,12 @@ export const buildSteps = (
 export const vpnFaq: LandingFaqItem = {
   question: "Нужен ли VPN или зарубежная карта?",
   answer:
-    "Нет. GIPITI работает из России без ограничений, оплата — картами МИР, Visa, MasterCard или через СБП.",
+    "Нет. GIPITI работает из России без VPN, оплата — российскими картами МИР, Visa или MasterCard.",
 };
 
 export const priceFaq: LandingFaqItem = {
   question: "Сколько это стоит?",
-  answer:
-    "Запросы оплачиваются с баланса. Подписка 999 ₽/мес включает 999 ₽ на баланс каждый месяц, а каждому новому пользователю мы дарим 200 ₽ — хватит, чтобы попробовать.",
+  answer: `Запросы оплачиваются с баланса. Подписка 999 ₽/мес включает 999 ₽ на баланс каждый месяц, а новым пользователям мы дарим ${NEW_USER_BONUS_UP_TO_RU}: ${NEW_USER_BONUS_BREAKDOWN_RU}. Этого хватит, чтобы попробовать.`,
 };
 
 export const documentsFaq: LandingFaqItem = {
@@ -196,7 +200,7 @@ export const sharedFaq: LandingFaqItem[] = [vpnFaq, priceFaq, documentsFaq];
 export const vpnBenefit: LandingBenefit = {
   icon: "shield",
   title: "Без VPN и зарубежных карт",
-  text: "Работает из России без ограничений. Оплата картами МИР, Visa, MasterCard или через СБП — в рублях.",
+  text: "Работает из России напрямую. Оплата картами МИР, Visa или MasterCard — в рублях.",
 };
 
 export const documentsBenefit: LandingBenefit = {

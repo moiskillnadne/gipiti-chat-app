@@ -1,10 +1,11 @@
 import type { UseChatHelpers } from "@ai-sdk/react";
 import equal from "fast-deep-equal";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, useReducedMotion } from "framer-motion";
 import { ArrowDownIcon } from "lucide-react";
 import { memo, useEffect } from "react";
 import { useModel } from "@/contexts/model-context";
 import { useMessages } from "@/hooks/use-messages";
+import { resolveScrollBehavior } from "@/lib/dom/scroll-behavior";
 import type { ChatMessage } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import type { Vote } from "@/server/db/schema";
@@ -51,6 +52,8 @@ function PureMessages({
     -1
   );
 
+  const shouldReduceMotion = useReducedMotion();
+
   useEffect(() => {
     if (status === "submitted") {
       requestAnimationFrame(() => {
@@ -58,12 +61,12 @@ function PureMessages({
         if (container) {
           container.scrollTo({
             top: container.scrollHeight,
-            behavior: "smooth",
+            behavior: resolveScrollBehavior("smooth", shouldReduceMotion),
           });
         }
       });
     }
-  }, [status, messagesContainerRef]);
+  }, [status, messagesContainerRef, shouldReduceMotion]);
 
   return (
     <div

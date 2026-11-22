@@ -24,6 +24,9 @@ type PasswordInputProps = {
   autoComplete?: string;
   autoFocus?: boolean;
   disabled?: boolean;
+  "aria-invalid"?: true;
+  /** Ids of extra descriptions, such as a form error; read before the checklist. */
+  "aria-describedby"?: string;
 };
 
 export function PasswordInput({
@@ -38,6 +41,8 @@ export function PasswordInput({
   autoComplete = "current-password",
   autoFocus = false,
   disabled = false,
+  "aria-invalid": ariaInvalid,
+  "aria-describedby": extraDescribedBy,
 }: PasswordInputProps) {
   const t = useTranslations("auth.validation");
   const [showPassword, setShowPassword] = useState(false);
@@ -47,21 +52,31 @@ export function PasswordInput({
   const shouldShowChecklist =
     showRequirements && (isFocused || value.length > 0);
   const shouldShowStrength = showRequirements && value.length > 0;
+  const describedBy =
+    [
+      extraDescribedBy,
+      showRequirements ? `${id}-requirements ${id}-strength` : undefined,
+    ]
+      .filter(Boolean)
+      .join(" ") || undefined;
 
   return (
     <div className="flex flex-col gap-2">
       {label && (
         <Label className="font-normal" htmlFor={id}>
           {label}
-          {required && <span className="ml-1 text-red-500">*</span>}
+          {required && (
+            <span aria-hidden="true" className="ml-1 text-danger-ink">
+              *
+            </span>
+          )}
         </Label>
       )}
 
       <div className="relative">
         <Input
-          aria-describedby={
-            showRequirements ? `${id}-requirements ${id}-strength` : undefined
-          }
+          aria-describedby={describedBy}
+          aria-invalid={ariaInvalid}
           autoComplete={autoComplete}
           autoFocus={autoFocus}
           className="pr-10"
@@ -81,7 +96,6 @@ export function PasswordInput({
           aria-label={showPassword ? t("hidePassword") : t("showPassword")}
           className="-translate-y-1/2 absolute top-1/2 right-2 rounded-md p-1.5 transition-colors hover:bg-muted"
           onClick={() => setShowPassword(!showPassword)}
-          tabIndex={-1}
           type="button"
         >
           {showPassword ? (
@@ -161,7 +175,7 @@ export function PasswordInput({
                     aria-hidden="true"
                     className={`flex-shrink-0 rounded-full p-0.5 transition-colors duration-200 ${
                       isMet
-                        ? "bg-green-500 text-white"
+                        ? "bg-success-ink text-white"
                         : "bg-muted text-muted-foreground"
                     }`}
                   >

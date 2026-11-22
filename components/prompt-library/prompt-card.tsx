@@ -35,6 +35,10 @@ export function PromptCard({
       className="group hover:-translate-y-0.5 relative flex cursor-pointer flex-col gap-3 rounded-lg border border-rule bg-card p-[18px] text-left transition-[border-color,transform,box-shadow] duration-fast ease-canon hover:border-rule-strong hover:shadow-md"
       onClick={() => onOpen(prompt.id)}
       onKeyDown={(event) => {
+        // Keys from the nested button must keep their own activation.
+        if (event.target !== event.currentTarget) {
+          return;
+        }
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
           onOpen(prompt.id);
@@ -52,11 +56,10 @@ export function PromptCard({
           {category ? t(category.labelKey) : prompt.category}
         </span>
         <button
+          aria-label={t("favorite")}
           aria-pressed={isFavorite}
           className={`ml-auto inline-flex size-7 shrink-0 items-center justify-center rounded-sm transition-colors duration-fast ease-canon hover:bg-paper-2 ${
-            isFavorite
-              ? "text-citrus-deep"
-              : "text-ink-4 hover:text-citrus-deep"
+            isFavorite ? "text-citrus-deep" : "text-ink-3 hover:text-citrus-ink"
           }`}
           onClick={(event) => {
             event.stopPropagation();
@@ -66,6 +69,7 @@ export function PromptCard({
           type="button"
         >
           <Star
+            aria-hidden
             className="size-4"
             fill={isFavorite ? "currentColor" : "none"}
           />

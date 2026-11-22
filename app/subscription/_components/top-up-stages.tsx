@@ -129,12 +129,13 @@ export function TopupAmountStage({
 
 export type TopupProcessingProps = {
   amountMajor: number;
-  onCancel: () => void;
+  /** Stops waiting for the confirmation; it does not cancel the payment. */
+  onStopWaiting: () => void;
 };
 
 export function TopupProcessing({
   amountMajor,
-  onCancel,
+  onStopWaiting,
 }: TopupProcessingProps) {
   const t = useTranslations("auth.subscription.balance.topup");
 
@@ -147,11 +148,11 @@ export function TopupProcessing({
       </p>
       <button
         className={`${dash.btn} ${dash.btnGhost} ${dash.btnSm}`}
-        onClick={onCancel}
+        onClick={onStopWaiting}
         style={{ marginTop: 12 }}
         type="button"
       >
-        {t("processing.cancel")}
+        {t("processing.stopWaiting")}
       </button>
     </div>
   );
@@ -193,17 +194,18 @@ export function TopupSuccess({
   );
 }
 
-export type TopupFailedProps = {
+export type TopupDeclinedProps = {
   amountMajor: number;
   onRetry: () => void;
   onClose: () => void;
 };
 
-export function TopupFailed({
+/** Shown only when the provider declined the charge: nothing was paid. */
+export function TopupDeclined({
   amountMajor,
   onRetry,
   onClose,
-}: TopupFailedProps) {
+}: TopupDeclinedProps) {
   const t = useTranslations("auth.subscription.balance.topup");
 
   return (
@@ -211,9 +213,9 @@ export function TopupFailed({
       <div className={`${styles.orb} ${styles.orbBad}`}>
         <WarnIcon />
       </div>
-      <h4 className={styles.resultTitle}>{t("failed.title")}</h4>
+      <h4 className={styles.resultTitle}>{t("declined.title")}</h4>
       <p className={styles.resultText}>
-        {t("failed.body", { amount: formatRubMajor(amountMajor) })}
+        {t("declined.body", { amount: formatRubMajor(amountMajor) })}
       </p>
       <div className={styles.resultActions}>
         <button
@@ -221,14 +223,14 @@ export function TopupFailed({
           onClick={onRetry}
           type="button"
         >
-          {t("failed.retry")}
+          {t("declined.retry")}
         </button>
         <button
           className={`${dash.btn} ${dash.btnGhost}`}
           onClick={onClose}
           type="button"
         >
-          {t("failed.close")}
+          {t("declined.close")}
         </button>
       </div>
     </div>

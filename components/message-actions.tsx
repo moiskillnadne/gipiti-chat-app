@@ -85,14 +85,14 @@ export function PureMessageActions({
     toast.success(t("copiedToClipboard"));
   };
 
-  // User messages get edit (on hover) and copy actions
+  // User messages get edit (shown on hover, on focus and always on touch) and copy actions
   if (message.role === "user") {
     return (
       <Actions className="-mr-0.5 justify-end">
         <div className="relative">
           {setMode && (
             <Action
-              className="-left-10 absolute top-0 opacity-0 transition-opacity group-hover/message:opacity-100"
+              className="-left-10 absolute top-0 opacity-0 transition-opacity focus-visible:opacity-100 group-focus-within/message:opacity-100 group-hover/message:opacity-100 [@media(hover:none)]:opacity-100"
               onClick={() => setMode("edit")}
               tooltip="Edit"
             >

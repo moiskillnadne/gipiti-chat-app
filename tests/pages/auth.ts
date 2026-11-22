@@ -1,7 +1,6 @@
 import type { Locator, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { TEST_URLS, TIMEOUTS } from "../fixtures";
-import { waitForToast } from "../helpers";
 
 const SUBMIT_BUTTON_NAME_REGEX = /sign in|войти|submit/i;
 const LOGIN_SUCCESS_URL_REGEX = /\/(chat|settings|verify-email)/;
@@ -28,8 +27,9 @@ export class LoginPage {
   readonly languageSwitcher: Locator;
   readonly supportLink: Locator;
 
+  // Inline error of a failed submit (`components/form-error.tsx`)
+  readonly formError: Locator;
   // Toast notifications
-  readonly errorToast: Locator;
   readonly successToast: Locator;
 
   // Loading indicator
@@ -63,8 +63,8 @@ export class LoginPage {
     this.languageSwitcher = page.locator("[data-language-switcher]");
     this.supportLink = page.locator("a[href*='support'], a[href*='help']");
 
+    this.formError = page.getByTestId("form-error");
     // Toast notifications (Sonner)
-    this.errorToast = page.locator("[data-sonner-toast][data-type='error']");
     this.successToast = page.locator(
       "[data-sonner-toast][data-type='success']"
     );
@@ -135,10 +135,12 @@ export class LoginPage {
   }
 
   /**
-   * Wait for error toast to appear
+   * Wait for the inline form error to show a message
    */
-  async waitForErrorToast(): Promise<void> {
-    await waitForToast(this.page);
+  async waitForFormError(): Promise<void> {
+    await expect(this.formError).not.toBeEmpty({
+      timeout: TIMEOUTS.formSubmission,
+    });
   }
 
   /**
@@ -272,24 +274,11 @@ export class LoginPage {
   }
 
   /**
-   * Get error toast message
+   * Get the inline form error message once it is shown
    */
-  async getErrorToastMessage(): Promise<string> {
-    await this.errorToast.waitFor({
-      state: "visible",
-      timeout: TIMEOUTS.toast,
-    });
-    return (await this.errorToast.textContent()) ?? "";
-  }
-
-  /**
-   * Dismiss error toast if visible
-   */
-  async dismissErrorToast(): Promise<void> {
-    const closeButton = this.errorToast.locator("button[aria-label='Close']");
-    if (await closeButton.isVisible()) {
-      await closeButton.click();
-    }
+  async getFormErrorMessage(): Promise<string> {
+    await this.waitForFormError();
+    return (await this.formError.textContent()) ?? "";
   }
 
   /**

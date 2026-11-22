@@ -4,12 +4,12 @@ import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-pill font-medium text-sm leading-none transition-[background-color,color,box-shadow,transform] duration-fast ease-canon focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-citrus-soft active:scale-[0.98] disabled:pointer-events-none disabled:opacity-40 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-pill font-medium text-sm leading-none transition-[background-color,color,box-shadow,transform] duration-fast ease-canon active:scale-[0.98] disabled:pointer-events-none disabled:opacity-40 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         default: "bg-ink text-paper hover:bg-ink-2",
-        citrus: "bg-citrus text-ink hover:bg-citrus-deep hover:text-paper",
+        citrus: "bg-citrus text-ink hover:bg-citrus-ink hover:text-paper",
         secondary:
           "bg-transparent text-ink ring-1 ring-ink ring-inset hover:bg-ink hover:text-paper",
         destructive:

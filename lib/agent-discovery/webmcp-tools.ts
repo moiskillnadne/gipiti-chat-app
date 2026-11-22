@@ -1,6 +1,6 @@
 import {
   NEW_USER_BONUS_BREAKDOWN_RU,
-  NEW_USER_BONUS_RUB,
+  NEW_USER_BONUS_UP_TO_RU,
   pricingFeatures,
   SUBSCRIPTION_PRICE_RUB,
 } from "@/lib/marketing/landing-content";
@@ -91,8 +91,8 @@ const getPricing = (): WebMcpToolResult =>
     [
       `Подписка GIPITI: ${SUBSCRIPTION_PRICE_RUB} ₽ в месяц.`,
       `Каждый месяц на баланс зачисляется ${SUBSCRIPTION_PRICE_RUB} ₽; списание идёт за фактические запросы к моделям, а не за их количество.`,
-      `Новому пользователю начисляется ${NEW_USER_BONUS_RUB} ₽ (${NEW_USER_BONUS_BREAKDOWN_RU}) — попробовать можно без оплаты.`,
-      "Баланс можно пополнить отдельно в любой момент.",
+      `Новому пользователю начисляется ${NEW_USER_BONUS_UP_TO_RU} (${NEW_USER_BONUS_BREAKDOWN_RU}) — попробовать можно без оплаты.`,
+      "Пополненный баланс и бонусы не сгорают.",
       "Оплата картами Visa, MasterCard и МИР в рублях.",
       "",
       "В подписку входит:",

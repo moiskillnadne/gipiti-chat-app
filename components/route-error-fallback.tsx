@@ -74,7 +74,7 @@ export function RouteErrorFallback({ error, reset }: RouteErrorFallbackProps) {
           </div>
 
           {error.digest ? (
-            <div className="mt-8 font-mono text-[10px] text-ink-4 tracking-[0.06em]">
+            <div className="mt-8 font-mono text-[10px] text-ink-3 tracking-[0.06em]">
               {t("boundaryErrorCode")}: {error.digest}
             </div>
           ) : null}
@@ -82,7 +82,7 @@ export function RouteErrorFallback({ error, reset }: RouteErrorFallbackProps) {
       </main>
 
       <footer className="flex flex-shrink-0 justify-center px-5 pb-[26px] sm:px-12">
-        <div className="inline-flex items-center gap-[7px] whitespace-nowrap font-mono text-[10px] text-ink-4 tracking-[0.06em] sm:gap-2.5 sm:text-[11px]">
+        <div className="inline-flex items-center gap-[7px] whitespace-nowrap font-mono text-[10px] text-ink-3 tracking-[0.06em] sm:gap-2.5 sm:text-[11px]">
           <span>HTTP 500</span>
           <span className="text-rule-strong">/</span>
           <span>SERVER ERROR</span>

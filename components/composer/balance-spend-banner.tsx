@@ -34,25 +34,29 @@ export const BalanceSpendBanner = ({
         isWarning ? "bg-warn-soft" : "bg-citrus-soft"
       )}
     >
-      <span
-        className={cn(
-          "inline-flex shrink-0 items-center rounded-[6px] px-[9px] py-[5px] font-mono font-semibold text-[13px] tabular-nums tracking-[-0.02em]",
-          isWarning ? "bg-warn text-paper" : "bg-citrus text-ink"
-        )}
-      >
-        {percent}%
-      </span>
+      {/* The link drops onto its own line when the caption would not fit
+          beside it; the dismiss button stays outside, on the first line. */}
+      <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-2">
+        <span
+          className={cn(
+            "inline-flex shrink-0 items-center rounded-[6px] px-[9px] py-[5px] font-mono font-semibold text-[13px] tabular-nums tracking-[-0.02em]",
+            isWarning ? "bg-warn-ink text-paper" : "bg-citrus text-ink"
+          )}
+        >
+          {percent}%
+        </span>
 
-      <span className="min-w-0 flex-1 text-[13.5px] text-ink-2 leading-snug">
-        {t("caption")}
-      </span>
+        <span className="min-w-0 flex-auto text-[13.5px] text-ink-2 leading-snug">
+          {t("caption")}
+        </span>
 
-      <Link
-        className="shrink-0 whitespace-nowrap font-medium text-[13.5px] text-ink underline decoration-rule-strong underline-offset-[3px] transition-colors duration-fast ease-canon hover:decoration-ink"
-        href="/subscription"
-      >
-        {t("cta")}
-      </Link>
+        <Link
+          className="shrink-0 whitespace-nowrap font-medium text-[13.5px] text-ink underline decoration-rule-strong underline-offset-[3px] transition-colors duration-fast ease-canon hover:decoration-ink"
+          href="/subscription"
+        >
+          {t("cta")}
+        </Link>
+      </span>
 
       <button
         aria-label={t("close")}

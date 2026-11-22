@@ -4,6 +4,7 @@
  * Haiku 5.5.
  */
 
+import { NEW_USER_BONUS_SHORT_RU } from "@/lib/marketing/landing-content";
 import {
   analystsAudience,
   buildSteps,
@@ -46,7 +47,7 @@ export const anthropicLandings: ModelLanding[] = [
     badge: "Anthropic · Обновлённая премиальная модель · Текст",
     h1Top: "Claude Fable 5.2 —",
     h1Gradient: "обновлённая премиальная нейросеть Anthropic",
-    sub: "Новая версия премиальной модели Anthropic уже в GIPITI — агентное программирование, работа со знаниями и исследования с контекстом на миллион токенов. Запросы к ней на 20% дешевле, чем к Fable 5.1. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Новая версия премиальной модели Anthropic уже в GIPITI — агентное программирование, работа со знаниями и исследования с контекстом на миллион токенов. Запросы к ней на 20% дешевле, чем к Fable 5.1. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Claude Fable 5.2",
     metaTitle: "Claude Fable 5.2 — премиальная нейросеть Anthropic | GIPITI",
     metaDescription:
@@ -162,11 +163,10 @@ export const anthropicLandings: ModelLanding[] = [
     badge: "Anthropic · Предыдущая Fable · Текст",
     h1Top: "Claude Fable 5.1 —",
     h1Gradient: "премиальная нейросеть Anthropic поколения 5.1",
-    sub: "Fable 5.1 остаётся в GIPITI — многочасовые задачи по коду, работа со знаниями и исследования. Новее неё — Fable 5.2, запросы к которой на 20% дешевле. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Fable 5.1 остаётся в GIPITI — многочасовые задачи по коду, работа со знаниями и исследования. Новее неё — Fable 5.2, запросы к которой на 20% дешевле. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Claude Fable 5.1",
     metaTitle: "Claude Fable 5.1 — нейросеть Anthropic без VPN | GIPITI",
-    metaDescription:
-      "Claude Fable 5.1 в GIPITI — премиальная модель Anthropic: многочасовые агентные задачи по коду, знания и исследования. Новее — Fable 5.2, она дешевле. Без VPN, на русском, оплата российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    metaDescription: `Claude Fable 5.1 в GIPITI — премиальная модель Anthropic: многочасовые агентные задачи по коду, знания и исследования. Новее — Fable 5.2, она дешевле. Без VPN, на русском, оплата российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     heroChat: {
       userMessage:
         "Разбери логи сборки за неделю: почему CI стал медленнее и что исправить? 📄 ci-logs.txt",
@@ -272,11 +272,10 @@ export const anthropicLandings: ModelLanding[] = [
     badge: "Anthropic · Новейший Opus · Текст",
     h1Top: "Claude Opus 5.5 —",
     h1Gradient: "новейший Opus от Anthropic",
-    sub: "Новейшая модель линейки Opus уже в GIPITI — длинные агентные задачи, сильный код и понятные отчёты о том, что сделано и что дальше. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Новейшая модель линейки Opus уже в GIPITI — длинные агентные задачи, сильный код и понятные отчёты о том, что сделано и что дальше. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Claude Opus 5.5",
     metaTitle: "Claude Opus 5.5 — нейросеть Claude Opus без VPN | GIPITI",
-    metaDescription:
-      "Claude Opus 5.5 — новейшая модель линейки Opus от Anthropic в GIPITI: длинные агентные задачи, программирование, анализ документов и изображений. Без VPN, на русском, оплата российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    metaDescription: `Claude Opus 5.5 — новейшая модель линейки Opus от Anthropic в GIPITI: длинные агентные задачи, программирование, анализ документов и изображений. Без VPN, на русском, оплата российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     heroChat: {
       userMessage:
         "Вот выгрузка из CRM за полгода — почему упала повторная выручка и что делать? 📄 crm.csv",
@@ -362,11 +361,10 @@ export const anthropicLandings: ModelLanding[] = [
     badge: "Anthropic · Предыдущий флагман Claude · Текст",
     h1Top: "Claude Opus 5 —",
     h1Gradient: "нейросеть Claude для сложных задач",
-    sub: "Предыдущий флагман Anthropic уже в GIPITI — глубокие рассуждения над длинными задачами, эталонная редактура и сильный код. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Предыдущий флагман Anthropic уже в GIPITI — глубокие рассуждения над длинными задачами, эталонная редактура и сильный код. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Claude Opus 5",
     metaTitle: "Claude Opus 5 — нейросеть Claude на русском без VPN | GIPITI",
-    metaDescription:
-      "Claude Opus 5 — предыдущий флагман Anthropic в GIPITI: глубокие рассуждения, редактура и работа с большими документами. Без VPN, на русском, оплата российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    metaDescription: `Claude Opus 5 — предыдущий флагман Anthropic в GIPITI: глубокие рассуждения, редактура и работа с большими документами. Без VPN, на русском, оплата российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     heroChat: {
       userMessage:
         "Прочитай отчёт и подготовь план выхода на новый рынок — с рисками и порядком шагов 📄 report.pdf",
@@ -457,11 +455,10 @@ export const anthropicLandings: ModelLanding[] = [
     badge: "Anthropic · Мощная модель Claude · Текст",
     h1Top: "Claude Opus 4.8 —",
     h1Gradient: "мощная нейросеть Anthropic",
-    sub: "Проверенный Opus от Anthropic уже в GIPITI — глубокая аналитика, эталонная редактура и работа с большим контекстом. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Проверенный Opus от Anthropic уже в GIPITI — глубокая аналитика, эталонная редактура и работа с большим контекстом. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Claude Opus 4.8",
     metaTitle: "Claude Opus 4.8 — нейросеть Claude на русском без VPN | GIPITI",
-    metaDescription:
-      "Claude Opus 4.8 — мощная модель Anthropic в GIPITI: глубокая аналитика, редактура и большой контекст. Без VPN, на русском, оплата российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    metaDescription: `Claude Opus 4.8 — мощная модель Anthropic в GIPITI: глубокая аналитика, редактура и большой контекст. Без VPN, на русском, оплата российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     heroChat: {
       userMessage:
         "Вот старая и новая редакции контракта — что изменилось и где подвох? 📄 v1.pdf 📄 v2.pdf",
@@ -547,11 +544,10 @@ export const anthropicLandings: ModelLanding[] = [
     badge: "Anthropic · Новейший Sonnet · Текст",
     h1Top: "Claude Sonnet 5.5 —",
     h1Gradient: "нейросеть для работы, кода и документов",
-    sub: "Новейший Sonnet уже в GIPITI — повседневный код, документы, презентации и таблицы с ясным, аккуратным текстом. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Новейший Sonnet уже в GIPITI — повседневный код, документы, презентации и таблицы с ясным, аккуратным текстом. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Claude Sonnet 5.5",
     metaTitle: "Claude Sonnet 5.5 — чат с нейросетью Claude без VPN | GIPITI",
-    metaDescription:
-      "Claude Sonnet 5.5 — новейший Sonnet от Anthropic в GIPITI: код, документы, презентации и таблицы для повседневной работы. Без VPN, на русском, оплата российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    metaDescription: `Claude Sonnet 5.5 — новейший Sonnet от Anthropic в GIPITI: код, документы, презентации и таблицы для повседневной работы. Без VPN, на русском, оплата российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     heroChat: {
       userMessage:
         "Заказ не создаётся, если в корзине один товар. Найди причину и исправь 📄 cart.ts",
@@ -643,7 +639,7 @@ export const anthropicLandings: ModelLanding[] = [
     badge: "Anthropic · Sonnet прошлого поколения · Текст",
     h1Top: "Claude Sonnet 5 —",
     h1Gradient: "нейросеть для работы и кода",
-    sub: "Сбалансированная модель Anthropic прошлого поколения уже в GIPITI — быстрые рассуждения, сильная генерация кода и повседневные задачи. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Сбалансированная модель Anthropic прошлого поколения уже в GIPITI — быстрые рассуждения, сильная генерация кода и повседневные задачи. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Claude Sonnet 5",
     metaTitle: "Claude Sonnet 5 — чат с нейросетью Claude без VPN | GIPITI",
     metaDescription:
@@ -738,7 +734,7 @@ export const anthropicLandings: ModelLanding[] = [
     badge: "Anthropic · Быстрая и привычная · Текст",
     h1Top: "Claude Sonnet 4.6 —",
     h1Gradient: "быстрый чат с Claude на русском",
-    sub: "Сбалансированная модель Anthropic уже в GIPITI — быстрые ответы, аккуратный текст и сильный код для повседневных задач. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Сбалансированная модель Anthropic уже в GIPITI — быстрые ответы, аккуратный текст и сильный код для повседневных задач. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Claude Sonnet 4.6",
     metaTitle: "Claude Sonnet 4.6 — чат с нейросетью Claude без VPN | GIPITI",
     metaDescription:
@@ -826,11 +822,10 @@ export const anthropicLandings: ModelLanding[] = [
     badge: "Anthropic · Новейший Haiku · Текст",
     h1Top: "Claude Haiku 5.5 —",
     h1Gradient: "быстрая и доступная нейросеть Claude",
-    sub: "Новейший Haiku уже в GIPITI — быстрые ответы с рассуждениями, работа с файлами и изображениями по самой низкой цене среди моделей Claude. Без VPN, на русском, с оплатой российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    sub: `Новейший Haiku уже в GIPITI — быстрые ответы с рассуждениями, работа с файлами и изображениями по самой низкой цене среди моделей Claude. Без VPN, на русском, с оплатой российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     ctaMain: "Попробовать Claude Haiku 5.5",
     metaTitle: "Claude Haiku 5.5 — быстрая нейросеть Claude без VPN | GIPITI",
-    metaDescription:
-      "Claude Haiku 5.5 — новейший Haiku от Anthropic в GIPITI: быстрые ответы, рассуждения, файлы и изображения по самой низкой цене среди моделей Claude. Без VPN, на русском, оплата российскими картами. Дарим 200 ₽ каждому новому пользователю.",
+    metaDescription: `Claude Haiku 5.5 — новейший Haiku от Anthropic в GIPITI: быстрые ответы, рассуждения, файлы и изображения по самой низкой цене среди моделей Claude. Без VPN, на русском, оплата российскими картами. ${NEW_USER_BONUS_SHORT_RU}.`,
     heroChat: {
       userMessage:
         "Разбери 40 отзывов покупателей: что хвалят, на что жалуются? 📄 reviews.csv",

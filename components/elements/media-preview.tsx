@@ -109,6 +109,7 @@ const OpenButton = ({
 }) => (
   <div className="absolute top-2.5 right-2.5 flex gap-1.5">
     <button
+      aria-label={label}
       className={cn(
         "flex size-8 items-center justify-center rounded-[9px] text-ink-2 transition-colors duration-fast ease-canon hover:bg-white/95 hover:text-ink",
         FROSTED
@@ -117,7 +118,7 @@ const OpenButton = ({
       title={label}
       type="button"
     >
-      <Maximize2Icon className="size-[15px]" />
+      <Maximize2Icon aria-hidden className="size-[15px]" />
     </button>
   </div>
 );
@@ -182,26 +183,30 @@ const ActionButtons = ({
   onDownload?: () => void;
 }) => {
   const t = useTranslations("chat.media");
+  const downloadLabel =
+    mediaType === "image" ? t("download") : t("downloadVideo");
   return (
     <div className="flex shrink-0 gap-1.5">
       {onRegenerate && (
         <button
+          aria-label={t("regenerate")}
           className="flex size-[34px] items-center justify-center rounded-md border border-rule bg-card text-ink-2 transition-colors duration-fast ease-canon hover:border-rule-strong hover:bg-paper-2 hover:text-ink"
           onClick={onRegenerate}
           title={t("regenerate")}
           type="button"
         >
-          <RefreshCwIcon className="size-4" />
+          <RefreshCwIcon aria-hidden className="size-4" />
         </button>
       )}
       {onDownload && (
         <button
+          aria-label={downloadLabel}
           className="flex size-[34px] items-center justify-center rounded-md border border-ink bg-ink text-paper transition-colors duration-fast ease-canon hover:bg-black"
           onClick={onDownload}
-          title={mediaType === "image" ? t("download") : t("downloadVideo")}
+          title={downloadLabel}
           type="button"
         >
-          <DownloadIcon className="size-4" />
+          <DownloadIcon aria-hidden className="size-4" />
         </button>
       )}
     </div>
@@ -399,7 +404,7 @@ const DoneCard = ({
             </div>
           )}
           {metaLabel && (
-            <div className="mt-1.5 font-mono text-[10px] text-ink-4 uppercase tracking-[0.05em]">
+            <div className="mt-1.5 font-mono text-[10px] text-ink-3 uppercase tracking-[0.05em]">
               {metaLabel}
             </div>
           )}

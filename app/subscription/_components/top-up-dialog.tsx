@@ -14,22 +14,27 @@ import {
 import type { PaymentStatusResponse, TopupIntentResponse } from "@/lib/types";
 import styles from "./top-up.module.css";
 import {
+  buildStatusUrl,
+  checkStatusOnce,
+  endOfPolling,
+  type PollResult,
+  readStatusResponse,
+  stageFromPollResult,
+  type TopupStage,
+  unconfirmedStage,
+} from "./top-up-poll-outcome";
+import {
   TopupAmountStage,
-  TopupFailed,
+  TopupDeclined,
   TopupProcessing,
   TopupSuccess,
 } from "./top-up-stages";
+import { TopupUnconfirmed } from "./top-up-unconfirmed";
 import { useTopupAmount } from "./use-topup-amount";
 
 const DEFAULT_AMOUNT_MAJOR = 1000;
 const POLL_INTERVAL_MS = 2000;
 const MAX_POLL_ATTEMPTS = 60;
-
-type TopupStage =
-  | { name: "amount"; isSubmitting: boolean }
-  | { name: "processing"; sessionId: string; amountMajor: number }
-  | { name: "success"; amountMajor: number; balanceTotalMinor: number }
-  | { name: "failed"; amountMajor: number; reason: string | null };
 
 type TopUpDialogProps = {
   isOpen: boolean;
@@ -74,6 +79,10 @@ export function TopUpDialog({
   // Prevents onComplete — which also fires after success/fail — from
   // downgrading the stage back to "amount".
   const resolvedRef = useRef(false);
+  // Session id of the payment flow this dialog currently shows. Widget and
+  // polling callbacks of an abandoned flow (dialog closed, «Не ждать» before
+  // the widget answered, «Попробовать снова») compare against it and stop.
+  const flowSessionIdRef = useRef<string | null>(null);
 
   const stopPolling = useCallback(() => {
     abortRef.current?.abort();
@@ -82,8 +91,18 @@ export function TopUpDialog({
 
   useEffect(() => stopPolling, [stopPolling]);
 
+  // A payment finished in a widget the dialog no longer follows is credited
+  // by the webhook alone: re-read the page so the balance behind the dialog
+  // is current whenever it is opened again.
+  useEffect(() => {
+    if (isOpen) {
+      router.refresh();
+    }
+  }, [isOpen, router]);
+
   const resetFlow = useCallback(() => {
     stopPolling();
+    flowSessionIdRef.current = null;
     resolvedRef.current = false;
     setSubmitError(null);
     setStage({ name: "amount", isSubmitting: false });
@@ -105,12 +124,30 @@ export function TopUpDialog({
     [handleOpenChange]
   );
 
+  const applyPollResult = useCallback(
+    (result: PollResult, sessionId: string, amountMajor: number) => {
+      if (flowSessionIdRef.current !== sessionId) {
+        return;
+      }
+      if (result.kind === "succeeded") {
+        // Re-render the server page so the hero pools update behind us.
+        router.refresh();
+      }
+      const nextStage = stageFromPollResult(result, { sessionId, amountMajor });
+      if (nextStage) {
+        setStage(nextStage);
+      }
+    },
+    [router]
+  );
+
   const pollStatus = useCallback(
     async (paymentSessionId: string, amountMajor: number) => {
       stopPolling();
       const controller = new AbortController();
       abortRef.current = controller;
       const { signal } = controller;
+      let hasReachedServer = false;
 
       for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt++) {
         if (signal.aborted) {
@@ -118,10 +155,9 @@ export function TopUpDialog({
         }
 
         try {
-          const res = await fetch(
-            `/api/payment/status?sessionId=${encodeURIComponent(paymentSessionId)}`,
-            { signal }
-          );
+          const res = await fetch(buildStatusUrl(paymentSessionId), {
+            signal,
+          });
 
           if (res.status === 429) {
             // Shared per-IP limiter — back off a little harder.
@@ -130,29 +166,22 @@ export function TopUpDialog({
           }
 
           if (res.ok) {
+            hasReachedServer = true;
             const data: PaymentStatusResponse = await res.json();
-
-            if (data.status === "succeeded") {
-              // Re-render the server page so the hero pools update behind us.
-              router.refresh();
-              setStage({
-                name: "success",
-                amountMajor,
-                balanceTotalMinor: data.topup?.balanceTotalMinor ?? 0,
-              });
+            // Reset or reopened while the body was read: drop the result.
+            if (signal.aborted) {
               return;
             }
+            const result = readStatusResponse(data);
 
-            if (data.status === "failed" || data.status === "expired") {
-              setStage({
-                name: "failed",
-                amountMajor,
-                reason: data.failureReason ?? null,
-              });
+            if (result) {
+              applyPollResult(result, paymentSessionId, amountMajor);
               return;
             }
           }
         } catch {
+          // A network error is retried; if none succeeds the user sees
+          // the "could not reach the server" screen.
           if (signal.aborted) {
             return;
           }
@@ -161,11 +190,13 @@ export function TopUpDialog({
         await delay(POLL_INTERVAL_MS, signal);
       }
 
-      if (!signal.aborted) {
-        setStage({ name: "failed", amountMajor, reason: null });
-      }
+      applyPollResult(
+        endOfPolling({ isAborted: signal.aborted, hasReachedServer }),
+        paymentSessionId,
+        amountMajor
+      );
     },
-    [router, stopPolling]
+    [applyPollResult, stopPolling]
   );
 
   const handleSubmit = useCallback(async () => {
@@ -204,6 +235,9 @@ export function TopUpDialog({
       const widget = new window.cp.CloudPayments(createWidgetOptions(email));
 
       resolvedRef.current = false;
+      flowSessionIdRef.current = intent.sessionId;
+      const isCurrentFlow = (): boolean =>
+        flowSessionIdRef.current === intent.sessionId;
 
       widget.pay(
         "charge",
@@ -223,23 +257,47 @@ export function TopUpDialog({
         },
         {
           onSuccess: () => {
+            if (!isCurrentFlow()) {
+              // Paid in a widget the dialog stopped following: the webhook
+              // credits it; refresh so the page shows the new balance.
+              router.refresh();
+              return;
+            }
             resolvedRef.current = true;
+            // Should the widget report success after an earlier onFail, do not
+            // leave the declined screen up: show the waiting screen again.
+            setStage({
+              name: "processing",
+              sessionId: intent.sessionId,
+              amountMajor,
+            });
             pollStatus(intent.sessionId, amountMajor).catch(() => {
-              setStage({ name: "failed", amountMajor, reason: null });
+              if (!isCurrentFlow()) {
+                return;
+              }
+              setStage(
+                unconfirmedStage(
+                  { sessionId: intent.sessionId, amountMajor },
+                  "unreachable"
+                )
+              );
             });
           },
-          onFail: (reason) => {
+          onFail: () => {
+            // The widget itself reports a declined charge.
+            if (!isCurrentFlow()) {
+              return;
+            }
             resolvedRef.current = true;
-            setStage({
-              name: "failed",
-              amountMajor,
-              reason: typeof reason === "string" ? reason : null,
-            });
+            setStage({ name: "declined", amountMajor });
           },
           onComplete: (paymentResult) => {
             // The user closed the widget without paying — return to the
             // amount stage. The pending intent expires server-side.
-            if (!(paymentResult?.success || resolvedRef.current)) {
+            if (
+              isCurrentFlow() &&
+              !(paymentResult?.success || resolvedRef.current)
+            ) {
               setStage({ name: "amount", isSubmitting: false });
             }
           },
@@ -255,22 +313,59 @@ export function TopUpDialog({
       setSubmitError(t("createError"));
       setStage({ name: "amount", isSubmitting: false });
     }
-  }, [amount, session, t, pollStatus]);
+  }, [amount, session, t, pollStatus, router]);
 
   const handleRetry = useCallback(() => {
     stopPolling();
+    flowSessionIdRef.current = null;
     resolvedRef.current = false;
     setStage({ name: "amount", isSubmitting: false });
   }, [stopPolling]);
 
-  const stageTitle =
-    stage.name === "processing"
-      ? t("processing.title")
-      : stage.name === "success"
-        ? t("success.title")
-        : stage.name === "failed"
-          ? t("failed.title")
-          : t("title");
+  /**
+   * «Не ждать» on the waiting screen. Once the widget has reported a payment,
+   * stopping the wait must not look like a cancellation: show the
+   * "not confirmed yet" guidance instead of closing.
+   */
+  const handleStopWaiting = useCallback(() => {
+    if (!(stage.name === "processing" && resolvedRef.current)) {
+      closeDialog();
+      return;
+    }
+    stopPolling();
+    setStage(unconfirmedStage(stage, "stoppedWaiting"));
+  }, [stage, closeDialog, stopPolling]);
+
+  const handleRecheck = useCallback(async () => {
+    if (stage.name !== "unconfirmed") {
+      return;
+    }
+    stopPolling();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    setStage({ ...stage, isChecking: true });
+    // The balance on the page behind the dialog may have changed meanwhile.
+    router.refresh();
+    const result = await checkStatusOnce(stage.sessionId, controller.signal);
+    // Closed while checking: the dialog has already been reset.
+    if (controller.signal.aborted) {
+      return;
+    }
+    if (result.kind === "unconfirmed") {
+      setStage(unconfirmedStage(stage, result.cause, true));
+      return;
+    }
+    applyPollResult(result, stage.sessionId, stage.amountMajor);
+  }, [stage, router, applyPollResult, stopPolling]);
+
+  const stageTitleKeys: Record<TopupStage["name"], string> = {
+    amount: "title",
+    processing: "processing.title",
+    success: "success.title",
+    declined: "declined.title",
+    unconfirmed: "unconfirmed.title",
+  };
+  const stageTitle = t(stageTitleKeys[stage.name]);
 
   const contentClass = isMobile
     ? "top-auto bottom-0 left-0 w-full max-w-none translate-x-0 translate-y-0 rounded-t-[20px] rounded-b-none data-[state=open]:slide-in-from-bottom data-[state=closed]:slide-out-to-bottom"
@@ -295,7 +390,7 @@ export function TopUpDialog({
           {stage.name === "processing" && (
             <TopupProcessing
               amountMajor={stage.amountMajor}
-              onCancel={closeDialog}
+              onStopWaiting={handleStopWaiting}
             />
           )}
 
@@ -307,11 +402,22 @@ export function TopUpDialog({
             />
           )}
 
-          {stage.name === "failed" && (
-            <TopupFailed
+          {stage.name === "declined" && (
+            <TopupDeclined
               amountMajor={stage.amountMajor}
               onClose={closeDialog}
               onRetry={handleRetry}
+            />
+          )}
+
+          {stage.name === "unconfirmed" && (
+            <TopupUnconfirmed
+              amountMajor={stage.amountMajor}
+              cause={stage.cause}
+              hasRechecked={stage.hasRechecked}
+              isChecking={stage.isChecking}
+              onClose={closeDialog}
+              onRecheck={handleRecheck}
             />
           )}
         </div>

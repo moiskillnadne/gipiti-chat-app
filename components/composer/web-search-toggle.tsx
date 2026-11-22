@@ -15,7 +15,7 @@ export function WebSearchToggle({ active, onToggle }: WebSearchToggleProps) {
     <button
       aria-pressed={active}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-pill border border-transparent px-2.5 py-1.5 text-[12.5px] text-ink-2 leading-none transition-colors duration-fast ease-canon",
+        "inline-flex items-center gap-1.5 whitespace-nowrap rounded-pill border border-transparent px-2.5 py-1.5 text-[12.5px] text-ink-2 leading-none transition-colors duration-fast ease-canon",
         "hover:bg-paper-2 hover:text-ink",
         active && "border-citrus bg-citrus-soft text-ink"
       )}

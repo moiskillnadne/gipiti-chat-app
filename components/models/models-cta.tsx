@@ -1,5 +1,8 @@
 import Link from "next/link";
 
+import { NEW_USER_BONUS_TERMS_RU } from "@/lib/marketing/landing-content";
+import { landingRegisterLink } from "@/lib/marketing/landing-nav-links";
+
 export const ModelsCta = () => (
   <section className="px-4 py-16">
     <div className="mx-auto max-w-6xl">
@@ -13,14 +16,15 @@ export const ModelsCta = () => (
             Одна подписка — все модели
           </h2>
           <p className="mx-auto mb-7 max-w-lg text-lg text-zinc-400 leading-relaxed">
-            Дарим 200 ₽ каждому новому пользователю — попробуйте любую модель.
-            Карта не нужна.
+            Дарим {NEW_USER_BONUS_TERMS_RU} — попробуйте любую модель. Карта не
+            нужна.
           </p>
           <Link
             className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-8 py-4 font-semibold text-lg text-white shadow-indigo-500/30 shadow-lg transition-shadow hover:shadow-indigo-500/40 hover:shadow-xl"
             href="/register"
+            prefetch={false}
           >
-            Начать бесплатно
+            {landingRegisterLink.label}
           </Link>
           <p className="mt-5 text-sm text-zinc-500">
             Без VPN · Оплата в рублях · Отмена в любой момент
