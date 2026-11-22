@@ -65,7 +65,11 @@ export function PasswordInput({
       {label && (
         <Label className="font-normal" htmlFor={id}>
           {label}
-          {required && <span className="ml-1 text-danger-ink">*</span>}
+          {required && (
+            <span aria-hidden="true" className="ml-1 text-danger-ink">
+              *
+            </span>
+          )}
         </Label>
       )}
 
@@ -171,7 +175,7 @@ export function PasswordInput({
                     aria-hidden="true"
                     className={`flex-shrink-0 rounded-full p-0.5 transition-colors duration-200 ${
                       isMet
-                        ? "bg-green-500 text-white"
+                        ? "bg-success-ink text-white"
                         : "bg-muted text-muted-foreground"
                     }`}
                   >
