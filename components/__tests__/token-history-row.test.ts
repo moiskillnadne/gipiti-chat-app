@@ -21,7 +21,7 @@ describe("toHistoryRow", () => {
     const row = toHistoryRow(baseTransaction);
 
     expect(row.amountLabel).toBe("-137,22 ₽");
-    expect(row.amountClassName).toBe("text-red-600");
+    expect(row.amountClassName).toBe("text-ink");
   });
 
   it("formats a credit with a plus sign and the credit colour", () => {
@@ -32,7 +32,7 @@ describe("toHistoryRow", () => {
     });
 
     expect(row.amountLabel).toBe("+500 ₽");
-    expect(row.amountClassName).toBe("text-green-600");
+    expect(row.amountClassName).toBe("text-success-ink");
   });
 
   it("uses the chat title, then the description, then nothing as the row title", () => {

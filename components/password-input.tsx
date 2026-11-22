@@ -65,7 +65,7 @@ export function PasswordInput({
       {label && (
         <Label className="font-normal" htmlFor={id}>
           {label}
-          {required && <span className="ml-1 text-red-500">*</span>}
+          {required && <span className="ml-1 text-danger-ink">*</span>}
         </Label>
       )}
 

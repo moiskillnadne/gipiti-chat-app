@@ -37,20 +37,27 @@ export type HistoryRow = {
   amountClassName: string;
 };
 
+const CREDIT_BADGE_CLASS = "bg-success-soft text-success-ink";
+
+/**
+ * Red is kept for errors: spending on a request is a normal event and reads neutral, money
+ * coming in reads as success, and a payment refund (money returned to the card, debited from
+ * the balance) is informational. The amount's «+»/«-» sign carries direction without colour.
+ */
 export const BADGE_CLASS_BY_TYPE: Record<TransactionType, string> = {
-  welcome: "bg-green-100 text-green-800",
-  email_bonus: "bg-green-100 text-green-800",
-  quiz_bonus: "bg-green-100 text-green-800",
-  subscription_renewal: "bg-green-100 text-green-800",
-  subscription_purchase: "bg-green-100 text-green-800",
-  topup_purchase: "bg-green-100 text-green-800",
-  usage_debit: "bg-red-100 text-red-800",
-  refund: "bg-blue-100 text-blue-800",
+  welcome: CREDIT_BADGE_CLASS,
+  email_bonus: CREDIT_BADGE_CLASS,
+  quiz_bonus: CREDIT_BADGE_CLASS,
+  subscription_renewal: CREDIT_BADGE_CLASS,
+  subscription_purchase: CREDIT_BADGE_CLASS,
+  topup_purchase: CREDIT_BADGE_CLASS,
+  usage_debit: "bg-paper-2 text-ink-2",
+  refund: "bg-info-soft text-info-ink",
   adjustment: "",
 };
 
-const CREDIT_AMOUNT_CLASS = "text-green-600";
-const DEBIT_AMOUNT_CLASS = "text-red-600";
+const CREDIT_AMOUNT_CLASS = "text-success-ink";
+const DEBIT_AMOUNT_CLASS = "text-ink";
 
 export const toHistoryRow = (transaction: Transaction): HistoryRow => {
   const isCredit = transaction.amount > 0;
