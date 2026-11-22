@@ -365,7 +365,7 @@ export const ToolRunStep = ({
       {isInteractive && (
         <ChevronDownIcon
           className={cn(
-            "mt-0.5 size-3.5 shrink-0 text-ink-4 transition-transform duration-fast ease-canon",
+            "mt-0.5 size-3.5 shrink-0 text-ink-3 transition-transform duration-fast ease-canon",
             isExpanded && "rotate-180"
           )}
         />

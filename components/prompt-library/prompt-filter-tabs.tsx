@@ -38,7 +38,7 @@ export function PromptFilterTabs({
         <Star className="size-3.5" fill={isFav ? "currentColor" : "none"} />
         {t("tabFavorites")}
         <span
-          className={`font-mono text-[10px] ${isFav ? "text-white/60" : "text-ink-3"}`}
+          className={`font-mono text-[10px] ${isFav ? "text-white/90" : "text-ink-3"}`}
         >
           {counts.fav ?? 0}
         </span>
@@ -57,7 +57,7 @@ export function PromptFilterTabs({
       >
         {t("tabAll")}
         <span
-          className={`font-mono text-[10px] ${isAll ? "text-white/50" : "text-ink-3"}`}
+          className={`font-mono text-[10px] ${isAll ? "text-white/90" : "text-ink-3"}`}
         >
           {counts.all ?? 0}
         </span>
@@ -83,7 +83,7 @@ export function PromptFilterTabs({
             {t(category.labelKey)}
             <span
               className={`font-mono text-[10px] ${
-                isActive ? "text-white/50" : "text-ink-3"
+                isActive ? "text-white/90" : "text-ink-3"
               }`}
             >
               {counts[category.id] ?? 0}

@@ -54,9 +54,7 @@ export function PromptCard({
         <button
           aria-pressed={isFavorite}
           className={`ml-auto inline-flex size-7 shrink-0 items-center justify-center rounded-sm transition-colors duration-fast ease-canon hover:bg-paper-2 ${
-            isFavorite
-              ? "text-citrus-deep"
-              : "text-ink-3 hover:text-citrus-deep"
+            isFavorite ? "text-citrus-deep" : "text-ink-3 hover:text-citrus-ink"
           }`}
           onClick={(event) => {
             event.stopPropagation();

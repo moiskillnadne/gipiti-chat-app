@@ -53,7 +53,7 @@ function Toast(props: ToastProps) {
       >
         <div
           className={cn(
-            "data-[type=error]:text-destructive data-[type=success]:text-success",
+            "data-[type=error]:text-danger-ink data-[type=success]:text-success-ink",
             { "pt-1": multiLine }
           )}
           data-type={type}

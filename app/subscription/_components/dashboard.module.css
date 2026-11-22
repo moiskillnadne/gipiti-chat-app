@@ -691,7 +691,7 @@
   font-weight: 500;
 }
 
-.bannerBody span {
+.bannerBody > span {
   display: block;
   font-size: 13px;
   margin-top: 2px;
@@ -1181,10 +1181,6 @@
   padding: 14px;
 }
 
-.poolChipEmpty {
-  opacity: 0.55;
-}
-
 .chipHead {
   align-items: center;
   display: flex;
@@ -1247,6 +1243,15 @@
   font-family: var(--font-mono);
   font-size: 10px;
   margin-top: 4px;
+}
+
+/* An empty pool reads as quieter, but its labels stay at full text contrast. */
+.poolChipEmpty .chipSwatch {
+  opacity: 0.55;
+}
+
+.poolChipEmpty .chipAmt {
+  color: var(--ink-3);
 }
 
 .heroActions {
