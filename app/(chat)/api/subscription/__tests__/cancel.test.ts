@@ -31,7 +31,7 @@ vi.mock("@/server/db/connection", () => {
 });
 vi.mock("@/server/modules/billing/balance", () => ({ getBalance: vi.fn() }));
 vi.mock("@/server/modules/billing/subscriptions", () => ({
-  getActiveUserSubscription: vi.fn(),
+  getActiveStatusSubscription: vi.fn(),
 }));
 vi.mock(
   "@/server/modules/subscription/queries/save-cancellation-feedback",

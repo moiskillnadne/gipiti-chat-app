@@ -2,7 +2,7 @@ import {
   ensureBalance,
   resetSubscriptionPool,
 } from "@/server/modules/billing/balance";
-import { getActiveUserSubscription } from "@/server/modules/billing/subscriptions";
+import { getActiveStatusSubscription } from "@/server/modules/billing/subscriptions";
 
 /**
  * Move a user to the free state: no active subscription, an empty subscription
@@ -10,7 +10,7 @@ import { getActiveUserSubscription } from "@/server/modules/billing/subscription
  * No-ops if the user still has an active subscription.
  */
 export async function assignFreePlan(userId: string): Promise<void> {
-  const active = await getActiveUserSubscription(userId);
+  const active = await getActiveStatusSubscription(userId);
   if (active) {
     console.warn(
       `[assignFreePlan] user ${userId} has active subscription ${active.id}; skipping downgrade`

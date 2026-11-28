@@ -21,13 +21,16 @@ export const MAX_PAGE_LIMIT = 100;
 const MAX_CURSOR_LENGTH = 512;
 const LIMIT_TEXT_PATTERN = /^\d{1,3}$/;
 
-export const pageQuerySchema = z.object({
-  // A query string holds text, so the number is read from it, but only from
-  // one to three decimal digits: `Number(...)` would also take `1e1`, `0x10`
-  // and ` 5`. Anything else (including an array, from `limit[]=5` or a
-  // repeated `limit`) is passed on unchanged and fails the number schema, so
-  // the generated schema stays `integer`, 1..100, default 20.
-  limit: z
+/**
+ * The `limit` of a list query: an integer from 1 to 100 that defaults to
+ * `defaultLimit`. The text is read only from one to three decimal digits:
+ * `Number(...)` would also take `1e1`, `0x10` and ` 5`. Anything else
+ * (including an array, from `limit[]=5` or a repeated `limit`) is passed on
+ * unchanged and fails the number schema, so the generated schema stays
+ * `integer`, 1..100.
+ */
+export const limitQuerySchema = (defaultLimit: number) =>
+  z
     .preprocess(
       (value) =>
         typeof value === "string" && LIMIT_TEXT_PATTERN.test(value)
@@ -38,11 +41,14 @@ export const pageQuerySchema = z.object({
         .int()
         .min(MIN_PAGE_LIMIT)
         .max(MAX_PAGE_LIMIT)
-        .default(DEFAULT_PAGE_LIMIT)
+        .default(defaultLimit)
     )
     .meta({
-      description: `How many items to return, ${MIN_PAGE_LIMIT} to ${MAX_PAGE_LIMIT}. Defaults to ${DEFAULT_PAGE_LIMIT}.`,
-    }),
+      description: `How many items to return, ${MIN_PAGE_LIMIT} to ${MAX_PAGE_LIMIT}. Defaults to ${defaultLimit}.`,
+    });
+
+export const pageQuerySchema = z.object({
+  limit: limitQuerySchema(DEFAULT_PAGE_LIMIT),
   cursor: z.string().min(1).max(MAX_CURSOR_LENGTH).optional().meta({
     description:
       "The `nextCursor` of the previous page. Leave it out for the first page. Treat it as opaque.",

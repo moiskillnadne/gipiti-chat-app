@@ -12,7 +12,7 @@ vi.mock("@/server/modules/billing/balance", () => ({
   resetSubscriptionPool: vi.fn(),
 }));
 vi.mock("@/server/modules/billing/subscriptions", () => ({
-  getActiveUserSubscription: vi.fn(),
+  getActiveStatusSubscription: vi.fn(),
 }));
 vi.mock(
   "@/server/modules/subscription/queries/save-cancellation-feedback",

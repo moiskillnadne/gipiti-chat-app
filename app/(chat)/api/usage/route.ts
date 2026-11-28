@@ -3,7 +3,7 @@ import { auth } from "@/server/modules/auth/next-auth";
 import { getBalance } from "@/server/modules/billing/balance";
 import { getMinorUnits } from "@/server/modules/billing/currencies";
 import { getSpendProgress } from "@/server/modules/billing/spend";
-import { getActiveUserSubscription } from "@/server/modules/billing/subscriptions";
+import { getActiveStatusSubscription } from "@/server/modules/billing/subscriptions";
 
 export async function GET() {
   const session = await auth();
@@ -15,7 +15,7 @@ export async function GET() {
 
   const [balanceSummary, subscription] = await Promise.all([
     getBalance(userId),
-    getActiveUserSubscription(userId),
+    getActiveStatusSubscription(userId),
   ]);
 
   if (!balanceSummary) {

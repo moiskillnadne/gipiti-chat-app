@@ -9,7 +9,7 @@ import {
 import type { CloudPaymentsInterval } from "@/server/integrations/cloudpayments/cloudpayments-types";
 import { getMinorUnits } from "@/server/modules/billing/currencies";
 import {
-  getActiveUserSubscription,
+  getActiveStatusSubscription,
   priceForCurrency,
 } from "@/server/modules/billing/subscriptions";
 import { getUserById } from "@/server/modules/users/queries/get-by-id";
@@ -67,7 +67,7 @@ async function clearCancellationFlags(rowId: string): Promise<void> {
 export async function resumeSubscription(
   userId: string
 ): Promise<ResumeResult> {
-  const row = await getActiveUserSubscription(userId);
+  const row = await getActiveStatusSubscription(userId);
   if (!row) {
     // The cleanup-cancelled cron already flipped the row to a terminal state.
     return { outcome: "expired" };

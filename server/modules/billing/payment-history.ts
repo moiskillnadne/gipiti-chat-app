@@ -3,7 +3,7 @@ import { db } from "@/server/db/connection";
 import { transaction } from "@/server/db/schema";
 
 /** Transaction types that correspond to real charges from the user's card. */
-const CARD_PAYMENT_TYPES = [
+export const CARD_PAYMENT_TYPES = [
   "subscription_purchase",
   "subscription_renewal",
   "topup_purchase",
@@ -18,6 +18,21 @@ export type CardPayment = {
   chargedMinor: number;
   createdAt: Date;
 };
+
+/**
+ * What the card was charged for a card-payment transaction row.
+ *
+ * For subscription rows `Transaction.amount` is the pool-reset delta
+ * (`price − previousSubscriptionAmount`), not the card charge. The charge
+ * equals `subscriptionBalanceAfter` because the pool is reset exactly to the
+ * plan price. Top-up rows credit the pool 1:1, so `amount` is the charge.
+ */
+export const chargedMinorOf = (row: {
+  type: string;
+  amount: number;
+  subscriptionBalanceAfter: number;
+}): number =>
+  row.type === "topup_purchase" ? row.amount : row.subscriptionBalanceAfter;
 
 /**
  * Recent card charges (subscription purchases/renewals and top-ups) for the
@@ -56,8 +71,7 @@ export async function getCardPayments({
   return rows.map((row) => ({
     id: row.id,
     type: row.type as CardPaymentType,
-    chargedMinor:
-      row.type === "topup_purchase" ? row.amount : row.subscriptionBalanceAfter,
+    chargedMinor: chargedMinorOf(row),
     createdAt: row.createdAt,
   }));
 }

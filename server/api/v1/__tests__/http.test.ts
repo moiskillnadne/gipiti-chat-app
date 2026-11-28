@@ -597,9 +597,16 @@ describe("GET /me", () => {
         topup: { amountMinor: 5000, currencyCode: "RUB" },
         total: { amountMinor: 95_000, currencyCode: "RUB" },
       },
+      // A tester's minimum is 1 RUB; the maximum is the public one.
+      topup: {
+        min: { amountMinor: 100, currencyCode: "RUB" },
+        max: { amountMinor: 5_000_000, currencyCode: "RUB" },
+      },
       features: { topup: true },
     });
-    expect(getActiveUserSubscription).toHaveBeenCalledWith({ userId: USER_ID });
+    expect(getActiveUserSubscription).toHaveBeenCalledWith({
+      userId: USER_ID,
+    });
     expect(isTopupEnabled.run).toHaveBeenCalledWith({
       identify: { user: { id: USER_ID } },
     });
@@ -616,6 +623,37 @@ describe("GET /me", () => {
     expect(body.balance).toBeNull();
     expect(body.hasActiveSubscription).toBe(false);
     expect(body.features).toEqual({ topup: false });
+  });
+
+  it("offers the public top-up bounds to an account without a balance row", async () => {
+    // Arrange
+    signIn();
+
+    // Act
+    const body = await (await call("/me")).json();
+
+    // Assert
+    expect(body.topup).toEqual({
+      min: { amountMinor: 50_000, currencyCode: "RUB" },
+      max: { amountMinor: 5_000_000, currencyCode: "RUB" },
+    });
+  });
+
+  it("offers no top-up bounds to an account whose balance is not in RUB", async () => {
+    // Arrange
+    signIn();
+    vi.mocked(getBalance).mockResolvedValue({
+      currencyCode: "USD",
+      subscriptionAmount: 0,
+      topupAmount: 0,
+      total: 0,
+    });
+
+    // Act
+    const body = await (await call("/me")).json();
+
+    // Assert
+    expect(body.topup).toBeNull();
   });
 
   it("answers 401 when the account behind the session no longer exists", async () => {
