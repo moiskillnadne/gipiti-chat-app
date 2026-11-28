@@ -42,9 +42,12 @@ const TEST_FILE_PATTERN =
 
 const LEGACY_CLIENT_DIRS = ["components/", "hooks/", "contexts/"];
 // `lib/db/` still holds the queries that have not moved with their domain
-// yet. `server/modules/` is where the auth module and each domain's queries
-// land (roadmap Phases 4 to 6).
-const LEGACY_SERVER_CODE = ["lib/db/", "server/db/", "server/modules/"];
+// yet. Everything under `server/` is server code: the database, the modules,
+// the integrations, the webhooks, the flags. The one client file that may
+// import from `server/` (`client/shared/api/contract.ts`) is not a client
+// module here (no `"use client"`, outside the legacy client folders) and is
+// governed by the `target-structure` rules.
+const LEGACY_SERVER_CODE = ["lib/db/", "server/"];
 
 const FSD_LAYERS = [
   "app",
@@ -98,7 +101,7 @@ const clientImportsServerCode: EdgeRule = (module, edge) => {
     ? {
         rule: "client-imports-server-code",
         message:
-          "client code may import the database layer and the auth module only with `import type`",
+          "client code may import server code (`server/`, `lib/db/`) only with `import type`",
       }
     : null;
 };

@@ -124,6 +124,26 @@ describe("legacy layout rules", () => {
     ]);
   });
 
+  it("guards every folder of server/, not only the database and the modules", () => {
+    // Act
+    const keys = violationKeys({
+      "components/pay-button.tsx": [
+        '"use client";',
+        'import { createPayment } from "@/server/integrations/cloudpayments/cloudpayments";',
+        'import { handlePay } from "@/server/webhooks/cloudpayments/handlers/pay";',
+        'import { isTopupEnabled } from "@/server/flags";',
+        'import type { CloudPaymentsCheckWebhook } from "@/server/integrations/cloudpayments/cloudpayments-types";',
+      ].join("\n"),
+    });
+
+    // Assert
+    expect(keys).toEqual([
+      "client-imports-server-code: components/pay-button.tsx -> server/flags",
+      "client-imports-server-code: components/pay-button.tsx -> server/integrations/cloudpayments/cloudpayments",
+      "client-imports-server-code: components/pay-button.tsx -> server/webhooks/cloudpayments/handlers/pay",
+    ]);
+  });
+
   it("allows a client component to import database types", () => {
     // Act
     const keys = violationKeys({

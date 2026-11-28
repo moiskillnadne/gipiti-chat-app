@@ -50,7 +50,7 @@ export async function priceForCurrency(
 /**
  * The user's single active subscription, or null for free users.
  */
-export async function getActiveUserSubscription(
+export async function getActiveStatusSubscription(
   userId: string
 ): Promise<UserSubscription | null> {
   const [row] = await db

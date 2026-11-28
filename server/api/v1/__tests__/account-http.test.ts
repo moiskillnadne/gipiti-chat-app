@@ -120,6 +120,7 @@ const ME: Me = {
   isTester: false,
   hasActiveSubscription: false,
   balance: null,
+  topup: null,
   features: { topup: false },
 };
 const accountAt = (tokenVersion: number) => ({
