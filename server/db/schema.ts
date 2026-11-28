@@ -815,3 +815,26 @@ export const userActivityDay = pgTable(
 );
 
 export type UserActivityDay = InferSelectModel<typeof userActivityDay>;
+
+// ============================================================================
+// LEGACY HITS (how often an old route or server action is still called)
+// ============================================================================
+
+// Written by server/http/legacy-hit.ts, one upsert per hit. `name` is
+// "<METHOD> <path>" for a route and "action <name>" for a server action; `day`
+// is the UTC calendar day. A legacy route can be deleted when its name has no
+// hits for 14 days.
+export const legacyHit = pgTable(
+  "LegacyHit",
+  {
+    name: varchar("name", { length: 128 }).notNull(),
+    // Drizzle's default `date` mode is "string": values are "YYYY-MM-DD".
+    day: date("day").notNull(),
+    count: integer("count").notNull().default(0),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.name, table.day] }),
+  })
+);
+
+export type LegacyHit = InferSelectModel<typeof legacyHit>;
