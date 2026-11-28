@@ -1,5 +1,6 @@
 import { oc } from "@orpc/contract";
 
+import { callerAccess } from "@/server/api/_kit/caller-access";
 import {
   forbiddenError,
   serviceUnavailableError,
@@ -38,6 +39,7 @@ export const authContract = {
     .route({
       method: "POST",
       path: "/auth/register",
+      spec: callerAccess("none"),
       successStatus: 201,
       summary: "Create an account",
       description: [
@@ -63,6 +65,7 @@ export const authContract = {
     .route({
       method: "POST",
       path: "/auth/login",
+      spec: callerAccess("none"),
       summary: "Sign in with email and password",
       description: [
         "For clients that are not the website: opens a session and answers with an access token and a refresh token. No credentials are needed to call it.",
@@ -79,6 +82,7 @@ export const authContract = {
     .route({
       method: "POST",
       path: "/auth/refresh",
+      spec: callerAccess("none"),
       summary: "Trade a refresh token for a new pair",
       description: [
         "The refresh token in the body is the credential; no `Authorization` header is needed. It works once: the answer carries the next refresh token.",
@@ -95,6 +99,7 @@ export const authContract = {
   logout: oc.errors(unauthorizedWithReason).route({
     method: "POST",
     path: "/auth/logout",
+    spec: callerAccess("required"),
     successStatus: 204,
     summary: "End the session of this access token",
     description:
@@ -105,6 +110,7 @@ export const authContract = {
   logoutAll: oc.errors({ ...unauthorizedWithReason, ...forbiddenError }).route({
     method: "POST",
     path: "/auth/logout-all",
+    spec: callerAccess("required"),
     successStatus: 204,
     summary: "Sign out everywhere",
     description:

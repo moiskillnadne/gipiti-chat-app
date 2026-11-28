@@ -58,3 +58,27 @@ describe("the committed OpenAPI document of /api/v1", () => {
     ).toEqual([]);
   });
 });
+
+describe("who may call each operation of /api/v1", () => {
+  it("is declared on every operation, so a new endpoint cannot forget it", () => {
+    // Arrange
+    const document = JSON.parse(readFileSync(SNAPSHOT_PATH, "utf8"));
+    const operations = Object.entries<Record<string, { security?: unknown }>>(
+      document.paths
+    ).flatMap(([path, methods]) =>
+      Object.entries(methods).map(([method, operation]) => ({
+        name: `${method.toUpperCase()} ${path}`,
+        security: operation.security,
+      }))
+    );
+
+    // Act
+    const undeclared = operations
+      .filter(({ security }) => !Array.isArray(security))
+      .map(({ name }) => name);
+
+    // Assert
+    expect(operations.length).toBeGreaterThan(0);
+    expect(undeclared).toEqual([]);
+  });
+});

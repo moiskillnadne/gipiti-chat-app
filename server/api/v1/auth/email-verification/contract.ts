@@ -1,5 +1,6 @@
 import { oc } from "@orpc/contract";
 
+import { callerAccess } from "@/server/api/_kit/caller-access";
 import { serviceUnavailableError } from "@/server/api/_kit/common-errors";
 import {
   sendVerificationOutputSchema,
@@ -28,6 +29,7 @@ export const emailVerificationContract = {
     .route({
       method: "POST",
       path: "/auth/email-verification/send",
+      spec: callerAccess("required"),
       successStatus: 202,
       summary: "Send a verification code to the account's email",
       description: [
@@ -51,6 +53,7 @@ export const emailVerificationContract = {
     .route({
       method: "POST",
       path: "/auth/email-verification/verify",
+      spec: callerAccess("required"),
       summary: "Confirm the account's email with the code",
       description: [
         "Checks the code against the signed-in account. On success the email-confirmation bonus is credited once; an account created through `POST /auth/register` also receives its welcome grant here.",

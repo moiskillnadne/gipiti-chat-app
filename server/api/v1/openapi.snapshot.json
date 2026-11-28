@@ -3,7 +3,7 @@
     "securitySchemes": {
       "bearerAuth": {
         "bearerFormat": "JWT",
-        "description": "`Authorization: Bearer <accessToken>`. Access tokens live 15 minutes; renew them with `POST /auth/refresh`.",
+        "description": "`Authorization: Bearer <accessToken>`. Access tokens live 15 minutes; renew them with `POST /auth/refresh`. An operation that lists this scheme also accepts the session cookie of the website, unless its description says otherwise; a native client sends the token.",
         "scheme": "bearer",
         "type": "http"
       }
@@ -207,6 +207,11 @@
             "description": "503"
           }
         },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "summary": "Send a verification code to the account's email",
         "tags": [
           "auth"
@@ -465,6 +470,11 @@
             "description": "503"
           }
         },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "summary": "Confirm the account's email with the code",
         "tags": [
           "auth"
@@ -795,6 +805,7 @@
             "description": "503"
           }
         },
+        "security": [],
         "summary": "Sign in with email and password",
         "tags": [
           "auth"
@@ -855,6 +866,11 @@
             "description": "401"
           }
         },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "summary": "End the session of this access token",
         "tags": [
           "auth"
@@ -948,6 +964,11 @@
             "description": "403"
           }
         },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "summary": "Sign out everywhere",
         "tags": [
           "auth"
@@ -1211,6 +1232,11 @@
             "description": "503"
           }
         },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "summary": "Change the password of the signed-in account",
         "tags": [
           "auth"
@@ -1324,6 +1350,7 @@
             "description": "503"
           }
         },
+        "security": [],
         "summary": "Email a password-reset link",
         "tags": [
           "auth"
@@ -1411,6 +1438,7 @@
             "description": "400"
           }
         },
+        "security": [],
         "summary": "Set a new password with a reset token",
         "tags": [
           "auth"
@@ -1523,6 +1551,7 @@
             "description": "401"
           }
         },
+        "security": [],
         "summary": "Trade a refresh token for a new pair",
         "tags": [
           "auth"
@@ -1958,6 +1987,7 @@
             "description": "503"
           }
         },
+        "security": [],
         "summary": "Create an account",
         "tags": [
           "auth"
@@ -2081,6 +2111,11 @@
             "description": "401"
           }
         },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "summary": "The apps signed in to this account",
         "tags": [
           "auth"
@@ -2218,6 +2253,11 @@
             "description": "404"
           }
         },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "summary": "Sign one app out",
         "tags": [
           "auth"
@@ -2485,6 +2525,7 @@
             "description": "OK"
           }
         },
+        "security": [],
         "summary": "Settings that are the same for every caller",
         "tags": [
           "config"
@@ -2654,6 +2695,11 @@
             "description": "401"
           }
         },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "summary": "The signed-in user and their balance",
         "tags": [
           "me"
@@ -2746,6 +2792,7 @@
             "description": "OK"
           }
         },
+        "security": [],
         "summary": "Models a user can pick in the chat",
         "tags": [
           "models"
@@ -2861,6 +2908,12 @@
             "description": "401"
           }
         },
+        "security": [
+          {},
+          {
+            "bearerAuth": []
+          }
+        ],
         "summary": "Subscription plans on sale",
         "tags": [
           "plans"

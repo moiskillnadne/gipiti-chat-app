@@ -60,7 +60,7 @@ const SERVER_CONTRACT_ENTRY_PATTERN = /^server\/api\/v\d+\/contract$/;
 const CONTRACT_ZONE_PATTERNS = [
   /^server\/api\/(?:.+\/)?contract$/,
   /^server\/api\/v\d+\/_schemas\//,
-  /^server\/api\/_kit\/(?:common-errors|pagination|open-enum)$/,
+  /^server\/api\/_kit\/(?:caller-access|common-errors|pagination|open-enum)$/,
 ];
 const CONTRACT_PACKAGES = new Set(["@orpc/contract", "zod"]);
 const CORE_PACKAGES = new Set(["zod"]);
