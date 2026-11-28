@@ -59,4 +59,29 @@ describe("attachDocxContentForModel", () => {
       expect.objectContaining({ redirect: "error" })
     );
   });
+
+  it("tells the model an empty document is empty without logging an error", async () => {
+    // Arrange: a 0-byte blob, as the upload stored before GIPITI-264.
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(new Uint8Array(0), { status: 200 }))
+    );
+    const errorSpy = vi.spyOn(console, "error").mockReturnValue(undefined);
+    const warnSpy = vi.spyOn(console, "warn").mockReturnValue(undefined);
+    const blobUrl = "https://store.public.blob.vercel-storage.com/report.docx";
+
+    // Act
+    const [result] = await attachDocxContentForModel([docxMessage(blobUrl)]);
+
+    // Assert
+    expect(result.parts[0]).toEqual({
+      type: "text",
+      text: '[Файл "report.docx" пустой: в нём нет данных.]',
+    });
+    expect(errorSpy).not.toHaveBeenCalled();
+    expect(warnSpy).toHaveBeenCalledWith(
+      "Skipping empty DOCX attachment",
+      blobUrl
+    );
+  });
 });

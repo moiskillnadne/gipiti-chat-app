@@ -80,6 +80,7 @@ type UploadQueueEntry = {
 
 /** Upload failure codes that have their own localized message. */
 const UPLOAD_ERROR_MESSAGE_KEYS: Partial<Record<UploadErrorCode, string>> = {
+  empty_file: "uploadEmpty",
   file_too_large: "uploadTooLarge",
   unsupported_type: "uploadUnsupportedType",
 };
@@ -223,7 +224,11 @@ function PureMultimodalInput({
         }
         const { code } = (await response.json()) as Partial<UploadErrorBody>;
         const messageKey = code ? UPLOAD_ERROR_MESSAGE_KEYS[code] : undefined;
-        toast.error(messageKey ? tInput(messageKey) : tCommon("uploadFailed"));
+        toast.error(
+          messageKey
+            ? tInput(messageKey, { name: file.name })
+            : tCommon("uploadFailed")
+        );
       } catch (_error) {
         toast.error(tCommon("uploadFailed"));
       }
