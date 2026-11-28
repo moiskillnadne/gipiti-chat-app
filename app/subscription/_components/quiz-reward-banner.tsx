@@ -2,6 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import {
+  getApiErrorMessageKey,
+  getApiErrorReason,
+} from "@/client/shared/api/errors";
+import { api } from "@/client/shared/api/orpc-client";
 import { QuizWizard } from "@/components/quiz/quiz-wizard";
 import { useOnboardingQuizConfig } from "@/components/quiz/use-onboarding-quiz-config";
 import { toast } from "@/components/toast";
@@ -16,20 +21,31 @@ export type QuizRewardBannerProps = {
 
 export function QuizRewardBanner({ bonusAmount }: QuizRewardBannerProps) {
   const t = useTranslations("onboardingQuiz.banner");
+  const tErrors = useTranslations("errors");
+  const tApi = useTranslations("onboardingQuiz.api");
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const config = useOnboardingQuizConfig(bonusAmount);
 
   const handleComplete = async (answers: QuizAnswers) => {
-    const response = await fetch(`/api/quiz/${ONBOARDING_QUIZ_KEY}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ answers }),
-    });
-
-    if (!response.ok) {
-      toast({ type: "error", description: t("error") });
+    try {
+      await api.me.quizzes.submit({ quizKey: ONBOARDING_QUIZ_KEY, answers });
+    } catch (error) {
+      // The server no longer sends a localized message, so the page picks one.
+      // `null` means the call was aborted by the page itself: no toast.
+      const errorKey = getApiErrorMessageKey(error);
+      if (errorKey) {
+        const isEmailNotVerified =
+          getApiErrorReason(error) === "email_not_verified";
+        toast({
+          type: "error",
+          description: isEmailNotVerified
+            ? tApi("emailNotVerified")
+            : tErrors(errorKey),
+        });
+      }
+      // The wizard shows its own failure state when this rejects.
       throw new Error("quiz_submit_failed");
     }
 

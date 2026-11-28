@@ -3,18 +3,26 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   auth: vi.fn(),
   submitQuiz: vi.fn(),
+  getQuizResponse: vi.fn(),
+  recordLegacyHit: vi.fn(),
 }));
 
 vi.mock("server-only", () => ({}));
 vi.mock("@/server/modules/auth/next-auth", () => ({ auth: mocks.auth }));
 vi.mock("@/server/db/connection", () => ({ db: {} }));
+vi.mock("@/server/http/legacy-hit", () => ({
+  recordLegacyHit: mocks.recordLegacyHit,
+}));
+vi.mock("@/server/modules/quiz/queries/get-quiz-response", () => ({
+  getQuizResponse: mocks.getQuizResponse,
+}));
 vi.mock("@/server/modules/quiz/submit-quiz", () => ({
   submitQuiz: mocks.submitQuiz,
 }));
 
 import { getTranslations } from "@/lib/i18n/translate";
 import { ONBOARDING_QUIZ_KEY } from "@/lib/quiz/types";
-import { POST } from "../route";
+import { GET, POST } from "../route";
 
 const USER_ID = "user-1";
 
@@ -49,6 +57,56 @@ describe("POST /api/quiz/[key]", () => {
       isBonusGranted: true,
       bonus: { amountMinor: 5000, currencyCode: "RUB" },
     });
+  });
+
+  const getQuiz = async (): Promise<Response> =>
+    await GET(new Request("http://localhost/api/quiz/onboarding"), {
+      params: Promise.resolve({ key: ONBOARDING_QUIZ_KEY }),
+    });
+
+  it("counts a signed-in POST as one legacy hit", async () => {
+    // Act
+    await postQuiz();
+
+    // Assert
+    expect(mocks.recordLegacyHit).toHaveBeenCalledExactlyOnceWith(
+      "POST /api/quiz/[key]"
+    );
+  });
+
+  it("does not count a signed-out POST", async () => {
+    // Arrange
+    mocks.auth.mockResolvedValue(null);
+
+    // Act
+    await postQuiz();
+
+    // Assert
+    expect(mocks.recordLegacyHit).not.toHaveBeenCalled();
+  });
+
+  it("counts a signed-in GET as one legacy hit", async () => {
+    // Arrange
+    mocks.getQuizResponse.mockResolvedValue(null);
+
+    // Act
+    await getQuiz();
+
+    // Assert
+    expect(mocks.recordLegacyHit).toHaveBeenCalledExactlyOnceWith(
+      "GET /api/quiz/[key]"
+    );
+  });
+
+  it("does not count a signed-out GET", async () => {
+    // Arrange
+    mocks.auth.mockResolvedValue(null);
+
+    // Act
+    await getQuiz();
+
+    // Assert
+    expect(mocks.recordLegacyHit).not.toHaveBeenCalled();
   });
 
   it("returns 401 to a signed-out visitor and submits nothing", async () => {

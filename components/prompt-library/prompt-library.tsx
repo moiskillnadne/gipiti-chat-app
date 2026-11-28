@@ -1,50 +1,41 @@
 "use client";
 
-import { useReducedMotion } from "framer-motion";
 import { Search, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import useSWR from "swr";
+import { getApiErrorMessageKey } from "@/client/shared/api/errors";
+import type { PromptDto } from "@/client/shared/api/types";
 import { useModel } from "@/contexts/model-context";
-import { resolveScrollBehavior } from "@/lib/dom/scroll-behavior";
 import { useTranslations } from "@/lib/i18n/translate";
-import {
-  getPromptModelMeta,
-  PROMPT_CATEGORIES,
-} from "@/lib/prompts/prompt-meta";
-import type { PromptsResponse } from "@/lib/types";
-import { fetcher } from "@/lib/utils";
-import type { Prompt } from "@/server/db/schema";
 import { PromptCard } from "./prompt-card";
 import { PromptDetailModal } from "./prompt-detail-modal";
-import { type PromptFilter, PromptFilterTabs } from "./prompt-filter-tabs";
+import { PromptFilterTabs } from "./prompt-filter-tabs";
 import { PromptPager } from "./prompt-pager";
-
-const PAGE_SIZE = 30;
-const SCROLL_OFFSET = 120;
+import { usePromptFiltering } from "./use-prompt-filtering";
+import { usePromptLibraryData } from "./use-prompt-library-data";
 
 export function PromptLibrary() {
   const t = useTranslations("promptLibrary");
   const router = useRouter();
   const { availableModels, setModelId } = useModel();
-  const { data, isLoading } = useSWR<PromptsResponse>("/api/prompts", fetcher);
-
-  const prompts = useMemo(() => data?.prompts ?? [], [data]);
-
-  const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
-  const [query, setQuery] = useState("");
-  const [activeFilter, setActiveFilter] = useState<PromptFilter>("all");
-  const [page, setPage] = useState(1);
-  const shouldReduceMotion = useReducedMotion();
+  const tErrors = useTranslations("errors");
+  const { prompts, favoriteIds, isLoading, loadError, toggleFavorite } =
+    usePromptLibraryData();
+  const {
+    query,
+    activeFilter,
+    counts,
+    filtered,
+    paged,
+    safePage,
+    totalPages,
+    updateQuery,
+    selectFilter,
+    goToPage,
+  } = usePromptFiltering(prompts, favoriteIds);
   const [openId, setOpenId] = useState<string | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (data?.favoriteIds) {
-      setFavoriteIds(new Set(data.favoriteIds));
-    }
-  }, [data?.favoriteIds]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -57,115 +48,9 @@ export function PromptLibrary() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const counts = useMemo(() => {
-    const next: Record<string, number> = {
-      all: prompts.length,
-      fav: prompts.filter((prompt) => favoriteIds.has(prompt.id)).length,
-    };
-    for (const category of PROMPT_CATEGORIES) {
-      next[category.id] = prompts.filter(
-        (prompt) => prompt.category === category.id
-      ).length;
-    }
-    return next;
-  }, [prompts, favoriteIds]);
-
-  const filtered = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-    return prompts.filter((prompt) => {
-      if (activeFilter === "fav" && !favoriteIds.has(prompt.id)) {
-        return false;
-      }
-      if (
-        activeFilter !== "fav" &&
-        activeFilter !== "all" &&
-        prompt.category !== activeFilter
-      ) {
-        return false;
-      }
-      if (normalizedQuery) {
-        const modelName = getPromptModelMeta(prompt.modelId).name;
-        const haystack =
-          `${prompt.title} ${prompt.body} ${prompt.tags.join(" ")} ${modelName}`.toLowerCase();
-        if (!haystack.includes(normalizedQuery)) {
-          return false;
-        }
-      }
-      return true;
-    });
-  }, [prompts, activeFilter, query, favoriteIds]);
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages);
-  const paged = filtered.slice(
-    (safePage - 1) * PAGE_SIZE,
-    safePage * PAGE_SIZE
-  );
-
   const openPrompt = prompts.find((prompt) => prompt.id === openId) ?? null;
 
-  const selectFilter = (filter: PromptFilter) => {
-    setActiveFilter(filter);
-    setPage(1);
-  };
-
-  const updateQuery = (value: string) => {
-    setQuery(value);
-    setPage(1);
-  };
-
-  const goToPage = (next: number) => {
-    setPage(next);
-    const grid = document.querySelector("[data-prompt-grid]");
-    if (grid) {
-      const top = grid.getBoundingClientRect().top + window.scrollY;
-      window.scrollTo({
-        top: top - SCROLL_OFFSET,
-        behavior: resolveScrollBehavior("smooth", shouldReduceMotion),
-      });
-    }
-  };
-
-  const toggleFavorite = async (id: string) => {
-    const willFavorite = !favoriteIds.has(id);
-    setFavoriteIds((prev) => {
-      const next = new Set(prev);
-      if (willFavorite) {
-        next.add(id);
-      } else {
-        next.delete(id);
-      }
-      return next;
-    });
-
-    try {
-      const response = willFavorite
-        ? await fetch("/api/prompts/favorite", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ promptId: id }),
-          })
-        : await fetch(`/api/prompts/favorite?promptId=${id}`, {
-            method: "DELETE",
-          });
-      if (!response.ok) {
-        throw new Error("Request failed");
-      }
-    } catch {
-      setFavoriteIds((prev) => {
-        const next = new Set(prev);
-        if (willFavorite) {
-          next.delete(id);
-        } else {
-          next.add(id);
-        }
-        return next;
-      });
-      toast.error(t("favoriteError"));
-    }
-  };
-
-  const handleUse = (prompt: Prompt) => {
+  const handleUse = (prompt: PromptDto) => {
     if (availableModels.some((model) => model.id === prompt.modelId)) {
       setModelId(prompt.modelId);
     }
@@ -176,6 +61,8 @@ export function PromptLibrary() {
     toast.success(t("useToast"));
     router.push(`/chat?prefill=${encodeURIComponent(prompt.body)}`);
   };
+
+  const loadErrorKey = loadError ? getApiErrorMessageKey(loadError) : null;
 
   const isFavFilter = activeFilter === "fav";
   const resultSuffix = `${isFavFilter ? ` ${t("inFavorites")}` : ""}${
@@ -216,6 +103,13 @@ export function PromptLibrary() {
       {isLoading ? (
         <div className="flex items-center justify-center py-24 text-[13px] text-ink-3">
           {t("loading")}
+        </div>
+      ) : loadErrorKey ? (
+        <div
+          className="flex items-center justify-center py-24 text-[13px] text-ink-3"
+          role="alert"
+        >
+          {tErrors(loadErrorKey)}
         </div>
       ) : (
         <>
