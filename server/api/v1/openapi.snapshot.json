@@ -515,6 +515,9 @@
                     "maxLength": 200,
                     "minLength": 1,
                     "type": "string"
+                  },
+                  "locale": {
+                    "type": "string"
                   }
                 },
                 "required": [
@@ -2603,6 +2606,19 @@
                     },
                     "isTester": {
                       "type": "boolean"
+                    },
+                    "nickname": {
+                      "type": "string"
+                    },
+                    "avatarUrl": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -2756,6 +2772,121 @@
       "get": {
         "description": "Works without authentication. A signed-in internal tester also sees the tester-only plans.",
         "operationId": "plans.list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "properties": {
+                          "billingPeriod": {
+                            "description": "One of: daily, weekly, monthly, annual. Clients must accept other values.",
+                            "type": "string"
+                          },
+                          "billingPeriodCount": {
+                            "exclusiveMinimum": 0,
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          },
+                          "code": {
+                            "description": "Stable identifier, for example basic_monthly.",
+                            "type": "string"
+                          },
+                          "displayName": {
+                            "type": "string"
+                          },
+                          "prices": {
+                            "description": "One entry per currency. The price is charged per billing period and credited to the balance.",
+                            "items": {
+                              "properties": {
+                                "amountMinor": {
+                                  "maximum": 9007199254740991,
+                                  "minimum": -9007199254740991,
+                                  "type": "integer"
+                                },
+                                "currencyCode": {
+                                  "maxLength": 3,
+                                  "minLength": 3,
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "amountMinor",
+                                "currencyCode"
+                              ],
+                              "type": "object"
+                            },
+                            "type": "array"
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "displayName",
+                          "billingPeriod",
+                          "billingPeriodCount",
+                          "prices"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          }
+        },
+        "summary": "Subscription plans on sale",
+        "tags": [
+          "plans"
+        ]
+      }
+    },
+    "/spike-added": {
+      "get": {
+        "description": "Works without authentication. A signed-in internal tester also sees the tester-only plans.",
+        "operationId": "spike.added",
         "responses": {
           "200": {
             "content": {
