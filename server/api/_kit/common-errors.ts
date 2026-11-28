@@ -49,3 +49,15 @@ export const notFoundError = {
     message: "Not found.",
   },
 } as const;
+
+/**
+ * For an operation whose 400 means something the caller can act on beyond
+ * "the input did not validate" (which every operation can answer and none
+ * declares). Use it where the contract names that 400.
+ */
+export const badRequestError = {
+  BAD_REQUEST: {
+    status: 400,
+    message: "The request is not valid.",
+  },
+} as const;

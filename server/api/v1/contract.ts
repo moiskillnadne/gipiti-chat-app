@@ -1,4 +1,5 @@
 import { authContract } from "@/server/api/v1/auth/contract";
+import { chatsContract } from "@/server/api/v1/chats/contract";
 import { configContract } from "@/server/api/v1/config/contract";
 import { meContract } from "@/server/api/v1/me/contract";
 import { modelsContract } from "@/server/api/v1/models/contract";
@@ -16,6 +17,7 @@ export const v1Contract = {
   models: modelsContract,
   plans: plansContract,
   prompts: promptsContract,
+  chats: chatsContract,
   me: meContract,
   auth: authContract,
 };

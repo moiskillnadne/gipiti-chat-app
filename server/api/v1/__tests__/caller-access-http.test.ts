@@ -76,6 +76,7 @@ type OperationUnderTest = {
   path: string;
   declaredAccess: CallerAccess;
   hasRequestBody: boolean;
+  hasRequiredQuery: boolean;
 };
 
 /**
@@ -108,6 +109,17 @@ const VALID_BODY_BY_OPERATION: Record<string, unknown> = {
     newPassword: "An0ther!Passw0rd",
   },
   "PUT /me/quizzes/{quizKey}": { answers: { sphere: "it" } },
+  "PUT /chats/{chatId}/messages/{messageId}/vote": { isUpvoted: true },
+};
+
+/**
+ * A query string that passes input validation, per operation with a required
+ * query parameter. The same reason as above: without it the request would be
+ * answered with 400 before the authentication middleware runs.
+ */
+const VALID_QUERY_BY_OPERATION: Record<string, string> = {
+  "DELETE /chats": "?confirm=true",
+  "DELETE /chats/{chatId}/messages": `?fromMessageId=${SOME_UUID}`,
 };
 
 const routeHandlers: Record<string, (request: Request) => Promise<Response>> = {
@@ -145,7 +157,14 @@ const listOperations = (): OperationUnderTest[] => {
   const document = JSON.parse(readFileSync(SNAPSHOT_PATH, "utf8"));
 
   return Object.entries<
-    Record<string, { security: SecurityRequirement[]; requestBody?: unknown }>
+    Record<
+      string,
+      {
+        security: SecurityRequirement[];
+        requestBody?: unknown;
+        parameters?: { in: string; required?: boolean }[];
+      }
+    >
   >(document.paths).flatMap(([path, methods]) =>
     Object.entries(methods).map(([method, operation]) => ({
       name: `${method.toUpperCase()} ${path}`,
@@ -154,6 +173,9 @@ const listOperations = (): OperationUnderTest[] => {
       path: path.replace(/\{[^}]+\}/g, SOME_UUID),
       declaredAccess: accessOf(operation.security),
       hasRequestBody: operation.requestBody !== undefined,
+      hasRequiredQuery: (operation.parameters ?? []).some(
+        (parameter) => parameter.in === "query" && parameter.required === true
+      ),
     }))
   );
 };
@@ -168,13 +190,14 @@ const send = (
   authorization?: string
 ): Promise<Response> => {
   const validBody = VALID_BODY_BY_OPERATION[operation.name];
+  const query = VALID_QUERY_BY_OPERATION[operation.name] ?? "";
   const headers: Record<string, string> = {
     ...(validBody !== undefined && { "content-type": "application/json" }),
     ...(authorization !== undefined && { authorization }),
   };
 
   return routeHandlers[operation.method](
-    new Request(`${ORIGIN}${PREFIX}${operation.path}`, {
+    new Request(`${ORIGIN}${PREFIX}${operation.path}${query}`, {
       method: operation.method,
       headers,
       ...(validBody !== undefined && { body: JSON.stringify(validBody) }),
@@ -230,6 +253,25 @@ describe("the declared caller access of each operation", () => {
       .map(({ name }) => name);
     const unknown = Object.keys(VALID_BODY_BY_OPERATION).filter(
       (name) => !operations.some((operation) => operation.name === name)
+    );
+
+    // Assert
+    expect({ missing, unknown }).toEqual({ missing: [], unknown: [] });
+  });
+
+  it("has a valid query for every operation with a required query parameter", () => {
+    // Arrange
+    const operationsWithQuery = operations.filter(
+      ({ hasRequiredQuery }) => hasRequiredQuery
+    );
+
+    // Act
+    const missing = operationsWithQuery
+      .filter(({ name }) => !(name in VALID_QUERY_BY_OPERATION))
+      .map(({ name }) => name);
+    const unknown = Object.keys(VALID_QUERY_BY_OPERATION).filter(
+      (name) =>
+        !operationsWithQuery.some((operation) => operation.name === name)
     );
 
     // Assert
