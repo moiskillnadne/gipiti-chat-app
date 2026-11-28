@@ -487,12 +487,6 @@
                         "minLength": 1,
                         "type": "string"
                       },
-                      "deviceName": {
-                        "description": "Shown in the list of sessions, for example \"Anna's iPhone\".",
-                        "maxLength": 255,
-                        "minLength": 1,
-                        "type": "string"
-                      },
                       "platform": {
                         "enum": [
                           "ios",
