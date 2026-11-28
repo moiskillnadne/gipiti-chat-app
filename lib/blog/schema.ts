@@ -28,33 +28,48 @@ const normalizeDate = (value: unknown): unknown => {
   return value;
 };
 
-export const blogFrontmatterSchema = z.object({
-  title: z.string().min(1).max(120),
-  description: z.string().min(1).max(300),
-  slug: z.string().min(1).max(120).regex(SLUG_PATTERN, {
-    message: "slug может содержать только латиницу, цифры и дефисы",
-  }),
-  date: z.preprocess(
-    normalizeDate,
-    z
-      .string()
-      .regex(ISO_DATE_PATTERN, {
-        message: "Дата должна быть в формате ГГГГ-ММ-ДД",
-      })
-      .refine((value) => !Number.isNaN(Date.parse(value)), {
-        message: "Невалидная дата",
-      })
-  ),
-  category: z.enum(BLOG_CATEGORIES),
-  tags: z.array(z.string().min(1).max(40)).max(12).default([]),
-  published: z.boolean().default(false),
-  coverImage: z
+// Shared by `date` and `updated`: YAML dates normalised, ISO format, real date.
+const isoDateField = z.preprocess(
+  normalizeDate,
+  z
     .string()
-    .regex(LOCAL_PATH_PATTERN, {
-      message: "Путь к обложке должен быть локальным (начинаться с /)",
+    .regex(ISO_DATE_PATTERN, {
+      message: "Дата должна быть в формате ГГГГ-ММ-ДД",
     })
-    .optional(),
-  excerpt: z.string().min(1).max(300).optional(),
-});
+    .refine((value) => !Number.isNaN(Date.parse(value)), {
+      message: "Невалидная дата",
+    })
+);
+
+/** The date an article was last changed: `updated` when set, else the publication date. */
+export const getModifiedDate = (frontmatter: {
+  date: string;
+  updated?: string;
+}): string => frontmatter.updated ?? frontmatter.date;
+
+export const blogFrontmatterSchema = z
+  .object({
+    title: z.string().min(1).max(120),
+    description: z.string().min(1).max(300),
+    slug: z.string().min(1).max(120).regex(SLUG_PATTERN, {
+      message: "slug может содержать только латиницу, цифры и дефисы",
+    }),
+    date: isoDateField,
+    updated: isoDateField.optional(),
+    category: z.enum(BLOG_CATEGORIES),
+    tags: z.array(z.string().min(1).max(40)).max(12).default([]),
+    published: z.boolean().default(false),
+    coverImage: z
+      .string()
+      .regex(LOCAL_PATH_PATTERN, {
+        message: "Путь к обложке должен быть локальным (начинаться с /)",
+      })
+      .optional(),
+    excerpt: z.string().min(1).max(300).optional(),
+  })
+  .refine((value) => !value.updated || value.updated >= value.date, {
+    message: "Дата обновления не может быть раньше даты публикации",
+    path: ["updated"],
+  });
 
 export type BlogFrontmatter = z.infer<typeof blogFrontmatterSchema>;

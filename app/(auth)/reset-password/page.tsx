@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
+
 import { ResetPasswordPageClient } from "./reset-password-page-client";
+
+export const metadata: Metadata = {
+  title: "Новый пароль",
+  robots: { index: false, follow: false },
+};
 
 type PageProps = {
   searchParams: Promise<{ token?: string | string[] }>;

@@ -13,6 +13,16 @@ export const landingNavLinks: readonly LandingNavLink[] = [
   { label: "Блог", href: "/blog" },
 ];
 
+// The four catalog sections in the footer. Kept here, not read from
+// `models-catalog.ts`, so the client footer does not pull that ~1000-line copy
+// into the bundle; a unit test keeps the hrefs in step with `catalogSections`.
+export const landingCatalogSectionLinks: readonly LandingNavLink[] = [
+  { label: "Нейросети для текста", href: "/models/text" },
+  { label: "Нейросети для изображений", href: "/models/image-generation" },
+  { label: "Нейросети для видео", href: "/models/video-generation" },
+  { label: "Нейросети для кода", href: "/models/code" },
+];
+
 export const landingLoginLink: LandingNavLink = {
   label: "Войти",
   href: "/login",
