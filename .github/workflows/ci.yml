@@ -5,7 +5,8 @@ on:
   pull_request:
     branches: [main]
     # `labeled` / `unlabeled` re-run the checks when the
-    # `characterization-change` label is added or removed.
+    # `characterization-change` or `api-unreleased-change` label is added or
+    # removed.
     types: [opened, synchronize, reopened, labeled, unlabeled]
 
 concurrency:
@@ -119,3 +120,36 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Check characterization tests
         run: pnpm check:characterization-diff "origin/${{ github.base_ref }}"
+
+  api-breaking:
+    name: API breaking changes
+    # An endpoint of /api/v1 may only grow once a shipped client calls it
+    # (docs/plans/2026-11-15-orpc-v1-roadmap.md, "Versioning policy"). This
+    # job compares the committed OpenAPI snapshot with the base branch's and
+    # fails on a breaking difference. A pull request that changes an endpoint
+    # no shipped client calls yet says so in its body, carries the
+    # `api-unreleased-change` label and skips this job.
+    if: >-
+      github.event_name == 'pull_request' &&
+      !contains(github.event.pull_request.labels.*.name, 'api-unreleased-change')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The base branch's snapshot is read from its history.
+          fetch-depth: 0
+      - name: Collect both snapshots
+        run: |
+          mkdir -p "$RUNNER_TEMP/api-spec"
+          git show "origin/${{ github.base_ref }}:server/api/v1/openapi.snapshot.json" \
+            > "$RUNNER_TEMP/api-spec/base.json"
+          cp server/api/v1/openapi.snapshot.json "$RUNNER_TEMP/api-spec/revision.json"
+      - name: Look for breaking changes
+        # The image is pinned: a newer oasdiff may classify a change
+        # differently, and that should arrive as a reviewed version bump.
+        run: >-
+          docker run --rm
+          -v "$RUNNER_TEMP/api-spec:/specs:ro"
+          tufin/oasdiff:v1.41.0
+          breaking /specs/base.json /specs/revision.json --fail-on ERR

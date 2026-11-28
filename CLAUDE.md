@@ -32,7 +32,7 @@ npx tsx scripts/seed-subscriptions.ts   # seed Subscription catalog from lib/sub
 npx tsx scripts/add-tokens.ts <userId> <amountMajor> [description]  # credit a user's top-up balance
 ```
 
-CI (`.github/workflows/`) runs typecheck, lint, unit tests with coverage, the characterization diff guard, integration tests, and Playwright.
+CI (`.github/workflows/`) runs typecheck, lint, unit tests with coverage, the characterization diff guard, integration tests, the API breaking-change check (`api-breaking`), and Playwright.
 
 ### Test layers
 
@@ -118,6 +118,7 @@ The REST API for first-party clients, built with oRPC, contract first. Live so f
 - Auth: an access token (`Authorization: Bearer …`) or the session cookie. A request with an `Authorization` header is judged by that header alone: a bad token is 401 (`data.reason: invalid_token`), never a fallback to the cookie. A cookie caller on a method other than GET/HEAD must show the request comes from a page of this site (`Sec-Fetch-Site: same-origin`, or an `Origin` of the same host), otherwise 403; the check is inside `withPrincipal`/`requireAuth`, so a procedure cannot forget it, and bearer callers skip it. A procedure that identifies nobody (`/config`, `/models`, `/openapi.json`, `/auth/login`, `/auth/refresh`) reads no credentials at all, so a client with a stale token can still fetch its config. `server/` may not import `app/`; the cookie session is read through `server/modules/auth/cookie-session.ts`.
 - A 401 of the auth endpoints says why in `data.reason` (`invalid_credentials`, `refresh_invalid`, `refresh_expired`, `session_revoked`, `refresh_reused`, `bearer_required`, …). Add a reason to `KNOWN_UNAUTHORIZED_REASONS` in `v1/_schemas/auth.ts`; it is an open enum.
 - After changing a contract run `pnpm api:spec`; it rewrites `server/api/v1/openapi.snapshot.json`, and a unit test fails while the file is out of date.
+- An endpoint may only grow once a shipped client calls it (the web counts). CI job `api-breaking` runs `oasdiff breaking` on the snapshot of the base branch against the PR's and fails on a breaking difference. A PR that changes an endpoint no client calls yet names it in its body and carries the label `api-unreleased-change`, which skips the job.
 - Verified facts about the oRPC version in use (error encoding, routing next to raw route files, what the generator emits): `docs/plans/orpc-v1-roadmap/spike-findings.md`. orpc.dev documents 2.0; read the installed type declarations instead.
 
 ### Errors
