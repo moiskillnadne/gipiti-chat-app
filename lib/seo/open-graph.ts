@@ -23,7 +23,7 @@ export const DEFAULT_OG_IMAGE: OpenGraphImage = {
   url: `${SITE_URL}/opengraph-image`,
   width: 1200,
   height: 630,
-  alt: "GIPITI - AI-чат с ChatGPT, Gemini, Claude и Grok",
+  alt: "GIPITI — все лучшие нейросети в одном чате",
 };
 
 /** Hero render of a media landing when it ships one, else the site card. */
