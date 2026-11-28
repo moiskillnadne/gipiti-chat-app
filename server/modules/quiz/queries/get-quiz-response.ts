@@ -1,17 +1,21 @@
 import { and, eq } from "drizzle-orm";
 import { ChatSDKError } from "@/lib/errors";
-import { db } from "@/server/db/connection";
+import { type DatabaseExecutor, db } from "@/server/db/connection";
 import { type QuizResponse, quizResponse } from "@/server/db/schema";
 
-export async function getQuizResponse({
-  userId,
-  quizKey,
-}: {
-  userId: string;
-  quizKey: string;
-}): Promise<QuizResponse | null> {
+/** Inside a transaction, pass it as `executor`. */
+export async function getQuizResponse(
+  {
+    userId,
+    quizKey,
+  }: {
+    userId: string;
+    quizKey: string;
+  },
+  executor: DatabaseExecutor = db
+): Promise<QuizResponse | null> {
   try {
-    const [row] = await db
+    const [row] = await executor
       .select()
       .from(quizResponse)
       .where(

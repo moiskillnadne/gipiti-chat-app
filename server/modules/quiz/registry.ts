@@ -34,5 +34,6 @@ const QUIZ_REGISTRY: Record<string, QuizDefinition> = {
 };
 
 export function getQuizDefinition(key: string): QuizDefinition | undefined {
-  return QUIZ_REGISTRY[key];
+  // Own keys only: `constructor` or `toString` must not find a definition.
+  return Object.hasOwn(QUIZ_REGISTRY, key) ? QUIZ_REGISTRY[key] : undefined;
 }

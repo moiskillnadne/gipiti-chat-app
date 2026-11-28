@@ -1,12 +1,8 @@
-import { grantQuizBonus } from "@/lib/billing/balance";
-import { isUserEmailVerified } from "@/lib/billing/email-verification";
 import { ChatSDKError } from "@/lib/errors";
 import { getTranslations } from "@/lib/i18n/translate";
-import type { QuizAnswers } from "@/lib/quiz/types";
 import { auth } from "@/server/modules/auth/next-auth";
-import { createQuizResponse } from "@/server/modules/quiz/queries/create-quiz-response";
 import { getQuizResponse } from "@/server/modules/quiz/queries/get-quiz-response";
-import { getQuizDefinition } from "@/server/modules/quiz/registry";
+import { submitQuiz } from "@/server/modules/quiz/submit-quiz";
 
 type RouteContext = { params: Promise<{ key: string }> };
 
@@ -32,48 +28,49 @@ export async function POST(request: Request, { params }: RouteContext) {
   }
 
   const { key } = await params;
-  const definition = getQuizDefinition(key);
-  if (!definition) {
-    return new ChatSDKError(
-      "bad_request:api",
-      `Unknown quiz "${key}"`
-    ).toResponse();
-  }
 
-  let answers: QuizAnswers;
+  // A body that is not JSON is judged like any other bad answers, after the
+  // quiz key: the service checks the key first.
+  let answers: unknown;
   try {
     const body = await request.json();
-    answers = definition.schema.parse(body?.answers);
+    answers = body?.answers;
   } catch {
-    return new ChatSDKError(
-      "bad_request:api",
-      "Invalid quiz answers"
-    ).toResponse();
+    answers = undefined;
   }
 
-  const userId = session.user.id;
+  const result = await submitQuiz({
+    userId: session.user.id,
+    quizKey: key,
+    answers,
+  });
 
-  // The quiz bonus is paid only to users with a confirmed email (read from the
-  // DB, not the session). Refuse before saving so the user can take the quiz
-  // after confirming.
-  const isVerified = await isUserEmailVerified(userId);
-  if (!isVerified) {
-    const t = await getTranslations("onboardingQuiz.api");
-    return new ChatSDKError(
-      "forbidden:auth",
-      "Email is not verified",
-      t("emailNotVerified")
-    ).toResponse();
+  switch (result.status) {
+    case "completed":
+      // Also for answers saved earlier: a repeat is an idempotent success,
+      // and pays nothing a second time.
+      return Response.json({ completed: true });
+    case "unknown_quiz":
+      return new ChatSDKError(
+        "bad_request:api",
+        `Unknown quiz "${key}"`
+      ).toResponse();
+    case "invalid_answers":
+      return new ChatSDKError(
+        "bad_request:api",
+        "Invalid quiz answers"
+      ).toResponse();
+    case "email_not_verified": {
+      const t = await getTranslations("onboardingQuiz.api");
+      return new ChatSDKError(
+        "forbidden:auth",
+        "Email is not verified",
+        t("emailNotVerified")
+      ).toResponse();
+    }
+    default: {
+      const unhandled: never = result;
+      throw new Error(`Unhandled result: ${JSON.stringify(unhandled)}`);
+    }
   }
-
-  // Already completed — idempotent success, no second reward.
-  const existing = await getQuizResponse({ userId, quizKey: key });
-  if (existing) {
-    return Response.json({ completed: true });
-  }
-
-  await createQuizResponse({ userId, quizKey: key, answers });
-  await grantQuizBonus(userId, key, definition.bonusMajorUnits);
-
-  return Response.json({ completed: true });
 }

@@ -2,26 +2,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   auth: vi.fn(),
-  isUserEmailVerified: vi.fn(),
-  getQuizResponse: vi.fn(),
-  createQuizResponse: vi.fn(),
-  grantQuizBonus: vi.fn(),
+  submitQuiz: vi.fn(),
 }));
 
 vi.mock("server-only", () => ({}));
 vi.mock("@/server/modules/auth/next-auth", () => ({ auth: mocks.auth }));
 vi.mock("@/server/db/connection", () => ({ db: {} }));
-vi.mock("@/lib/billing/email-verification", () => ({
-  isUserEmailVerified: mocks.isUserEmailVerified,
-}));
-vi.mock("@/lib/billing/balance", () => ({
-  grantQuizBonus: mocks.grantQuizBonus,
-}));
-vi.mock("@/server/modules/quiz/queries/get-quiz-response", () => ({
-  getQuizResponse: mocks.getQuizResponse,
-}));
-vi.mock("@/server/modules/quiz/queries/create-quiz-response", () => ({
-  createQuizResponse: mocks.createQuizResponse,
+vi.mock("@/server/modules/quiz/submit-quiz", () => ({
+  submitQuiz: mocks.submitQuiz,
 }));
 
 import { getTranslations } from "@/lib/i18n/translate";
@@ -39,30 +27,50 @@ const validAnswers = {
   contacts: "@handle",
 };
 
-const submitQuiz = async (): Promise<Response> =>
+const postQuiz = async (
+  body: string = JSON.stringify({ answers: validAnswers }),
+  key: string = ONBOARDING_QUIZ_KEY
+): Promise<Response> =>
   await POST(
-    new Request(`http://localhost/api/quiz/${ONBOARDING_QUIZ_KEY}`, {
+    new Request(`http://localhost/api/quiz/${key}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ answers: validAnswers }),
+      body,
     }),
-    { params: Promise.resolve({ key: ONBOARDING_QUIZ_KEY }) }
+    { params: Promise.resolve({ key }) }
   );
 
 describe("POST /api/quiz/[key]", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.auth.mockResolvedValue({ user: { id: USER_ID } });
-    mocks.getQuizResponse.mockResolvedValue(null);
+    mocks.submitQuiz.mockResolvedValue({
+      status: "completed",
+      isBonusGranted: true,
+      bonus: { amountMinor: 5000, currencyCode: "RUB" },
+    });
   });
 
-  it("returns 403 to an unverified user and saves nothing", async () => {
+  it("returns 401 to a signed-out visitor and submits nothing", async () => {
     // Arrange
-    mocks.isUserEmailVerified.mockResolvedValue(false);
+    mocks.auth.mockResolvedValue(null);
+
+    // Act
+    const response = await postQuiz();
+
+    // Assert
+    expect(response.status).toBe(401);
+    expect(await response.json()).toMatchObject({ code: "unauthorized:chat" });
+    expect(mocks.submitQuiz).not.toHaveBeenCalled();
+  });
+
+  it("returns the localized 403 to an unverified user", async () => {
+    // Arrange
+    mocks.submitQuiz.mockResolvedValue({ status: "email_not_verified" });
     const t = await getTranslations("onboardingQuiz.api");
 
     // Act
-    const response = await submitQuiz();
+    const response = await postQuiz();
 
     // Assert
     expect(response.status).toBe(403);
@@ -70,44 +78,77 @@ describe("POST /api/quiz/[key]", () => {
       code: "forbidden:auth",
       message: t("emailNotVerified"),
     });
-    expect(mocks.isUserEmailVerified).toHaveBeenCalledWith(USER_ID);
-    expect(mocks.createQuizResponse).not.toHaveBeenCalled();
-    expect(mocks.grantQuizBonus).not.toHaveBeenCalled();
   });
 
-  it("saves the answers and grants the bonus to a verified user", async () => {
-    // Arrange
-    mocks.isUserEmailVerified.mockResolvedValue(true);
-
+  it("hands the user, the quiz and the answers to the service and answers completed", async () => {
     // Act
-    const response = await submitQuiz();
+    const response = await postQuiz();
 
     // Assert
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ completed: true });
-    expect(mocks.createQuizResponse).toHaveBeenCalledWith({
+    expect(mocks.submitQuiz).toHaveBeenCalledExactlyOnceWith({
       userId: USER_ID,
       quizKey: ONBOARDING_QUIZ_KEY,
       answers: validAnswers,
     });
-    expect(mocks.grantQuizBonus).toHaveBeenCalledWith(
-      USER_ID,
-      ONBOARDING_QUIZ_KEY,
-      expect.any(Number)
-    );
   });
 
-  it("does not save or grant again when a verified user already completed the quiz", async () => {
+  it("answers completed, and shows no bonus, when the quiz was completed before", async () => {
     // Arrange
-    mocks.isUserEmailVerified.mockResolvedValue(true);
-    mocks.getQuizResponse.mockResolvedValue({ id: "response-1" });
+    mocks.submitQuiz.mockResolvedValue({
+      status: "completed",
+      isBonusGranted: false,
+      bonus: null,
+    });
 
     // Act
-    const response = await submitQuiz();
+    const response = await postQuiz();
 
     // Assert
     expect(response.status).toBe(200);
-    expect(mocks.createQuizResponse).not.toHaveBeenCalled();
-    expect(mocks.grantQuizBonus).not.toHaveBeenCalled();
+    expect(await response.json()).toEqual({ completed: true });
+  });
+
+  it("returns 400 for an unknown quiz and names the key", async () => {
+    // Arrange
+    mocks.submitQuiz.mockResolvedValue({ status: "unknown_quiz" });
+
+    // Act
+    const response = await postQuiz(undefined, "no-such-quiz");
+
+    // Assert
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({
+      code: "bad_request:api",
+      cause: 'Unknown quiz "no-such-quiz"',
+    });
+  });
+
+  it("returns 400 for answers the quiz refuses", async () => {
+    // Arrange
+    mocks.submitQuiz.mockResolvedValue({ status: "invalid_answers" });
+
+    // Act
+    const response = await postQuiz();
+
+    // Assert
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({
+      code: "bad_request:api",
+      cause: "Invalid quiz answers",
+    });
+  });
+
+  it("passes a body that is not JSON on as missing answers", async () => {
+    // Act
+    await postQuiz("not json");
+
+    // Assert
+    expect(mocks.submitQuiz).toHaveBeenCalledExactlyOnceWith({
+      userId: USER_ID,
+      quizKey: ONBOARDING_QUIZ_KEY,
+      answers: undefined,
+    });
   });
 });

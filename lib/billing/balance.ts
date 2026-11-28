@@ -577,21 +577,27 @@ export async function grantDeferredWelcomeBonus(
  *
  * Requires a confirmed email (read from the database): throws
  * `EmailNotVerifiedError` before any write when the email is not verified.
+ *
+ * Inside a transaction, pass it as `executor`: the grant is then written on
+ * that transaction (the balance row stays locked until it ends) and commits
+ * or rolls back with the caller's other writes. `submitQuiz` uses it so that
+ * the answers and the bonus are never saved one without the other.
  */
 export async function grantQuizBonus(
   userId: string,
   quizKey: string,
-  bonusMajorUnits: number
-): Promise<BalanceChangeResult | null> {
-  await assertEmailVerified(userId);
-  await ensureBalance(userId);
+  bonusMajorUnits: number,
+  executor: DatabaseExecutor = db
+): Promise<(BalanceChangeResult & { currencyCode: string }) | null> {
+  await assertEmailVerified(userId, executor);
+  await ensureBalance(userId, DEFAULT_CURRENCY_CODE, executor);
 
-  const summary = await getBalance(userId);
+  const summary = await getBalance(userId, executor);
   const currencyCode = summary?.currencyCode ?? DEFAULT_CURRENCY_CODE;
-  const minorUnits = await getMinorUnits(currencyCode);
+  const minorUnits = await getMinorUnits(currencyCode, executor);
   const amount = majorToMinorUnits(bonusMajorUnits, minorUnits);
 
-  return await db.transaction(async (tx) => {
+  return await executor.transaction(async (tx) => {
     const [row] = await tx
       .select()
       .from(balance)
@@ -645,6 +651,7 @@ export async function grantQuizBonus(
 
     return {
       amount,
+      currencyCode: row.currencyCode,
       subscriptionBalanceAfter: row.subscriptionAmount,
       topupBalanceAfter: newTopup,
       transactionId: credit.id,

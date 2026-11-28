@@ -1,6 +1,8 @@
 import { requireAuth } from "@/server/api/_kit/middleware";
 import { v1 } from "@/server/api/v1/implementer";
+import { meFavoritePromptsRouter } from "@/server/api/v1/me/favorite-prompts/router";
 import { loadMe } from "@/server/api/v1/me/load-me";
+import { meQuizzesRouter } from "@/server/api/v1/me/quizzes/router";
 
 export const meRouter = {
   get: v1.me.get.use(requireAuth).handler(async ({ context, errors }) => {
@@ -13,4 +15,7 @@ export const meRouter = {
 
     return me;
   }),
+
+  favoritePrompts: meFavoritePromptsRouter,
+  quizzes: meQuizzesRouter,
 };

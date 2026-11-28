@@ -54,6 +54,10 @@ vi.mock("@/server/modules/users/queries/get-by-id", () => ({
 vi.mock("@/lib/db/query/subscription/get-active-user-subscription", () => ({
   getActiveUserSubscription: vi.fn(),
 }));
+// `GET /prompts` reads no credentials, so it reaches its query.
+vi.mock("@/server/modules/prompts/queries/get-active-prompts", () => ({
+  getActivePrompts: vi.fn().mockResolvedValue([]),
+}));
 
 const SNAPSHOT_PATH = join(
   process.cwd(),
@@ -103,6 +107,7 @@ const VALID_BODY_BY_OPERATION: Record<string, unknown> = {
     currentPassword: "Str0ng!Passw0rd",
     newPassword: "An0ther!Passw0rd",
   },
+  "PUT /me/quizzes/{quizKey}": { answers: { sphere: "it" } },
 };
 
 const routeHandlers: Record<string, (request: Request) => Promise<Response>> = {
