@@ -1,5 +1,6 @@
 import { oc } from "@orpc/contract";
 
+import { callerAccess } from "@/server/api/_kit/caller-access";
 import { serviceUnavailableError } from "@/server/api/_kit/common-errors";
 import {
   changePasswordInputSchema,
@@ -22,6 +23,7 @@ export const passwordContract = {
     .route({
       method: "POST",
       path: "/auth/password/forgot",
+      spec: callerAccess("none"),
       successStatus: 202,
       summary: "Email a password-reset link",
       description:
@@ -35,6 +37,7 @@ export const passwordContract = {
     .route({
       method: "POST",
       path: "/auth/password/reset",
+      spec: callerAccess("none"),
       successStatus: 204,
       summary: "Set a new password with a reset token",
       description:
@@ -54,6 +57,7 @@ export const passwordContract = {
     .route({
       method: "POST",
       path: "/auth/password/change",
+      spec: callerAccess("required"),
       summary: "Change the password of the signed-in account",
       description: [
         "Needs an access token or a browser session, and the current password. Every other session of the account ends. The caller stays signed in: with an access token the answer carries a new pair (the old tokens stop working at once), a browser gets a fresh cookie. In the rare case that the new session could not be opened the answer is still 200, with `sessionRenewed: false`: the password is changed, and the user signs in again with it.",

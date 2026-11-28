@@ -52,14 +52,15 @@ const errorBodySchemaOf = (
 /**
  * How a client that is not a browser page proves who it is: the access token
  * from `POST /auth/login`, `/auth/register` or `/auth/refresh`. Which
- * operations need it is said in each operation's description.
+ * operations take it is the `security` entry of each operation, set in the
+ * contract by `callerAccess`.
  */
 const BEARER_SECURITY_SCHEME = {
   type: "http",
   scheme: "bearer",
   bearerFormat: "JWT",
   description:
-    "`Authorization: Bearer <accessToken>`. Access tokens live 15 minutes; renew them with `POST /auth/refresh`.",
+    "`Authorization: Bearer <accessToken>`. Access tokens live 15 minutes; renew them with `POST /auth/refresh`. An operation that lists this scheme also accepts the session cookie of the website, unless its description says otherwise; a native client sends the token.",
 } as const;
 
 /** The same value with object keys in alphabetical order, at every depth. */
