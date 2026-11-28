@@ -1,15 +1,15 @@
 import { config } from "dotenv";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { validateSheetRows } from "@/lib/prompts/prompt-seed";
-import { fetchPromptSheetRows } from "@/lib/prompts/prompt-sheet";
+import { prompt } from "@/server/db/schema";
+import { validateSheetRows } from "@/server/modules/prompts/prompt-seed";
+import { fetchPromptSheetRows } from "@/server/modules/prompts/prompt-sheet";
 import {
   applySyncPlan,
   buildSyncPlan,
   type ExistingPrompt,
   type SyncPlan,
-} from "@/lib/prompts/prompt-sync";
-import { prompt } from "@/server/db/schema";
+} from "@/server/modules/prompts/prompt-sync";
 
 config({ path: ".env.local" });
 

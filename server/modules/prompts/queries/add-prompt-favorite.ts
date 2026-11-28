@@ -1,6 +1,6 @@
+import { ChatSDKError } from "@/lib/errors";
 import { db } from "@/server/db/connection";
 import { promptFavorite } from "@/server/db/schema";
-import { ChatSDKError } from "../../../errors";
 
 export async function addPromptFavorite({
   userId,

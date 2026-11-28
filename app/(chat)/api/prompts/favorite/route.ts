@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { addPromptFavorite } from "@/lib/db/query/prompt/add-prompt-favorite";
-import { removePromptFavorite } from "@/lib/db/query/prompt/remove-prompt-favorite";
 import { ChatSDKError } from "@/lib/errors";
 import { auth } from "@/server/modules/auth/next-auth";
+import { addPromptFavorite } from "@/server/modules/prompts/queries/add-prompt-favorite";
+import { removePromptFavorite } from "@/server/modules/prompts/queries/remove-prompt-favorite";
 
 const bodySchema = z.object({
   promptId: z.string().uuid(),

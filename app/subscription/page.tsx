@@ -9,7 +9,6 @@ import { getMinorUnits } from "@/lib/billing/currencies";
 import { formatCurrency, majorToMinorUnits } from "@/lib/billing/money";
 import { getChatSpendHistory, getRecentSpendMinor } from "@/lib/billing/spend";
 import { priceForCurrency } from "@/lib/billing/subscriptions";
-import { getQuizResponse } from "@/lib/db/query/quiz/get-quiz-response";
 import { getTranslations } from "@/lib/i18n/translate";
 import { ONBOARDING_QUIZ_KEY } from "@/lib/quiz/types";
 import {
@@ -29,6 +28,7 @@ import {
   formatRuDayTime,
 } from "@/lib/utils/format-billing";
 import { auth } from "@/server/modules/auth/next-auth";
+import { getQuizResponse } from "@/server/modules/quiz/queries/get-quiz-response";
 import { BalanceHero } from "./_components/balance-hero";
 import styles from "./_components/dashboard.module.css";
 import { FreeSideCard } from "./_components/free-side-card";
