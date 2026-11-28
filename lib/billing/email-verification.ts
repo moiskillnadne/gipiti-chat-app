@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 
-import { db } from "@/server/db/connection";
+import { type DatabaseExecutor, db } from "@/server/db/connection";
 import { user } from "@/server/db/schema";
 
 /**
@@ -20,10 +20,14 @@ export class EmailNotVerifiedError extends Error {
 /**
  * Read the user's email-verification flag from the database. The session/JWT
  * value is a login-time snapshot, so billing decisions never rely on it.
- * Returns false for an unknown user.
+ * Returns false for an unknown user. Inside a transaction, pass it as
+ * `executor`.
  */
-export async function isUserEmailVerified(userId: string): Promise<boolean> {
-  const [row] = await db
+export async function isUserEmailVerified(
+  userId: string,
+  executor: DatabaseExecutor = db
+): Promise<boolean> {
+  const [row] = await executor
     .select({ emailVerified: user.emailVerified })
     .from(user)
     .where(eq(user.id, userId))
@@ -33,10 +37,14 @@ export async function isUserEmailVerified(userId: string): Promise<boolean> {
 }
 
 /**
- * Throw `EmailNotVerifiedError` unless the user's email is verified.
+ * Throw `EmailNotVerifiedError` unless the user's email is verified. Inside a
+ * transaction, pass it as `executor`.
  */
-export async function assertEmailVerified(userId: string): Promise<void> {
-  const isVerified = await isUserEmailVerified(userId);
+export async function assertEmailVerified(
+  userId: string,
+  executor: DatabaseExecutor = db
+): Promise<void> {
+  const isVerified = await isUserEmailVerified(userId, executor);
   if (!isVerified) {
     throw new EmailNotVerifiedError(userId);
   }

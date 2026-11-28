@@ -3,6 +3,7 @@ import { configContract } from "@/server/api/v1/config/contract";
 import { meContract } from "@/server/api/v1/me/contract";
 import { modelsContract } from "@/server/api/v1/models/contract";
 import { plansContract } from "@/server/api/v1/plans/contract";
+import { promptsContract } from "@/server/api/v1/prompts/contract";
 
 /**
  * Everything `/api/v1` offers. Later this is the one file client code may
@@ -14,6 +15,7 @@ export const v1Contract = {
   config: configContract,
   models: modelsContract,
   plans: plansContract,
+  prompts: promptsContract,
   me: meContract,
   auth: authContract,
 };
