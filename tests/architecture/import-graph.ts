@@ -33,6 +33,8 @@ export type SourceModule = {
   path: string;
   /** The file starts with a `"use client"` directive. */
   hasUseClientDirective: boolean;
+  /** The file starts with a `"use server"` directive. */
+  hasUseServerDirective: boolean;
   edges: ImportEdge[];
 };
 
@@ -206,13 +208,16 @@ const edgeDraftOf = (node: ts.Node): EdgeDraft | undefined => {
   };
 };
 
-const hasUseClientDirective = (sourceFile: ts.SourceFile): boolean => {
+const startsWithDirective = (
+  sourceFile: ts.SourceFile,
+  directive: string
+): boolean => {
   const [firstStatement] = sourceFile.statements;
   return (
     firstStatement !== undefined &&
     ts.isExpressionStatement(firstStatement) &&
     ts.isStringLiteral(firstStatement.expression) &&
-    firstStatement.expression.text === "use client"
+    firstStatement.expression.text === directive
   );
 };
 
@@ -245,7 +250,8 @@ export const parseSourceModule = (
 
   return {
     path,
-    hasUseClientDirective: hasUseClientDirective(sourceFile),
+    hasUseClientDirective: startsWithDirective(sourceFile, "use client"),
+    hasUseServerDirective: startsWithDirective(sourceFile, "use server"),
     edges,
   };
 };

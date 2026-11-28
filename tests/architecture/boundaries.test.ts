@@ -274,6 +274,28 @@ describe("target structure rules", () => {
     ]);
   });
 
+  it("keeps the in-process caller out of route handlers and use-server modules", () => {
+    // Act
+    const keys = violationKeys({
+      "app/api/thing/route.ts":
+        'import { createServerCaller } from "@/server/api/_kit/server-caller";',
+      "app/(chat)/actions.ts": [
+        '"use server";',
+        'import { createServerCaller } from "@/server/api/_kit/server-caller";',
+      ].join("\n"),
+      "app/(chat)/projects/page.tsx":
+        'import { createServerCaller } from "@/server/api/_kit/server-caller";',
+      "server/api/_kit/__tests__/server-caller.test.ts":
+        'import { createServerCaller } from "@/server/api/_kit/server-caller";',
+    });
+
+    // Assert
+    expect(keys).toEqual([
+      "server-caller-read-only: app/(chat)/actions.ts -> server/api/_kit/server-caller",
+      "server-caller-read-only: app/api/thing/route.ts -> server/api/_kit/server-caller",
+    ]);
+  });
+
   it("reports ResponseValidationPlugin wherever it is imported", () => {
     // Act
     const keys = violationKeys({

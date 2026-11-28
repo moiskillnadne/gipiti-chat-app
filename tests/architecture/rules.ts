@@ -14,6 +14,7 @@ export type RuleId =
   | "client-imports-server-code"
   | "mock-specifier"
   | "response-validation-plugin"
+  | "server-caller-read-only"
   | "target-structure"
   | "fsd-layers";
 
@@ -129,6 +130,31 @@ const responseValidationPlugin: EdgeRule = (_module, edge) =>
       }
     : null;
 
+const SERVER_CALLER_MODULE = "server/api/_kit/server-caller";
+const ROUTE_HANDLER_PATTERN = /^app\/(?:.+\/)?route$/;
+
+/**
+ * The in-process caller is read-only and skips the same-origin check, so it
+ * belongs in server components. A route handler and a `"use server"` module
+ * are entry points a cross-site request can reach.
+ */
+const serverCallerReadOnly: EdgeRule = (module, edge) => {
+  if (withoutExtension(edge.to ?? "") !== SERVER_CALLER_MODULE) {
+    return null;
+  }
+  const isEntryPoint =
+    module.hasUseServerDirective ||
+    ROUTE_HANDLER_PATTERN.test(withoutExtension(module.path));
+
+  return isEntryPoint
+    ? {
+        rule: "server-caller-read-only",
+        message:
+          'route handlers and "use server" modules must not use the in-process caller; it is for server components',
+      }
+    : null;
+};
+
 const targetStructureMessage = (
   from: string,
   edge: ImportEdge
@@ -233,6 +259,7 @@ const BOUNDARY_RULES: EdgeRule[] = [
   libImportsApp,
   clientImportsServerCode,
   responseValidationPlugin,
+  serverCallerReadOnly,
   targetStructure,
   fsdLayers,
 ];

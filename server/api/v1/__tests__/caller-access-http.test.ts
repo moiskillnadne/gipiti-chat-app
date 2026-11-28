@@ -110,6 +110,8 @@ const VALID_BODY_BY_OPERATION: Record<string, unknown> = {
   },
   "PUT /me/quizzes/{quizKey}": { answers: { sphere: "it" } },
   "PUT /chats/{chatId}/messages/{messageId}/vote": { isUpvoted: true },
+  "POST /projects": { name: "Work" },
+  "PATCH /projects/{projectId}": {},
 };
 
 /**
