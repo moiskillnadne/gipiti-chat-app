@@ -1,13 +1,13 @@
 import { and, eq } from "drizzle-orm";
 import { majorToMinorUnits } from "@/lib/billing/money";
-import { cancelSubscription } from "@/lib/payments/cloudpayments";
-import type { CloudPaymentsRefundWebhook } from "@/lib/payments/cloudpayments-types";
 import { db } from "@/server/db/connection";
 import {
   type PaymentIntent,
   paymentIntent,
   userSubscription,
 } from "@/server/db/schema";
+import { cancelSubscription } from "@/server/integrations/cloudpayments/cloudpayments";
+import type { CloudPaymentsRefundWebhook } from "@/server/integrations/cloudpayments/cloudpayments-types";
 import { getMinorUnits } from "@/server/modules/billing/currencies";
 import { applyPaymentRefund } from "@/server/modules/billing/refund";
 

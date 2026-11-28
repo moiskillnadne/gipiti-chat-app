@@ -1,14 +1,14 @@
 import { and, eq } from "drizzle-orm";
 import {
-  cancelSubscription,
-  getSubscription,
-} from "@/lib/payments/cloudpayments";
-import {
   VALID_REASON_CODES,
   validateReasonCodes,
 } from "@/lib/subscription/cancellation-reasons";
 import { db } from "@/server/db/connection";
 import { subscription, userSubscription } from "@/server/db/schema";
+import {
+  cancelSubscription,
+  getSubscription,
+} from "@/server/integrations/cloudpayments/cloudpayments";
 import { auth } from "@/server/modules/auth/next-auth";
 import { saveCancellationFeedback } from "@/server/modules/subscription/queries/save-cancellation-feedback";
 

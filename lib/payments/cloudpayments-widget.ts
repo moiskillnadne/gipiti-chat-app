@@ -1,7 +1,7 @@
 import type {
   CloudPaymentsReceipt,
   CloudPaymentsWidgetOptions,
-} from "@/lib/payments/cloudpayments-types";
+} from "@/server/integrations/cloudpayments/cloudpayments-types";
 
 const CLOUDPAYMENTS_SCRIPT_URL =
   "https://widget.cloudpayments.ru/bundles/cloudpayments.js";

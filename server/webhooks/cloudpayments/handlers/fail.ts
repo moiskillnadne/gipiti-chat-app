@@ -1,7 +1,7 @@
 import { and, eq, ne } from "drizzle-orm";
-import type { CloudPaymentsFailWebhook } from "@/lib/payments/cloudpayments-types";
 import { db } from "@/server/db/connection";
 import { paymentIntent, userSubscription } from "@/server/db/schema";
+import type { CloudPaymentsFailWebhook } from "@/server/integrations/cloudpayments/cloudpayments-types";
 import {
   findTopupIntent,
   parseWebhookData,

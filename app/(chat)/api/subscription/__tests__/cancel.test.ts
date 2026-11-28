@@ -39,7 +39,7 @@ vi.mock(
     saveCancellationFeedback: mocks.saveCancellationFeedback,
   })
 );
-vi.mock("@/lib/payments/cloudpayments", () => ({
+vi.mock("@/server/integrations/cloudpayments/cloudpayments", () => ({
   cancelSubscription: mocks.cancelSubscription,
   getSubscription: mocks.getSubscription,
 }));

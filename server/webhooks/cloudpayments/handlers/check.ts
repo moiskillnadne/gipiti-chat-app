@@ -6,9 +6,9 @@ import {
   TOPUP_TESTER_MIN_MAJOR_UNITS,
 } from "@/lib/billing/constants";
 import { majorToMinorUnits } from "@/lib/billing/money";
-import type { CloudPaymentsCheckWebhook } from "@/lib/payments/cloudpayments-types";
 import { db } from "@/server/db/connection";
 import { subscription, user, userSubscription } from "@/server/db/schema";
+import type { CloudPaymentsCheckWebhook } from "@/server/integrations/cloudpayments/cloudpayments-types";
 import {
   getSubscriptionByCode,
   priceForCurrency,

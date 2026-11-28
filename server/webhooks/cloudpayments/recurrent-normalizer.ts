@@ -1,4 +1,4 @@
-import type { CloudPaymentsRecurrentWebhook } from "@/lib/payments/cloudpayments-types";
+import type { CloudPaymentsRecurrentWebhook } from "@/server/integrations/cloudpayments/cloudpayments-types";
 import { toNumber } from "./handlers/utils";
 
 const toBoolean = (value: unknown): boolean => {
