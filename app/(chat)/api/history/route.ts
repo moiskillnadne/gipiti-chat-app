@@ -1,9 +1,9 @@
 import type { NextRequest } from "next/server";
-import { deleteAllChatsByUserId } from "@/lib/db/query/chat/delete-all-chats-by-user-id";
-import { getChatsByUserId } from "@/lib/db/query/chat/get-chats-by-user-id";
 import { ChatSDKError } from "@/lib/errors";
 import { handleRouteError } from "@/server/http/handle-route-error";
 import { auth } from "@/server/modules/auth/next-auth";
+import { deleteAllChatsByUserId } from "@/server/modules/chat/queries/delete-all-chats-by-user-id";
+import { getChatsByUserId } from "@/server/modules/chat/queries/get-chats-by-user-id";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;

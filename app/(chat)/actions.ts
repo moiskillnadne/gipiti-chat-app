@@ -12,9 +12,9 @@ import {
   VIDEO_MODE_COOKIE_PREFIX,
   VIDEO_RESOLUTION_COOKIE_PREFIX,
 } from "@/lib/ai/models";
-import { deleteTrailingMessagesForUser } from "@/lib/chat/delete-trailing-messages";
 import { ChatSDKError } from "@/lib/errors";
 import { auth } from "@/server/modules/auth/next-auth";
+import { deleteTrailingMessagesForUser } from "@/server/modules/chat/delete-trailing-messages";
 
 export async function saveChatModelAsCookie(model: string) {
   const cookieStore = await cookies();

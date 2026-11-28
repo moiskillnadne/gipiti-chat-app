@@ -1,7 +1,7 @@
 import { asc, eq } from "drizzle-orm";
+import { ChatSDKError } from "@/lib/errors";
 import { db } from "@/server/db/connection";
 import { stream } from "@/server/db/schema";
-import { ChatSDKError } from "../../../errors";
 
 export async function getStreamIdsByChatId({ chatId }: { chatId: string }) {
   try {

@@ -1,12 +1,12 @@
 import { createUIMessageStream, JsonToSseTransformStream } from "ai";
 import { after } from "next/server";
 import { recordUserActivity } from "@/lib/activity/record-user-activity";
-import { deleteChatById } from "@/lib/db/query/chat/delete-chat-by-id";
-import { getChatById } from "@/lib/db/query/chat/get-chat-by-id";
 import { ChatSDKError } from "@/lib/errors";
 import type { ChatMessage } from "@/lib/types";
 import { generateUUID } from "@/lib/utils";
 import { auth } from "@/server/modules/auth/next-auth";
+import { deleteChatById } from "@/server/modules/chat/queries/delete-chat-by-id";
+import { getChatById } from "@/server/modules/chat/queries/get-chat-by-id";
 import type { StreamHandler } from "./_lib/context";
 import { enforceBalance } from "./_lib/enforce-balance";
 import { handleChatError } from "./_lib/handle-error";

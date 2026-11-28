@@ -1,12 +1,12 @@
 import { createUIMessageStream, JsonToSseTransformStream } from "ai";
 import { differenceInSeconds } from "date-fns";
-import { getChatById } from "@/lib/db/query/chat/get-chat-by-id";
-import { getMessagesByChatId } from "@/lib/db/query/chat/get-messages-by-chat-id";
-import { getStreamIdsByChatId } from "@/lib/db/query/chat/get-stream-ids-by-chat-id";
 import { ChatSDKError } from "@/lib/errors";
 import type { ChatMessage } from "@/lib/types";
 import type { Chat } from "@/server/db/schema";
 import { auth } from "@/server/modules/auth/next-auth";
+import { getChatById } from "@/server/modules/chat/queries/get-chat-by-id";
+import { getMessagesByChatId } from "@/server/modules/chat/queries/get-messages-by-chat-id";
+import { getStreamIdsByChatId } from "@/server/modules/chat/queries/get-stream-ids-by-chat-id";
 import { getStreamContext } from "../../_lib/stream-context";
 
 // Matches POST /api/chat: a resumed stream follows its producer, which can run

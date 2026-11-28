@@ -1,7 +1,7 @@
-import { saveMessages } from "@/lib/db/query/chat/save-messages";
 import { ChatSDKError } from "@/lib/errors";
 import { getTranslations } from "@/lib/i18n/translate";
 import { generateUUID } from "@/lib/utils";
+import { saveMessages } from "@/server/modules/chat/queries/save-messages";
 import type { ChatTurnContext } from "./context";
 
 /**
