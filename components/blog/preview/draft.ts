@@ -14,6 +14,8 @@ export type PreviewDraft = {
   description: string;
   slug: string;
   date: string;
+  // Kept from an imported file so an export does not drop it; no form control.
+  updated: string;
   category: BlogCategory;
   tags: string;
   published: boolean;
@@ -49,6 +51,7 @@ export const createEmptyDraft = (today: string): PreviewDraft => ({
   description: "",
   slug: "",
   date: today,
+  updated: "",
   category: "Анонсы",
   tags: "",
   published: false,
@@ -71,6 +74,7 @@ export const draftToCandidate = (
   description: draft.description,
   slug: draft.slug,
   date: draft.date,
+  updated: toOptional(draft.updated),
   category: draft.category,
   tags: parseTags(draft.tags),
   published: draft.published,
@@ -90,6 +94,7 @@ export const draftToPreviewFrontmatter = (
   description: draft.description,
   slug: draft.slug.trim() || "preview",
   date: draft.date.trim() || "2026-01-01",
+  updated: toOptional(draft.updated),
   category: draft.category,
   tags: parseTags(draft.tags),
   published: draft.published,
@@ -115,6 +120,7 @@ export const draftFromParsed = (
     description: toText(data.description),
     slug: toText(data.slug),
     date: toDateString(data.date) || fallback.date,
+    updated: toDateString(data.updated),
     category,
     tags,
     published: data.published === true,

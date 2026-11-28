@@ -7,6 +7,7 @@ import { LandingFooter } from "@/components/landing/landing-footer";
 import { LandingNav } from "@/components/landing/landing-nav";
 import { IS_BLOG_INDEX_ENABLED } from "@/lib/blog/config";
 import { getAllPublishedSlugs, getPostBySlug } from "@/lib/blog/posts";
+import { getModifiedDate } from "@/lib/blog/schema";
 import { getTranslations } from "@/lib/i18n/translate";
 
 export const dynamic = "force-static";
@@ -38,7 +39,7 @@ export async function generateMetadata({
   const canonical = `${SITE_URL}/blog/${slug}`;
 
   return {
-    title: { absolute: `${frontmatter.title} | Блог GIPITI` },
+    title: { absolute: `${frontmatter.title} | GIPITI` },
     description: frontmatter.description,
     alternates: { canonical },
     openGraph: {
@@ -47,6 +48,7 @@ export async function generateMetadata({
       description: frontmatter.description,
       url: canonical,
       publishedTime: frontmatter.date,
+      modifiedTime: frontmatter.updated,
       tags: frontmatter.tags,
       images: frontmatter.coverImage
         ? [{ url: `${SITE_URL}${frontmatter.coverImage}` }]
@@ -80,7 +82,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     headline: frontmatter.title,
     description: frontmatter.description,
     datePublished: frontmatter.date,
-    dateModified: frontmatter.date,
+    dateModified: getModifiedDate(frontmatter),
     author: { "@type": "Organization", name: "GIPITI", url: SITE_URL },
     publisher: { "@type": "Organization", name: "GIPITI", url: SITE_URL },
     mainEntityOfPage: `${SITE_URL}/blog/${slug}`,

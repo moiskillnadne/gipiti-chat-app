@@ -3,7 +3,10 @@
 import Link from "next/link";
 
 import { isLandingSectionLink } from "@/lib/marketing/landing-links";
-import { landingRegisterLink } from "@/lib/marketing/landing-nav-links";
+import {
+  landingCatalogSectionLinks,
+  landingRegisterLink,
+} from "@/lib/marketing/landing-nav-links";
 
 // Root-relative so the anchors resolve to the landing-page sections from any
 // route (e.g. the blog), not only when already on "/".
@@ -23,7 +26,7 @@ const companyLinks = [
 export const LandingFooter = () => (
   <footer className="border-zinc-800 border-t px-4 py-12">
     <div className="mx-auto max-w-6xl">
-      <div className="grid gap-8 md:grid-cols-3">
+      <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
         {/* Brand column */}
         <div>
           <Link
@@ -57,6 +60,23 @@ export const LandingFooter = () => (
                   className="text-sm text-zinc-400 transition-colors hover:text-white"
                   href={link.href}
                   prefetch={isLandingSectionLink(link.href) ? false : undefined}
+                >
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Catalog column */}
+        <div>
+          <h4 className="mb-4 font-medium text-sm text-white">Каталог</h4>
+          <ul className="space-y-2.5">
+            {landingCatalogSectionLinks.map((link) => (
+              <li key={link.href}>
+                <Link
+                  className="text-sm text-zinc-400 transition-colors hover:text-white"
+                  href={link.href}
                 >
                   {link.label}
                 </Link>

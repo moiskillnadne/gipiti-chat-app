@@ -6,7 +6,7 @@ import { cache } from "react";
 import type { ZodError } from "zod";
 import { parseFrontmatter } from "./frontmatter";
 import { computeReadingTime } from "./reading-time";
-import { blogFrontmatterSchema } from "./schema";
+import { blogFrontmatterSchema, getModifiedDate } from "./schema";
 import type { BlogPost, BlogPostMeta } from "./types";
 
 export type { BlogPost, BlogPostMeta } from "./types";
@@ -145,13 +145,16 @@ export async function getAllPublishedSlugs(): Promise<string[]> {
   return posts.map((post) => post.slug);
 }
 
-/** Minimal data for the sitemap: slug + ISO date (used as `lastModified`). */
+/**
+ * Minimal data for the sitemap: slug + ISO date used as `lastModified` (the
+ * `updated` date when the article has one, else the publication date).
+ */
 export async function getSitemapEntries(): Promise<
   { slug: string; date: string }[]
 > {
   const posts = await getAllPublishedPosts();
   return posts.map((post) => ({
     slug: post.slug,
-    date: post.frontmatter.date,
+    date: getModifiedDate(post.frontmatter),
   }));
 }
