@@ -24,7 +24,8 @@ import { incrementProjectUsage } from "@/lib/db/query/project/increment-project-
 import { ChatSDKError } from "@/lib/errors";
 import { isInterruptedMessage } from "@/lib/messages/interrupted";
 import type { ChatMessage } from "@/lib/types";
-import { convertToUIMessages, generateUUID } from "@/lib/utils";
+import { generateUUID } from "@/lib/utils";
+import { convertToUIMessages } from "@/server/modules/chat/to-ui-messages";
 import type { PostRequestBody } from "../schema";
 import type { ChatTurnContext } from "./context";
 import { resolveChatMode, resolveRequestedModel } from "./resolve-mode";

@@ -1,15 +1,7 @@
-import type {
-  AssistantModelMessage,
-  ToolModelMessage,
-  UIMessage,
-  UIMessagePart,
-} from 'ai';
 import { type ClassValue, clsx } from 'clsx';
-import { formatISO } from 'date-fns';
 import { twMerge } from 'tailwind-merge';
-import type { DBMessage, Document } from '@/server/db/schema';
 import { ChatSDKError, type ErrorCode } from './errors';
-import type { ChatMessage, ChatTools, CustomUIDataTypes } from './types';
+import type { ChatMessage } from './types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -48,47 +40,6 @@ export async function fetchWithErrorHandlers(
   }
 }
 
-/**
- * Parse quota info from error cause field
- */
-export function parseQuotaInfo(cause?: string): {
-  quota?: number
-  used?: number
-  remaining?: number
-  percentUsed?: number
-  periodEnd?: Date
-  planName?: string
-  billingPeriod?: string
-} | null {
-  if (!cause) {
-    return null
-  }
-
-  try {
-    const quotaInfo = JSON.parse(cause)
-    return {
-      quota: quotaInfo.quota,
-      used: quotaInfo.usage?.totalTokens,
-      remaining: quotaInfo.remaining,
-      percentUsed: quotaInfo.percentUsed,
-      periodEnd: quotaInfo.subscription?.currentPeriodEnd
-        ? new Date(quotaInfo.subscription.currentPeriodEnd)
-        : undefined,
-      planName: quotaInfo.plan?.displayName,
-      billingPeriod: quotaInfo.subscription?.billingPeriod,
-    }
-  } catch {
-    return null
-  }
-}
-
-export function getLocalStorage(key: string) {
-  if (typeof window !== 'undefined') {
-    return JSON.parse(localStorage.getItem(key) || '[]');
-  }
-  return [];
-}
-
 export function generateUUID(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
@@ -104,50 +55,8 @@ export function isValidUUID(value: string): boolean {
   return UUID_REGEX.test(value);
 }
 
-type ResponseMessageWithoutId = ToolModelMessage | AssistantModelMessage;
-type ResponseMessage = ResponseMessageWithoutId & { id: string };
-
-export function getMostRecentUserMessage(messages: UIMessage[]) {
-  const userMessages = messages.filter((message) => message.role === 'user');
-  return userMessages.at(-1);
-}
-
-export function getDocumentTimestampByIndex(
-  documents: Document[],
-  index: number,
-) {
-  if (!documents) { return new Date(); }
-  if (index > documents.length) { return new Date(); }
-
-  return documents[index].createdAt;
-}
-
-export function getTrailingMessageId({
-  messages,
-}: {
-  messages: ResponseMessage[];
-}): string | null {
-  const trailingMessage = messages.at(-1);
-
-  if (!trailingMessage) { return null; }
-
-  return trailingMessage.id;
-}
-
 export function sanitizeText(text: string) {
   return text.replace('<has_function_call>', '');
-}
-
-export function convertToUIMessages(messages: DBMessage[]): ChatMessage[] {
-  return messages.map((message) => ({
-    id: message.id,
-    role: message.role as 'user' | 'assistant' | 'system',
-    parts: message.parts as UIMessagePart<CustomUIDataTypes, ChatTools>[],
-    metadata: {
-      createdAt: formatISO(message.createdAt),
-      modelId: message.modelId ?? undefined,
-    },
-  }));
 }
 
 export function getTextFromMessage(message: ChatMessage): string {
