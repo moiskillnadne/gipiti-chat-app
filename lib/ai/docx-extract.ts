@@ -60,6 +60,14 @@ async function fetchAndExtract(url: string, label: string): Promise<string> {
     // `url` comes from the client: the fetch policy only downloads from the
     // app's Blob store, within a size cap and a timeout.
     const buffer = Buffer.from(await fetchAttachmentBytes(url));
+    // An empty blob is not a broken document: the upload stored a 0-byte file
+    // (now refused there, GIPITI-264). Old chats still hold such attachments,
+    // and the history is extracted again on every turn, so say what it is
+    // instead of logging a zip error with a stack each time.
+    if (buffer.byteLength === 0) {
+      console.warn("Skipping empty DOCX attachment", url);
+      return `[Файл "${label}" пустой: в нём нет данных.]`;
+    }
     const text = await extractDocxText(buffer);
     return `Содержимое документа "${label}":\n\n${text}`;
   } catch (error) {

@@ -20,6 +20,7 @@ const SUPPORTED_BINARY_TYPES = [
 
 /** Machine-readable failure reasons the composer maps to localized copy. */
 export type UploadErrorCode =
+  | "empty_file"
   | "file_too_large"
   | "unsupported_type"
   | "upload_failed";
@@ -90,6 +91,13 @@ export async function POST(request: Request) {
 
     if (!(file instanceof Blob)) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+    }
+
+    // A 0-byte file is usually a cloud-drive placeholder (iCloud, OneDrive)
+    // that was never downloaded to the device. Storing it would hand the model
+    // an unreadable attachment on every later turn of the chat (GIPITI-264).
+    if (file.size === 0) {
+      return errorResponse("empty_file", "File is empty", 400);
     }
 
     if (file.size > MAX_ATTACHMENT_BYTES) {

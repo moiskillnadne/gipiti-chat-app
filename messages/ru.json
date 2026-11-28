@@ -791,6 +791,7 @@
       "attachDocumentNoPdfDesc": "DOCX · CSV · эта модель не читает PDF",
       "attachCode": "Код или текст",
       "attachCodeDesc": "MD · TXT · TS · JS · JSON",
+      "uploadEmpty": "Файл «{name}» пустой. Если он лежит в iCloud или OneDrive, сначала скачайте его на устройство.",
       "uploadTooLarge": "Файл больше 10 МБ — выберите файл поменьше.",
       "uploadUnsupportedType": "Поддерживаются JPEG, PNG, PDF, DOCX, CSV, MD, TXT и файлы с кодом.",
       "pdfNotSupported": "Эта модель не читает PDF — файл не прикреплён. Выберите другую модель или вставьте текст.",
