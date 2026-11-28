@@ -219,6 +219,49 @@ describe("mergeUsage", () => {
     expect(sumGatewayCostUsd([{ providerMetadata: {} }])).toBeUndefined();
   });
 
+  it("bills the market cost of a step served with the owner's own provider key", () => {
+    // Arrange: what the gateway returns for a BYOK step (it charges nothing).
+    const byokStep = {
+      providerMetadata: { gateway: { cost: "0", marketCost: "0.000982" } },
+    };
+
+    // Act
+    const totalUsd = sumGatewayCostUsd([byokStep]);
+
+    // Assert
+    expect(totalUsd).toBeCloseTo(0.000_982);
+  });
+
+  it("adds up a turn whose steps were paid with different credentials", () => {
+    // Arrange: the own key ran out between two steps and the gateway took over.
+    const steps = [
+      { providerMetadata: { gateway: { cost: "0", marketCost: "0.01" } } },
+      { providerMetadata: { gateway: { cost: "0.02", marketCost: "0.02" } } },
+    ];
+
+    // Act
+    const totalUsd = sumGatewayCostUsd(steps);
+
+    // Assert
+    expect(totalUsd).toBeCloseTo(0.03);
+  });
+
+  it("prefers the charged cost over the market cost when both are above zero", () => {
+    const steps = [
+      { providerMetadata: { gateway: { cost: "0.03", marketCost: "0.05" } } },
+    ];
+
+    expect(sumGatewayCostUsd(steps)).toBeCloseTo(0.03);
+  });
+
+  it("reports no cost when the charged and the market cost are both zero", () => {
+    const steps = [
+      { providerMetadata: { gateway: { cost: "0", marketCost: "0" } } },
+    ];
+
+    expect(sumGatewayCostUsd(steps)).toBeUndefined();
+  });
+
   it("bills the gateway and image-tool costs when the TokenLens catalog is unavailable", () => {
     const merged = mergeUsage({
       usage: buildUsage(),

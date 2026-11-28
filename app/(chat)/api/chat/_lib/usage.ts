@@ -69,13 +69,42 @@ type MergeUsageInput = {
    * Provider cost the gateway reported for the text steps (USD), from
    * `sumGatewayCostUsd`. When present it is what gets billed: it is what the
    * owner actually pays (cache reads, off-peak rates and real list prices
-   * included). TokenLens is only the fallback for turns without it. Probed
+   * included), to the gateway or, with the owner's own provider key, to the
+   * provider. TokenLens is only the fallback for turns without it. Probed
    * 2026-10-29: TokenLens billed 2x the gateway cost on mistral-large-4 and
    * deepseek-v4.1-flash-1017, ~0.57x on glm-5.3, and charged cache reads at
    * the full input rate (5.8x on minimax-m3.1-flash).
    */
   gatewayCostUsd?: number;
 };
+
+/** A gateway cost field (decimal string or number) as USD, if it is above zero. */
+function parsePositiveUsd(value: unknown): number | undefined {
+  if (value == null) {
+    return;
+  }
+  const parsed = Number.parseFloat(String(value));
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+}
+
+/**
+ * The USD price of one step as the gateway reported it. `cost` is what the
+ * gateway charged the owner. A step served with the owner's own provider key
+ * (BYOK) comes back with `cost: "0"`, because the provider bills the owner
+ * directly; its price is then in `marketCost`, the same figure `cost` carries
+ * for a step paid with gateway credits. Probed 2026-11-28 on
+ * anthropic/claude-haiku-4.5 with a BYOK key: cost "0", marketCost equal to
+ * Anthropic's list price including the cache read and cache write rates.
+ */
+function stepGatewayCostUsd(step: {
+  providerMetadata?: unknown;
+}): number | undefined {
+  const gateway = (step.providerMetadata as Record<string, unknown> | undefined)
+    ?.gateway as Record<string, unknown> | undefined;
+  return (
+    parsePositiveUsd(gateway?.cost) ?? parsePositiveUsd(gateway?.marketCost)
+  );
+}
 
 /**
  * Sum the gateway-reported USD cost over the steps of a text turn. Returns
@@ -84,20 +113,13 @@ type MergeUsageInput = {
 export function sumGatewayCostUsd(
   steps: ReadonlyArray<{ providerMetadata?: unknown }>
 ): number | undefined {
-  let total = 0;
-  let found = false;
-  for (const step of steps) {
-    const gateway = (
-      step.providerMetadata as Record<string, unknown> | undefined
-    )?.gateway as Record<string, unknown> | undefined;
-    const cost = gateway?.cost;
-    const parsed = cost == null ? Number.NaN : Number.parseFloat(String(cost));
-    if (Number.isFinite(parsed) && parsed > 0) {
-      total += parsed;
-      found = true;
-    }
+  const stepCosts = steps
+    .map(stepGatewayCostUsd)
+    .filter((cost): cost is number => cost !== undefined);
+  if (stepCosts.length === 0) {
+    return;
   }
-  return found ? total : undefined;
+  return stepCosts.reduce((total, cost) => total + cost, 0);
 }
 
 /**
