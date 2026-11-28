@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { ONBOARDING_QUIZ_BONUS_MAJOR_UNITS } from "@/lib/billing/constants";
-import { ONBOARDING_QUIZ_KEY } from "./types";
+import { ONBOARDING_QUIZ_KEY } from "@/lib/quiz/types";
 
 // Server-side definition of each reward quiz: how much it grants and how its
 // answers are validated. Adding a future quiz = one more entry here plus its

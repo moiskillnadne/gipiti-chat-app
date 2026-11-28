@@ -1,12 +1,12 @@
 import { grantQuizBonus } from "@/lib/billing/balance";
 import { isUserEmailVerified } from "@/lib/billing/email-verification";
-import { createQuizResponse } from "@/lib/db/query/quiz/create-quiz-response";
-import { getQuizResponse } from "@/lib/db/query/quiz/get-quiz-response";
 import { ChatSDKError } from "@/lib/errors";
 import { getTranslations } from "@/lib/i18n/translate";
-import { getQuizDefinition } from "@/lib/quiz/registry";
 import type { QuizAnswers } from "@/lib/quiz/types";
 import { auth } from "@/server/modules/auth/next-auth";
+import { createQuizResponse } from "@/server/modules/quiz/queries/create-quiz-response";
+import { getQuizResponse } from "@/server/modules/quiz/queries/get-quiz-response";
+import { getQuizDefinition } from "@/server/modules/quiz/registry";
 
 type RouteContext = { params: Promise<{ key: string }> };
 

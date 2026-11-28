@@ -1,7 +1,7 @@
 import { asc, eq } from "drizzle-orm";
+import { ChatSDKError } from "@/lib/errors";
 import { db } from "@/server/db/connection";
 import { type Prompt, prompt } from "@/server/db/schema";
-import { ChatSDKError } from "../../../errors";
 
 export async function getActivePrompts(): Promise<Prompt[]> {
   try {

@@ -17,10 +17,10 @@ vi.mock("@/lib/billing/email-verification", () => ({
 vi.mock("@/lib/billing/balance", () => ({
   grantQuizBonus: mocks.grantQuizBonus,
 }));
-vi.mock("@/lib/db/query/quiz/get-quiz-response", () => ({
+vi.mock("@/server/modules/quiz/queries/get-quiz-response", () => ({
   getQuizResponse: mocks.getQuizResponse,
 }));
-vi.mock("@/lib/db/query/quiz/create-quiz-response", () => ({
+vi.mock("@/server/modules/quiz/queries/create-quiz-response", () => ({
   createQuizResponse: mocks.createQuizResponse,
 }));
 

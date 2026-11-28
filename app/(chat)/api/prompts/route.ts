@@ -1,7 +1,7 @@
-import { getActivePrompts } from "@/lib/db/query/prompt/get-active-prompts";
-import { getFavoritePromptIds } from "@/lib/db/query/prompt/get-favorite-prompt-ids";
 import type { PromptsResponse } from "@/lib/types";
 import { auth } from "@/server/modules/auth/next-auth";
+import { getActivePrompts } from "@/server/modules/prompts/queries/get-active-prompts";
+import { getFavoritePromptIds } from "@/server/modules/prompts/queries/get-favorite-prompt-ids";
 
 export async function GET() {
   const session = await auth();
