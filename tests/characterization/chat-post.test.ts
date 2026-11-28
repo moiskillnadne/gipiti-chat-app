@@ -140,10 +140,10 @@ vi.mock("@/server/modules/chat/queries/update-chat-title", () => ({
 vi.mock("@/server/modules/chat/queries/delete-chat-by-id", () => ({
   deleteChatById: vi.fn(),
 }));
-vi.mock("@/lib/db/query/project/get-project-by-id", () => ({
+vi.mock("@/server/modules/projects/queries/get-project-by-id", () => ({
   getProjectById: vi.fn(),
 }));
-vi.mock("@/lib/db/query/project/increment-project-usage", () => ({
+vi.mock("@/server/modules/projects/queries/increment-project-usage", () => ({
   incrementProjectUsage: vi.fn(),
 }));
 

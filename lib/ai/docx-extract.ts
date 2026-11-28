@@ -1,7 +1,7 @@
 import "server-only";
 
 import mammoth from "mammoth";
-import { fetchAttachmentBytes } from "../attachments/attachment-fetch-policy";
+import { fetchAttachmentBytes } from "@/server/modules/uploads/attachment-fetch-policy";
 import type { ChatMessage } from "../types";
 
 /** OOXML Word document MIME type. */

@@ -1,8 +1,8 @@
 import { del } from "@vercel/blob";
-import { deleteProjectFileRecord } from "@/lib/db/query/project/delete-project-file-record";
-import { getProjectFileById } from "@/lib/db/query/project/get-project-file-by-id";
 import { ChatSDKError } from "@/lib/errors";
 import { auth } from "@/server/modules/auth/next-auth";
+import { deleteProjectFileRecord } from "@/server/modules/projects/queries/delete-project-file-record";
+import { getProjectFileById } from "@/server/modules/projects/queries/get-project-file-by-id";
 
 export async function DELETE(
   _request: Request,

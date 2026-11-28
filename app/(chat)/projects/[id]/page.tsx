@@ -1,10 +1,10 @@
 import { redirect } from "next/navigation";
 import notFound from "@/app/not-found";
 import { ProjectDetail } from "@/components/project-detail";
-import { getProjectById } from "@/lib/db/query/project/get-project-by-id";
-import { getProjectFiles } from "@/lib/db/query/project/get-project-files";
 import { isValidUUID } from "@/lib/utils";
 import { auth } from "@/server/modules/auth/next-auth";
+import { getProjectById } from "@/server/modules/projects/queries/get-project-by-id";
+import { getProjectFiles } from "@/server/modules/projects/queries/get-project-files";
 
 export default async function ProjectDetailPage({
   params,
