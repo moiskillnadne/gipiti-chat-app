@@ -1,7 +1,7 @@
 import { and, eq, sql } from "drizzle-orm";
+import { ChatSDKError } from "@/lib/errors";
 import { db } from "@/server/db/connection";
 import { project } from "@/server/db/schema";
-import { ChatSDKError } from "../../../errors";
 
 export async function incrementProjectUsage({
   id,

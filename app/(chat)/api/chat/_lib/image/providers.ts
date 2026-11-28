@@ -18,9 +18,9 @@ import {
 import { myProvider } from "@/lib/ai/providers";
 import { generateRecraftImage, isRecraftModel } from "@/lib/ai/recraft-client";
 import { resolveLatestImageUrl } from "@/lib/ai/resolve-latest-image";
-import { fetchAttachmentBytes } from "@/lib/attachments/attachment-fetch-policy";
 import { getDocumentByGenerationId } from "@/lib/db/query/document/get-document-by-generation-id";
 import { ChatSDKError } from "@/lib/errors";
+import { fetchAttachmentBytes } from "@/server/modules/uploads/attachment-fetch-policy";
 import {
   ImageGenerationError,
   type ImageGenResult,

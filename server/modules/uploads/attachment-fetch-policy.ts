@@ -1,4 +1,4 @@
-import { MAX_ATTACHMENT_BYTES } from "./attachment-limits";
+import { MAX_ATTACHMENT_BYTES } from "@/lib/attachments/attachment-limits";
 
 /**
  * The one place that decides which attachment URLs the server may download,

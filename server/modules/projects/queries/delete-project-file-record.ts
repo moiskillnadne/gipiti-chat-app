@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
+import { ChatSDKError } from "@/lib/errors";
 import { db } from "@/server/db/connection";
 import { projectFile } from "@/server/db/schema";
-import { ChatSDKError } from "../../../errors";
 
 export async function deleteProjectFileRecord({
   id,
