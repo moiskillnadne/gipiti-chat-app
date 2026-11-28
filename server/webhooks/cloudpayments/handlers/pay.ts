@@ -1,6 +1,5 @@
 import { and, eq, ne } from "drizzle-orm";
 import { majorToMinorUnits } from "@/lib/billing/money";
-import type { CloudPaymentsPayWebhook } from "@/lib/payments/cloudpayments-types";
 import { db } from "@/server/db/connection";
 import {
   type PaymentIntent,
@@ -10,6 +9,7 @@ import {
   user,
   userSubscription,
 } from "@/server/db/schema";
+import type { CloudPaymentsPayWebhook } from "@/server/integrations/cloudpayments/cloudpayments-types";
 import {
   creditTopupForIntent,
   ensureBalance,

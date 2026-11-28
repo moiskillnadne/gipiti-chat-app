@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
-import type { CloudPaymentsRecurrentWebhook } from "@/lib/payments/cloudpayments-types";
 import { db } from "@/server/db/connection";
 import { subscription, userSubscription } from "@/server/db/schema";
+import type { CloudPaymentsRecurrentWebhook } from "@/server/integrations/cloudpayments/cloudpayments-types";
 import { resetSubscriptionPool } from "@/server/modules/billing/balance";
 import { priceForCurrency } from "@/server/modules/billing/subscriptions";
 import {

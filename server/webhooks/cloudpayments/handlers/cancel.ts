@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
-import type { CloudPaymentsCancelWebhook } from "@/lib/payments/cloudpayments-types";
 import { db } from "@/server/db/connection";
 import { userSubscription } from "@/server/db/schema";
+import type { CloudPaymentsCancelWebhook } from "@/server/integrations/cloudpayments/cloudpayments-types";
 
 export async function handleCancelWebhook(
   payload: CloudPaymentsCancelWebhook

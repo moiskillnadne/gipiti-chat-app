@@ -1,19 +1,19 @@
-import { getCloudPaymentsConfig } from "@/lib/payments/cloudpayments-config";
+import { getCloudPaymentsConfig } from "@/server/integrations/cloudpayments/cloudpayments-config";
 import type {
   CloudPaymentsCancelWebhook,
   CloudPaymentsCheckWebhook,
   CloudPaymentsFailWebhook,
   CloudPaymentsPayWebhook,
   CloudPaymentsRefundWebhook,
-} from "@/lib/payments/cloudpayments-types";
-import { handleCancelWebhook } from "./lib/handlers/cancel";
-import { handleCheckWebhook } from "./lib/handlers/check";
-import { handleFailWebhook } from "./lib/handlers/fail";
-import { handlePayWebhook } from "./lib/handlers/pay";
-import { handleRecurrentWebhook } from "./lib/handlers/recurrent";
-import { handleRefundWebhook } from "./lib/handlers/refund";
-import { normalizeRecurrentPayload } from "./lib/recurrent-normalizer";
-import { isValidWebhookSignature } from "./lib/signature";
+} from "@/server/integrations/cloudpayments/cloudpayments-types";
+import { handleCancelWebhook } from "@/server/webhooks/cloudpayments/handlers/cancel";
+import { handleCheckWebhook } from "@/server/webhooks/cloudpayments/handlers/check";
+import { handleFailWebhook } from "@/server/webhooks/cloudpayments/handlers/fail";
+import { handlePayWebhook } from "@/server/webhooks/cloudpayments/handlers/pay";
+import { handleRecurrentWebhook } from "@/server/webhooks/cloudpayments/handlers/recurrent";
+import { handleRefundWebhook } from "@/server/webhooks/cloudpayments/handlers/refund";
+import { normalizeRecurrentPayload } from "@/server/webhooks/cloudpayments/recurrent-normalizer";
+import { isValidWebhookSignature } from "@/server/webhooks/cloudpayments/signature";
 
 // CloudPayments has a 30s timeout for webhooks.
 // Ensure Vercel allocates enough time (especially for cold starts + DB queries).

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { CloudPaymentsWebhookPayload } from "@/lib/payments/cloudpayments-types";
 import type { Subscription } from "@/server/db/schema";
+import type { CloudPaymentsWebhookPayload } from "@/server/integrations/cloudpayments/cloudpayments-types";
 import {
   ensureBalance,
   resetSubscriptionPool,
