@@ -9,11 +9,11 @@ import {
   isApiError,
 } from "@/client/shared/api/errors";
 import { api } from "@/client/shared/api/orpc-client";
-import { getMinorUnits } from "@/lib/billing/currencies";
 import { isSignupEnabled, isTopupEnabled } from "@/server/flags";
 import { getCookieSessionUserId } from "@/server/modules/auth/cookie-session";
 import { requestPasswordReset } from "@/server/modules/auth/request-password-reset";
 import { resolveBearerSession } from "@/server/modules/auth/sessions";
+import { getMinorUnits } from "@/server/modules/billing/currencies";
 
 // The route handler, the router and the contract are real; only what reaches
 // outside the process is replaced (the same set as `server/api/v1/__tests__`).
@@ -47,17 +47,22 @@ vi.mock("@/server/modules/auth/send-verification-code", () => ({
 vi.mock("@/server/modules/auth/verify-email-code", () => ({
   verifyEmailCode: vi.fn(),
 }));
-vi.mock("@/lib/billing/currencies", () => ({ getMinorUnits: vi.fn() }));
-vi.mock("@/lib/billing/subscriptions", () => ({
+vi.mock("@/server/modules/billing/currencies", () => ({
+  getMinorUnits: vi.fn(),
+}));
+vi.mock("@/server/modules/billing/subscriptions", () => ({
   listActiveSubscriptionsWithPrices: vi.fn(),
 }));
-vi.mock("@/lib/billing/balance", () => ({ getBalance: vi.fn() }));
+vi.mock("@/server/modules/billing/balance", () => ({ getBalance: vi.fn() }));
 vi.mock("@/server/modules/users/queries/get-by-id", () => ({
   getUserById: vi.fn(),
 }));
-vi.mock("@/lib/db/query/subscription/get-active-user-subscription", () => ({
-  getActiveUserSubscription: vi.fn(),
-}));
+vi.mock(
+  "@/server/modules/subscription/queries/get-active-user-subscription",
+  () => ({
+    getActiveUserSubscription: vi.fn(),
+  })
+);
 
 const ORIGIN = "http://localhost";
 

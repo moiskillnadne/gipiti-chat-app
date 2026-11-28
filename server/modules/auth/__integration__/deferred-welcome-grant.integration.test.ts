@@ -2,10 +2,6 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  grantDeferredWelcomeBonus,
-  grantEmailVerificationBonus,
-} from "@/lib/billing/balance";
-import {
   EMAIL_CONFIRM_BONUS_MAJOR_UNITS,
   WELCOME_GRANT_MAJOR_UNITS,
 } from "@/lib/billing/constants";
@@ -13,6 +9,10 @@ import { db } from "@/server/db/connection";
 import { balance, user } from "@/server/db/schema";
 import { hashToken } from "@/server/modules/auth/reset-token";
 import { verifyEmailCode } from "@/server/modules/auth/verify-email-code";
+import {
+  grantDeferredWelcomeBonus,
+  grantEmailVerificationBonus,
+} from "@/server/modules/billing/balance";
 import {
   createUser,
   createUserWithDeferredWelcomeGrant,

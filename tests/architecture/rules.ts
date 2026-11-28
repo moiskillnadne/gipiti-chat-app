@@ -14,6 +14,7 @@ export type RuleId =
   | "client-imports-server-code"
   | "mock-specifier"
   | "response-validation-plugin"
+  | "server-caller-read-only"
   | "target-structure"
   | "fsd-layers";
 
@@ -41,9 +42,12 @@ const TEST_FILE_PATTERN =
 
 const LEGACY_CLIENT_DIRS = ["components/", "hooks/", "contexts/"];
 // `lib/db/` still holds the queries that have not moved with their domain
-// yet. `server/modules/` is where the auth module and each domain's queries
-// land (roadmap Phases 4 to 6).
-const LEGACY_SERVER_CODE = ["lib/db/", "server/db/", "server/modules/"];
+// yet. Everything under `server/` is server code: the database, the modules,
+// the integrations, the webhooks, the flags. The one client file that may
+// import from `server/` (`client/shared/api/contract.ts`) is not a client
+// module here (no `"use client"`, outside the legacy client folders) and is
+// governed by the `target-structure` rules.
+const LEGACY_SERVER_CODE = ["lib/db/", "server/"];
 
 const FSD_LAYERS = [
   "app",
@@ -97,7 +101,7 @@ const clientImportsServerCode: EdgeRule = (module, edge) => {
     ? {
         rule: "client-imports-server-code",
         message:
-          "client code may import the database layer and the auth module only with `import type`",
+          "client code may import server code (`server/`, `lib/db/`) only with `import type`",
       }
     : null;
 };
@@ -128,6 +132,31 @@ const responseValidationPlugin: EdgeRule = (_module, edge) =>
           "ResponseValidationPlugin makes a client reject fields added by a newer server",
       }
     : null;
+
+const SERVER_CALLER_MODULE = "server/api/_kit/server-caller";
+const ROUTE_HANDLER_PATTERN = /^app\/(?:.+\/)?route$/;
+
+/**
+ * The in-process caller is read-only and skips the same-origin check, so it
+ * belongs in server components. A route handler and a `"use server"` module
+ * are entry points a cross-site request can reach.
+ */
+const serverCallerReadOnly: EdgeRule = (module, edge) => {
+  if (withoutExtension(edge.to ?? "") !== SERVER_CALLER_MODULE) {
+    return null;
+  }
+  const isEntryPoint =
+    module.hasUseServerDirective ||
+    ROUTE_HANDLER_PATTERN.test(withoutExtension(module.path));
+
+  return isEntryPoint
+    ? {
+        rule: "server-caller-read-only",
+        message:
+          'route handlers and "use server" modules must not use the in-process caller; it is for server components',
+      }
+    : null;
+};
 
 const targetStructureMessage = (
   from: string,
@@ -233,6 +262,7 @@ const BOUNDARY_RULES: EdgeRule[] = [
   libImportsApp,
   clientImportsServerCode,
   responseValidationPlugin,
+  serverCallerReadOnly,
   targetStructure,
   fsdLayers,
 ];

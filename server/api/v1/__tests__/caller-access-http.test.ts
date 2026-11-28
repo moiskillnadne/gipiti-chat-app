@@ -43,17 +43,22 @@ vi.mock("@/server/modules/auth/send-verification-code", () => ({
 vi.mock("@/server/modules/auth/verify-email-code", () => ({
   verifyEmailCode: vi.fn(),
 }));
-vi.mock("@/lib/billing/currencies", () => ({ getMinorUnits: vi.fn() }));
-vi.mock("@/lib/billing/subscriptions", () => ({
+vi.mock("@/server/modules/billing/currencies", () => ({
+  getMinorUnits: vi.fn(),
+}));
+vi.mock("@/server/modules/billing/subscriptions", () => ({
   listActiveSubscriptionsWithPrices: vi.fn(),
 }));
-vi.mock("@/lib/billing/balance", () => ({ getBalance: vi.fn() }));
+vi.mock("@/server/modules/billing/balance", () => ({ getBalance: vi.fn() }));
 vi.mock("@/server/modules/users/queries/get-by-id", () => ({
   getUserById: vi.fn(),
 }));
-vi.mock("@/lib/db/query/subscription/get-active-user-subscription", () => ({
-  getActiveUserSubscription: vi.fn(),
-}));
+vi.mock(
+  "@/server/modules/subscription/queries/get-active-user-subscription",
+  () => ({
+    getActiveUserSubscription: vi.fn(),
+  })
+);
 // `GET /prompts` reads no credentials, so it reaches its query.
 vi.mock("@/server/modules/prompts/queries/get-active-prompts", () => ({
   getActivePrompts: vi.fn().mockResolvedValue([]),
@@ -110,6 +115,8 @@ const VALID_BODY_BY_OPERATION: Record<string, unknown> = {
   },
   "PUT /me/quizzes/{quizKey}": { answers: { sphere: "it" } },
   "PUT /chats/{chatId}/messages/{messageId}/vote": { isUpvoted: true },
+  "POST /projects": { name: "Work" },
+  "PATCH /projects/{projectId}": {},
 };
 
 /**

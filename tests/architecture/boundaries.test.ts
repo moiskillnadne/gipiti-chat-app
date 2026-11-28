@@ -124,6 +124,26 @@ describe("legacy layout rules", () => {
     ]);
   });
 
+  it("guards every folder of server/, not only the database and the modules", () => {
+    // Act
+    const keys = violationKeys({
+      "components/pay-button.tsx": [
+        '"use client";',
+        'import { createPayment } from "@/server/integrations/cloudpayments/cloudpayments";',
+        'import { handlePay } from "@/server/webhooks/cloudpayments/handlers/pay";',
+        'import { isTopupEnabled } from "@/server/flags";',
+        'import type { CloudPaymentsCheckWebhook } from "@/server/integrations/cloudpayments/cloudpayments-types";',
+      ].join("\n"),
+    });
+
+    // Assert
+    expect(keys).toEqual([
+      "client-imports-server-code: components/pay-button.tsx -> server/flags",
+      "client-imports-server-code: components/pay-button.tsx -> server/integrations/cloudpayments/cloudpayments",
+      "client-imports-server-code: components/pay-button.tsx -> server/webhooks/cloudpayments/handlers/pay",
+    ]);
+  });
+
   it("allows a client component to import database types", () => {
     // Act
     const keys = violationKeys({
@@ -271,6 +291,28 @@ describe("target structure rules", () => {
     expect(keys).toEqual([
       "fsd-layers: client/entities/chat/model.ts -> client/entities/user",
       "fsd-layers: client/entities/chat/model.ts -> client/features/send-message",
+    ]);
+  });
+
+  it("keeps the in-process caller out of route handlers and use-server modules", () => {
+    // Act
+    const keys = violationKeys({
+      "app/api/thing/route.ts":
+        'import { createServerCaller } from "@/server/api/_kit/server-caller";',
+      "app/(chat)/actions.ts": [
+        '"use server";',
+        'import { createServerCaller } from "@/server/api/_kit/server-caller";',
+      ].join("\n"),
+      "app/(chat)/projects/page.tsx":
+        'import { createServerCaller } from "@/server/api/_kit/server-caller";',
+      "server/api/_kit/__tests__/server-caller.test.ts":
+        'import { createServerCaller } from "@/server/api/_kit/server-caller";',
+    });
+
+    // Assert
+    expect(keys).toEqual([
+      "server-caller-read-only: app/(chat)/actions.ts -> server/api/_kit/server-caller",
+      "server-caller-read-only: app/api/thing/route.ts -> server/api/_kit/server-caller",
     ]);
   });
 

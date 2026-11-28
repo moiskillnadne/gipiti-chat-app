@@ -5,13 +5,13 @@ import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useReducer, useRef } from "react";
 import { clientLog } from "@/lib/client-logger";
 import { useTranslations } from "@/lib/i18n/translate";
-import type { CloudPaymentsWidget } from "@/lib/payments/cloudpayments-types";
 import {
   buildReceipt,
   createWidgetOptions,
   loadCloudPaymentsScript,
 } from "@/lib/payments/cloudpayments-widget";
 import type { PaymentIntentResponse, PaymentStatusResponse } from "@/lib/types";
+import type { CloudPaymentsWidget } from "@/server/integrations/cloudpayments/cloudpayments-types";
 import { toast } from "../../../../components/toast";
 import {
   buildReturnUrl,

@@ -16,7 +16,7 @@ import { isPublicAddress } from "./public-address";
  * uploaded file). Fetching whatever URL it names is server-side request
  * forgery: localhost, private networks, the cloud metadata endpoint. Any
  * PUBLIC host is legitimate here, so instead of a host allow-list (see
- * `lib/attachments/attachment-fetch-policy.ts`) the policy is: `https` on the
+ * `server/modules/uploads/attachment-fetch-policy.ts`) the policy is: `https` on the
  * default port, and only to addresses that are publicly routable.
  *
  * The address check runs inside the connection's own DNS `lookup`, so it is

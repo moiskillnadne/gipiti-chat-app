@@ -1,25 +1,12 @@
 import { redirect } from "next/navigation";
-import { getBalance } from "@/lib/billing/balance";
 import {
   EMAIL_CONFIRM_BONUS_MAJOR_UNITS,
   ONBOARDING_QUIZ_BONUS_MAJOR_UNITS,
   WELCOME_GRANT_MAJOR_UNITS,
 } from "@/lib/billing/constants";
-import { getMinorUnits } from "@/lib/billing/currencies";
 import { formatCurrency, majorToMinorUnits } from "@/lib/billing/money";
-import { getChatSpendHistory, getRecentSpendMinor } from "@/lib/billing/spend";
-import { priceForCurrency } from "@/lib/billing/subscriptions";
 import { getTranslations } from "@/lib/i18n/translate";
 import { ONBOARDING_QUIZ_KEY } from "@/lib/quiz/types";
-import {
-  type BillingPeriodKey,
-  getLatestSubscription,
-} from "@/lib/subscription/get-latest-subscription";
-import {
-  type BalanceViewState,
-  deriveBalanceViewState,
-  deriveSubscriptionUiState,
-} from "@/lib/subscription/subscription-state";
 import {
   formatRelativeRu,
   formatRuDateTime,
@@ -28,7 +15,23 @@ import {
   formatRuDayTime,
 } from "@/lib/utils/format-billing";
 import { auth } from "@/server/modules/auth/next-auth";
+import { getBalance } from "@/server/modules/billing/balance";
+import { getMinorUnits } from "@/server/modules/billing/currencies";
+import {
+  getChatSpendHistory,
+  getRecentSpendMinor,
+} from "@/server/modules/billing/spend";
+import { priceForCurrency } from "@/server/modules/billing/subscriptions";
 import { getQuizResponse } from "@/server/modules/quiz/queries/get-quiz-response";
+import {
+  type BillingPeriodKey,
+  getLatestSubscription,
+} from "@/server/modules/subscription/get-latest-subscription";
+import {
+  type BalanceViewState,
+  deriveBalanceViewState,
+  deriveSubscriptionUiState,
+} from "@/server/modules/subscription/subscription-state";
 import { BalanceHero } from "./_components/balance-hero";
 import styles from "./_components/dashboard.module.css";
 import { FreeSideCard } from "./_components/free-side-card";

@@ -4,8 +4,8 @@ import {
   TOPUP_TESTER_MIN_MAJOR_UNITS,
 } from "@/lib/billing/constants";
 import { getTranslations } from "@/lib/i18n/translate";
-import type { BalanceViewState } from "@/lib/subscription/subscription-state";
 import { isTopupEnabled } from "@/server/flags";
+import type { BalanceViewState } from "@/server/modules/subscription/subscription-state";
 import { getUserById } from "@/server/modules/users/queries/get-by-id";
 import { cn } from "../../../lib/utils";
 import styles from "./dashboard.module.css";

@@ -1,8 +1,8 @@
-import { listActiveSubscriptionsWithPrices } from "@/lib/billing/subscriptions";
-import { isSubscriptionPurchaseAllowed } from "@/lib/billing/tester-plans";
 import { withPrincipal } from "@/server/api/_kit/middleware";
 import { toPlanDto } from "@/server/api/v1/_mappers/plan";
 import { v1 } from "@/server/api/v1/implementer";
+import { listActiveSubscriptionsWithPrices } from "@/server/modules/billing/subscriptions";
+import { isSubscriptionPurchaseAllowed } from "@/server/modules/billing/tester-plans";
 import { getUserById } from "@/server/modules/users/queries/get-by-id";
 
 /** Tester status comes from the `User` row, never from the session. */

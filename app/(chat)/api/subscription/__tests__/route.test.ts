@@ -6,18 +6,21 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 vi.mock("@/server/modules/auth/next-auth", () => ({ auth: vi.fn() }));
 vi.mock("@/server/db/connection", () => ({ db: {} }));
-vi.mock("@/lib/billing/balance", () => ({
+vi.mock("@/server/modules/billing/balance", () => ({
   getBalance: vi.fn(),
   ensureBalance: vi.fn(),
   resetSubscriptionPool: vi.fn(),
 }));
-vi.mock("@/lib/billing/subscriptions", () => ({
-  getActiveUserSubscription: vi.fn(),
+vi.mock("@/server/modules/billing/subscriptions", () => ({
+  getActiveStatusSubscription: vi.fn(),
 }));
-vi.mock("@/lib/db/query/subscription/save-cancellation-feedback", () => ({
-  saveCancellationFeedback: vi.fn(),
-}));
-vi.mock("@/lib/payments/cloudpayments", () => ({
+vi.mock(
+  "@/server/modules/subscription/queries/save-cancellation-feedback",
+  () => ({
+    saveCancellationFeedback: vi.fn(),
+  })
+);
+vi.mock("@/server/integrations/cloudpayments/cloudpayments", () => ({
   cancelSubscription: vi.fn(),
   getSubscription: vi.fn(),
 }));
@@ -43,7 +46,7 @@ describe("/api/subscription", () => {
 describe("subscription-init", () => {
   it("exports no helper that activates a plan outside the payment flow", async () => {
     const subscriptionInit = await import(
-      "@/lib/subscription/subscription-init"
+      "@/server/modules/subscription/subscription-init"
     );
 
     expect(Object.keys(subscriptionInit)).not.toContain("upgradeToPlan");

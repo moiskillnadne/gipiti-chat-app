@@ -1,7 +1,7 @@
 import { streamText, tool } from "ai";
 import z from "zod/v4";
+import { isFreeUserById } from "@/server/modules/subscription/is-free-user";
 import { saveDocument } from "../../db/query/document/save-document";
-import { isFreeUserById } from "../../subscription/is-free-user";
 import { generateUUID } from "../../utils";
 import { uploadGeneratedImage } from "../media-upload";
 

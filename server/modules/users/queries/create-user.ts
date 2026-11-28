@@ -1,9 +1,7 @@
-import { creditBalance, ensureBalance } from "@/lib/billing/balance";
 import {
   DEFAULT_CURRENCY_CODE,
   WELCOME_GRANT_MAJOR_UNITS,
 } from "@/lib/billing/constants";
-import { getMinorUnits } from "@/lib/billing/currencies";
 import { majorToMinorUnits } from "@/lib/billing/money";
 import { ChatSDKError } from "@/lib/errors";
 import type { UtmData } from "@/lib/utm/constants";
@@ -13,6 +11,8 @@ import { isUniqueViolation } from "@/server/db/unique-violation";
 import { generateHashedPassword } from "@/server/db/utils";
 import { normalizeEmail } from "@/server/modules/auth/normalize-email";
 import type { RegistrationGeo } from "@/server/modules/auth/registration-geo";
+import { creditBalance, ensureBalance } from "@/server/modules/billing/balance";
+import { getMinorUnits } from "@/server/modules/billing/currencies";
 import type { SignupPlatform } from "@/server/modules/users/signup-platform";
 
 /**

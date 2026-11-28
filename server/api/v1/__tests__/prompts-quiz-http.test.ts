@@ -51,17 +51,22 @@ vi.mock("@/server/modules/auth/send-verification-code", () => ({
 vi.mock("@/server/modules/auth/verify-email-code", () => ({
   verifyEmailCode: vi.fn(),
 }));
-vi.mock("@/lib/billing/currencies", () => ({ getMinorUnits: vi.fn() }));
-vi.mock("@/lib/billing/subscriptions", () => ({
+vi.mock("@/server/modules/billing/currencies", () => ({
+  getMinorUnits: vi.fn(),
+}));
+vi.mock("@/server/modules/billing/subscriptions", () => ({
   listActiveSubscriptionsWithPrices: vi.fn(),
 }));
-vi.mock("@/lib/billing/balance", () => ({ getBalance: vi.fn() }));
+vi.mock("@/server/modules/billing/balance", () => ({ getBalance: vi.fn() }));
 vi.mock("@/server/modules/users/queries/get-by-id", () => ({
   getUserById: vi.fn(),
 }));
-vi.mock("@/lib/db/query/subscription/get-active-user-subscription", () => ({
-  getActiveUserSubscription: vi.fn(),
-}));
+vi.mock(
+  "@/server/modules/subscription/queries/get-active-user-subscription",
+  () => ({
+    getActiveUserSubscription: vi.fn(),
+  })
+);
 vi.mock("@/server/modules/prompts/queries/add-prompt-favorite", () => ({
   addPromptFavorite: vi.fn(),
 }));

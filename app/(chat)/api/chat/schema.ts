@@ -1,11 +1,11 @@
 import { z } from "zod";
 
 import { chatModelIds } from "@/lib/ai/models";
-import { isAllowedAttachmentUrl } from "@/lib/attachments/attachment-fetch-policy";
 import {
   MAX_ATTACHMENT_BYTES,
   MAX_ATTACHMENT_NAME_LENGTH,
 } from "@/lib/attachments/attachment-limits";
+import { isAllowedAttachmentUrl } from "@/server/modules/uploads/attachment-fetch-policy";
 
 const textPartSchema = z.object({
   type: z.enum(["text"]),

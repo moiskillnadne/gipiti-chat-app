@@ -1,6 +1,6 @@
-import { grantDeferredWelcomeBonus } from "@/lib/billing/balance";
 import { ChatSDKError } from "@/lib/errors";
 import { db } from "@/server/db/connection";
+import { grantDeferredWelcomeBonus } from "@/server/modules/billing/balance";
 import { markEmailAsVerified } from "@/server/modules/users/queries/mark-email-as-verified";
 
 /**

@@ -7,9 +7,9 @@ import type {
 } from "@/lib/ai/models";
 import type { ProjectContextInput, RequestHints } from "@/lib/ai/prompts";
 import type { ImageGenerationUsageAccumulator } from "@/lib/ai/tools/generate-image";
-import type { TurnBalanceCheck } from "@/lib/billing/turn-balance";
 import type { ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
+import type { TurnBalanceCheck } from "@/server/modules/billing/turn-balance";
 import type { MediaGenerationPart } from "./media-part";
 import type { TurnAbort } from "./turn-abort";
 import type { TurnOutcome, TurnSettlement } from "./turn-lifecycle";

@@ -6,7 +6,6 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { ModelProvider } from "@/contexts/model-context";
 import { ProjectProvider } from "@/contexts/project-context";
 import { WebSearchProvider } from "@/contexts/web-search-context";
-import { recordUserActivity } from "@/lib/activity/record-user-activity";
 import {
   chatModelIds,
   DEFAULT_CHAT_MODEL,
@@ -26,6 +25,7 @@ import {
   VIDEO_MODE_COOKIE_PREFIX,
   VIDEO_RESOLUTION_COOKIE_PREFIX,
 } from "@/lib/ai/models";
+import { recordUserActivity } from "@/server/http/record-user-activity";
 import { auth } from "@/server/modules/auth/next-auth";
 
 export default async function Layout({

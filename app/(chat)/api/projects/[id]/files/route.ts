@@ -2,11 +2,11 @@ import { put } from "@vercel/blob";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { resolveTextAttachmentMediaType } from "@/lib/ai/text-attachments";
-import { createProjectFile } from "@/lib/db/query/project/create-project-file";
-import { getProjectById } from "@/lib/db/query/project/get-project-by-id";
-import { getProjectFiles } from "@/lib/db/query/project/get-project-files";
 import { ChatSDKError } from "@/lib/errors";
 import { auth } from "@/server/modules/auth/next-auth";
+import { createProjectFile } from "@/server/modules/projects/queries/create-project-file";
+import { getProjectById } from "@/server/modules/projects/queries/get-project-by-id";
+import { getProjectFiles } from "@/server/modules/projects/queries/get-project-files";
 
 const MAX_FILE_BYTES = 25 * 1024 * 1024;
 

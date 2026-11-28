@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "@/lib/i18n/translate";
-import type { BalanceViewState } from "@/lib/subscription/subscription-state";
+import type { BalanceViewState } from "@/server/modules/subscription/subscription-state";
 import dash from "./dashboard.module.css";
 import { PlusIcon } from "./icons";
 import { TopUpDialog } from "./top-up-dialog";

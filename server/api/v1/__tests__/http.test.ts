@@ -1,13 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { chatModels, DEFAULT_CHAT_MODEL } from "@/lib/ai/models";
-import { getBalance } from "@/lib/billing/balance";
-import { getMinorUnits } from "@/lib/billing/currencies";
-import {
-  listActiveSubscriptionsWithPrices,
-  type SubscriptionWithPrices,
-} from "@/lib/billing/subscriptions";
-import { getActiveUserSubscription } from "@/lib/db/query/subscription/get-active-user-subscription";
 import { createHandler } from "@/server/api/_kit/create-handler";
 import { KNOWN_MODEL_PROVIDERS } from "@/server/api/v1/_schemas/model";
 import { v1Router } from "@/server/api/v1/router";
@@ -15,6 +8,13 @@ import type { Subscription, User, UserSubscription } from "@/server/db/schema";
 import { isSignupEnabled, isTopupEnabled } from "@/server/flags";
 import { getCookieSessionUserId } from "@/server/modules/auth/cookie-session";
 import { resolveBearerSession } from "@/server/modules/auth/sessions";
+import { getBalance } from "@/server/modules/billing/balance";
+import { getMinorUnits } from "@/server/modules/billing/currencies";
+import {
+  listActiveSubscriptionsWithPrices,
+  type SubscriptionWithPrices,
+} from "@/server/modules/billing/subscriptions";
+import { getActiveUserSubscription } from "@/server/modules/subscription/queries/get-active-user-subscription";
 import { getUserById } from "@/server/modules/users/queries/get-by-id";
 
 // The handler, the router, the middlewares, the mappers and the model
@@ -51,17 +51,22 @@ vi.mock("@/server/modules/auth/send-verification-code", () => ({
 vi.mock("@/server/modules/auth/verify-email-code", () => ({
   verifyEmailCode: vi.fn(),
 }));
-vi.mock("@/lib/billing/currencies", () => ({ getMinorUnits: vi.fn() }));
-vi.mock("@/lib/billing/subscriptions", () => ({
+vi.mock("@/server/modules/billing/currencies", () => ({
+  getMinorUnits: vi.fn(),
+}));
+vi.mock("@/server/modules/billing/subscriptions", () => ({
   listActiveSubscriptionsWithPrices: vi.fn(),
 }));
-vi.mock("@/lib/billing/balance", () => ({ getBalance: vi.fn() }));
+vi.mock("@/server/modules/billing/balance", () => ({ getBalance: vi.fn() }));
 vi.mock("@/server/modules/users/queries/get-by-id", () => ({
   getUserById: vi.fn(),
 }));
-vi.mock("@/lib/db/query/subscription/get-active-user-subscription", () => ({
-  getActiveUserSubscription: vi.fn(),
-}));
+vi.mock(
+  "@/server/modules/subscription/queries/get-active-user-subscription",
+  () => ({
+    getActiveUserSubscription: vi.fn(),
+  })
+);
 
 const ORIGIN = "http://localhost";
 const PREFIX = "/api/v1";
@@ -592,9 +597,16 @@ describe("GET /me", () => {
         topup: { amountMinor: 5000, currencyCode: "RUB" },
         total: { amountMinor: 95_000, currencyCode: "RUB" },
       },
+      // A tester's minimum is 1 RUB; the maximum is the public one.
+      topup: {
+        min: { amountMinor: 100, currencyCode: "RUB" },
+        max: { amountMinor: 5_000_000, currencyCode: "RUB" },
+      },
       features: { topup: true },
     });
-    expect(getActiveUserSubscription).toHaveBeenCalledWith({ userId: USER_ID });
+    expect(getActiveUserSubscription).toHaveBeenCalledWith({
+      userId: USER_ID,
+    });
     expect(isTopupEnabled.run).toHaveBeenCalledWith({
       identify: { user: { id: USER_ID } },
     });
@@ -611,6 +623,37 @@ describe("GET /me", () => {
     expect(body.balance).toBeNull();
     expect(body.hasActiveSubscription).toBe(false);
     expect(body.features).toEqual({ topup: false });
+  });
+
+  it("offers the public top-up bounds to an account without a balance row", async () => {
+    // Arrange
+    signIn();
+
+    // Act
+    const body = await (await call("/me")).json();
+
+    // Assert
+    expect(body.topup).toEqual({
+      min: { amountMinor: 50_000, currencyCode: "RUB" },
+      max: { amountMinor: 5_000_000, currencyCode: "RUB" },
+    });
+  });
+
+  it("offers no top-up bounds to an account whose balance is not in RUB", async () => {
+    // Arrange
+    signIn();
+    vi.mocked(getBalance).mockResolvedValue({
+      currencyCode: "USD",
+      subscriptionAmount: 0,
+      topupAmount: 0,
+      total: 0,
+    });
+
+    // Act
+    const body = await (await call("/me")).json();
+
+    // Assert
+    expect(body.topup).toBeNull();
   });
 
   it("answers 401 when the account behind the session no longer exists", async () => {

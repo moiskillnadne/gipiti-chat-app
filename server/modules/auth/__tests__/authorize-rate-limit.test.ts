@@ -55,9 +55,12 @@ vi.mock("bcrypt-ts", async () => {
   const actual = await vi.importActual<typeof import("bcrypt-ts")>("bcrypt-ts");
   return { ...actual, compare: compareMock };
 });
-vi.mock("@/lib/db/query/subscription/get-active-user-subscription", () => ({
-  getActiveUserSubscription: () => Promise.resolve(null),
-}));
+vi.mock(
+  "@/server/modules/subscription/queries/get-active-user-subscription",
+  () => ({
+    getActiveUserSubscription: () => Promise.resolve(null),
+  })
+);
 vi.mock("@/server/modules/users/queries/get-by-email", () => ({
   getUserByEmail: getUserByEmailMock,
 }));

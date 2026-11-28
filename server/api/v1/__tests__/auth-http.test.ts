@@ -102,6 +102,7 @@ const ME: Me = {
   isTester: false,
   hasActiveSubscription: false,
   balance: null,
+  topup: null,
   features: { topup: false },
 };
 const TOKEN_VERSION = 3;

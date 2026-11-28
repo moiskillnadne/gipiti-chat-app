@@ -33,7 +33,9 @@ const BEARER_PATTERN = /^Bearer +(\S+)$/i;
  * request that tried to prove who it is and failed is refused, not treated
  * as anonymous.
  *
- * Without the header, the session cookie decides.
+ * Without the header, the session cookie decides. An in-process call
+ * (`transport: "in-process"`, see `server-caller.ts`) skips the header too:
+ * it only ever acts as the cookie session's user.
  */
 export const resolvePrincipal = async ({
   request,
@@ -42,7 +44,12 @@ export const resolvePrincipal = async ({
   InitialContext,
   "request" | "transport"
 >): Promise<PrincipalResolution> => {
-  const authorization = request.headers.get(AUTHORIZATION_HEADER);
+  // An in-process call is made by our own server code on behalf of the
+  // browser session. A token is never read there, whatever the request holds.
+  const authorization =
+    transport === "in-process"
+      ? null
+      : request.headers.get(AUTHORIZATION_HEADER);
 
   if (authorization !== null) {
     const accessToken = BEARER_PATTERN.exec(authorization.trim())?.[1];

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { TurnBalanceCheck } from "@/lib/billing/turn-balance";
+import type { TurnBalanceCheck } from "@/server/modules/billing/turn-balance";
 import type { ChatTurnContext } from "../context";
 
 const { saveMessagesMock } = vi.hoisted(() => ({

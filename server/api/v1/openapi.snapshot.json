@@ -674,6 +674,7 @@
                           "type": "object"
                         },
                         "hasActiveSubscription": {
+                          "description": "A login-time style flag: true when a subscription has status `active` and its period end is still in the future. It can differ from `state` of `GET /me/subscription` between the period end and the renewal. Use `state` to decide what to show and whether to offer a top-up.",
                           "type": "boolean"
                         },
                         "id": {
@@ -681,6 +682,61 @@
                         },
                         "isTester": {
                           "type": "boolean"
+                        },
+                        "topup": {
+                          "anyOf": [
+                            {
+                              "properties": {
+                                "max": {
+                                  "properties": {
+                                    "amountMinor": {
+                                      "maximum": 9007199254740991,
+                                      "minimum": -9007199254740991,
+                                      "type": "integer"
+                                    },
+                                    "currencyCode": {
+                                      "maxLength": 3,
+                                      "minLength": 3,
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "amountMinor",
+                                    "currencyCode"
+                                  ],
+                                  "type": "object"
+                                },
+                                "min": {
+                                  "properties": {
+                                    "amountMinor": {
+                                      "maximum": 9007199254740991,
+                                      "minimum": -9007199254740991,
+                                      "type": "integer"
+                                    },
+                                    "currencyCode": {
+                                      "maxLength": 3,
+                                      "minLength": 3,
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "amountMinor",
+                                    "currencyCode"
+                                  ],
+                                  "type": "object"
+                                }
+                              },
+                              "required": [
+                                "min",
+                                "max"
+                              ],
+                              "type": "object"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "The smallest and the largest one-time top-up this user may make, in the currency the payment widget charges. The amount must be a whole number of major units (750 RUB is accepted, 750.50 is refused). Null when the balance is in another currency, where a top-up is refused. A top-up is offered only when `features.topup` is true and `GET /me/subscription` has a `state` other than `none` (no subscription, or one that has ended): otherwise it is refused with 403. A tester's minimum is lower."
                         }
                       },
                       "required": [
@@ -690,6 +746,7 @@
                         "isTester",
                         "hasActiveSubscription",
                         "balance",
+                        "topup",
                         "features"
                       ],
                       "type": "object"
@@ -1790,6 +1847,7 @@
                           "type": "object"
                         },
                         "hasActiveSubscription": {
+                          "description": "A login-time style flag: true when a subscription has status `active` and its period end is still in the future. It can differ from `state` of `GET /me/subscription` between the period end and the renewal. Use `state` to decide what to show and whether to offer a top-up.",
                           "type": "boolean"
                         },
                         "id": {
@@ -1797,6 +1855,61 @@
                         },
                         "isTester": {
                           "type": "boolean"
+                        },
+                        "topup": {
+                          "anyOf": [
+                            {
+                              "properties": {
+                                "max": {
+                                  "properties": {
+                                    "amountMinor": {
+                                      "maximum": 9007199254740991,
+                                      "minimum": -9007199254740991,
+                                      "type": "integer"
+                                    },
+                                    "currencyCode": {
+                                      "maxLength": 3,
+                                      "minLength": 3,
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "amountMinor",
+                                    "currencyCode"
+                                  ],
+                                  "type": "object"
+                                },
+                                "min": {
+                                  "properties": {
+                                    "amountMinor": {
+                                      "maximum": 9007199254740991,
+                                      "minimum": -9007199254740991,
+                                      "type": "integer"
+                                    },
+                                    "currencyCode": {
+                                      "maxLength": 3,
+                                      "minLength": 3,
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "amountMinor",
+                                    "currencyCode"
+                                  ],
+                                  "type": "object"
+                                }
+                              },
+                              "required": [
+                                "min",
+                                "max"
+                              ],
+                              "type": "object"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "The smallest and the largest one-time top-up this user may make, in the currency the payment widget charges. The amount must be a whole number of major units (750 RUB is accepted, 750.50 is refused). Null when the balance is in another currency, where a top-up is refused. A top-up is offered only when `features.topup` is true and `GET /me/subscription` has a `state` other than `none` (no subscription, or one that has ended): otherwise it is refused with 403. A tester's minimum is lower."
                         }
                       },
                       "required": [
@@ -1806,6 +1919,7 @@
                         "isTester",
                         "hasActiveSubscription",
                         "balance",
+                        "topup",
                         "features"
                       ],
                       "type": "object"
@@ -3658,6 +3772,7 @@
                       "type": "object"
                     },
                     "hasActiveSubscription": {
+                      "description": "A login-time style flag: true when a subscription has status `active` and its period end is still in the future. It can differ from `state` of `GET /me/subscription` between the period end and the renewal. Use `state` to decide what to show and whether to offer a top-up.",
                       "type": "boolean"
                     },
                     "id": {
@@ -3665,6 +3780,61 @@
                     },
                     "isTester": {
                       "type": "boolean"
+                    },
+                    "topup": {
+                      "anyOf": [
+                        {
+                          "properties": {
+                            "max": {
+                              "properties": {
+                                "amountMinor": {
+                                  "maximum": 9007199254740991,
+                                  "minimum": -9007199254740991,
+                                  "type": "integer"
+                                },
+                                "currencyCode": {
+                                  "maxLength": 3,
+                                  "minLength": 3,
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "amountMinor",
+                                "currencyCode"
+                              ],
+                              "type": "object"
+                            },
+                            "min": {
+                              "properties": {
+                                "amountMinor": {
+                                  "maximum": 9007199254740991,
+                                  "minimum": -9007199254740991,
+                                  "type": "integer"
+                                },
+                                "currencyCode": {
+                                  "maxLength": 3,
+                                  "minLength": 3,
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "amountMinor",
+                                "currencyCode"
+                              ],
+                              "type": "object"
+                            }
+                          },
+                          "required": [
+                            "min",
+                            "max"
+                          ],
+                          "type": "object"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "The smallest and the largest one-time top-up this user may make, in the currency the payment widget charges. The amount must be a whole number of major units (750 RUB is accepted, 750.50 is refused). Null when the balance is in another currency, where a top-up is refused. A top-up is offered only when `features.topup` is true and `GET /me/subscription` has a `state` other than `none` (no subscription, or one that has ended): otherwise it is refused with 403. A tester's minimum is lower."
                     }
                   },
                   "required": [
@@ -3674,6 +3844,7 @@
                     "isTester",
                     "hasActiveSubscription",
                     "balance",
+                    "topup",
                     "features"
                   ],
                   "type": "object"
@@ -3724,6 +3895,775 @@
         "summary": "The signed-in user and their balance",
         "tags": [
           "me"
+        ]
+      }
+    },
+    "/me/billing/balance": {
+      "get": {
+        "description": "Both pools and the total, and the share spent since the last credit, which drives the low-balance warnings. Both are null for an account without a balance row. Needs an access token or a browser session.",
+        "operationId": "me.billing.balance.get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "balance": {
+                      "anyOf": [
+                        {
+                          "properties": {
+                            "subscription": {
+                              "description": "Credited on each renewal; spent first; reset on renewal.",
+                              "properties": {
+                                "amountMinor": {
+                                  "maximum": 9007199254740991,
+                                  "minimum": -9007199254740991,
+                                  "type": "integer"
+                                },
+                                "currencyCode": {
+                                  "maxLength": 3,
+                                  "minLength": 3,
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "amountMinor",
+                                "currencyCode"
+                              ],
+                              "type": "object"
+                            },
+                            "topup": {
+                              "description": "Top-ups and bonuses; never resets.",
+                              "properties": {
+                                "amountMinor": {
+                                  "maximum": 9007199254740991,
+                                  "minimum": -9007199254740991,
+                                  "type": "integer"
+                                },
+                                "currencyCode": {
+                                  "maxLength": 3,
+                                  "minLength": 3,
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "amountMinor",
+                                "currencyCode"
+                              ],
+                              "type": "object"
+                            },
+                            "total": {
+                              "properties": {
+                                "amountMinor": {
+                                  "maximum": 9007199254740991,
+                                  "minimum": -9007199254740991,
+                                  "type": "integer"
+                                },
+                                "currencyCode": {
+                                  "maxLength": 3,
+                                  "minLength": 3,
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "amountMinor",
+                                "currencyCode"
+                              ],
+                              "type": "object"
+                            }
+                          },
+                          "required": [
+                            "subscription",
+                            "topup",
+                            "total"
+                          ],
+                          "type": "object"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Null until the account has a balance row."
+                    },
+                    "spend": {
+                      "anyOf": [
+                        {
+                          "properties": {
+                            "epochKey": {
+                              "description": "Identifies the balance period since the last credit. It changes when a new credit lands, which is when spend warnings start over.",
+                              "type": "string"
+                            },
+                            "spentPercent": {
+                              "description": "Share of the balance granted by the last credit that is already spent, rounded.",
+                              "maximum": 100,
+                              "minimum": 0,
+                              "type": "integer"
+                            }
+                          },
+                          "required": [
+                            "spentPercent",
+                            "epochKey"
+                          ],
+                          "type": "object"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Null exactly when `balance` is."
+                    }
+                  },
+                  "required": [
+                    "balance",
+                    "spend"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The balance and how much of it is spent",
+        "tags": [
+          "me",
+          "billing"
+        ]
+      }
+    },
+    "/me/billing/payments": {
+      "get": {
+        "description": "One page of what the caller's card was charged: subscription purchases and renewals, and top-ups. Only real card payments are listed: a renewal without a card (a tester's, or the reset to zero when a subscription ends) is not. A refund does not remove or change a listed charge; it is a separate refund transaction in GET /me/billing/transactions. Pass the `nextCursor` of a page as `cursor` to get the next one; `nextCursor` is `null` on the last page. 400 `invalid_cursor` when `cursor` is not one this API gave out. Needs an access token or a browser session.",
+        "operationId": "me.billing.payments.list",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "allowReserved": true,
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "description": "How many items to return, 1 to 100. Defaults to 20.",
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "allowEmptyValue": true,
+            "allowReserved": true,
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "description": "The `nextCursor` of the previous page. Leave it out for the first page. Treat it as opaque.",
+              "maxLength": 512,
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "properties": {
+                          "charged": {
+                            "description": "What the card was charged. A later refund does not change it.",
+                            "properties": {
+                              "amountMinor": {
+                                "maximum": 9007199254740991,
+                                "minimum": -9007199254740991,
+                                "type": "integer"
+                              },
+                              "currencyCode": {
+                                "maxLength": 3,
+                                "minLength": 3,
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "amountMinor",
+                              "currencyCode"
+                            ],
+                            "type": "object"
+                          },
+                          "createdAt": {
+                            "description": "ISO 8601, UTC.",
+                            "type": "string"
+                          },
+                          "id": {
+                            "format": "uuid",
+                            "type": "string"
+                          },
+                          "type": {
+                            "description": "One of: subscription_purchase, subscription_renewal, topup_purchase. Clients must accept other values.",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "type",
+                          "charged",
+                          "createdAt"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Pass it as `cursor` to get the next page. `null` on the last page."
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "nextCursor"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: BAD_REQUEST. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "400"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The card charges, newest first",
+        "tags": [
+          "me",
+          "billing"
+        ]
+      }
+    },
+    "/me/billing/spend-history": {
+      "get": {
+        "description": "The chats with the most recent spend, rolled up from the latest 500 usage debits, and the spend of the last seven days. Not paged: it is a summary. Needs an access token or a browser session.",
+        "operationId": "me.billing.spendHistory.get",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "allowReserved": true,
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 6,
+              "description": "How many items to return, 1 to 100. Defaults to 6.",
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "description": "The chats with the most recent spend, newest first, from the latest 500 usage debits.",
+                      "items": {
+                        "properties": {
+                          "chatId": {
+                            "format": "uuid",
+                            "type": "string"
+                          },
+                          "images": {
+                            "maximum": 9007199254740991,
+                            "minimum": 0,
+                            "type": "integer"
+                          },
+                          "lastActivityAt": {
+                            "description": "ISO 8601, UTC.",
+                            "type": "string"
+                          },
+                          "messages": {
+                            "maximum": 9007199254740991,
+                            "minimum": 0,
+                            "type": "integer"
+                          },
+                          "model": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "description": "Display name of the chat model used most recently in the chat."
+                          },
+                          "searches": {
+                            "maximum": 9007199254740991,
+                            "minimum": 0,
+                            "type": "integer"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "total": {
+                            "properties": {
+                              "amountMinor": {
+                                "maximum": 9007199254740991,
+                                "minimum": -9007199254740991,
+                                "type": "integer"
+                              },
+                              "currencyCode": {
+                                "maxLength": 3,
+                                "minLength": 3,
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "amountMinor",
+                              "currencyCode"
+                            ],
+                            "type": "object"
+                          },
+                          "videos": {
+                            "maximum": 9007199254740991,
+                            "minimum": 0,
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "chatId",
+                          "title",
+                          "model",
+                          "messages",
+                          "searches",
+                          "images",
+                          "videos",
+                          "total",
+                          "lastActivityAt"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "recentSpend": {
+                      "description": "Total spent on usage over the last seven days.",
+                      "properties": {
+                        "amountMinor": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "currencyCode": {
+                          "maxLength": 3,
+                          "minLength": 3,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "amountMinor",
+                        "currencyCode"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "recentSpend"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "What the recent chats cost",
+        "tags": [
+          "me",
+          "billing"
+        ]
+      }
+    },
+    "/me/billing/transactions": {
+      "get": {
+        "description": "One page of the caller's transactions (credits and usage debits), with the total count. Pass the `nextCursor` of a page as `cursor` to get the next one; `nextCursor` is `null` on the last page. 400 `invalid_cursor` when `cursor` is not one this API gave out. Needs an access token or a browser session.",
+        "operationId": "me.billing.transactions.list",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "allowReserved": true,
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "description": "How many items to return, 1 to 100. Defaults to 20.",
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "allowEmptyValue": true,
+            "allowReserved": true,
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "description": "The `nextCursor` of the previous page. Leave it out for the first page. Treat it as opaque.",
+              "maxLength": 512,
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "properties": {
+                          "amount": {
+                            "description": "Signed: a debit is negative, a credit is positive.",
+                            "properties": {
+                              "amountMinor": {
+                                "maximum": 9007199254740991,
+                                "minimum": -9007199254740991,
+                                "type": "integer"
+                              },
+                              "currencyCode": {
+                                "maxLength": 3,
+                                "minLength": 3,
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "amountMinor",
+                              "currencyCode"
+                            ],
+                            "type": "object"
+                          },
+                          "chatTitle": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "description": "The title of the chat a usage debit belongs to, if any."
+                          },
+                          "createdAt": {
+                            "description": "ISO 8601, UTC.",
+                            "type": "string"
+                          },
+                          "description": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "id": {
+                            "format": "uuid",
+                            "type": "string"
+                          },
+                          "modelId": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "description": "The model of a usage debit. Usually an id from `GET /models`; a web search or page extraction debit carries `tavily-search` or `tavily-extract`."
+                          },
+                          "pool": {
+                            "description": "The balance pool the transaction changed.",
+                            "type": "string"
+                          },
+                          "type": {
+                            "description": "One of: welcome, email_bonus, quiz_bonus, subscription_renewal, subscription_purchase, topup_purchase, usage_debit, refund, adjustment. Clients must accept other values.",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "type",
+                          "pool",
+                          "amount",
+                          "modelId",
+                          "chatTitle",
+                          "description",
+                          "createdAt"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Pass it as `cursor` to get the next page. `null` on the last page."
+                    },
+                    "totalCount": {
+                      "description": "All the caller's transactions, not only this page.",
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "nextCursor",
+                    "totalCount"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: BAD_REQUEST. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "400"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The balance transactions, newest first",
+        "tags": [
+          "me",
+          "billing"
         ]
       }
     },
@@ -4407,6 +5347,232 @@
         ]
       }
     },
+    "/me/subscription": {
+      "get": {
+        "description": "The latest subscription of the caller: plan, status, period, price, next payment and the stored card's mask. `subscription` is null for an account that never subscribed. A subscription that has ended or expired is still returned, with `state: none`. Needs an access token or a browser session.",
+        "operationId": "me.subscription.get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "subscription": {
+                      "anyOf": [
+                        {
+                          "properties": {
+                            "billingPeriod": {
+                              "description": "One of: daily, weekly, monthly, annual. Clients must accept other values.",
+                              "type": "string"
+                            },
+                            "cancelAtPeriodEnd": {
+                              "type": "boolean"
+                            },
+                            "cancelledAt": {
+                              "anyOf": [
+                                {
+                                  "description": "ISO 8601, UTC.",
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "cardMask": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ],
+                              "description": "The masked card number of the payment method, if one is stored."
+                            },
+                            "currentPeriodEnd": {
+                              "description": "ISO 8601, UTC.",
+                              "type": "string"
+                            },
+                            "currentPeriodStart": {
+                              "description": "ISO 8601, UTC.",
+                              "type": "string"
+                            },
+                            "displayName": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "nextPayment": {
+                              "anyOf": [
+                                {
+                                  "properties": {
+                                    "amount": {
+                                      "anyOf": [
+                                        {
+                                          "properties": {
+                                            "amountMinor": {
+                                              "maximum": 9007199254740991,
+                                              "minimum": -9007199254740991,
+                                              "type": "integer"
+                                            },
+                                            "currencyCode": {
+                                              "maxLength": 3,
+                                              "minLength": 3,
+                                              "type": "string"
+                                            }
+                                          },
+                                          "required": [
+                                            "amountMinor",
+                                            "currencyCode"
+                                          ],
+                                          "type": "object"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
+                                    },
+                                    "date": {
+                                      "description": "ISO 8601, UTC.",
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "date",
+                                    "amount"
+                                  ],
+                                  "type": "object"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ],
+                              "description": "The next charge. For `past_due` it is the next retry and `amount` is null. Null when `state` is `cancelled` or `none`."
+                            },
+                            "planCode": {
+                              "description": "For example `basic_monthly`.",
+                              "type": "string"
+                            },
+                            "price": {
+                              "anyOf": [
+                                {
+                                  "properties": {
+                                    "amountMinor": {
+                                      "maximum": 9007199254740991,
+                                      "minimum": -9007199254740991,
+                                      "type": "integer"
+                                    },
+                                    "currencyCode": {
+                                      "maxLength": 3,
+                                      "minLength": 3,
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "amountMinor",
+                                    "currencyCode"
+                                  ],
+                                  "type": "object"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ],
+                              "description": "The plan price per billing period in the account's currency; null when the plan has no active price in it."
+                            },
+                            "state": {
+                              "description": "What the status and the dates mean for the user, as the website decides it: `active`; `cancelled` (will not renew, access until `currentPeriodEnd`); `past_due` (the last charge failed); `none` (the subscription has ended or expired, the user is on the free tier). Clients show this and do not derive it again. Use `state`, not `hasActiveSubscription` of `GET /me`, for what to render and for the top-up gate: `state` ignores a period end that has passed unless the subscription is cancelled, so until the renewal webhook or cron runs the two can differ.",
+                              "type": "string"
+                            },
+                            "status": {
+                              "description": "The stored status of the subscription.",
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "planCode",
+                            "displayName",
+                            "billingPeriod",
+                            "status",
+                            "state",
+                            "currentPeriodStart",
+                            "currentPeriodEnd",
+                            "cancelAtPeriodEnd",
+                            "cancelledAt",
+                            "price",
+                            "nextPayment",
+                            "cardMask"
+                          ],
+                          "type": "object"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Null when the account never had a subscription."
+                    }
+                  },
+                  "required": [
+                    "subscription"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The user's subscription",
+        "tags": [
+          "me",
+          "subscription"
+        ]
+      }
+    },
     "/models": {
       "get": {
         "operationId": "models.list",
@@ -4618,6 +5784,983 @@
         "summary": "Subscription plans on sale",
         "tags": [
           "plans"
+        ]
+      }
+    },
+    "/projects": {
+      "get": {
+        "description": "All the caller's projects as one list, most recently changed first. Needs an access token or a browser session.",
+        "operationId": "projects.list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "properties": {
+                          "contextEntries": {
+                            "description": "Notes the model is given in every chat of the project, in order.",
+                            "items": {
+                              "type": "string"
+                            },
+                            "type": "array"
+                          },
+                          "createdAt": {
+                            "description": "ISO 8601, UTC.",
+                            "type": "string"
+                          },
+                          "description": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "id": {
+                            "format": "uuid",
+                            "type": "string"
+                          },
+                          "isDefault": {
+                            "description": "The project new chats start in. At most one project of a user is the default; none is allowed.",
+                            "type": "boolean"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "pinned": {
+                            "type": "boolean"
+                          },
+                          "swatch": {
+                            "anyOf": [
+                              {
+                                "description": "One of: sw1, sw2, sw3, sw4, sw5, sw6. Clients must accept other values.",
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "updatedAt": {
+                            "description": "ISO 8601, UTC.",
+                            "type": "string"
+                          },
+                          "usageCount": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "description",
+                          "swatch",
+                          "contextEntries",
+                          "isDefault",
+                          "pinned",
+                          "usageCount",
+                          "createdAt",
+                          "updatedAt"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The user's projects",
+        "tags": [
+          "projects"
+        ]
+      },
+      "post": {
+        "description": "With `isDefault: true` the flag is cleared on the caller's other projects in the same step. 409 `project_limit_reached` (with `data.limit`) when the caller already has the most projects a user may have.",
+        "operationId": "projects.create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "contextEntries": {
+                    "description": "Defaults to no entries.",
+                    "items": {
+                      "maxLength": 2000,
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "maxItems": 20,
+                    "type": "array"
+                  },
+                  "description": {
+                    "anyOf": [
+                      {
+                        "maxLength": 280,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "isDefault": {
+                    "description": "`true` makes this the default project and clears the flag on the others, in one step.",
+                    "type": "boolean"
+                  },
+                  "name": {
+                    "maxLength": 128,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "swatch": {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "sw1",
+                          "sw2",
+                          "sw3",
+                          "sw4",
+                          "sw5",
+                          "sw6"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "contextEntries": {
+                      "description": "Notes the model is given in every chat of the project, in order.",
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "createdAt": {
+                      "description": "ISO 8601, UTC.",
+                      "type": "string"
+                    },
+                    "description": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "id": {
+                      "format": "uuid",
+                      "type": "string"
+                    },
+                    "isDefault": {
+                      "description": "The project new chats start in. At most one project of a user is the default; none is allowed.",
+                      "type": "boolean"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "pinned": {
+                      "type": "boolean"
+                    },
+                    "swatch": {
+                      "anyOf": [
+                        {
+                          "description": "One of: sw1, sw2, sw3, sw4, sw5, sw6. Clients must accept other values.",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "updatedAt": {
+                      "description": "ISO 8601, UTC.",
+                      "type": "string"
+                    },
+                    "usageCount": {
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "description",
+                    "swatch",
+                    "contextEntries",
+                    "isDefault",
+                    "pinned",
+                    "usageCount",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: FORBIDDEN. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "403"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: CONFLICT. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "409"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Create a project",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/projects/{projectId}": {
+      "delete": {
+        "description": "Deletes the project and its file records. 404 when there is no such project, which is also the answer for a project of another account.",
+        "operationId": "projects.remove",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {},
+                    {
+                      "not": {}
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: FORBIDDEN. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "403"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: NOT_FOUND. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "404"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Delete a project",
+        "tags": [
+          "projects"
+        ]
+      },
+      "get": {
+        "description": "Needs an access token or a browser session. 404 when there is no such project, which is also the answer for a project of another account.",
+        "operationId": "projects.get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "contextEntries": {
+                      "description": "Notes the model is given in every chat of the project, in order.",
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "createdAt": {
+                      "description": "ISO 8601, UTC.",
+                      "type": "string"
+                    },
+                    "description": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "id": {
+                      "format": "uuid",
+                      "type": "string"
+                    },
+                    "isDefault": {
+                      "description": "The project new chats start in. At most one project of a user is the default; none is allowed.",
+                      "type": "boolean"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "pinned": {
+                      "type": "boolean"
+                    },
+                    "swatch": {
+                      "anyOf": [
+                        {
+                          "description": "One of: sw1, sw2, sw3, sw4, sw5, sw6. Clients must accept other values.",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "updatedAt": {
+                      "description": "ISO 8601, UTC.",
+                      "type": "string"
+                    },
+                    "usageCount": {
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "description",
+                    "swatch",
+                    "contextEntries",
+                    "isDefault",
+                    "pinned",
+                    "usageCount",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: NOT_FOUND. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "404"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "One project",
+        "tags": [
+          "projects"
+        ]
+      },
+      "patch": {
+        "description": "Changes the fields that are present and leaves the others. `null` clears `description` or `swatch`. An empty body changes nothing. `isDefault: true` moves the default to this project in one step. 404 when there is no such project, which is also the answer for a project of another account.",
+        "operationId": "projects.update",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "contextEntries": {
+                    "items": {
+                      "maxLength": 2000,
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "maxItems": 20,
+                    "type": "array"
+                  },
+                  "description": {
+                    "anyOf": [
+                      {
+                        "maxLength": 280,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "`null` clears the description."
+                  },
+                  "isDefault": {
+                    "description": "`true` moves the default to this project; `false` leaves the user without one.",
+                    "type": "boolean"
+                  },
+                  "name": {
+                    "maxLength": 128,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "pinned": {
+                    "type": "boolean"
+                  },
+                  "swatch": {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "sw1",
+                          "sw2",
+                          "sw3",
+                          "sw4",
+                          "sw5",
+                          "sw6"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "`null` clears it."
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "contextEntries": {
+                      "description": "Notes the model is given in every chat of the project, in order.",
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "createdAt": {
+                      "description": "ISO 8601, UTC.",
+                      "type": "string"
+                    },
+                    "description": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "id": {
+                      "format": "uuid",
+                      "type": "string"
+                    },
+                    "isDefault": {
+                      "description": "The project new chats start in. At most one project of a user is the default; none is allowed.",
+                      "type": "boolean"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "pinned": {
+                      "type": "boolean"
+                    },
+                    "swatch": {
+                      "anyOf": [
+                        {
+                          "description": "One of: sw1, sw2, sw3, sw4, sw5, sw6. Clients must accept other values.",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "updatedAt": {
+                      "description": "ISO 8601, UTC.",
+                      "type": "string"
+                    },
+                    "usageCount": {
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "description",
+                    "swatch",
+                    "contextEntries",
+                    "isDefault",
+                    "pinned",
+                    "usageCount",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: FORBIDDEN. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "403"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: NOT_FOUND. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "404"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Change a project",
+        "tags": [
+          "projects"
         ]
       }
     },

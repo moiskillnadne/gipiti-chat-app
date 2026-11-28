@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { grantEmailVerificationBonus } from "@/lib/billing/balance";
+import { grantEmailVerificationBonus } from "@/server/modules/billing/balance";
 import {
   createUser,
   DuplicateEmailError,
@@ -75,7 +75,7 @@ vi.mock("@/server/modules/auth/registration-geo", () => ({
   getRegistrationGeoFromHeaders: vi.fn(),
   sanitizeLanguage: vi.fn(),
 }));
-vi.mock("@/lib/billing/balance", () => ({
+vi.mock("@/server/modules/billing/balance", () => ({
   grantEmailVerificationBonus: vi.fn(),
 }));
 vi.mock("@/server/db/utils", () => ({ generateHashedPassword: vi.fn() }));

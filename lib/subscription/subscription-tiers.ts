@@ -1,6 +1,6 @@
 // Seed source for the Subscription catalog (DB tables Subscription +
 // SubscriptionPrice). RUNTIME code must NOT read pricing from here — it reads
-// the DB via lib/billing/subscriptions. This module exists only to seed/refresh
+// the DB via server/modules/billing/subscriptions. This module exists only to seed/refresh
 // the catalog (scripts/seed-subscriptions.ts).
 //
 // `code` is the stable identifier sent by CloudPayments as `Data.planName`.

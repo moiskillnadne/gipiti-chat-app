@@ -1,6 +1,6 @@
 import "server-only";
 
-import { fetchAttachmentBytes } from "../attachments/attachment-fetch-policy";
+import { fetchAttachmentBytes } from "@/server/modules/uploads/attachment-fetch-policy";
 import type { ChatMessage } from "../types";
 
 /** Canonical media type for Markdown attachments (.md / .markdown). */

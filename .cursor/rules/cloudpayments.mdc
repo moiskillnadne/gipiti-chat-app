@@ -23,9 +23,9 @@ alwaysApply: false
 - `CLOUDPAYMENTS_API_SECRET` - API secret for webhook signature validation and API calls
 
 ### Key Files
-- `lib/payments/cloudpayments.ts` - API client functions
-- `lib/payments/cloudpayments-types.ts` - TypeScript type definitions
-- `lib/payments/cloudpayments-config.ts` - Configuration helpers
+- `server/integrations/cloudpayments/cloudpayments.ts` - API client functions
+- `server/integrations/cloudpayments/cloudpayments-types.ts` - TypeScript type definitions
+- `server/integrations/cloudpayments/cloudpayments-config.ts` - Configuration helpers
 - `app/api/webhooks/cloudpayments/route.ts` - Webhook handler
 
 ### Webhook Types Handled
@@ -66,7 +66,7 @@ alwaysApply: false
 
 ### Creating a Subscription
 ```typescript
-import { createSubscription } from "@/lib/payments/cloudpayments";
+import { createSubscription } from "@/server/integrations/cloudpayments/cloudpayments";
 
 await createSubscription({
   token: "card_token_from_widget",

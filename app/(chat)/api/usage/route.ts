@@ -1,9 +1,9 @@
-import { getBalance } from "@/lib/billing/balance";
-import { getMinorUnits } from "@/lib/billing/currencies";
 import { formatCurrency } from "@/lib/billing/money";
-import { getSpendProgress } from "@/lib/billing/spend";
-import { getActiveUserSubscription } from "@/lib/billing/subscriptions";
 import { auth } from "@/server/modules/auth/next-auth";
+import { getBalance } from "@/server/modules/billing/balance";
+import { getMinorUnits } from "@/server/modules/billing/currencies";
+import { getSpendProgress } from "@/server/modules/billing/spend";
+import { getActiveStatusSubscription } from "@/server/modules/billing/subscriptions";
 
 export async function GET() {
   const session = await auth();
@@ -15,7 +15,7 @@ export async function GET() {
 
   const [balanceSummary, subscription] = await Promise.all([
     getBalance(userId),
-    getActiveUserSubscription(userId),
+    getActiveStatusSubscription(userId),
   ]);
 
   if (!balanceSummary) {
