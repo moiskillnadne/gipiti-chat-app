@@ -6,7 +6,7 @@ const { saveMessagesMock } = vi.hoisted(() => ({
   saveMessagesMock: vi.fn(),
 }));
 
-vi.mock("@/lib/db/query/chat/save-messages", () => ({
+vi.mock("@/server/modules/chat/queries/save-messages", () => ({
   saveMessages: saveMessagesMock,
 }));
 

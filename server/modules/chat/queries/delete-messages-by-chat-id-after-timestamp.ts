@@ -1,7 +1,7 @@
 import { and, eq, gte, inArray } from "drizzle-orm";
+import { ChatSDKError } from "@/lib/errors";
 import { db } from "@/server/db/connection";
 import { message, vote } from "@/server/db/schema";
-import { ChatSDKError } from "../../../errors";
 
 export async function deleteMessagesByChatIdAfterTimestamp({
   chatId,

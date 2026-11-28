@@ -119,23 +119,25 @@ vi.mock("@/lib/ai/generate-chat-title", () => ({
   generateTitleFromUserMessage: vi.fn(),
 }));
 
-vi.mock("@/lib/db/query/chat/get-chat-by-id", () => ({
+vi.mock("@/server/modules/chat/queries/get-chat-by-id", () => ({
   getChatById: getChatByIdMock,
 }));
-vi.mock("@/lib/db/query/chat/get-messages-by-chat-id", () => ({
+vi.mock("@/server/modules/chat/queries/get-messages-by-chat-id", () => ({
   getMessagesByChatId: getMessagesByChatIdMock,
 }));
-vi.mock("@/lib/db/query/chat/save-chat", () => ({ saveChat: saveChatMock }));
-vi.mock("@/lib/db/query/chat/save-messages", () => ({
+vi.mock("@/server/modules/chat/queries/save-chat", () => ({
+  saveChat: saveChatMock,
+}));
+vi.mock("@/server/modules/chat/queries/save-messages", () => ({
   saveMessages: saveMessagesMock,
 }));
-vi.mock("@/lib/db/query/chat/create-stream-id", () => ({
+vi.mock("@/server/modules/chat/queries/create-stream-id", () => ({
   createStreamId: createStreamIdMock,
 }));
-vi.mock("@/lib/db/query/chat/update-chat-title", () => ({
+vi.mock("@/server/modules/chat/queries/update-chat-title", () => ({
   updateChatTitle: vi.fn(),
 }));
-vi.mock("@/lib/db/query/chat/delete-chat-by-id", () => ({
+vi.mock("@/server/modules/chat/queries/delete-chat-by-id", () => ({
   deleteChatById: vi.fn(),
 }));
 vi.mock("@/lib/db/query/project/get-project-by-id", () => ({

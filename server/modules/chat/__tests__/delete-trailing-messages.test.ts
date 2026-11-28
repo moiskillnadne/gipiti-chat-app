@@ -11,14 +11,14 @@ const {
   deleteMessagesByChatIdAfterTimestampMock: vi.fn(),
 }));
 
-vi.mock("@/lib/db/query/chat/get-message-by-id", () => ({
+vi.mock("@/server/modules/chat/queries/get-message-by-id", () => ({
   getMessageById: getMessageByIdMock,
 }));
-vi.mock("@/lib/db/query/chat/get-chat-by-id", () => ({
+vi.mock("@/server/modules/chat/queries/get-chat-by-id", () => ({
   getChatById: getChatByIdMock,
 }));
 vi.mock(
-  "@/lib/db/query/chat/delete-messages-by-chat-id-after-timestamp",
+  "@/server/modules/chat/queries/delete-messages-by-chat-id-after-timestamp",
   () => ({
     deleteMessagesByChatIdAfterTimestamp:
       deleteMessagesByChatIdAfterTimestampMock,

@@ -1,7 +1,7 @@
-import { deleteMessagesByChatIdAfterTimestamp } from "@/lib/db/query/chat/delete-messages-by-chat-id-after-timestamp";
-import { getChatById } from "@/lib/db/query/chat/get-chat-by-id";
-import { getMessageById } from "@/lib/db/query/chat/get-message-by-id";
 import { ChatSDKError } from "@/lib/errors";
+import { deleteMessagesByChatIdAfterTimestamp } from "@/server/modules/chat/queries/delete-messages-by-chat-id-after-timestamp";
+import { getChatById } from "@/server/modules/chat/queries/get-chat-by-id";
+import { getMessageById } from "@/server/modules/chat/queries/get-message-by-id";
 
 /**
  * Deletes a message and every later message in its chat (used when the user

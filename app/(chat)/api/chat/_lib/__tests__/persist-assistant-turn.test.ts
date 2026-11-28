@@ -7,13 +7,13 @@ const { saveMessagesMock, getMessageByIdMock } = vi.hoisted(() => ({
   getMessageByIdMock: vi.fn(),
 }));
 
-vi.mock("@/lib/db/query/chat/save-messages", () => ({
+vi.mock("@/server/modules/chat/queries/save-messages", () => ({
   saveMessages: saveMessagesMock,
 }));
-vi.mock("@/lib/db/query/chat/get-message-by-id", () => ({
+vi.mock("@/server/modules/chat/queries/get-message-by-id", () => ({
   getMessageById: getMessageByIdMock,
 }));
-vi.mock("@/lib/db/query/chat/update-chat-last-context-by-id", () => ({
+vi.mock("@/server/modules/chat/queries/update-chat-last-context-by-id", () => ({
   updateChatLastContextById: vi.fn(),
 }));
 

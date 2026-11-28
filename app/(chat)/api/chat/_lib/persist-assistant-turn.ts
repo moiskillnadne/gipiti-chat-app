@@ -1,12 +1,12 @@
 import { ensureMessageHasTextPart } from "@/lib/ai/message-validator";
-import { getMessageById } from "@/lib/db/query/chat/get-message-by-id";
-import { saveMessages } from "@/lib/db/query/chat/save-messages";
-import { updateChatLastContextById } from "@/lib/db/query/chat/update-chat-last-context-by-id";
 import {
   finalizeInterruptedMessage,
   finalizeMediaGenerationParts,
 } from "@/lib/messages/interrupted";
 import type { ChatMessage } from "@/lib/types";
+import { getMessageById } from "@/server/modules/chat/queries/get-message-by-id";
+import { saveMessages } from "@/server/modules/chat/queries/save-messages";
+import { updateChatLastContextById } from "@/server/modules/chat/queries/update-chat-last-context-by-id";
 import type { ChatTurnContext } from "./context";
 import { MEDIA_FILE_TYPES, type MediaGenerationPart } from "./media-part";
 import type { ChatMode } from "./resolve-mode";

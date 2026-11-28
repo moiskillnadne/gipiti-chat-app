@@ -1,7 +1,7 @@
 import { asc, eq } from "drizzle-orm";
+import { ChatSDKError } from "@/lib/errors";
 import { db } from "@/server/db/connection";
 import { message } from "@/server/db/schema";
-import { ChatSDKError } from "../../../errors";
 
 export async function getMessagesByChatId({ id }: { id: string }) {
   try {
