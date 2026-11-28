@@ -344,6 +344,13 @@
       "when": 1795366858193,
       "tag": "0048_user_signup_platform",
       "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1795370458193,
+      "tag": "0049_legacy_hit",
+      "breakpoints": true
     }
   ]
 }

@@ -55,6 +55,8 @@ pnpm format
 
 Moved so far: the database layer is `server/db/` (connection, schema, migrations, `migrate.ts`); the Redis client is `server/integrations/redis/client.ts`; rate limits, the client IP and `handleRouteError` are in `server/http/`; flags are `server/flags.ts`; the cron guard is `server/cron/`; the env booleans (`isProductionEnvironment`, …) are `server/env.ts`. The auth module is `server/modules/auth/` (NextAuth as `next-auth.ts` and `next-auth.config.ts`, email normalisation, reset tokens, the disposable-domain list, registration geo); the user queries are `server/modules/users/queries/`; the email senders and templates are `server/modules/email/`; the Resend client is `server/integrations/resend/`. The other queries are still in `lib/db/query/` and move later, each with its domain. Still in `lib/` because client code imports them: `lib/auth/safe-redirect-path.ts`, `lib/utm/constants.ts`, `lib/validation/password.ts`.
 
+Legacy routes and server actions stay alive for browser tabs opened before a deploy. Once the web has switched away from one, it calls `recordLegacyHit(name)` (`server/http/legacy-hit.ts`), which upserts a per-UTC-day counter in the `LegacyHit` table inside `after()` and never throws. Name it `"<METHOD> <path>"` for a route (`"GET /api/prompts"`) and `"action <name>"` for a server action. A legacy route may be deleted when its name has no hits for 14 days.
+
 Code under `server/modules/` may not import `next` (`next/headers`, `next/server`, …), `@orpc/*` or `server/api/` (`tests/architecture`). `next-auth` is allowed.
 
 ## Architecture Overview
@@ -107,6 +109,12 @@ The route is a thin orchestrator; logic lives in `app/(chat)/api/chat/_lib/`:
 ### Client state
 
 Chat layout providers: `SessionProvider → DataStreamProvider → ModelProvider → ProjectProvider → WebSearchProvider → SidebarProvider`. Model/thinking/media settings and project selection persist in cookies (update through server actions in `app/(chat)/actions.ts`). `DataStreamProvider` pipes `useChat()` stream parts so `useAutoResume()` can resume after reload. Data fetching uses SWR.
+
+### Web API client (`client/shared/api/`)
+
+- The web calls v1 through `api` from `client/shared/api/orpc-client.ts` (`OpenAPILink` over the v1 contract, same-origin, no response validation, base URL read at call time so it is safe to import in a client component rendered on the server).
+- A failed call is handled through `client/shared/api/errors.ts`: `isApiError`, `getApiErrorCode`, `getApiErrorReason`, and `getApiErrorMessageKey` (a key of the `errors` namespace under `api.*` in `messages/ru.errors.json`, for a toast). Codes are an open set; an unknown one maps to `api.unknown`, a failed `fetch` to `api.network`.
+- `client/shared/api/contract.ts` is the only file in `client/` that may import `server/`.
 
 ### API v1 (`server/api/`, served at `/api/v1/*`)
 

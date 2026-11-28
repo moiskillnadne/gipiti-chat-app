@@ -20,7 +20,7 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text-summary", "json-summary"],
-      include: ["app/**", "lib/**", "server/**", "core/**"],
+      include: ["app/**", "client/**", "lib/**", "server/**", "core/**"],
     },
   },
   resolve: {
