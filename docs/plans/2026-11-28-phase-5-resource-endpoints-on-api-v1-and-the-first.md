@@ -35,7 +35,7 @@ Research for this plan found things the roadmap does not say:
 - The chat history cursor accepts another user's chat id.
 - `oasdiff` supports OpenAPI 3.1 since 1.15.0; how it reads our nullable fields (`anyOf` with a `null` branch) is not documented and is checked in the first PR.
 
-Outcome: 21 PRs and a docs PR. After them a mobile client can do everything except send a chat turn (Phase 6), and the web no longer depends on the legacy routes of these resources, which stay only for browser tabs opened before each deploy.
+Outcome: 22 PRs and a docs PR. After them a mobile client can do everything except send a chat turn (Phase 6), and the web no longer depends on the legacy routes of these resources, which stay only for browser tabs opened before each deploy.
 
 ## Decisions for this phase
 
@@ -47,7 +47,7 @@ Outcome: 21 PRs and a docs PR. After them a mobile client can do everything exce
 | P4 | The web client is born in its final place: `client/shared/api/{contract,orpc-client,errors}.ts` (`OpenAPILink` over the v1 contract, no response validation). Components call it through SWR as plain fetchers. | Roadmap D7, D18. `client/shared/api/contract.ts` is the one allowed edge from `client/` to `server/` (already in `tests/architecture/rules.ts`). Cost per spike S2: 9.5 KB gzip for oRPC, plus 18 KB for `zod/v4` on pages that do not ship it yet (`/chat` already does). |
 | P5 | Legacy routes are not rewritten. Their imports follow the moves, and from the switch PR each one calls `recordLegacyHit(name)`. | The less a legacy route changes, the less can break for an old tab. The roadmap's "thin wrapper" would be a rewrite of code that is about to be deleted. |
 | P6 | Legacy hits are counted in Postgres: table `LegacyHit (name, day, count)`, one upsert per hit inside `after()`. Migration `0049`. | The Phase 12 gate ("zero hits for 14 days") must be readable. The agent and `admin-dashboard` can read Postgres; nobody can read production Redis from outside. Hits fall to near zero after each switch, so the write is cheap. |
-| P7 | CI job `api-breaking`: `oasdiff breaking --fail-on ERR` on the snapshot of `origin/main` against the PR's. Label `api-unreleased-change` skips it, for endpoints no shipped client calls yet. | Roadmap D22 and spike S11. Until the mobile app ships, "frozen" means "the web calls it"; the PR body says which endpoints a labelled change touches. |
+| P7 | CI job `api-breaking`: `oasdiff breaking --fail-on WARN` on the snapshot of the base commit against the PR's. With the label `api-unreleased-change` the findings are printed and do not fail the job, for endpoints no shipped client calls yet. | Roadmap D22 and spike S11. Until the mobile app ships, "frozen" means "the web calls it"; the PR body says which endpoints a labelled change touches. |
 | P8 | Lists a user cannot grow large are returned whole as `{ items }`: prompts, favourite prompts, projects, project files, votes. Cursor pagination (`_kit/pagination.ts`: `limit` 1..100, default 20, opaque `cursor` of `(createdAt, id)`) is for chats, transactions and card payments. | A page size or an ordering cannot change once frozen, so pagination is added only where a list is unbounded. |
 | P9 | `GET /chats/{chatId}/messages` moves to Phase 6c. In Phase 5 `chat/[id]/page.tsx` keeps reading the module directly. | The roadmap lists the endpoint in 5a but designs its `MessagePart` schema in 6c, together with the stream's golden test. Freezing a message shape before that work is the riskiest shortcut in the phase. |
 | P10 | No `GET /me/billing/overview` and no `/usage-summary`. The pages make three or four in-process calls in parallel; the summary holds only the balance, which `/me/billing/balance` already returns. | Fewer frozen shapes. `getUsageSummary` returns `{ balance, currencyCode }` and nothing else. |
@@ -72,7 +72,9 @@ Every v1 endpoint below needs a signed-in caller (bearer or cookie) unless it sa
 
 ### Foundation
 
-**F1 [B: CI].** Job `api-breaking` in `.github/workflows/ci.yml` (P7). In-phase spike S11 on a throwaway branch: a removed field, a field made nullable and a removed endpoint each fail the job; the label skips it. The result, and how `oasdiff` reads our `anyOf` nullables, goes into `spike-findings.md`. If `oasdiff` cannot read the 3.1.1 snapshot, the owner is told before anything else is built on it.
+**F1 [B: CI].** Job `api-breaking` in `.github/workflows/ci.yml` (P7). In-phase spike S11 on a throwaway branch: a removed field, a field made nullable and a removed endpoint each fail the job; the label turns the failure into a warning. The result, and how `oasdiff` reads our `anyOf` nullables, goes into `spike-findings.md`. If `oasdiff` cannot read the 3.1.1 snapshot, the owner is told before anything else is built on it.
+
+**F1b [B].** The OpenAPI document gets a per-operation `security` entry for the procedures that require a signed-in caller (set from the contract, emitted by `server/api/_kit/openapi.ts`), so that a change in who may call an endpoint shows up in the snapshot and in `api-breaking`. Found by the review of F1.
 
 **F2 [B].** `client/shared/api/contract.ts` (re-export), `orpc-client.ts` (`api`), `errors.ts` (`isApiError`, code and reason readers, the mapping from a wire error to a key in `messages/ru.errors.json`). `server/http/legacy-hit.ts` with migration `0049_legacy_hit.sql`, journal, snapshot, schema. Tests: the client against the real route handler through a stubbed `fetch` (a 200, a typed error, a 404); `recordLegacyHit` on Postgres (two hits on one day make `count = 2`; a failure never throws).
 
@@ -169,7 +171,7 @@ Before E2 starts, this section is read again against the code as it then stands,
 
 ### After the PRs
 
-One docs PR: the roadmap's Phase 5 status line and its corrections (P5, P9, P10, P12 to P17, migration numbers `0049` to `0051`, account deletion becomes `0052`), `CLAUDE.md` (the new endpoints, the upload flow, what moved), this plan's `status: done` with implementation notes. The Linear issue is closed and the memory note updated.
+One docs PR: the roadmap's Phase 5 status line and its corrections (P5, P9, P10, P11, P12 to P17, A1, migration numbers `0049` to `0051`, account deletion becomes `0052`), `CLAUDE.md` (the new endpoints, the upload flow, what moved), this plan's `status: done` with implementation notes. The Linear issue is closed and the memory note updated.
 
 ## Found, and not fixed in this phase
 
