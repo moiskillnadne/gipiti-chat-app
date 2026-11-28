@@ -26,6 +26,7 @@ Every API fact was read from the installed type declarations (`node_modules/@orp
 | S7 | `getToken` returns `null` for a bearer JWS. `flag.run({ identify })` evaluates for an explicit user inside a procedure. | `server/flags.ts` passes the principal through `run`. |
 | S8 | Works in `overrides`, with four limits (below). | Optional editor feedback only; the architecture test stays the gate. |
 | S9 | `client/pages` and `client/app` produce no routes. | Decision D2 stands; no rename. |
+| S11 (Phase 5) | `oasdiff` 1.41.0 reads the 3.1.1 snapshot, passes additive changes and fails seven kinds of breaking change, including a field made nullable through `anyOf`. | CI job `api-breaking` (`--fail-on WARN`, base read from `HEAD^1`); label `api-unreleased-change` turns a failure into a warning. |
 
 ## S1. Error encoding, the generator, zod and `openEnum`
 
@@ -222,6 +223,37 @@ Read from the release notes of `middleapi/orpc` on 2026-11-17; nothing was run.
 - Changes that touch what this phase sketched: the custom error-body hooks are renamed (`errorResponseBodyEncoder`, `errorResponseBodyDecoder`, `errorResponseBodySchema`) and no longer fall back to the default when they return nothing (`beta.48`); OpenAPI component names are sanitised (`beta.49`); a new OpenAPI router (`beta.48`).
 
 **Recommendation.** Stay on the exact 1.16.2 pins for Phases 3 to 6. Keep every oRPC import inside `server/api/_kit/*`, contract files and `client/shared/api/*`, so an upgrade touches a known set of files. Look again before Phase 5.
+
+## S11. `oasdiff` on the generated snapshot (run in Phase 5)
+
+Date: 2026-11-28. Linear: GIPITI-266. Run in GitHub Actions, on a throwaway pull request (#312, closed) that edited `server/api/v1/openapi.snapshot.json` by hand, with the job `api-breaking` of `.github/workflows/ci.yml`: `tufin/oasdiff:v1.41.0 breaking base.json revision.json --fail-on ERR`. The runs below were made with `--fail-on ERR`; the job now uses `--fail-on WARN`, validated in a second run (see the end of this section). The job reads the base snapshot from `HEAD^1` of the merge commit. Nothing was run on a developer machine.
+
+- `oasdiff` reads the generated OpenAPI 3.1.1 document as it is. With no difference the job passes in 8 seconds.
+- **Additive changes pass:** a new path, a new optional response property, a new optional response property written as `anyOf: [{ "type": "string" }, { "type": "null" }]`, a new optional request property. Zero findings.
+- **Breaking changes fail, each with its own error:**
+
+| Change made | Check that fired |
+|---|---|
+| A path removed (`GET /plans`) | `api-path-removed-without-deprecation` |
+| A required response property removed | `response-required-property-removed` |
+| A response property made nullable, written the way the generator writes it (`anyOf` with a `null` branch) | `response-property-became-nullable` and `response-property-list-of-types-widened` |
+| A response property's type changed | `response-property-type-changed` |
+| A response property no longer required | `response-property-became-optional` |
+| A new required request property | `new-required-request-property` |
+| A request enum value removed | `request-property-enum-value-removed` |
+
+- At the time of the first run the label `api-unreleased-change` skipped the job. The job was then changed to always run and print its findings, with the label turning a failure into a warning. Adding or removing the label re-runs the checks (`labeled` / `unlabeled` in the workflow's trigger).
+- The job compares with `HEAD^1`, the base commit the pull request's merge commit was built on, so an endpoint added on `main` after the branch was cut is not reported as removed, and a merge to `main` that lands while the run is queued cannot change the comparison.
+
+**Not tried:** a value added to an output that is a closed `enum` (the contract has none: outputs that may grow are open strings), a changed success status, a changed default page size. The last two are breaking by the roadmap's rules, and whether `oasdiff` reports them is unknown; a reviewer still has to look at a contract change. A change in who may call an endpoint is invisible to the job, because no operation in the snapshot carries a `security` entry (the bearer scheme is only a component); emitting per-operation `security` from the contract is a follow-up in Phase 5.
+
+**Second run (2026-11-28, throwaway pull request #313, closed), with the job as it is now** (`--fail-on WARN`, base from `HEAD^1`, image pinned by digest, the label no longer skips the job):
+
+- The additive changes of the first run still pass with zero findings.
+- An optional request property removed (`client.deviceName` of `POST /auth/login`) is reported as `warning [request-property-removed]` and fails the job.
+- With the label `api-unreleased-change` the same finding is printed, followed by the warning "The findings above are accepted…", and the job passes.
+
+Not run: the removal of an optional *response* property. Every property of every 2xx response on `main` is required, so there was nothing to remove against that base; `oasdiff` documents it as a warning, which now fails the job.
 
 ## A finding outside the spikes: Vercel's Security Checkpoint
 

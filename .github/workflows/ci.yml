@@ -5,7 +5,8 @@ on:
   pull_request:
     branches: [main]
     # `labeled` / `unlabeled` re-run the checks when the
-    # `characterization-change` label is added or removed.
+    # `characterization-change` or `api-unreleased-change` label is added or
+    # removed.
     types: [opened, synchronize, reopened, labeled, unlabeled]
 
 concurrency:
@@ -119,3 +120,49 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Check characterization tests
         run: pnpm check:characterization-diff "origin/${{ github.base_ref }}"
+
+  api-breaking:
+    name: API breaking changes
+    # An endpoint of /api/v1 may only grow once a shipped client calls it
+    # (docs/plans/2026-11-15-orpc-v1-roadmap.md, "Versioning policy"). This
+    # job always runs and prints what oasdiff found when it compares the
+    # base branch's OpenAPI snapshot with the pull request's. A pull request
+    # that changes an endpoint no shipped client calls yet names the
+    # endpoints in its body and carries the `api-unreleased-change` label:
+    # the findings are still printed, but they do not fail the job.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The checkout is the merge commit of the pull request: `HEAD^1` is
+          # the base commit it was built on, and depth 2 is enough to read it.
+          fetch-depth: 2
+      - name: Collect both snapshots
+        run: |
+          if ! git rev-parse --verify --quiet HEAD^2 > /dev/null; then
+            echo "::error::This job expects the merge commit of a pull request."
+            exit 1
+          fi
+          mkdir -p "$RUNNER_TEMP/api-spec"
+          git show "HEAD^1:server/api/v1/openapi.snapshot.json" \
+            > "$RUNNER_TEMP/api-spec/base.json"
+          cp server/api/v1/openapi.snapshot.json "$RUNNER_TEMP/api-spec/revision.json"
+      - name: Look for breaking changes
+        env:
+          IS_UNRELEASED_CHANGE: ${{ contains(github.event.pull_request.labels.*.name, 'api-unreleased-change') }}
+        # The image is pinned: a newer oasdiff may classify a change
+        # differently, and that should arrive as a reviewed version bump.
+        # The digest is what pins it; a tag can be moved.
+        run: |
+          exitCode=0
+          docker run --rm \
+            -v "$RUNNER_TEMP/api-spec:/specs:ro" \
+            tufin/oasdiff:v1.41.0@sha256:cb7cd2acde680a724c9d08c27bc687c83628c02c5869ead033b857935fb4e9f4 \
+            breaking /specs/base.json /specs/revision.json --fail-on WARN || exitCode=$?
+          if [ "$exitCode" -ne 0 ] && [ "$IS_UNRELEASED_CHANGE" = "true" ]; then
+            echo "::warning::The findings above are accepted because the pull request carries api-unreleased-change."
+            exit 0
+          fi
+          exit "$exitCode"
