@@ -10,8 +10,8 @@ const WARN_THRESHOLD = 75;
 
 export type SpendThreshold = typeof NOTICE_THRESHOLD | typeof WARN_THRESHOLD;
 
-// Subset of /api/usage consumed by the banner. Shares the SWR key with
-// `UsageHint`, so both read from a single request/cache entry.
+// Subset of /api/usage consumed by the banner, the only reader of that SWR
+// key. `chat.tsx` revalidates the key after a turn finishes.
 type SpendApiResponse = {
   spend?: {
     spentPercent?: number | null;
