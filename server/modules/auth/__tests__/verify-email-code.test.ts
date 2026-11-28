@@ -1,16 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-import { grantEmailVerificationBonus } from "@/lib/billing/balance";
 import type { User } from "@/server/db/schema";
 import { checkVerificationAttemptRateLimit } from "@/server/http/rate-limit";
 import { markVerifiedAndGrantDeferredWelcome } from "@/server/modules/auth/queries/verify-api-signup-email";
 import { hashToken } from "@/server/modules/auth/reset-token";
 import { verifyEmailCode } from "@/server/modules/auth/verify-email-code";
+import { grantEmailVerificationBonus } from "@/server/modules/billing/balance";
 import { getUserByEmail } from "@/server/modules/users/queries/get-by-email";
 import { markEmailAsVerified } from "@/server/modules/users/queries/mark-email-as-verified";
 import { takeVerificationAttempt } from "@/server/modules/users/queries/take-verification-attempt";
 
-vi.mock("@/lib/billing/balance", () => ({
+vi.mock("@/server/modules/billing/balance", () => ({
   grantEmailVerificationBonus: vi.fn(),
 }));
 vi.mock("@/server/modules/auth/queries/verify-api-signup-email", () => ({

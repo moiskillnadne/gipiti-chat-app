@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { USAGE_MARKUP } from "../constants";
+import { USAGE_MARKUP } from "@/lib/billing/constants";
 
 type BalanceRow = {
   userId: string;
@@ -47,7 +47,7 @@ vi.mock("@/server/db/connection", () => ({
     ) => await run(buildTx()),
   },
 }));
-vi.mock("@/lib/billing/fx", () => ({
+vi.mock("@/server/modules/billing/fx", () => ({
   getCurrencyPricing: getCurrencyPricingMock,
 }));
 

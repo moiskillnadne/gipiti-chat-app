@@ -795,7 +795,7 @@ export type QuizResponse = InferSelectModel<typeof quizResponse>;
 // ACTIVITY (one row per user per Moscow calendar day with an authenticated request)
 // ============================================================================
 
-// Written fire-and-forget by lib/activity/record-user-activity.ts and read by the
+// Written fire-and-forget by server/http/record-user-activity.ts and read by the
 // admin dashboard for DAU / MAU / retention. `activity_day` is the Moscow calendar
 // day computed in the app (not in SQL) so the dedup key and the row always agree.
 export const userActivityDay = pgTable(

@@ -1,13 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { chatModels, DEFAULT_CHAT_MODEL } from "@/lib/ai/models";
-import { getBalance } from "@/lib/billing/balance";
-import { getMinorUnits } from "@/lib/billing/currencies";
-import {
-  listActiveSubscriptionsWithPrices,
-  type SubscriptionWithPrices,
-} from "@/lib/billing/subscriptions";
-import { getActiveUserSubscription } from "@/lib/db/query/subscription/get-active-user-subscription";
 import { createHandler } from "@/server/api/_kit/create-handler";
 import { KNOWN_MODEL_PROVIDERS } from "@/server/api/v1/_schemas/model";
 import { v1Router } from "@/server/api/v1/router";
@@ -15,6 +8,13 @@ import type { Subscription, User, UserSubscription } from "@/server/db/schema";
 import { isSignupEnabled, isTopupEnabled } from "@/server/flags";
 import { getCookieSessionUserId } from "@/server/modules/auth/cookie-session";
 import { resolveBearerSession } from "@/server/modules/auth/sessions";
+import { getBalance } from "@/server/modules/billing/balance";
+import { getMinorUnits } from "@/server/modules/billing/currencies";
+import {
+  listActiveSubscriptionsWithPrices,
+  type SubscriptionWithPrices,
+} from "@/server/modules/billing/subscriptions";
+import { getActiveUserSubscription } from "@/server/modules/subscription/queries/get-active-user-subscription";
 import { getUserById } from "@/server/modules/users/queries/get-by-id";
 
 // The handler, the router, the middlewares, the mappers and the model
@@ -51,17 +51,22 @@ vi.mock("@/server/modules/auth/send-verification-code", () => ({
 vi.mock("@/server/modules/auth/verify-email-code", () => ({
   verifyEmailCode: vi.fn(),
 }));
-vi.mock("@/lib/billing/currencies", () => ({ getMinorUnits: vi.fn() }));
-vi.mock("@/lib/billing/subscriptions", () => ({
+vi.mock("@/server/modules/billing/currencies", () => ({
+  getMinorUnits: vi.fn(),
+}));
+vi.mock("@/server/modules/billing/subscriptions", () => ({
   listActiveSubscriptionsWithPrices: vi.fn(),
 }));
-vi.mock("@/lib/billing/balance", () => ({ getBalance: vi.fn() }));
+vi.mock("@/server/modules/billing/balance", () => ({ getBalance: vi.fn() }));
 vi.mock("@/server/modules/users/queries/get-by-id", () => ({
   getUserById: vi.fn(),
 }));
-vi.mock("@/lib/db/query/subscription/get-active-user-subscription", () => ({
-  getActiveUserSubscription: vi.fn(),
-}));
+vi.mock(
+  "@/server/modules/subscription/queries/get-active-user-subscription",
+  () => ({
+    getActiveUserSubscription: vi.fn(),
+  })
+);
 
 const ORIGIN = "http://localhost";
 const PREFIX = "/api/v1";

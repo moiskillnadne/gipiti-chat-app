@@ -1,5 +1,5 @@
 import { getTranslations } from "@/lib/i18n/translate";
-import type { BalanceViewState } from "@/lib/subscription/subscription-state";
+import type { BalanceViewState } from "@/server/modules/subscription/subscription-state";
 import styles from "./dashboard.module.css";
 
 const PILL_VARIANT_CLASS: Record<BalanceViewState, string> = {

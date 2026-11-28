@@ -67,7 +67,7 @@ vi.mock("@/server/db/connection", () => ({
   },
 }));
 
-import { chargeUsage } from "@/lib/billing/balance";
+import { chargeUsage } from "@/server/modules/billing/balance";
 
 describe("chargeUsage query executor", () => {
   beforeEach(() => {

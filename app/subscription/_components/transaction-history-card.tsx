@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { formatCurrency } from "@/lib/billing/money";
-import type { ChatSpendRow } from "@/lib/billing/spend";
 import { getTranslations } from "@/lib/i18n/translate";
 import { pluralRu, type RuPluralForms } from "@/lib/utils/format-billing";
+import type { ChatSpendRow } from "@/server/modules/billing/spend";
 import styles from "./dashboard.module.css";
 import { ArrowRightIcon } from "./icons";
 

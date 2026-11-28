@@ -1,5 +1,8 @@
+import {
+  MEDIA_TURN_SLOT_LIMIT,
+  TEXT_TURN_SLOT_LIMIT,
+} from "@/lib/billing/constants";
 import { getUpstashClient } from "@/server/integrations/redis/client";
-import { MEDIA_TURN_SLOT_LIMIT, TEXT_TURN_SLOT_LIMIT } from "./constants";
 
 /** Image and video turns share the media slot. */
 export type TurnSlotKind = "text" | "media";

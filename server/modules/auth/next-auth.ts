@@ -1,6 +1,5 @@
 import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { getActiveUserSubscription } from "@/lib/db/query/subscription/get-active-user-subscription";
 import { getClientIp } from "@/server/http/client-ip";
 import { authenticateCredentials } from "@/server/modules/auth/authenticate-credentials";
 import { authConfig } from "@/server/modules/auth/next-auth.config";
@@ -11,6 +10,7 @@ import {
   getTokenVersionForNewSession,
   isSessionVersionCurrent,
 } from "@/server/modules/auth/token-version";
+import { getActiveUserSubscription } from "@/server/modules/subscription/queries/get-active-user-subscription";
 import { getUserByEmail } from "@/server/modules/users/queries/get-by-email";
 
 type CredentialsType = {

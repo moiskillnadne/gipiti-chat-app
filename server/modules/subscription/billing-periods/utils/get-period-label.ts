@@ -1,4 +1,4 @@
-import type { BillingPeriod } from "../../subscription-tiers";
+import type { BillingPeriod } from "@/lib/subscription/subscription-tiers";
 
 /**
  * Get period label for display

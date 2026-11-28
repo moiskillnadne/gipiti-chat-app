@@ -5,8 +5,8 @@ import {
 import { normalizeAspectRatio } from "@/lib/ai/models";
 import { saveDocument } from "@/lib/db/query/document/save-document";
 import { ChatSDKError } from "@/lib/errors";
-import { isFreeUserById } from "@/lib/subscription/is-free-user";
 import { generateUUID } from "@/lib/utils";
+import { isFreeUserById } from "@/server/modules/subscription/is-free-user";
 import { chargeUsageSafe } from "../charge";
 import type { ChatTurnContext, StreamWriter } from "../context";
 import { resolveImageProvider } from "../image/providers";

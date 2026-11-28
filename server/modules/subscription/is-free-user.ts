@@ -1,4 +1,4 @@
-import { getActiveUserSubscription } from "@/lib/db/query/subscription/get-active-user-subscription";
+import { getActiveUserSubscription } from "@/server/modules/subscription/queries/get-active-user-subscription";
 import { getUserById } from "@/server/modules/users/queries/get-by-id";
 
 /**

@@ -1,5 +1,5 @@
-import { resumeSubscription } from "@/lib/subscription/resume-subscription";
 import { auth } from "@/server/modules/auth/next-auth";
+import { resumeSubscription } from "@/server/modules/subscription/resume-subscription";
 
 /**
  * Re-enables auto-renewal for the user's soft-cancelled subscription.

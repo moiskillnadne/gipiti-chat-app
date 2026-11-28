@@ -1,9 +1,9 @@
 import { createUIMessageStream, JsonToSseTransformStream } from "ai";
 import { after } from "next/server";
-import { recordUserActivity } from "@/lib/activity/record-user-activity";
 import { ChatSDKError } from "@/lib/errors";
 import type { ChatMessage } from "@/lib/types";
 import { generateUUID } from "@/lib/utils";
+import { recordUserActivity } from "@/server/http/record-user-activity";
 import { auth } from "@/server/modules/auth/next-auth";
 import { deleteChatById } from "@/server/modules/chat/queries/delete-chat-by-id";
 import { getChatById } from "@/server/modules/chat/queries/get-chat-by-id";

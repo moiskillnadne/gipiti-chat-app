@@ -1,7 +1,7 @@
-import { grantEmailVerificationBonus } from "@/lib/billing/balance";
 import { checkVerificationAttemptRateLimit } from "@/server/http/rate-limit";
 import { markVerifiedAndGrantDeferredWelcome } from "@/server/modules/auth/queries/verify-api-signup-email";
 import { verifyToken } from "@/server/modules/auth/reset-token";
+import { grantEmailVerificationBonus } from "@/server/modules/billing/balance";
 import { getUserByEmail } from "@/server/modules/users/queries/get-by-email";
 import { markEmailAsVerified } from "@/server/modules/users/queries/mark-email-as-verified";
 import {

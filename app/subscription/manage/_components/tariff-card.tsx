@@ -1,5 +1,5 @@
 import { getTranslations } from "@/lib/i18n/translate";
-import type { BillingPeriodKey } from "@/lib/subscription/get-latest-subscription";
+import type { BillingPeriodKey } from "@/server/modules/subscription/get-latest-subscription";
 import dash from "../../_components/dashboard.module.css";
 import styles from "./manage.module.css";
 

@@ -102,10 +102,10 @@ const fakeDb = vi.hoisted(() => {
 });
 
 vi.mock("@/server/db/connection", () => ({ db: fakeDb.client }));
-vi.mock("@/lib/billing/currencies", () => ({
+vi.mock("@/server/modules/billing/currencies", () => ({
   getMinorUnits: vi.fn(async () => 2),
 }));
-vi.mock("@/lib/billing/fx", () => ({ getLatestFxRate: vi.fn() }));
+vi.mock("@/server/modules/billing/fx", () => ({ getLatestFxRate: vi.fn() }));
 
 import { grantQuizBonus } from "../balance";
 import { EmailNotVerifiedError } from "../email-verification";

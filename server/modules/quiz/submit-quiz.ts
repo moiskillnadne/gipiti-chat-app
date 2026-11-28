@@ -1,9 +1,9 @@
-import { grantQuizBonus } from "@/lib/billing/balance";
+import { db } from "@/server/db/connection";
+import { grantQuizBonus } from "@/server/modules/billing/balance";
 import {
   EmailNotVerifiedError,
   isUserEmailVerified,
-} from "@/lib/billing/email-verification";
-import { db } from "@/server/db/connection";
+} from "@/server/modules/billing/email-verification";
 import { createQuizResponse } from "@/server/modules/quiz/queries/create-quiz-response";
 import { getQuizDefinition } from "@/server/modules/quiz/registry";
 

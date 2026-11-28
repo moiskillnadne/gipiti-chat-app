@@ -1,18 +1,6 @@
 import { redirect } from "next/navigation";
-import { getBalance } from "@/lib/billing/balance";
-import { getMinorUnits } from "@/lib/billing/currencies";
 import { formatCurrency } from "@/lib/billing/money";
-import { getCardPayments } from "@/lib/billing/payment-history";
-import { priceForCurrency } from "@/lib/billing/subscriptions";
 import { getTranslations } from "@/lib/i18n/translate";
-import {
-  type BillingPeriodKey,
-  getLatestSubscription,
-} from "@/lib/subscription/get-latest-subscription";
-import {
-  type BalanceViewState,
-  deriveSubscriptionUiState,
-} from "@/lib/subscription/subscription-state";
 import {
   formatBillingCycle,
   formatRuDate,
@@ -20,6 +8,18 @@ import {
   formatRuDayMonth,
 } from "@/lib/utils/format-billing";
 import { auth } from "@/server/modules/auth/next-auth";
+import { getBalance } from "@/server/modules/billing/balance";
+import { getMinorUnits } from "@/server/modules/billing/currencies";
+import { getCardPayments } from "@/server/modules/billing/payment-history";
+import { priceForCurrency } from "@/server/modules/billing/subscriptions";
+import {
+  type BillingPeriodKey,
+  getLatestSubscription,
+} from "@/server/modules/subscription/get-latest-subscription";
+import {
+  type BalanceViewState,
+  deriveSubscriptionUiState,
+} from "@/server/modules/subscription/subscription-state";
 import dash from "../_components/dashboard.module.css";
 import { CancelledBanner } from "./_components/cancelled-banner";
 import styles from "./_components/manage.module.css";

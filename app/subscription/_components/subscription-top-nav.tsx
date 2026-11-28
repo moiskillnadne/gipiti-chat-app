@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getTranslations } from "@/lib/i18n/translate";
-import type { BalanceViewState } from "@/lib/subscription/subscription-state";
+import type { BalanceViewState } from "@/server/modules/subscription/subscription-state";
 import styles from "./dashboard.module.css";
 import { ArrowLeftIcon } from "./icons";
 import { StatusPill } from "./status-pill";

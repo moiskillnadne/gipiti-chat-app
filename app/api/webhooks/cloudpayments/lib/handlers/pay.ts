@@ -1,20 +1,6 @@
 import { and, eq, ne } from "drizzle-orm";
-import {
-  creditTopupForIntent,
-  ensureBalance,
-  resetSubscriptionPool,
-} from "@/lib/billing/balance";
 import { majorToMinorUnits } from "@/lib/billing/money";
-import {
-  getSubscriptionByCode,
-  priceForCurrency,
-} from "@/lib/billing/subscriptions";
-import { isSubscriptionPurchaseAllowed } from "@/lib/billing/tester-plans";
 import type { CloudPaymentsPayWebhook } from "@/lib/payments/cloudpayments-types";
-import {
-  calculateNextBillingDate,
-  calculatePeriodEnd,
-} from "@/lib/subscription/billing-periods";
 import { db } from "@/server/db/connection";
 import {
   type PaymentIntent,
@@ -24,6 +10,20 @@ import {
   user,
   userSubscription,
 } from "@/server/db/schema";
+import {
+  creditTopupForIntent,
+  ensureBalance,
+  resetSubscriptionPool,
+} from "@/server/modules/billing/balance";
+import {
+  getSubscriptionByCode,
+  priceForCurrency,
+} from "@/server/modules/billing/subscriptions";
+import { isSubscriptionPurchaseAllowed } from "@/server/modules/billing/tester-plans";
+import {
+  calculateNextBillingDate,
+  calculatePeriodEnd,
+} from "@/server/modules/subscription/billing-periods";
 import {
   findTopupIntent,
   parseWebhookData,

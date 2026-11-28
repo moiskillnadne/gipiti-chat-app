@@ -6,14 +6,14 @@ import {
   TOPUP_TESTER_MIN_MAJOR_UNITS,
 } from "@/lib/billing/constants";
 import { majorToMinorUnits } from "@/lib/billing/money";
-import {
-  getSubscriptionByCode,
-  priceForCurrency,
-} from "@/lib/billing/subscriptions";
-import { isSubscriptionPurchaseAllowed } from "@/lib/billing/tester-plans";
 import type { CloudPaymentsCheckWebhook } from "@/lib/payments/cloudpayments-types";
 import { db } from "@/server/db/connection";
 import { subscription, user, userSubscription } from "@/server/db/schema";
+import {
+  getSubscriptionByCode,
+  priceForCurrency,
+} from "@/server/modules/billing/subscriptions";
+import { isSubscriptionPurchaseAllowed } from "@/server/modules/billing/tester-plans";
 import {
   findTopupIntent,
   parseWebhookData,

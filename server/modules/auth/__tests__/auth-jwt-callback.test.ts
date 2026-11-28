@@ -57,9 +57,12 @@ vi.mock("next-auth/providers/credentials", () => ({
 vi.mock("@/server/modules/auth/secret", () => ({
   getAuthSecret: () => "test-auth-secret",
 }));
-vi.mock("@/lib/db/query/subscription/get-active-user-subscription", () => ({
-  getActiveUserSubscription: getActiveUserSubscriptionMock,
-}));
+vi.mock(
+  "@/server/modules/subscription/queries/get-active-user-subscription",
+  () => ({
+    getActiveUserSubscription: getActiveUserSubscriptionMock,
+  })
+);
 vi.mock("@/server/modules/users/queries/get-by-email", () => ({
   getUserByEmail: getUserByEmailMock,
 }));

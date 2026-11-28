@@ -6,7 +6,7 @@ import { type BalanceSummary, getBalance } from "./balance";
 
 // usage_debit rows are tagged by chargeUsage: web search/extract use these
 // synthetic modelIds, image generation uses this description, everything else
-// is a chat completion. See lib/billing/balance.ts + the tool callsites.
+// is a chat completion. See server/modules/billing/balance.ts + the tool callsites.
 const SEARCH_MODEL_IDS = new Set(["tavily-search", "tavily-extract"]);
 const IMAGE_DESCRIPTION = "Image generation";
 const VIDEO_DESCRIPTION = "Video generation";
