@@ -7,6 +7,7 @@ vi.mock("@/server/modules/auth/next-auth", () => ({
   auth: vi.fn().mockResolvedValue({ user: { id: "user-1" } }),
 }));
 vi.mock("@/server/db/connection", () => ({ db: {} }));
+vi.mock("@/server/http/legacy-hit", () => ({ recordLegacyHit: vi.fn() }));
 
 import { POST } from "../route";
 

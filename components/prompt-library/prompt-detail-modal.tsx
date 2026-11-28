@@ -2,6 +2,7 @@
 
 import { Check, Copy, MessageSquare, Star, X } from "lucide-react";
 import { useState } from "react";
+import type { PromptDto } from "@/client/shared/api/types";
 import {
   Dialog,
   DialogClose,
@@ -13,17 +14,16 @@ import {
   getPromptCategory,
   getPromptModelMeta,
 } from "@/lib/prompts/prompt-meta";
-import type { Prompt } from "@/server/db/schema";
 import { PromptPlaceholders } from "./prompt-placeholders";
 
 const COPIED_RESET_MS = 1600;
 
 type PromptDetailModalProps = {
-  prompt: Prompt | null;
+  prompt: PromptDto | null;
   isFavorite: boolean;
   onClose: () => void;
   onToggleFavorite: (id: string) => void;
-  onUse: (prompt: Prompt) => void;
+  onUse: (prompt: PromptDto) => void;
 };
 
 export function PromptDetailModal({

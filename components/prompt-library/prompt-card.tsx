@@ -1,17 +1,17 @@
 "use client";
 
 import { Star } from "lucide-react";
+import type { PromptDto } from "@/client/shared/api/types";
 import { useTranslations } from "@/lib/i18n/translate";
 import {
   getPromptCategory,
   getPromptModelMeta,
 } from "@/lib/prompts/prompt-meta";
-import type { Prompt } from "@/server/db/schema";
 
 const BRACKETS = /[[\]]/g;
 
 type PromptCardProps = {
-  prompt: Prompt;
+  prompt: PromptDto;
   isFavorite: boolean;
   onOpen: (id: string) => void;
   onToggleFavorite: (id: string) => void;

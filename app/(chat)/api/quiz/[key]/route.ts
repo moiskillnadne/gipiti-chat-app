@@ -1,5 +1,6 @@
 import { ChatSDKError } from "@/lib/errors";
 import { getTranslations } from "@/lib/i18n/translate";
+import { recordLegacyHit } from "@/server/http/legacy-hit";
 import { auth } from "@/server/modules/auth/next-auth";
 import { getQuizResponse } from "@/server/modules/quiz/queries/get-quiz-response";
 import { submitQuiz } from "@/server/modules/quiz/submit-quiz";
@@ -11,6 +12,8 @@ export async function GET(_request: Request, { params }: RouteContext) {
   if (!session?.user?.id) {
     return new ChatSDKError("unauthorized:chat").toResponse();
   }
+  // Counted only for a signed-in caller (an old tab); scanners are not.
+  recordLegacyHit("GET /api/quiz/[key]");
 
   const { key } = await params;
   const existing = await getQuizResponse({
@@ -26,6 +29,8 @@ export async function POST(request: Request, { params }: RouteContext) {
   if (!session?.user?.id) {
     return new ChatSDKError("unauthorized:chat").toResponse();
   }
+  // Counted only for a signed-in caller (an old tab); scanners are not.
+  recordLegacyHit("POST /api/quiz/[key]");
 
   const { key } = await params;
 
