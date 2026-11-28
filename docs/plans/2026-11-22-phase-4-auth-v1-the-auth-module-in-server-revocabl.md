@@ -245,9 +245,9 @@ Verified in production after the merges: each deployment succeeded; `/api/health
 
 Left open:
 
-- **`API_TOKEN_SECRET`** (owner): set it in Vercel, a different value for Production and for Preview (preview databases are branches of production, so with one shared value a production access token would be accepted by a preview). Then run the bearer flow once on a preview.
+- **`API_TOKEN_SECRET`** (owner): set it in Vercel, a different value for Production and for Preview (preview databases are branches of production, so with one shared value a production access token would be accepted by a preview). Then run the bearer flow once on a preview. Done by the owner on 2026-11-28 (separate values for Production and Preview); a deployment built before that still answers 500 until the next one.
 - **The Vercel Firewall and `/api/v1/*`** (owner, from Phase 3): `curl https://gipiti.ru/api/v1/config` was answered with the 429 challenge page on 2026-11-22, so a client that is not a browser cannot reach the API yet.
 - **The p95 comparison** for #304, after a day of traffic.
 - **The email-confirmation bonus** is still credited best effort after verification, with no retry (older than this phase; the welcome grant of an API sign-up no longer has that weakness).
 - **Pre-existing limits noted by the reviews**, shared with the website: one verification mail a minute with no daily cap; anyone can spend an address's five reset requests an hour; bcrypt reads the first 72 bytes of a password.
-- **`lib/email/add-contact-to-segment.ts`** moved to `server/integrations/resend/` although nothing imports it (P17): keep or delete is the owner's call.
+- ~~**`lib/email/add-contact-to-segment.ts`** moved to `server/integrations/resend/` although nothing imports it (P17): keep or delete is the owner's call.~~ Deleted on 2026-11-28 by the owner's decision, with its `RESEND_MARKETING_SEGMENT_ID` line in `.env.example`.
