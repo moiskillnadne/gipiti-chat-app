@@ -2264,6 +2264,1027 @@
         ]
       }
     },
+    "/chats": {
+      "delete": {
+        "description": "Deletes all the caller's chats with their messages, votes and streams, in one step. Answers 204 also when there are none. Needs `confirm=true` in the query: without it, or with any other value, 400.",
+        "operationId": "chats.removeAll",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "allowReserved": true,
+            "in": "query",
+            "name": "confirm",
+            "required": true,
+            "schema": {
+              "description": "Must be exactly `true`. A guard against deleting every chat by a stray request.",
+              "enum": [
+                "true"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {},
+                    {
+                      "not": {}
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: BAD_REQUEST. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "400"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: FORBIDDEN. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "403"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Delete every chat of the user",
+        "tags": [
+          "chats"
+        ]
+      },
+      "get": {
+        "description": "One page of the caller's chats, newest first. Pass the `nextCursor` of a page as `cursor` to get the next one; `nextCursor` is `null` on the last page. Needs an access token or a browser session. 400 `invalid_cursor` when `cursor` is not one this API gave out.",
+        "operationId": "chats.list",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "allowReserved": true,
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "description": "How many items to return, 1 to 100. Defaults to 20.",
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "allowEmptyValue": true,
+            "allowReserved": true,
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "description": "The `nextCursor` of the previous page. Leave it out for the first page. Treat it as opaque.",
+              "maxLength": 512,
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "properties": {
+                          "createdAt": {
+                            "description": "ISO 8601, UTC.",
+                            "type": "string"
+                          },
+                          "id": {
+                            "format": "uuid",
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "title",
+                          "createdAt"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Pass it as `cursor` to get the next page. `null` on the last page."
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "nextCursor"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: BAD_REQUEST. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "400"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The user's chats, newest first",
+        "tags": [
+          "chats"
+        ]
+      }
+    },
+    "/chats/{chatId}": {
+      "delete": {
+        "description": "Deletes the chat with its messages, votes and streams, in one step: either all of it goes or none. 404 when there is no such chat, which is also the answer for a chat of another account.",
+        "operationId": "chats.remove",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "chatId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {},
+                    {
+                      "not": {}
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: FORBIDDEN. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "403"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: NOT_FOUND. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "404"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Delete a chat",
+        "tags": [
+          "chats"
+        ]
+      },
+      "get": {
+        "description": "Needs an access token or a browser session. 404 when there is no such chat, which is also the answer for a chat of another account.",
+        "operationId": "chats.get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "chatId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "createdAt": {
+                      "description": "ISO 8601, UTC.",
+                      "type": "string"
+                    },
+                    "id": {
+                      "format": "uuid",
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "title",
+                    "createdAt"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: NOT_FOUND. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "404"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "One chat",
+        "tags": [
+          "chats"
+        ]
+      }
+    },
+    "/chats/{chatId}/messages": {
+      "delete": {
+        "description": "Used when the user edits a message: the message `fromMessageId` and all later messages of the chat go, with their votes, in one step. Answers 204 and deletes nothing when the message does not exist or is not in this chat. 404 when there is no such chat, which is also the answer for a chat of another account.",
+        "operationId": "chats.messages.removeFrom",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "chatId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "allowEmptyValue": true,
+            "allowReserved": true,
+            "in": "query",
+            "name": "fromMessageId",
+            "required": true,
+            "schema": {
+              "description": "This message and every later message of the chat are deleted.",
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {},
+                    {
+                      "not": {}
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: FORBIDDEN. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "403"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: NOT_FOUND. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "404"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Delete a message and every later one",
+        "tags": [
+          "chats"
+        ]
+      }
+    },
+    "/chats/{chatId}/messages/{messageId}/vote": {
+      "put": {
+        "description": "Sets the vote, replacing an earlier one. Safe to repeat. 404 when there is no such chat (or it is another account's), and the same 404 when the message does not exist or is not in that chat.",
+        "operationId": "chats.votes.set",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "chatId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "messageId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "isUpvoted": {
+                    "description": "`true` for a thumbs up, `false` for a thumbs down.",
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "isUpvoted"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {},
+                    {
+                      "not": {}
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: FORBIDDEN. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "403"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: NOT_FOUND. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "404"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Vote on a message",
+        "tags": [
+          "chats"
+        ]
+      }
+    },
+    "/chats/{chatId}/votes": {
+      "get": {
+        "description": "One entry per voted message, as one list. 404 when there is no such chat, which is also the answer for a chat of another account.",
+        "operationId": "chats.votes.list",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "chatId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "properties": {
+                          "isUpvoted": {
+                            "description": "`true` for a thumbs up, `false` for a thumbs down.",
+                            "type": "boolean"
+                          },
+                          "messageId": {
+                            "format": "uuid",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "messageId",
+                          "isUpvoted"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: NOT_FOUND. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "404"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The votes on the messages of a chat",
+        "tags": [
+          "chats"
+        ]
+      }
+    },
     "/config": {
       "get": {
         "operationId": "config.get",
