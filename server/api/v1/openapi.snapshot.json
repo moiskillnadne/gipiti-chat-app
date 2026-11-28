@@ -4621,6 +4621,983 @@
         ]
       }
     },
+    "/projects": {
+      "get": {
+        "description": "All the caller's projects as one list, most recently changed first. Needs an access token or a browser session.",
+        "operationId": "projects.list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "properties": {
+                          "contextEntries": {
+                            "description": "Notes the model is given in every chat of the project, in order.",
+                            "items": {
+                              "type": "string"
+                            },
+                            "type": "array"
+                          },
+                          "createdAt": {
+                            "description": "ISO 8601, UTC.",
+                            "type": "string"
+                          },
+                          "description": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "id": {
+                            "format": "uuid",
+                            "type": "string"
+                          },
+                          "isDefault": {
+                            "description": "The project new chats start in. At most one project of a user is the default; none is allowed.",
+                            "type": "boolean"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "pinned": {
+                            "type": "boolean"
+                          },
+                          "swatch": {
+                            "anyOf": [
+                              {
+                                "description": "One of: sw1, sw2, sw3, sw4, sw5, sw6. Clients must accept other values.",
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "updatedAt": {
+                            "description": "ISO 8601, UTC.",
+                            "type": "string"
+                          },
+                          "usageCount": {
+                            "maximum": 9007199254740991,
+                            "minimum": -9007199254740991,
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "description",
+                          "swatch",
+                          "contextEntries",
+                          "isDefault",
+                          "pinned",
+                          "usageCount",
+                          "createdAt",
+                          "updatedAt"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The user's projects",
+        "tags": [
+          "projects"
+        ]
+      },
+      "post": {
+        "description": "With `isDefault: true` the flag is cleared on the caller's other projects in the same step. 409 `project_limit_reached` (with `data.limit`) when the caller already has the most projects a user may have.",
+        "operationId": "projects.create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "contextEntries": {
+                    "description": "Defaults to no entries.",
+                    "items": {
+                      "maxLength": 2000,
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "maxItems": 20,
+                    "type": "array"
+                  },
+                  "description": {
+                    "anyOf": [
+                      {
+                        "maxLength": 280,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "isDefault": {
+                    "description": "`true` makes this the default project and clears the flag on the others, in one step.",
+                    "type": "boolean"
+                  },
+                  "name": {
+                    "maxLength": 128,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "swatch": {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "sw1",
+                          "sw2",
+                          "sw3",
+                          "sw4",
+                          "sw5",
+                          "sw6"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "contextEntries": {
+                      "description": "Notes the model is given in every chat of the project, in order.",
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "createdAt": {
+                      "description": "ISO 8601, UTC.",
+                      "type": "string"
+                    },
+                    "description": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "id": {
+                      "format": "uuid",
+                      "type": "string"
+                    },
+                    "isDefault": {
+                      "description": "The project new chats start in. At most one project of a user is the default; none is allowed.",
+                      "type": "boolean"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "pinned": {
+                      "type": "boolean"
+                    },
+                    "swatch": {
+                      "anyOf": [
+                        {
+                          "description": "One of: sw1, sw2, sw3, sw4, sw5, sw6. Clients must accept other values.",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "updatedAt": {
+                      "description": "ISO 8601, UTC.",
+                      "type": "string"
+                    },
+                    "usageCount": {
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "description",
+                    "swatch",
+                    "contextEntries",
+                    "isDefault",
+                    "pinned",
+                    "usageCount",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: FORBIDDEN. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "403"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: CONFLICT. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "409"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Create a project",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/projects/{projectId}": {
+      "delete": {
+        "description": "Deletes the project and its file records. 404 when there is no such project, which is also the answer for a project of another account.",
+        "operationId": "projects.remove",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {},
+                    {
+                      "not": {}
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: FORBIDDEN. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "403"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: NOT_FOUND. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "404"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Delete a project",
+        "tags": [
+          "projects"
+        ]
+      },
+      "get": {
+        "description": "Needs an access token or a browser session. 404 when there is no such project, which is also the answer for a project of another account.",
+        "operationId": "projects.get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "contextEntries": {
+                      "description": "Notes the model is given in every chat of the project, in order.",
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "createdAt": {
+                      "description": "ISO 8601, UTC.",
+                      "type": "string"
+                    },
+                    "description": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "id": {
+                      "format": "uuid",
+                      "type": "string"
+                    },
+                    "isDefault": {
+                      "description": "The project new chats start in. At most one project of a user is the default; none is allowed.",
+                      "type": "boolean"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "pinned": {
+                      "type": "boolean"
+                    },
+                    "swatch": {
+                      "anyOf": [
+                        {
+                          "description": "One of: sw1, sw2, sw3, sw4, sw5, sw6. Clients must accept other values.",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "updatedAt": {
+                      "description": "ISO 8601, UTC.",
+                      "type": "string"
+                    },
+                    "usageCount": {
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "description",
+                    "swatch",
+                    "contextEntries",
+                    "isDefault",
+                    "pinned",
+                    "usageCount",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: NOT_FOUND. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "404"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "One project",
+        "tags": [
+          "projects"
+        ]
+      },
+      "patch": {
+        "description": "Changes the fields that are present and leaves the others. `null` clears `description` or `swatch`. An empty body changes nothing. `isDefault: true` moves the default to this project in one step. 404 when there is no such project, which is also the answer for a project of another account.",
+        "operationId": "projects.update",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "contextEntries": {
+                    "items": {
+                      "maxLength": 2000,
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "maxItems": 20,
+                    "type": "array"
+                  },
+                  "description": {
+                    "anyOf": [
+                      {
+                        "maxLength": 280,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "`null` clears the description."
+                  },
+                  "isDefault": {
+                    "description": "`true` moves the default to this project; `false` leaves the user without one.",
+                    "type": "boolean"
+                  },
+                  "name": {
+                    "maxLength": 128,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "pinned": {
+                    "type": "boolean"
+                  },
+                  "swatch": {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "sw1",
+                          "sw2",
+                          "sw3",
+                          "sw4",
+                          "sw5",
+                          "sw6"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "`null` clears it."
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "contextEntries": {
+                      "description": "Notes the model is given in every chat of the project, in order.",
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "createdAt": {
+                      "description": "ISO 8601, UTC.",
+                      "type": "string"
+                    },
+                    "description": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "id": {
+                      "format": "uuid",
+                      "type": "string"
+                    },
+                    "isDefault": {
+                      "description": "The project new chats start in. At most one project of a user is the default; none is allowed.",
+                      "type": "boolean"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "pinned": {
+                      "type": "boolean"
+                    },
+                    "swatch": {
+                      "anyOf": [
+                        {
+                          "description": "One of: sw1, sw2, sw3, sw4, sw5, sw6. Clients must accept other values.",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "updatedAt": {
+                      "description": "ISO 8601, UTC.",
+                      "type": "string"
+                    },
+                    "usageCount": {
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "description",
+                    "swatch",
+                    "contextEntries",
+                    "isDefault",
+                    "pinned",
+                    "usageCount",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: UNAUTHORIZED. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "401"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: FORBIDDEN. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "403"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "description": "Declared for this status: NOT_FOUND. Other codes may appear.",
+                      "type": "string"
+                    },
+                    "data": {},
+                    "defined": {
+                      "description": "True when the procedure declares this error.",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "defined",
+                    "code",
+                    "status",
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "404"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Change a project",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
     "/prompts": {
       "get": {
         "description": "Every active prompt of the curated catalogue, in catalogue order, as one list (the catalogue is small, so there is no paging). The same for everyone: no credentials are read, so a client with a stale token can still fetch it. Which prompts a user has starred is `GET /me/favorite-prompts`.",

@@ -61,6 +61,28 @@ describe("resolvePrincipal for a browser session", () => {
     });
   });
 
+  it("never reads a bearer token for an in-process call", async () => {
+    // Arrange
+    vi.mocked(getCookieSessionUserId).mockResolvedValue(USER_ID);
+    vi.mocked(resolveBearerSession).mockResolvedValue({
+      userId: TOKEN_USER_ID,
+      sessionId: SESSION_ID,
+    });
+
+    // Act
+    const resolution = await resolvePrincipal({
+      request: requestWith({ authorization: `Bearer ${ACCESS_TOKEN}` }),
+      transport: "in-process",
+    });
+
+    // Assert
+    expect(resolution).toEqual({
+      kind: "principal",
+      principal: { userId: USER_ID, sessionId: null, via: "in-process" },
+    });
+    expect(resolveBearerSession).not.toHaveBeenCalled();
+  });
+
   it("is anonymous without a session", async () => {
     // Act
     const resolution = await resolvePrincipal({

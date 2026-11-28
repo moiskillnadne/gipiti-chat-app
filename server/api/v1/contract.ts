@@ -4,6 +4,7 @@ import { configContract } from "@/server/api/v1/config/contract";
 import { meContract } from "@/server/api/v1/me/contract";
 import { modelsContract } from "@/server/api/v1/models/contract";
 import { plansContract } from "@/server/api/v1/plans/contract";
+import { projectsContract } from "@/server/api/v1/projects/contract";
 import { promptsContract } from "@/server/api/v1/prompts/contract";
 
 /**
@@ -18,6 +19,7 @@ export const v1Contract = {
   plans: plansContract,
   prompts: promptsContract,
   chats: chatsContract,
+  projects: projectsContract,
   me: meContract,
   auth: authContract,
 };
