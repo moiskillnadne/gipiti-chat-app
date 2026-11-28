@@ -1,13 +1,13 @@
 import { eq } from "drizzle-orm";
-import { resetSubscriptionPool } from "@/lib/billing/balance";
-import { priceForCurrency } from "@/lib/billing/subscriptions";
 import type { CloudPaymentsRecurrentWebhook } from "@/lib/payments/cloudpayments-types";
+import { db } from "@/server/db/connection";
+import { subscription, userSubscription } from "@/server/db/schema";
+import { resetSubscriptionPool } from "@/server/modules/billing/balance";
+import { priceForCurrency } from "@/server/modules/billing/subscriptions";
 import {
   calculateNextBillingDate,
   calculatePeriodEnd,
-} from "@/lib/subscription/billing-periods";
-import { db } from "@/server/db/connection";
-import { subscription, userSubscription } from "@/server/db/schema";
+} from "@/server/modules/subscription/billing-periods";
 import { toNumber } from "./utils";
 
 const findSubscription = async (accountId: string, externalId: string) => {

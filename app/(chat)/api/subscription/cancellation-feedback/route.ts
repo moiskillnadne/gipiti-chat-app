@@ -1,11 +1,11 @@
 import { z } from "zod";
-import { saveCancellationFeedback } from "@/lib/db/query/subscription/save-cancellation-feedback";
 import {
   type CancellationReasonCode,
   VALID_REASON_CODES,
 } from "@/lib/subscription/cancellation-reasons";
-import { getLatestSubscription } from "@/lib/subscription/get-latest-subscription";
 import { auth } from "@/server/modules/auth/next-auth";
+import { getLatestSubscription } from "@/server/modules/subscription/get-latest-subscription";
+import { saveCancellationFeedback } from "@/server/modules/subscription/queries/save-cancellation-feedback";
 
 const MAX_FEEDBACK_LENGTH = 2000;
 const MS_PER_DAY = 1000 * 60 * 60 * 24;

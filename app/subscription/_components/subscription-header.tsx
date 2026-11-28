@@ -1,6 +1,6 @@
 import { getTranslations } from "@/lib/i18n/translate";
-import type { BalanceViewState } from "@/lib/subscription/subscription-state";
 import { formatBillingCycle, formatRuDate } from "@/lib/utils/format-billing";
+import type { BalanceViewState } from "@/server/modules/subscription/subscription-state";
 import styles from "./dashboard.module.css";
 
 const FREE_STATES = new Set<BalanceViewState>([

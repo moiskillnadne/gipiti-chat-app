@@ -12,11 +12,11 @@ import {
 import type { ProjectContextInput, RequestHints } from "@/lib/ai/prompts";
 import { calculateOptimalStepLimit } from "@/lib/ai/step-calculator";
 import { createImageUsageAccumulator } from "@/lib/ai/tools/generate-image";
-import { checkTurnBalance } from "@/lib/billing/turn-balance";
 import { ChatSDKError } from "@/lib/errors";
 import { isInterruptedMessage } from "@/lib/messages/interrupted";
 import type { ChatMessage } from "@/lib/types";
 import { generateUUID } from "@/lib/utils";
+import { checkTurnBalance } from "@/server/modules/billing/turn-balance";
 import { createStreamId } from "@/server/modules/chat/queries/create-stream-id";
 import { getChatById } from "@/server/modules/chat/queries/get-chat-by-id";
 import { getMessagesByChatId } from "@/server/modules/chat/queries/get-messages-by-chat-id";

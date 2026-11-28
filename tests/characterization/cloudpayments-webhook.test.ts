@@ -5,13 +5,13 @@ import {
   creditTopupForIntent,
   ensureBalance,
   resetSubscriptionPool,
-} from "@/lib/billing/balance";
-import { getMinorUnits } from "@/lib/billing/currencies";
-import { applyPaymentRefund } from "@/lib/billing/refund";
+} from "@/server/modules/billing/balance";
+import { getMinorUnits } from "@/server/modules/billing/currencies";
+import { applyPaymentRefund } from "@/server/modules/billing/refund";
 import {
   getSubscriptionByCode,
   priceForCurrency,
-} from "@/lib/billing/subscriptions";
+} from "@/server/modules/billing/subscriptions";
 import type { PaymentIntent, Subscription } from "@/server/db/schema";
 import { cancelSubscription } from "@/lib/payments/cloudpayments";
 import { getCloudPaymentsConfig } from "@/lib/payments/cloudpayments-config";
@@ -53,17 +53,21 @@ vi.mock("@/server/db/connection", () => ({ db: dbMock }));
 vi.mock("@/server/modules/users/queries/get-by-id", () => ({
   getUserById: vi.fn(),
 }));
-vi.mock("@/lib/billing/balance", () => ({
+vi.mock("@/server/modules/billing/balance", () => ({
   creditTopupForIntent: vi.fn(),
   ensureBalance: vi.fn(),
   resetSubscriptionPool: vi.fn(),
 }));
-vi.mock("@/lib/billing/subscriptions", () => ({
+vi.mock("@/server/modules/billing/subscriptions", () => ({
   getSubscriptionByCode: vi.fn(),
   priceForCurrency: vi.fn(),
 }));
-vi.mock("@/lib/billing/currencies", () => ({ getMinorUnits: vi.fn() }));
-vi.mock("@/lib/billing/refund", () => ({ applyPaymentRefund: vi.fn() }));
+vi.mock("@/server/modules/billing/currencies", () => ({
+  getMinorUnits: vi.fn(),
+}));
+vi.mock("@/server/modules/billing/refund", () => ({
+  applyPaymentRefund: vi.fn(),
+}));
 vi.mock("@/lib/payments/cloudpayments", () => ({
   cancelSubscription: vi.fn(),
 }));

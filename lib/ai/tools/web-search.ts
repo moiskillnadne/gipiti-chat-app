@@ -1,12 +1,12 @@
 import { tool } from "ai";
 import type { Session } from "next-auth";
 import { z } from "zod";
-import { chargeUsage } from "@/lib/billing/balance";
 import { SEARCH_COST_USD } from "@/lib/billing/constants";
 import {
   formatSearchResultsForLLM,
   searchWithTavily,
 } from "@/lib/search/tavily-client";
+import { chargeUsage } from "@/server/modules/billing/balance";
 
 export const webSearch = ({
   session,

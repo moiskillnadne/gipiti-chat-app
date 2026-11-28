@@ -1,12 +1,11 @@
 import { notFound, redirect } from "next/navigation";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-import { getMinorUnits } from "@/lib/billing/currencies";
 import { createServerCaller } from "@/server/api/_kit/server-caller";
 import { isSignupEnabled } from "@/server/flags";
 import { authenticateCredentials } from "@/server/modules/auth/authenticate-credentials";
 import { getCookieSessionUserId } from "@/server/modules/auth/cookie-session";
 import { resolveBearerSession } from "@/server/modules/auth/sessions";
+import { getMinorUnits } from "@/server/modules/billing/currencies";
 import { createProjectForUser } from "@/server/modules/projects/create-project-for-user";
 import { deleteProjectForUser } from "@/server/modules/projects/delete-project-for-user";
 import { listProjects } from "@/server/modules/projects/list-projects";
@@ -47,17 +46,22 @@ vi.mock("@/server/modules/auth/send-verification-code", () => ({
 vi.mock("@/server/modules/auth/verify-email-code", () => ({
   verifyEmailCode: vi.fn(),
 }));
-vi.mock("@/lib/billing/currencies", () => ({ getMinorUnits: vi.fn() }));
-vi.mock("@/lib/billing/subscriptions", () => ({
+vi.mock("@/server/modules/billing/currencies", () => ({
+  getMinorUnits: vi.fn(),
+}));
+vi.mock("@/server/modules/billing/subscriptions", () => ({
   listActiveSubscriptionsWithPrices: vi.fn(),
 }));
-vi.mock("@/lib/billing/balance", () => ({ getBalance: vi.fn() }));
+vi.mock("@/server/modules/billing/balance", () => ({ getBalance: vi.fn() }));
 vi.mock("@/server/modules/users/queries/get-by-id", () => ({
   getUserById: vi.fn(),
 }));
-vi.mock("@/lib/db/query/subscription/get-active-user-subscription", () => ({
-  getActiveUserSubscription: vi.fn(),
-}));
+vi.mock(
+  "@/server/modules/subscription/queries/get-active-user-subscription",
+  () => ({
+    getActiveUserSubscription: vi.fn(),
+  })
+);
 vi.mock("@/server/modules/projects/list-projects", () => ({
   listProjects: vi.fn(),
 }));

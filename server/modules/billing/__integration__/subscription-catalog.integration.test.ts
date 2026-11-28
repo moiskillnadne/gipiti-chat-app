@@ -2,10 +2,9 @@ import { randomUUID } from "node:crypto";
 
 import { inArray } from "drizzle-orm";
 import { afterAll, afterEach, beforeEach, describe, expect, it } from "vitest";
-
-import { listActiveSubscriptionsWithPrices } from "@/lib/billing/subscriptions";
 import { db } from "@/server/db/connection";
 import { currency, subscription, subscriptionPrice } from "@/server/db/schema";
+import { listActiveSubscriptionsWithPrices } from "@/server/modules/billing/subscriptions";
 import {
   closeDatabaseConnection,
   seedCurrency,

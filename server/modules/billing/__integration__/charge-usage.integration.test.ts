@@ -1,6 +1,6 @@
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 
-import { chargeUsage } from "@/lib/billing/balance";
+import { chargeUsage } from "@/server/modules/billing/balance";
 import {
   closeDatabaseConnection,
   connectionPoolSize,

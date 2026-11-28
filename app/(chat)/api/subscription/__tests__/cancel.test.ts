@@ -29,13 +29,16 @@ vi.mock("@/server/db/connection", () => {
 
   return { db: { select, update } };
 });
-vi.mock("@/lib/billing/balance", () => ({ getBalance: vi.fn() }));
-vi.mock("@/lib/billing/subscriptions", () => ({
+vi.mock("@/server/modules/billing/balance", () => ({ getBalance: vi.fn() }));
+vi.mock("@/server/modules/billing/subscriptions", () => ({
   getActiveUserSubscription: vi.fn(),
 }));
-vi.mock("@/lib/db/query/subscription/save-cancellation-feedback", () => ({
-  saveCancellationFeedback: mocks.saveCancellationFeedback,
-}));
+vi.mock(
+  "@/server/modules/subscription/queries/save-cancellation-feedback",
+  () => ({
+    saveCancellationFeedback: mocks.saveCancellationFeedback,
+  })
+);
 vi.mock("@/lib/payments/cloudpayments", () => ({
   cancelSubscription: mocks.cancelSubscription,
   getSubscription: mocks.getSubscription,

@@ -29,7 +29,7 @@ vi.mock("@/lib/ai/models", () => ({
 vi.mock("@/lib/db/query/document/save-document", () => ({
   saveDocument: saveDocumentMock,
 }));
-vi.mock("@/lib/subscription/is-free-user", () => ({
+vi.mock("@/server/modules/subscription/is-free-user", () => ({
   isFreeUserById: vi.fn().mockResolvedValue(false),
 }));
 vi.mock("@/app/(chat)/api/chat/_lib/charge", () => ({

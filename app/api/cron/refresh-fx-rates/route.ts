@@ -1,5 +1,5 @@
-import { refreshFxRates } from "@/lib/billing/fx";
 import { isAuthorizedCronRequest } from "@/server/cron/is-authorized-cron-request";
+import { refreshFxRates } from "@/server/modules/billing/fx";
 
 /**
  * Refresh cached USD→currency FX rates. Scheduled hourly. On failure the last

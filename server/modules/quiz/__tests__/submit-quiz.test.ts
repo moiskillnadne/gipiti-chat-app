@@ -1,11 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-import { grantQuizBonus } from "@/lib/billing/balance";
+import { db } from "@/server/db/connection";
+import { grantQuizBonus } from "@/server/modules/billing/balance";
 import {
   EmailNotVerifiedError,
   isUserEmailVerified,
-} from "@/lib/billing/email-verification";
-import { db } from "@/server/db/connection";
+} from "@/server/modules/billing/email-verification";
 import { createQuizResponse } from "@/server/modules/quiz/queries/create-quiz-response";
 import { submitQuiz } from "@/server/modules/quiz/submit-quiz";
 
@@ -20,13 +19,13 @@ vi.mock("@/server/db/connection", () => ({
     ),
   },
 }));
-vi.mock("@/lib/billing/balance", () => ({
+vi.mock("@/server/modules/billing/balance", () => ({
   grantQuizBonus: vi.fn(),
 }));
-vi.mock("@/lib/billing/email-verification", async () => {
+vi.mock("@/server/modules/billing/email-verification", async () => {
   const actual = await vi.importActual<
-    typeof import("@/lib/billing/email-verification")
-  >("@/lib/billing/email-verification");
+    typeof import("@/server/modules/billing/email-verification")
+  >("@/server/modules/billing/email-verification");
 
   return { ...actual, isUserEmailVerified: vi.fn() };
 });

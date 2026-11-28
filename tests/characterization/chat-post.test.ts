@@ -100,19 +100,19 @@ vi.mock("next/server", async () => {
   return { ...actual, after: afterMock };
 });
 vi.mock("@vercel/functions", () => ({ geolocation: () => ({}) }));
-vi.mock("@/lib/activity/record-user-activity", () => ({
+vi.mock("@/server/http/record-user-activity", () => ({
   recordUserActivity: recordUserActivityMock,
 }));
 vi.mock("@/server/http/rate-limit", () => ({
   checkChatRateLimit: checkChatRateLimitMock,
 }));
-vi.mock("@/lib/billing/turn-slots", async () => {
+vi.mock("@/server/modules/billing/turn-slots", async () => {
   const actual = await vi.importActual<
-    typeof import("@/lib/billing/turn-slots")
-  >("@/lib/billing/turn-slots");
+    typeof import("@/server/modules/billing/turn-slots")
+  >("@/server/modules/billing/turn-slots");
   return { ...actual, acquireTurnSlot: acquireTurnSlotMock };
 });
-vi.mock("@/lib/billing/turn-balance", () => ({
+vi.mock("@/server/modules/billing/turn-balance", () => ({
   checkTurnBalance: checkTurnBalanceMock,
 }));
 vi.mock("@/lib/ai/generate-chat-title", () => ({

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { TurnSlot } from "@/lib/billing/turn-slots";
 import type { ChatMessage } from "@/lib/types";
+import type { TurnSlot } from "@/server/modules/billing/turn-slots";
 import type { ChatTurnContext, StreamWriter } from "../context";
 import { createTurnAbort } from "../turn-abort";
 import { createTurnSettlement } from "../turn-lifecycle";
@@ -107,7 +107,7 @@ vi.mock("@/lib/ai/media-upload", () => ({
 vi.mock("@/lib/db/query/document/save-document", () => ({
   saveDocument: saveDocumentMock,
 }));
-vi.mock("@/lib/subscription/is-free-user", () => ({
+vi.mock("@/server/modules/subscription/is-free-user", () => ({
   isFreeUserById: vi.fn().mockResolvedValue(false),
 }));
 

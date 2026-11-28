@@ -1,12 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-import { ensureBalance, resetSubscriptionPool } from "@/lib/billing/balance";
+import type { CloudPaymentsWebhookPayload } from "@/lib/payments/cloudpayments-types";
+import type { Subscription } from "@/server/db/schema";
+import {
+  ensureBalance,
+  resetSubscriptionPool,
+} from "@/server/modules/billing/balance";
 import {
   getSubscriptionByCode,
   priceForCurrency,
-} from "@/lib/billing/subscriptions";
-import type { CloudPaymentsWebhookPayload } from "@/lib/payments/cloudpayments-types";
-import type { Subscription } from "@/server/db/schema";
+} from "@/server/modules/billing/subscriptions";
 
 import { handleCheckWebhook } from "../check";
 import { handlePayWebhook } from "../pay";
@@ -40,11 +42,11 @@ const { selectResults, insertValues, updateSet, dbMock } = vi.hoisted(() => {
 });
 
 vi.mock("@/server/db/connection", () => ({ db: dbMock }));
-vi.mock("@/lib/billing/subscriptions", () => ({
+vi.mock("@/server/modules/billing/subscriptions", () => ({
   getSubscriptionByCode: vi.fn(),
   priceForCurrency: vi.fn(),
 }));
-vi.mock("@/lib/billing/balance", () => ({
+vi.mock("@/server/modules/billing/balance", () => ({
   creditTopupForIntent: vi.fn(),
   ensureBalance: vi.fn(),
   resetSubscriptionPool: vi.fn(),

@@ -5,7 +5,7 @@ import {
   MIN_TEXT_TURN_BALANCE_MINOR,
   MIN_VIDEO_TURN_BALANCE_MINOR,
   USAGE_MARKUP,
-} from "../constants";
+} from "@/lib/billing/constants";
 
 const { getBalanceMock, getCurrencyPricingMock } = vi.hoisted(() => ({
   getBalanceMock: vi.fn(),
@@ -13,8 +13,10 @@ const { getBalanceMock, getCurrencyPricingMock } = vi.hoisted(() => ({
 }));
 
 vi.mock("@/server/db/connection", () => ({ db: {} }));
-vi.mock("@/lib/billing/balance", () => ({ getBalance: getBalanceMock }));
-vi.mock("@/lib/billing/fx", () => ({
+vi.mock("@/server/modules/billing/balance", () => ({
+  getBalance: getBalanceMock,
+}));
+vi.mock("@/server/modules/billing/fx", () => ({
   getCurrencyPricing: getCurrencyPricingMock,
 }));
 

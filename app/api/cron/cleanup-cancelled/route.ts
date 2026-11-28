@@ -1,9 +1,9 @@
 import { and, eq, lte } from "drizzle-orm";
-import { getActiveUserSubscription } from "@/lib/db/query/subscription/get-active-user-subscription";
-import { assignFreePlan } from "@/lib/subscription/subscription-init";
 import { isAuthorizedCronRequest } from "@/server/cron/is-authorized-cron-request";
 import { db } from "@/server/db/connection";
 import { userSubscription } from "@/server/db/schema";
+import { getActiveUserSubscription } from "@/server/modules/subscription/queries/get-active-user-subscription";
+import { assignFreePlan } from "@/server/modules/subscription/subscription-init";
 
 export async function GET(request: Request) {
   if (!isAuthorizedCronRequest(request)) {

@@ -1,4 +1,4 @@
-import type { BillingPeriod } from "../../subscription-tiers";
+import type { BillingPeriod } from "@/lib/subscription/subscription-tiers";
 
 /**
  * Calculate the next period end date based on billing period type and count

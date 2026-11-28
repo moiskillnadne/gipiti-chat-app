@@ -1,5 +1,5 @@
-import type { SubscriptionWithPrices } from "@/lib/billing/subscriptions";
 import type { Plan } from "@/server/api/v1/_schemas/plan";
+import type { SubscriptionWithPrices } from "@/server/modules/billing/subscriptions";
 
 export const toPlanDto = ({
   subscription,

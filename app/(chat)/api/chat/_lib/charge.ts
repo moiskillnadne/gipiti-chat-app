@@ -1,4 +1,4 @@
-import { chargeUsage } from "@/lib/billing/balance";
+import { chargeUsage } from "@/server/modules/billing/balance";
 
 type ChargeUsageArgs = Parameters<typeof chargeUsage>[0];
 

@@ -1,5 +1,8 @@
-import { ensureBalance, resetSubscriptionPool } from "@/lib/billing/balance";
-import { getActiveUserSubscription } from "@/lib/billing/subscriptions";
+import {
+  ensureBalance,
+  resetSubscriptionPool,
+} from "@/server/modules/billing/balance";
+import { getActiveUserSubscription } from "@/server/modules/billing/subscriptions";
 
 /**
  * Move a user to the free state: no active subscription, an empty subscription

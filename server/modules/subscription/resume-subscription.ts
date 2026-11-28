@@ -1,10 +1,5 @@
 import { eq } from "drizzle-orm";
-import { getMinorUnits } from "@/lib/billing/currencies";
 import { minorToMajorUnits } from "@/lib/billing/money";
-import {
-  getActiveUserSubscription,
-  priceForCurrency,
-} from "@/lib/billing/subscriptions";
 import {
   createSubscription,
   getSubscription,
@@ -12,6 +7,11 @@ import {
 import type { CloudPaymentsInterval } from "@/lib/payments/cloudpayments-types";
 import { db } from "@/server/db/connection";
 import { subscription, userSubscription } from "@/server/db/schema";
+import { getMinorUnits } from "@/server/modules/billing/currencies";
+import {
+  getActiveUserSubscription,
+  priceForCurrency,
+} from "@/server/modules/billing/subscriptions";
 import { getUserById } from "@/server/modules/users/queries/get-by-id";
 
 export type ResumeOutcome =

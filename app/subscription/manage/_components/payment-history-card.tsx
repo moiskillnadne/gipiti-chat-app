@@ -1,7 +1,7 @@
 import { formatCurrency } from "@/lib/billing/money";
-import type { CardPayment } from "@/lib/billing/payment-history";
 import { getTranslations } from "@/lib/i18n/translate";
 import { formatRuDateTime, formatRuMonth } from "@/lib/utils/format-billing";
+import type { CardPayment } from "@/server/modules/billing/payment-history";
 import dash from "../../_components/dashboard.module.css";
 import { PlusIcon, RefreshIcon } from "../../_components/icons";
 import styles from "./manage.module.css";

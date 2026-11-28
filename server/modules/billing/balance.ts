@@ -1,4 +1,11 @@
 import { and, desc, eq, ne } from "drizzle-orm";
+import {
+  DEFAULT_CURRENCY_CODE,
+  EMAIL_CONFIRM_BONUS_MAJOR_UNITS,
+  USAGE_MARKUP,
+  WELCOME_GRANT_MAJOR_UNITS,
+} from "@/lib/billing/constants";
+import { majorToMinorUnits, usdToMinorUnits } from "@/lib/billing/money";
 import { type DatabaseExecutor, db } from "@/server/db/connection";
 import {
   balance,
@@ -7,16 +14,9 @@ import {
   transaction,
   user,
 } from "@/server/db/schema";
-import {
-  DEFAULT_CURRENCY_CODE,
-  EMAIL_CONFIRM_BONUS_MAJOR_UNITS,
-  USAGE_MARKUP,
-  WELCOME_GRANT_MAJOR_UNITS,
-} from "./constants";
 import { getMinorUnits } from "./currencies";
 import { assertEmailVerified } from "./email-verification";
 import { getCurrencyPricing } from "./fx";
-import { majorToMinorUnits, usdToMinorUnits } from "./money";
 
 export type BalanceSummary = {
   currencyCode: string;

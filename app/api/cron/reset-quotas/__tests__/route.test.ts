@@ -52,13 +52,13 @@ vi.mock("@/server/db/connection", () => {
     },
   };
 });
-vi.mock("@/lib/billing/balance", () => ({
+vi.mock("@/server/modules/billing/balance", () => ({
   resetSubscriptionPool: resetSubscriptionPoolMock,
 }));
-vi.mock("@/lib/billing/subscriptions", () => ({
+vi.mock("@/server/modules/billing/subscriptions", () => ({
   priceForCurrency: priceForCurrencyMock,
 }));
-vi.mock("@/lib/subscription/subscription-init", () => ({
+vi.mock("@/server/modules/subscription/subscription-init", () => ({
   assignFreePlan: assignFreePlanMock,
 }));
 

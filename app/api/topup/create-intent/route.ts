@@ -1,19 +1,19 @@
 import crypto from "node:crypto";
-import { ensureBalance } from "@/lib/billing/balance";
 import {
   DEFAULT_CURRENCY_CODE,
   TOPUP_MIN_MAJOR_UNITS,
   TOPUP_TESTER_MIN_MAJOR_UNITS,
 } from "@/lib/billing/constants";
 import { majorToMinorUnits } from "@/lib/billing/money";
-import { getLatestSubscription } from "@/lib/subscription/get-latest-subscription";
-import { deriveSubscriptionUiState } from "@/lib/subscription/subscription-state";
 import type { TopupIntentResponse } from "@/lib/types";
 import { createTopupIntentRequestSchema } from "@/lib/validation/topup";
 import { db } from "@/server/db/connection";
 import { paymentIntent } from "@/server/db/schema";
 import { isTopupEnabled } from "@/server/flags";
 import { auth } from "@/server/modules/auth/next-auth";
+import { ensureBalance } from "@/server/modules/billing/balance";
+import { getLatestSubscription } from "@/server/modules/subscription/get-latest-subscription";
+import { deriveSubscriptionUiState } from "@/server/modules/subscription/subscription-state";
 import { getUserById } from "@/server/modules/users/queries/get-by-id";
 
 const RUB_MINOR_UNITS = 2;

@@ -2,11 +2,11 @@ import type { Session } from "next-auth";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { auth } from "@/server/modules/auth/next-auth";
-import { ensureBalance, getBalance } from "@/lib/billing/balance";
+import { ensureBalance, getBalance } from "@/server/modules/billing/balance";
 import {
   getSubscriptionByCode,
   priceForCurrency,
-} from "@/lib/billing/subscriptions";
+} from "@/server/modules/billing/subscriptions";
 import { getUserById } from "@/server/modules/users/queries/get-by-id";
 import type { PaymentIntent, Subscription, User } from "@/server/db/schema";
 import { isTopupEnabled } from "@/server/flags";
@@ -14,7 +14,7 @@ import { checkPaymentStatusRateLimit } from "@/server/http/rate-limit";
 import {
   getLatestSubscription,
   type LatestSubscription,
-} from "@/lib/subscription/get-latest-subscription";
+} from "@/server/modules/subscription/get-latest-subscription";
 
 import {
   paymentCreateIntentPost,
@@ -58,15 +58,15 @@ vi.mock("@/server/db/connection", () => ({ db: dbMock }));
 vi.mock("@/server/modules/users/queries/get-by-id", () => ({
   getUserById: vi.fn(),
 }));
-vi.mock("@/lib/billing/balance", () => ({
+vi.mock("@/server/modules/billing/balance", () => ({
   ensureBalance: vi.fn(),
   getBalance: vi.fn(),
 }));
-vi.mock("@/lib/billing/subscriptions", () => ({
+vi.mock("@/server/modules/billing/subscriptions", () => ({
   getSubscriptionByCode: vi.fn(),
   priceForCurrency: vi.fn(),
 }));
-vi.mock("@/lib/subscription/get-latest-subscription", () => ({
+vi.mock("@/server/modules/subscription/get-latest-subscription", () => ({
   getLatestSubscription: vi.fn(),
 }));
 

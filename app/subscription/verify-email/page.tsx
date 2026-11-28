@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
-import { getBalance } from "@/lib/billing/balance";
 import { EMAIL_CONFIRM_BONUS_MAJOR_UNITS } from "@/lib/billing/constants";
-import { getMinorUnits } from "@/lib/billing/currencies";
 import { formatCurrency, majorToMinorUnits } from "@/lib/billing/money";
 import { auth } from "@/server/modules/auth/next-auth";
+import { getBalance } from "@/server/modules/billing/balance";
+import { getMinorUnits } from "@/server/modules/billing/currencies";
 import { VerifyEmailClient } from "./_components/verify-email-client";
 
 export default async function VerifyEmailPage() {

@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { MEDIA_TURN_SLOT_LIMIT, TEXT_TURN_SLOT_LIMIT } from "../constants";
+import {
+  MEDIA_TURN_SLOT_LIMIT,
+  TEXT_TURN_SLOT_LIMIT,
+} from "@/lib/billing/constants";
 import {
   createMemorySlotBackend,
   createRedisSlotBackend,

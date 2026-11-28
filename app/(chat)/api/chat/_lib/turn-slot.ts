@@ -1,11 +1,11 @@
+import { ChatSDKError } from "@/lib/errors";
+import { getTranslations } from "@/lib/i18n/translate";
+import { checkChatRateLimit } from "@/server/http/rate-limit";
 import {
   acquireTurnSlot,
   type TurnSlot,
   turnSlotKindForMode,
-} from "@/lib/billing/turn-slots";
-import { ChatSDKError } from "@/lib/errors";
-import { getTranslations } from "@/lib/i18n/translate";
-import { checkChatRateLimit } from "@/server/http/rate-limit";
+} from "@/server/modules/billing/turn-slots";
 import type { ChatTurnContext } from "./context";
 import type { ChatMode } from "./resolve-mode";
 

@@ -1,12 +1,12 @@
 import type { Session } from "next-auth";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  getSubscriptionByCode,
-  priceForCurrency,
-} from "@/lib/billing/subscriptions";
 import { db } from "@/server/db/connection";
 import type { Subscription, User } from "@/server/db/schema";
 import { auth } from "@/server/modules/auth/next-auth";
+import {
+  getSubscriptionByCode,
+  priceForCurrency,
+} from "@/server/modules/billing/subscriptions";
 import { getUserById } from "@/server/modules/users/queries/get-by-id";
 
 import { POST } from "../route";
@@ -20,7 +20,7 @@ vi.mock("@/server/db/connection", () => ({
 vi.mock("@/server/modules/users/queries/get-by-id", () => ({
   getUserById: vi.fn(),
 }));
-vi.mock("@/lib/billing/subscriptions", () => ({
+vi.mock("@/server/modules/billing/subscriptions", () => ({
   getSubscriptionByCode: vi.fn(),
   priceForCurrency: vi.fn(),
 }));

@@ -1,8 +1,8 @@
-import { getBalance } from "@/lib/billing/balance";
-import { getActiveUserSubscription } from "@/lib/db/query/subscription/get-active-user-subscription";
 import { toMeDto } from "@/server/api/v1/_mappers/me";
 import type { Me } from "@/server/api/v1/_schemas/me";
 import { isTopupEnabled } from "@/server/flags";
+import { getBalance } from "@/server/modules/billing/balance";
+import { getActiveUserSubscription } from "@/server/modules/subscription/queries/get-active-user-subscription";
 import { getUserById } from "@/server/modules/users/queries/get-by-id";
 
 /**

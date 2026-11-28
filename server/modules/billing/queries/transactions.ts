@@ -1,8 +1,8 @@
 import "server-only";
 import { count, desc, eq } from "drizzle-orm";
-import { getBalance } from "@/lib/billing/balance";
 import { db } from "@/server/db/connection";
 import { chat, type Transaction, transaction } from "@/server/db/schema";
+import { getBalance } from "@/server/modules/billing/balance";
 
 export type TransactionWithChat = {
   id: string;
