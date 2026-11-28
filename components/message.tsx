@@ -4,6 +4,7 @@ import equal from "fast-deep-equal";
 import { motion } from "framer-motion";
 import { ChevronDownIcon } from "lucide-react";
 import { memo, useMemo, useState } from "react";
+import type { VoteDto } from "@/client/shared/api/types";
 import { useMediaDownload } from "@/hooks/use-media-download";
 import { getModelById } from "@/lib/ai/models";
 import { downloadFromUrl } from "@/lib/download";
@@ -12,7 +13,6 @@ import { groupToolRuns } from "@/lib/messages/group-tool-runs";
 import { isInterruptedMessage } from "@/lib/messages/interrupted";
 import type { ChatMessage } from "@/lib/types";
 import { cn, sanitizeText } from "@/lib/utils";
-import type { Vote } from "@/server/db/schema";
 import { AssistantIcon } from "./assistant-icon";
 import {
   DOCUMENT_FORMAT_LABELS,
@@ -124,7 +124,7 @@ const PurePreviewMessage = ({
 }: {
   chatId: string;
   message: ChatMessage;
-  vote: Vote | undefined;
+  vote: VoteDto | undefined;
   isLoading: boolean;
   setMessages: UseChatHelpers<ChatMessage>["setMessages"];
   regenerate: UseChatHelpers<ChatMessage>["regenerate"];
@@ -406,6 +406,7 @@ const PurePreviewMessage = ({
                     <div className="size-8" />
                     <div className="min-w-0 flex-1">
                       <MessageEditor
+                        chatId={chatId}
                         key={message.id}
                         message={message}
                         regenerate={regenerate}

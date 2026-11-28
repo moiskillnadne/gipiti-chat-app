@@ -3,45 +3,13 @@ import equal from "fast-deep-equal";
 import { RefreshCw } from "lucide-react";
 import { memo } from "react";
 import { toast } from "sonner";
-import { useSWRConfig } from "swr";
 import { useCopyToClipboard } from "usehooks-ts";
+import type { VoteDto } from "@/client/shared/api/types";
 import { useTranslations } from "@/lib/i18n/translate";
 import type { ChatMessage } from "@/lib/types";
-import type { Vote } from "@/server/db/schema";
 import { Action, Actions } from "./elements/actions";
 import { CopyIcon, PencilEditIcon, ThumbDownIcon, ThumbUpIcon } from "./icons";
-
-type VoteType = "up" | "down";
-
-type VoteRequest = {
-  chatId: string;
-  messageId: string;
-  type: VoteType;
-};
-
-class VoteRequestError extends Error {
-  constructor(status: number) {
-    super(`Vote request failed with status ${status}`);
-    this.name = "VoteRequestError";
-  }
-}
-
-/**
- * Sends a vote. `fetch` resolves on 4xx/5xx, so a refused vote is turned into
- * a rejection: `toast.promise` then shows the error toast and skips the
- * optimistic cache update.
- */
-const submitVote = async (voteRequest: VoteRequest): Promise<void> => {
-  const response = await fetch("/api/vote", {
-    method: "PATCH",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(voteRequest),
-  });
-
-  if (!response.ok) {
-    throw new VoteRequestError(response.status);
-  }
-};
+import { useMessageVote } from "./use-message-vote";
 
 export function PureMessageActions({
   chatId,
@@ -54,7 +22,7 @@ export function PureMessageActions({
 }: {
   chatId: string;
   message: ChatMessage;
-  vote: Vote | undefined;
+  vote: VoteDto | undefined;
   isLoading: boolean;
   setMode?: (mode: "view" | "edit") => void;
   regenerate?: UseChatHelpers<ChatMessage>["regenerate"];
@@ -62,7 +30,7 @@ export function PureMessageActions({
 }) {
   const t = useTranslations("common.toasts");
   const tMessages = useTranslations("chat.messages");
-  const { mutate } = useSWRConfig();
+  const castVote = useMessageVote(chatId);
   const [_, copyToClipboard] = useCopyToClipboard();
 
   if (isLoading) {
@@ -94,12 +62,12 @@ export function PureMessageActions({
             <Action
               className="-left-10 absolute top-0 opacity-0 transition-opacity focus-visible:opacity-100 group-focus-within/message:opacity-100 group-hover/message:opacity-100 [@media(hover:none)]:opacity-100"
               onClick={() => setMode("edit")}
-              tooltip="Edit"
+              tooltip={tMessages("edit")}
             >
               <PencilEditIcon />
             </Action>
           )}
-          <Action onClick={handleCopy} tooltip="Copy">
+          <Action onClick={handleCopy} tooltip={tMessages("copy")}>
             <CopyIcon />
           </Action>
         </div>
@@ -109,52 +77,21 @@ export function PureMessageActions({
 
   return (
     <Actions className="-ml-0.5">
-      <Action onClick={handleCopy} tooltip="Copy">
+      <Action onClick={handleCopy} tooltip={tMessages("copy")}>
         <CopyIcon />
       </Action>
 
       <Action
         data-testid="message-upvote"
         disabled={vote?.isUpvoted}
-        onClick={() => {
-          const upvote = submitVote({
-            chatId,
+        onClick={() =>
+          castVote({
             messageId: message.id,
-            type: "up",
-          });
-
-          toast.promise(upvote, {
-            loading: "Upvoting Response...",
-            success: () => {
-              mutate<Vote[]>(
-                `/api/vote?chatId=${chatId}`,
-                (currentVotes) => {
-                  if (!currentVotes) {
-                    return [];
-                  }
-
-                  const votesWithoutCurrent = currentVotes.filter(
-                    (currentVote) => currentVote.messageId !== message.id
-                  );
-
-                  return [
-                    ...votesWithoutCurrent,
-                    {
-                      chatId,
-                      messageId: message.id,
-                      isUpvoted: true,
-                    },
-                  ];
-                },
-                { revalidate: false }
-              );
-
-              return "Upvoted Response!";
-            },
-            error: "Failed to upvote response.",
-          });
-        }}
-        tooltip="Upvote Response"
+            isUpvoted: true,
+            previousIsUpvoted: vote?.isUpvoted,
+          })
+        }
+        tooltip={tMessages("upvoteResponse")}
       >
         <ThumbUpIcon />
       </Action>
@@ -162,45 +99,14 @@ export function PureMessageActions({
       <Action
         data-testid="message-downvote"
         disabled={vote && !vote.isUpvoted}
-        onClick={() => {
-          const downvote = submitVote({
-            chatId,
+        onClick={() =>
+          castVote({
             messageId: message.id,
-            type: "down",
-          });
-
-          toast.promise(downvote, {
-            loading: "Downvoting Response...",
-            success: () => {
-              mutate<Vote[]>(
-                `/api/vote?chatId=${chatId}`,
-                (currentVotes) => {
-                  if (!currentVotes) {
-                    return [];
-                  }
-
-                  const votesWithoutCurrent = currentVotes.filter(
-                    (currentVote) => currentVote.messageId !== message.id
-                  );
-
-                  return [
-                    ...votesWithoutCurrent,
-                    {
-                      chatId,
-                      messageId: message.id,
-                      isUpvoted: false,
-                    },
-                  ];
-                },
-                { revalidate: false }
-              );
-
-              return "Downvoted Response!";
-            },
-            error: "Failed to downvote response.",
-          });
-        }}
-        tooltip="Downvote Response"
+            isUpvoted: false,
+            previousIsUpvoted: vote?.isUpvoted,
+          })
+        }
+        tooltip={tMessages("downvoteResponse")}
       >
         <ThumbDownIcon />
       </Action>

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { ChatSDKError } from "@/lib/errors";
+import { recordLegacyHit } from "@/server/http/legacy-hit";
 import { auth } from "@/server/modules/auth/next-auth";
 import { getChatById } from "@/server/modules/chat/queries/get-chat-by-id";
 import { getMessageById } from "@/server/modules/chat/queries/get-message-by-id";
@@ -35,6 +36,8 @@ export async function GET(request: Request) {
     return new ChatSDKError("unauthorized:vote").toResponse();
   }
 
+  recordLegacyHit("GET /api/vote");
+
   const chat = await getChatById({ id: chatId });
 
   if (!chat) {
@@ -56,6 +59,8 @@ export async function PATCH(request: Request) {
   if (!session?.user) {
     return new ChatSDKError("unauthorized:vote").toResponse();
   }
+
+  recordLegacyHit("PATCH /api/vote");
 
   let requestBody: unknown;
   try {

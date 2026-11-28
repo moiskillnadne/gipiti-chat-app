@@ -3,6 +3,7 @@ import { after } from "next/server";
 import { ChatSDKError } from "@/lib/errors";
 import type { ChatMessage } from "@/lib/types";
 import { generateUUID } from "@/lib/utils";
+import { recordLegacyHit } from "@/server/http/legacy-hit";
 import { recordUserActivity } from "@/server/http/record-user-activity";
 import { auth } from "@/server/modules/auth/next-auth";
 import { deleteChatById } from "@/server/modules/chat/queries/delete-chat-by-id";
@@ -341,6 +342,8 @@ export async function DELETE(request: Request) {
   if (!session?.user) {
     return new ChatSDKError("unauthorized:chat").toResponse();
   }
+
+  recordLegacyHit("DELETE /api/chat");
 
   const chat = await getChatById({ id });
 

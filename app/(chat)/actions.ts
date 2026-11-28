@@ -13,6 +13,7 @@ import {
   VIDEO_RESOLUTION_COOKIE_PREFIX,
 } from "@/lib/ai/models";
 import { ChatSDKError } from "@/lib/errors";
+import { recordLegacyHit } from "@/server/http/legacy-hit";
 import { auth } from "@/server/modules/auth/next-auth";
 import { deleteTrailingMessagesForUser } from "@/server/modules/chat/delete-trailing-messages";
 
@@ -92,6 +93,8 @@ export async function deleteTrailingMessages({ id }: { id: string }) {
   if (!session?.user?.id) {
     throw new ChatSDKError("unauthorized:chat");
   }
+
+  recordLegacyHit("action deleteTrailingMessages");
 
   const messageId = z.string().uuid().safeParse(id);
 

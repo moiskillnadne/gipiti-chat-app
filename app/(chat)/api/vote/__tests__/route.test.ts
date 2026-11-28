@@ -3,16 +3,25 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Chat, DBMessage } from "@/server/db/schema";
 import { auth } from "@/server/modules/auth/next-auth";
 
-import { PATCH } from "../route";
+import { GET, PATCH } from "../route";
 
-const { getChatByIdMock, getMessageByIdMock, voteMessageMock } = vi.hoisted(
-  () => ({
-    getChatByIdMock: vi.fn(),
-    getMessageByIdMock: vi.fn(),
-    voteMessageMock: vi.fn(),
-  })
-);
+const {
+  getChatByIdMock,
+  getMessageByIdMock,
+  getVotesByChatIdMock,
+  recordLegacyHitMock,
+  voteMessageMock,
+} = vi.hoisted(() => ({
+  getChatByIdMock: vi.fn(),
+  getMessageByIdMock: vi.fn(),
+  getVotesByChatIdMock: vi.fn(),
+  recordLegacyHitMock: vi.fn(),
+  voteMessageMock: vi.fn(),
+}));
 
+vi.mock("@/server/http/legacy-hit", () => ({
+  recordLegacyHit: recordLegacyHitMock,
+}));
 vi.mock("@/server/modules/auth/next-auth", () => ({ auth: vi.fn() }));
 vi.mock("@/server/modules/chat/queries/get-chat-by-id", () => ({
   getChatById: getChatByIdMock,
@@ -21,7 +30,7 @@ vi.mock("@/server/modules/chat/queries/get-message-by-id", () => ({
   getMessageById: getMessageByIdMock,
 }));
 vi.mock("@/server/modules/chat/queries/get-votes-by-chat-id", () => ({
-  getVotesByChatId: vi.fn(),
+  getVotesByChatId: getVotesByChatIdMock,
 }));
 vi.mock("@/server/modules/chat/queries/vote-message", () => ({
   voteMessage: voteMessageMock,
@@ -71,9 +80,60 @@ const arrangeMessage = (messageChatId: string = CHAT_ID): void => {
   ]);
 };
 
+describe("GET /api/vote legacy hit", () => {
+  const createGetRequest = (): Request =>
+    new Request(`http://localhost/api/vote?chatId=${CHAT_ID}`);
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    getVotesByChatIdMock.mockResolvedValue([]);
+  });
+
+  it("counts a signed-in call as one legacy hit", async () => {
+    // Arrange
+    arrangeSession();
+    arrangeChat();
+
+    // Act
+    await GET(createGetRequest());
+
+    // Assert
+    expect(recordLegacyHitMock).toHaveBeenCalledExactlyOnceWith(
+      "GET /api/vote"
+    );
+  });
+
+  it("does not count a signed-out call", async () => {
+    // Arrange
+    mockedAuth.mockResolvedValue(null);
+
+    // Act
+    const response = await GET(createGetRequest());
+
+    // Assert
+    expect(response.status).toBe(401);
+    expect(recordLegacyHitMock).not.toHaveBeenCalled();
+  });
+});
+
 describe("PATCH /api/vote", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it("counts a signed-in call as one legacy hit", async () => {
+    // Arrange
+    arrangeSession();
+    arrangeChat();
+    arrangeMessage();
+
+    // Act
+    await PATCH(createVoteRequest());
+
+    // Assert
+    expect(recordLegacyHitMock).toHaveBeenCalledExactlyOnceWith(
+      "PATCH /api/vote"
+    );
   });
 
   it("answers 401 without a session, before reading the body", async () => {
@@ -85,6 +145,7 @@ describe("PATCH /api/vote", () => {
 
     // Assert
     expect(response.status).toBe(401);
+    expect(recordLegacyHitMock).not.toHaveBeenCalled();
     expect(getChatByIdMock).not.toHaveBeenCalled();
     expect(voteMessageMock).not.toHaveBeenCalled();
   });
