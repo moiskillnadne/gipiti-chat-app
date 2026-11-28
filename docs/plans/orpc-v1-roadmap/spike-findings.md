@@ -247,7 +247,13 @@ Date: 2026-11-28. Linear: GIPITI-266. Run in GitHub Actions, on a throwaway pull
 
 **Not tried:** a value added to an output that is a closed `enum` (the contract has none: outputs that may grow are open strings), a changed success status, a changed default page size. The last two are breaking by the roadmap's rules, and whether `oasdiff` reports them is unknown; a reviewer still has to look at a contract change. A change in who may call an endpoint is invisible to the job, because no operation in the snapshot carries a `security` entry (the bearer scheme is only a component); emitting per-operation `security` from the contract is a follow-up in Phase 5.
 
-<!-- SECOND-RUN-RESULT -->
+**Second run (2026-11-28, throwaway pull request #313, closed), with the job as it is now** (`--fail-on WARN`, base from `HEAD^1`, image pinned by digest, the label no longer skips the job):
+
+- The additive changes of the first run still pass with zero findings.
+- An optional request property removed (`client.deviceName` of `POST /auth/login`) is reported as `warning [request-property-removed]` and fails the job.
+- With the label `api-unreleased-change` the same finding is printed, followed by the warning "The findings above are accepted…", and the job passes.
+
+Not run: the removal of an optional *response* property. Every property of every 2xx response on `main` is required, so there was nothing to remove against that base; `oasdiff` documents it as a warning, which now fails the job.
 
 ## A finding outside the spikes: Vercel's Security Checkpoint
 
