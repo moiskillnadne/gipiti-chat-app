@@ -1,22 +1,25 @@
 import { ChatSDKError } from "@/lib/errors";
-import { db } from "@/server/db/connection";
+import { type DatabaseExecutor, db } from "@/server/db/connection";
 import { vote } from "@/server/db/schema";
 
-export async function voteMessage({
-  chatId,
-  messageId,
-  type,
-}: {
-  chatId: string;
-  messageId: string;
-  type: "up" | "down";
-}) {
+export async function voteMessage(
+  {
+    chatId,
+    messageId,
+    type,
+  }: {
+    chatId: string;
+    messageId: string;
+    type: "up" | "down";
+  },
+  executor: DatabaseExecutor = db
+) {
   const isUpvoted = type === "up";
 
   try {
     // Upsert on the primary key (chatId, messageId): one statement, and a vote
     // row of another chat is never matched by its messageId alone.
-    return await db
+    return await executor
       .insert(vote)
       .values({ chatId, messageId, isUpvoted })
       .onConflictDoUpdate({
