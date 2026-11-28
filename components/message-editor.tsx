@@ -10,14 +10,17 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { deleteTrailingMessages } from "@/app/(chat)/actions";
+import { getApiErrorMessageKey } from "@/client/shared/api/errors";
+import { api } from "@/client/shared/api/orpc-client";
 import { useTranslations } from "@/lib/i18n/translate";
 import type { ChatMessage } from "@/lib/types";
 import { getTextFromMessage } from "@/lib/utils";
+import { canEditProceedAfterDeleteError } from "./message-edit-errors";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 
 export type MessageEditorProps = {
+  chatId: string;
   message: ChatMessage;
   setMode: Dispatch<SetStateAction<"view" | "edit">>;
   setMessages: UseChatHelpers<ChatMessage>["setMessages"];
@@ -25,12 +28,15 @@ export type MessageEditorProps = {
 };
 
 export function MessageEditor({
+  chatId,
   message,
   setMode,
   setMessages,
   regenerate,
 }: MessageEditorProps) {
   const t = useTranslations("common.toasts");
+  const tErrors = useTranslations("errors");
+  const tMessages = useTranslations("chat.messages");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const [draftContent, setDraftContent] = useState<string>(
@@ -79,6 +85,27 @@ export function MessageEditor({
     };
   }, []);
 
+  // Replaces the edited message and everything after it, then asks again.
+  const proceed = () => {
+    setMessages((messages) => {
+      const index = messages.findIndex((m) => m.id === message.id);
+
+      if (index !== -1) {
+        const updatedMessage: ChatMessage = {
+          ...message,
+          parts: [{ type: "text", text: draftContent }],
+        };
+
+        return [...messages.slice(0, index), updatedMessage];
+      }
+
+      return messages;
+    });
+
+    setMode("view");
+    regenerate();
+  };
+
   const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setDraftContent(event.target.value);
     adjustHeight();
@@ -102,7 +129,7 @@ export function MessageEditor({
           }}
           variant="outline"
         >
-          Cancel
+          {tMessages("editCancel")}
         </Button>
         <Button
           className="h-fit px-3 py-2"
@@ -112,37 +139,37 @@ export function MessageEditor({
             setIsSubmitting(true);
 
             try {
-              await deleteTrailingMessages({
-                id: message.id,
+              // 204 also when the message is already gone, and a 404 (no such
+              // chat row yet, or it was deleted elsewhere) means there is
+              // nothing to delete either: the edit goes on, and the resend
+              // creates the chat. The turn checks ownership again.
+              await api.chats.messages.removeFrom({
+                params: { chatId },
+                query: { fromMessageId: message.id },
               });
-            } catch {
+            } catch (error) {
+              if (canEditProceedAfterDeleteError(error)) {
+                proceed();
+                return;
+              }
               // Keep the editor open so the user does not lose the draft.
-              toast.error(t("messageEditFailed"));
+              const errorKey = getApiErrorMessageKey(error);
+              toast.error(t("messageEditFailed"), {
+                description: errorKey ? tErrors(errorKey) : undefined,
+              });
               setIsSubmitting(false);
               return;
             }
 
-            setMessages((messages) => {
-              const index = messages.findIndex((m) => m.id === message.id);
-
-              if (index !== -1) {
-                const updatedMessage: ChatMessage = {
-                  ...message,
-                  parts: [{ type: "text", text: draftContent }],
-                };
-
-                return [...messages.slice(0, index), updatedMessage];
-              }
-
-              return messages;
-            });
-
-            setMode("view");
-            regenerate();
+            proceed();
           }}
           variant="default"
         >
-          {isSubmitting ? "Sending..." : "Send"}
+          {isSubmitting ? (
+            <span key="sending">{tMessages("editSending")}</span>
+          ) : (
+            <span key="send">{tMessages("editSend")}</span>
+          )}
         </Button>
       </div>
     </div>

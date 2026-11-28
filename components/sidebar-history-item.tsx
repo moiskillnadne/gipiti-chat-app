@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { memo } from "react";
+import type { ChatDto } from "@/client/shared/api/types";
 import {
   OVERFLOW_TOOLTIP_CONTENT_CLASS,
   useOverflowTooltip,
 } from "@/hooks/use-overflow-tooltip";
 import { useTranslations } from "@/lib/i18n/translate";
-import type { Chat } from "@/server/db/schema";
 import { MoreHorizontalIcon, TrashIcon } from "./icons";
 import {
   DropdownMenu,
@@ -33,7 +33,7 @@ const PureChatItem = ({
   onDelete,
   setOpenMobile,
 }: {
-  chat: Chat;
+  chat: ChatDto;
   isActive: boolean;
   onDelete: (chatId: string) => void;
   setOpenMobile: (open: boolean) => void;
@@ -109,7 +109,11 @@ const PureChatItem = ({
 };
 
 export const ChatItem = memo(PureChatItem, (prevProps, nextProps) => {
-  if (prevProps.isActive !== nextProps.isActive) {
+  if (
+    prevProps.isActive !== nextProps.isActive ||
+    prevProps.chat.id !== nextProps.chat.id ||
+    prevProps.chat.title !== nextProps.chat.title
+  ) {
     return false;
   }
   return true;

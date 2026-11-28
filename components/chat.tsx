@@ -6,6 +6,11 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import useSWR, { useSWRConfig } from "swr";
 import { unstable_serialize } from "swr/infinite";
+import { api } from "@/client/shared/api/orpc-client";
+import {
+  getChatHistoryKey,
+  getChatVotesKey,
+} from "@/client/shared/api/swr-keys";
 import { ChatHeader } from "@/components/chat-header";
 import {
   AlertDialog,
@@ -27,13 +32,11 @@ import { useTranslations } from "@/lib/i18n/translate";
 import { markLastAssistantStopped } from "@/lib/messages/interrupted";
 import type { Attachment, ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
-import { fetcher, generateUUID } from "@/lib/utils";
-import type { Vote } from "@/server/db/schema";
+import { generateUUID } from "@/lib/utils";
 import { useDataStream } from "./data-stream-provider";
 import { MediaLightboxProvider } from "./elements/media-lightbox-provider";
 import { Messages } from "./messages";
 import { MultimodalInput } from "./multimodal-input";
-import { getChatHistoryPaginationKey } from "./sidebar-history";
 import { toast } from "./toast";
 
 export function Chat({
@@ -161,7 +164,7 @@ export function Chat({
       if (isAbort) {
         setMessages(markLastAssistantStopped);
       }
-      mutate(unstable_serialize(getChatHistoryPaginationKey));
+      mutate(unstable_serialize(getChatHistoryKey));
       // Refresh balance/spend so the composer spend banner re-evaluates its
       // 50%/75% thresholds after this message's charge is recorded.
       mutate("/api/usage");
@@ -239,10 +242,11 @@ export function Chat({
     }
   }, [prefill, hasPrefilled, id]);
 
-  const { data: votes } = useSWR<Vote[]>(
-    messages.length >= 2 ? `/api/vote?chatId=${id}` : null,
-    fetcher
+  const { data: votesResponse } = useSWR(
+    messages.length >= 2 ? getChatVotesKey(id) : null,
+    () => api.chats.votes.list({ chatId: id })
   );
+  const votes = votesResponse?.items;
 
   const [attachments, setAttachments] = useState<Attachment[]>([]);
 

@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { ChatSDKError } from "@/lib/errors";
 import { handleRouteError } from "@/server/http/handle-route-error";
+import { recordLegacyHit } from "@/server/http/legacy-hit";
 import { auth } from "@/server/modules/auth/next-auth";
 import { deleteAllChatsByUserId } from "@/server/modules/chat/queries/delete-all-chats-by-user-id";
 import { getChatsByUserId } from "@/server/modules/chat/queries/get-chats-by-user-id";
@@ -25,6 +26,8 @@ export async function GET(request: NextRequest) {
     return new ChatSDKError("unauthorized:chat").toResponse();
   }
 
+  recordLegacyHit("GET /api/history");
+
   try {
     const chats = await getChatsByUserId({
       id: session.user.id,
@@ -45,6 +48,8 @@ export async function DELETE() {
   if (!session?.user) {
     return new ChatSDKError("unauthorized:chat").toResponse();
   }
+
+  recordLegacyHit("DELETE /api/history");
 
   try {
     const result = await deleteAllChatsByUserId({ userId: session.user.id });

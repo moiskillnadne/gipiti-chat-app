@@ -5,14 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { User } from "next-auth";
 import { useRef, useState } from "react";
-import { toast } from "sonner";
-import { useSWRConfig } from "swr";
-import { unstable_serialize } from "swr/infinite";
 import { FolderIcon, PlusIcon, TrashIcon } from "@/components/icons";
-import {
-  getChatHistoryPaginationKey,
-  SidebarHistory,
-} from "@/components/sidebar-history";
+import { SidebarHistory } from "@/components/sidebar-history";
 import { SidebarUserNav } from "@/components/sidebar-user-nav";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +19,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useDeleteAllChats } from "@/components/use-delete-all-chats";
 import { useTranslations } from "@/lib/i18n/translate";
 import {
   AlertDialog,
@@ -45,25 +40,17 @@ export function AppSidebar({ user }: { user: User | undefined }) {
   const tPrompts = useTranslations("promptLibrary");
   const router = useRouter();
   const { setOpenMobile } = useSidebar();
-  const { mutate } = useSWRConfig();
+  const deleteAllChats = useDeleteAllChats();
   const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false);
   const deleteAllButtonRef = useRef<HTMLButtonElement>(null);
 
-  const handleDeleteAll = () => {
-    const deletePromise = fetch("/api/history", {
-      method: "DELETE",
-    });
+  const handleDeleteAll = async () => {
+    const areChatsDeleted = await deleteAllChats();
 
-    toast.promise(deletePromise, {
-      loading: t("deletingAllChats"),
-      success: () => {
-        mutate(unstable_serialize(getChatHistoryPaginationKey));
-        router.push("/");
-        setShowDeleteAllDialog(false);
-        return t("deleteAllSuccess");
-      },
-      error: t("deleteAllError"),
-    });
+    if (areChatsDeleted) {
+      router.push("/");
+      setShowDeleteAllDialog(false);
+    }
   };
 
   return (
